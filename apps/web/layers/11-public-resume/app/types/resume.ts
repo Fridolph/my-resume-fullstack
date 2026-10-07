@@ -19,8 +19,37 @@ export type ResumeSectionKey =
   | 'skills'
   | 'evaluations'
 
-/** 区块归属栏位：side = 左侧个人信息栏，main = 右侧内容栏 */
-export type ResumeColumn = 'side' | 'main'
+/** 展示布局模式：通栏 / 左右 / 三栏 */
+export type ResumeLayoutMode = 'single' | 'split' | 'threeColumn'
+
+/** 区块归属栏位：side = 左栏，main = 中栏（主内容），rail = 右栏 */
+export type ResumeSlotKey = 'side' | 'main' | 'rail'
+
+/** split 模式下固定栏的位置 */
+export type ResumeSplitSide = 'left' | 'right'
+
+/** 布局配置：模式与其开关（与 `sections` 分离，切布局不丢区块编排） */
+export interface ResumeLayoutConfig {
+  mode: ResumeLayoutMode
+  /** split：固定栏在左还是右 */
+  splitSide: ResumeSplitSide
+  stickySide: boolean
+  /** side 栏宽度档位（280px / 360px） */
+  sideWidth: 'compact' | 'wide'
+}
+
+/**
+ * 区块编排：拖拽排序与管理员配置的落点。
+ *
+ * - `order`：全局阅读顺序（同栏拖拽改这里）
+ * - `slot`：覆盖注册表里的默认归属（跨栏拖拽改这里）
+ * - `hidden`：整体隐藏
+ */
+export interface ResumeSectionsConfig {
+  order: ResumeSectionKey[]
+  slot: Partial<Record<ResumeSectionKey, ResumeSlotKey>>
+  hidden: ResumeSectionKey[]
+}
 
 /** 基本信息里的联系方式条目（由展示选项决定是否出现） */
 export interface ResumeContactItem {
@@ -115,17 +144,37 @@ export interface ResumeThemeConfig {
 }
 
 /** 展示布局配置（admin 生成、web 只读渲染） */
+export type ResumeBackgroundType = 'plain' | 'texture' | 'image'
+
+/** 背景图（本轮仅建模：上传与存储另立任务） */
+export interface ResumeBackgroundImage {
+  url: string
+  fit: 'cover' | 'contain'
+  /** 遮罩强度 0~100，保证任何背景下卡片与正文可读 */
+  overlay: number
+  /** 模糊 0~20px */
+  blur: number
+}
+
+export interface ResumeBackgroundConfig {
+  type: ResumeBackgroundType
+  /** plain / texture 时使用的预设 id */
+  textureId: string
+  image: ResumeBackgroundImage
+}
+
+/**
+ * 展示配置总成（对外只有这一个入口对象）。
+ *
+ * 拆成四块，各自可独立演进：布局（怎么排）、区块（排什么）、主题（什么风格）、背景（衬什么底）。
+ * admin 侧将来生成同一个形状，web 侧只渲染 —— 契约一致即可长期同构。
+ */
 export interface ResumeDisplayConfig {
-  /** 区块顺序；未列出的区块按注册表默认顺序追加 */
-  order: ResumeSectionKey[]
-  /** 隐藏的区块 */
-  hidden: ResumeSectionKey[]
-  /** 左侧栏是否粘性跟随 */
-  stickySidebar: boolean
-  /** 左侧栏宽度档位 */
-  sidebarWidth: 'compact' | 'wide'
+  layout: ResumeLayoutConfig
+  sections: ResumeSectionsConfig
   options: ResumeDisplayOptions
   theme: ResumeThemeConfig
+  background: ResumeBackgroundConfig
 }
 
 /**
@@ -138,4 +187,14 @@ export interface ResumeSectionProps {
   content: ResumeContent
   options: ResumeDisplayOptions
   theme: ResumeThemeConfig
+}
+
+/** 背景纹理预设（纯 CSS / SVG data-URI，不引入依赖） */
+export interface ResumeBackgroundPreset {
+  id: string
+  label: string
+  /** 可直接用于 CSS `background` 的值；`plain` 预设为空串 */
+  css: string
+  /** CSS `background-size` */
+  size: string
 }
