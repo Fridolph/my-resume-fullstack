@@ -8,6 +8,7 @@ import type {
   ResumeSlotKey,
 } from '../../types/resume'
 import { getSectionDefinition, resumeSectionDefinitions } from '../../config/resume-sections'
+import { useResumeActiveSection } from '../../composables/useResumeActiveSection'
 import { useResumeDisplay } from '../../composables/useResumeDisplay'
 import ResumeBackgroundLayer from './ResumeBackgroundLayer.vue'
 import ResumeColumn from './ResumeColumn.vue'
@@ -29,6 +30,7 @@ const props = defineProps<{
 const emit = defineEmits<{ hide: [key: ResumeSectionKey]; edit: [key: ResumeSectionKey] }>()
 
 const { applyDragResult } = useResumeDisplay()
+const { observe, stop: stopActiveSection } = useResumeActiveSection()
 const containerRef = useTemplateRef<HTMLElement>('containerRef')
 
 /** 区块归属：配置覆盖 > 注册表默认 */
@@ -178,10 +180,27 @@ async function initSortables() {
   }
 }
 
+// 正文当前区块（供页面头部显示模块名）
+function observeActiveSection() {
+  observe(containerRef.value, columns.value.main)
+}
+
 onMounted(() => {
   void initSortables()
+  observeActiveSection()
 })
-onBeforeUnmount(destroySortables)
+
+onBeforeUnmount(() => {
+  destroySortables()
+  stopActiveSection()
+})
+
+watch(
+  () => columns.value.main,
+  () => {
+    void nextTick(observeActiveSection)
+  },
+)
 
 // 编辑态、布局模式或区块集合变化后，DOM 结构变了，需要重建实例
 watch(

@@ -163,6 +163,18 @@ export interface ResumeBackgroundConfig {
   image: ResumeBackgroundImage
 }
 
+/** 页面品牌区（未配置的字段回退预设：姓名 / 定位 / 姓名首字） */
+export interface ResumeBrandConfig {
+  /** 文字标记；留空取姓名首字 */
+  logoText?: string
+  /** 图片 logo（本轮只建模，上传后置） */
+  logoUrl?: string
+  /** 标题；留空取 `profile.name` */
+  title?: string
+  /** 描述；留空取 `profile.headline` */
+  description?: string
+}
+
 /**
  * 展示配置总成（对外只有这一个入口对象）。
  *
@@ -170,6 +182,7 @@ export interface ResumeBackgroundConfig {
  * admin 侧将来生成同一个形状，web 侧只渲染 —— 契约一致即可长期同构。
  */
 export interface ResumeDisplayConfig {
+  brand: ResumeBrandConfig
   layout: ResumeLayoutConfig
   sections: ResumeSectionsConfig
   options: ResumeDisplayOptions

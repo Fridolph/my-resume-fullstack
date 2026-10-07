@@ -56,6 +56,8 @@ export const resumeBackgroundPresets: ResumeBackgroundPreset[] = [
  * 或改 `background.textureId` / `theme`，页面应立即跟着变。
  */
 export const resumeDisplayMock: ResumeDisplayConfig = {
+  // 留空即走预设（姓名 / 定位 / 姓名首字）
+  brand: {},
   layout: {
     mode: 'split',
     splitSide: 'left',
