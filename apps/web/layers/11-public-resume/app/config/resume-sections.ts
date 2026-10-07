@@ -1,6 +1,6 @@
 import type { Component } from 'vue'
 
-import type { ResumeColumn, ResumeSectionKey } from '../types/resume'
+import type { ResumeSectionKey, ResumeSlotKey } from '../types/resume'
 
 import ResumeEducationSection from '../components/resume/ResumeEducationSection.vue'
 import ResumeEvaluationsSection from '../components/resume/ResumeEvaluationsSection.vue'
@@ -15,7 +15,8 @@ export interface ResumeSectionDefinition {
   key: ResumeSectionKey
   label: string
   icon: string
-  column: ResumeColumn
+  /** 默认归属栏位（配置里的 `sections.slot` 可覆盖它） */
+  defaultSlot: ResumeSlotKey
   /** 默认顺序（配置未列出该 key 时用它兜底） */
   defaultOrder: number
 }
@@ -27,13 +28,14 @@ export interface ResumeSectionDefinition {
  * 具体契约见 `ResumeSectionProps`（`components/resume/ResumeSectionCard.vue` 的 props 说明）。
  */
 export const resumeSectionDefinitions: ResumeSectionDefinition[] = [
-  { key: 'profile', label: '基本信息', icon: 'i-lucide-user-round', column: 'side', defaultOrder: 0 },
-  { key: 'highlights', label: '核心竞争力', icon: 'i-lucide-sparkles', column: 'main', defaultOrder: 1 },
-  { key: 'education', label: '教育经历', icon: 'i-lucide-graduation-cap', column: 'main', defaultOrder: 2 },
-  { key: 'experience', label: '工作经历', icon: 'i-lucide-briefcase-business', column: 'main', defaultOrder: 3 },
-  { key: 'projects', label: '核心项目经历', icon: 'i-lucide-folder-code', column: 'main', defaultOrder: 4 },
-  { key: 'skills', label: '专业技能', icon: 'i-lucide-wrench', column: 'main', defaultOrder: 5 },
-  { key: 'evaluations', label: '自我评价', icon: 'i-lucide-quote', column: 'main', defaultOrder: 6 },
+  { key: 'profile', label: '基本信息', icon: 'i-lucide-user-round', defaultSlot: 'side', defaultOrder: 0 },
+  { key: 'highlights', label: '核心竞争力', icon: 'i-lucide-sparkles', defaultSlot: 'main', defaultOrder: 1 },
+  { key: 'education', label: '教育经历', icon: 'i-lucide-graduation-cap', defaultSlot: 'main', defaultOrder: 2 },
+  { key: 'experience', label: '工作经历', icon: 'i-lucide-briefcase-business', defaultSlot: 'main', defaultOrder: 3 },
+  { key: 'projects', label: '核心项目经历', icon: 'i-lucide-folder-code', defaultSlot: 'main', defaultOrder: 4 },
+  { key: 'skills', label: '专业技能', icon: 'i-lucide-wrench', defaultSlot: 'main', defaultOrder: 5 },
+  // 三栏模式才用得上右栏；单栏 / 左右模式下 rail 会并入中栏
+  { key: 'evaluations', label: '自我评价', icon: 'i-lucide-quote', defaultSlot: 'rail', defaultOrder: 6 },
 ]
 
 export const resumeSectionComponents: Record<ResumeSectionKey, Component> = {
