@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`self-tested`
+- 状态：`review-ready`
 - Owner：`昇哥选定方案 B（Nuxt 官方 #layers/<name>）与范围（web + admin 一起）、并决定先本地合入 dev 再开分支`
 - 创建日期：`2026-10-07`
 - 关联：`Issue #14`、`DAO-007` / `DAO-008`（展示域与风格维度，均已合入 dev）、`docs/dev/layers.md` §6、Nuxt 4.5 自动生成的 layer 别名
@@ -16,6 +16,7 @@
 | `planned -> designed`     | 用 `.nuxt/tsconfig.json` 核实 `~`/`@` 均指向 `app/`（非 layer）、`#layers/<name>` 已由 Nuxt 自动生成；实测自定义 alias 亦可行，`@` 无法按 layer 解析的原因已确认 | 归枢记录 | 2026-10-07 |
 | `designed -> in-progress` | Owner 选定方案 B（不引入自定义别名）+ 范围 web&admin；`feat/13` 先本地 squash 合入 dev（`bdcf584`），再从 dev 开 `feat/14-layers-alias` | Owner 确认 | 2026-10-07 |
 | `in-progress -> self-tested` | 64 处替换完成（web 57 / admin 7），两端 typecheck、oxlint、SSR 抓页全部通过 | 归枢记录 | 2026-10-07 |
+| `self-tested -> review-ready` | 交接包齐全；三个提交（fix / refactor / docs）本地 squash 合入 dev（`0496c4e`），未推远端 | 归枢记录 | 2026-10-07 |
 
 ## Grill：开工前对齐
 
@@ -58,18 +59,18 @@
 ## 交接
 
 - 已完成：`docs/dev/layers.md` 补 §6「路径别名与 import 约定」（含 `@` 不能按 layer 解析的原因）；web 57 处 + admin 7 处替换；admin 3 处 sortable 类型回归修复；`docs/dev/README.md` 索引更新。
-- 当前状态：`self-tested`（代码与验证完成，待提交后到 `review-ready`）
+- 当前状态：`review-ready`（已合入 dev，等 Owner 判 `done`）
 - 阻塞：无。
-- 下一步第一刀：提交（fix / refactor / docs 三个提交）并合回 `dev`，回填 Issue #14；之后推进 `DAO-008` 遗留的 UI 目视（与 P2 的 `cool` 一起）。
+- 下一步第一刀：本卡无下一步（已集成）。若要继续推进，回到 `DAO-008` 遗留的 UI 目视（与 P2 的 `cool` 一起），或 `DAO-005` 的 alova 迁移收尾。
 - 文档锚点：`Issue #14`、`docs/dev/layers.md` §6
-- 集成锚点：`待 feat/14-* -> dev`
+- 集成锚点：`已集成（0496c4e，本地 squash 合入 dev，未推远端）`
 
 ## 收口与沉淀
 
 - `dao-review` 结论：`未执行`
 - 最终验证证据：`见上表（两端 typecheck / oxlint / SSR 抓页）`
-- Git / PR：`待补`
-- 常规提交：`待补`
+- Git / PR：`本地 squash，无 PR：0496c4e`
+- 常规提交：`a4a5666（fix）/ 85d572b（refactor）/ d85d02b（docs）`
 - Dao Commit：`不适用`
 - 沉淀候选：`候选观察` —— 「alias 方案要按『能否表达自身语义』选：Nuxt 的 `@`/`~` 是全局扁平表，无法表达『layer 内指向自身』；官方 `#layers/<name>` 才是正确机制」。这条与框架无关的教训（任何 bundler 的 alias 都是扁平表）可能在 React 版需要重新踩一次（Vite alias / tsconfig paths 同样限制），值得观察。
 - 收口备注：本次顺带暴露一个**跨 app 的隐性耦合**——一个 app 新增 devDependency 的类型包会被 pnpm 提升，从而改变另一个 app 的类型检查结果。以后在 web 加 `@types/*` 时，要注意 admin 是否也会被波及。
