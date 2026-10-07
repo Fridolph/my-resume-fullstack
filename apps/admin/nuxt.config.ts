@@ -2,7 +2,7 @@ import { defineNuxtConfig } from "nuxt/config";
 
 export default defineNuxtConfig({
   srcDir: "app",
-  modules: ["@nuxt/ui"],
+  modules: ["@nuxt/ui", "@pinia/nuxt", "@pinia/colada-nuxt"],
   css: ["~/assets/css/main.css"],
   devtools: { enabled: true },
   runtimeConfig: {

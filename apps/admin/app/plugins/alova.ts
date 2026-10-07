@@ -1,18 +1,20 @@
 import type { AlovaXHRResponse } from '@alova/adapter-xhr'
-import type { ApiErrorResponse } from '~/types/api'
 import { xhrRequestAdapter } from '@alova/adapter-xhr'
 import { createAlova } from 'alova'
 import NuxtHook from 'alova/nuxt'
 
+/** 上传响应的宽松形状：后端 upload 接口尚未定稿，只做最小假设（对齐 packages/common 字段名） */
+type UploadResponsePayload = { success?: boolean; message?: string; data?: unknown }
+
 /**
- * 上传专用 Alova 实例（参考 greensketch 的 app/plugins/alova.ts 精简）。
+ * 上传专用 Alova 实例（模板遗留，待迁移到 XHR + colada mutation）。
  *
  * - 用 XHR 适配器而非 fetch，才能拿到 `onUpload` 进度并配合 `abort()`。
  * - 上传不可复用进行中的请求，否则进度/取消会对错文件。
- * - 响应按 { code, msg, data } 解包：HTTP 2xx 且业务码 200 才返回 data。
+ * - 响应按 `{ success, data, message }`（packages/common）解包。
  *
- * admin 模板暂无鉴权/分区 host，仅保留 baseURL + 业务码解包；接入真实后端时，
- * 参考 greensketch 在 `beforeRequest` 里补 token / 语言 / 分区 host。
+ * 迁移计划见 docs/dev/data-layer.md 第 5、6 节：数据层统一到 `@pinia/colada` 后，
+ * 本插件与 `apis/files.ts`、`useFileUploader` 一并替换为原生 XHR + colada mutation。
  */
 export default defineNuxtPlugin(() => {
   const apiBase = String(useRuntimeConfig().public.apiBase || '').replace(/\/$/, '')
@@ -33,28 +35,27 @@ export default defineNuxtPlugin(() => {
     },
     responded: {
       async onSuccess(response: AlovaXHRResponse) {
-        let payload = {} as ApiErrorResponse & { data?: unknown }
+        let payload = {} as UploadResponsePayload
         const raw = response.data
         // XHR 上传常见响应是字符串，需要先 parse；对象则直接当业务包
         if (typeof raw === 'string') {
           try {
-            payload = JSON.parse(raw || '{}') as ApiErrorResponse & { data?: unknown }
+            payload = JSON.parse(raw || '{}') as UploadResponsePayload
           }
           catch {
             throw new Error('Upload failed')
           }
         }
         else {
-          payload = (raw ?? {}) as ApiErrorResponse
+          payload = (raw ?? {}) as UploadResponsePayload
         }
 
-        const code = Number(payload.code)
         const httpOk = response.status >= 200 && response.status < 300
-        if (httpOk && code === 200) {
+        if (httpOk && payload.success === true) {
           return payload.data
         }
 
-        throw new Error(payload.msg || 'Request failed')
+        throw new Error(payload.message || 'Request failed')
       },
       onError(error) {
         throw error

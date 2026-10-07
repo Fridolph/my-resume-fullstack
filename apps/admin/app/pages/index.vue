@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { queryKeys } from "~/lib/query-keys";
+
 definePageMeta({
   layout: "has-sidebar",
   title: "Dashboard",
@@ -48,6 +50,44 @@ const recentActivity = [
     icon: "i-lucide-message-square-more",
   },
 ];
+
+/**
+ * 数据层自检：colada query 打真实后端接口（/api/health）。
+ * 换后端或加鉴权后，这里用来观察请求层 + 缓存层是否仍然成立。
+ */
+const queryCache = useQueryCache();
+const { data: health, error: healthError, asyncStatus: healthStatus } = useHealthQuery();
+
+const isHealthLoading = computed(() => healthStatus.value === "loading");
+const healthTone = computed(() =>
+  healthError.value ? "text-error" : isHealthLoading.value ? "text-muted" : "text-success",
+);
+const healthIcon = computed(() =>
+  healthError.value
+    ? "i-lucide-triangle-alert"
+    : isHealthLoading.value
+      ? "i-lucide-loader-circle"
+      : "i-lucide-plug-zap",
+);
+const healthSummary = computed(() => {
+  if (isHealthLoading.value) {
+    return "Checking backend…";
+  }
+  if (healthError.value) {
+    return getApiErrorMessage(healthError.value, "Backend unreachable");
+  }
+  return health.value
+    ? `${health.value.service} online · uptime ${Math.round(health.value.uptime)}s`
+    : "Waiting for first check";
+});
+const healthRaw = computed(() =>
+  health.value ? JSON.stringify(health.value) : healthError.value ? String(healthError.value) : "—",
+);
+
+/** 失效重取：演示 colada 的缓存失效与重新取数 */
+function recheckHealth() {
+  void queryCache.invalidateQueries({ key: queryKeys.health() });
+}
 </script>
 
 <template>
@@ -86,9 +126,9 @@ const recentActivity = [
       <UCard :ui="{ header: 'flex items-center justify-between gap-4', body: 'p-0 sm:p-0' }">
         <template #header>
           <div>
-            <h3 class="font-semibold text-highlighted">Workspace overview</h3>
+            <h3 class="font-semibold text-highlighted">Infrastructure check</h3>
             <p class="mt-1 text-sm text-muted">
-              A slot for charts, tables, or your primary workflow.
+              Pinia Colada query hitting the real API; invalidate to refetch.
             </p>
           </div>
           <UButton label="View report" color="neutral" variant="outline" size="sm" />
@@ -96,12 +136,23 @@ const recentActivity = [
         <div
           class="grid min-h-72 place-items-center bg-linear-to-br from-primary/5 via-default to-info/5 p-6"
         >
-          <div class="text-center">
-            <UIcon name="i-lucide-chart-no-axes-combined" class="mx-auto size-10 text-primary/70" />
-            <p class="mt-3 text-sm font-medium text-highlighted">Primary content slot</p>
-            <p class="mt-1 max-w-xs text-sm text-muted">
-              Replace this placeholder with the first domain module.
-            </p>
+          <div class="w-full max-w-md space-y-3">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <UIcon :name="healthIcon" class="size-5" :class="healthTone" />
+                <p class="text-sm font-medium text-highlighted">Backend /api/health</p>
+              </div>
+              <UButton
+                label="Invalidate &amp; refetch"
+                size="xs"
+                color="neutral"
+                variant="outline"
+                :loading="isHealthLoading"
+                @click="recheckHealth"
+              />
+            </div>
+            <p class="text-sm text-muted">{{ healthSummary }}</p>
+            <p class="break-all font-mono text-xs text-dimmed">{{ healthRaw }}</p>
           </div>
         </div>
       </UCard>

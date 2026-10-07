@@ -1,13 +1,8 @@
-/** 后端统一响应格式（alova 插件会自动解包 data 字段） */
-export interface ApiResponse<T = unknown> {
-  code: number
-  msg: string
-  data: T
-}
-
-/** API 错误响应结构 */
-export interface ApiErrorResponse {
-  code: number
-  msg: string
-  data?: unknown
-}
+/**
+ * 后端统一响应契约的唯一来源：`packages/common`。
+ *
+ * 约定：`{ success, data, message, timestamp }`，失败时额外带 `statusCode` / `path`。
+ * 请求层（`plugins/httpRequest.ts`）负责把 `data` 解包出来，
+ * 业务代码与 colada query 函数只见到 `data`，不直接处理这层包装。
+ */
+export type { ApiErrorBody, ApiResponse } from '@template/common'
