@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
-import { Headings } from '../contants'
+import { Headings } from '~/components/TextEditor/contants'
 
 const props = defineProps<{
   editor: Editor

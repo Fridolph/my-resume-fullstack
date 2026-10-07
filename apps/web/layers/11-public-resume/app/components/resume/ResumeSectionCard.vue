@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeStyleId } from '../../types/resume'
+import type { ResumeStyleId } from '#layers/public-resume/app/types/resume'
 
 /**
  * 区块外壳：统一「标题行 + 卡片表面」。

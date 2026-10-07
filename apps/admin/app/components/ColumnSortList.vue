@@ -3,6 +3,15 @@ import type { ColumnDraftItem } from '~/types/column-sort'
 import { moveArrayElement, useSortable } from '@vueuse/integrations/useSortable'
 
 /**
+ * 拖拽事件类型。
+ *
+ * 从 `moveArrayElement` 的参数推导，而不是直接 `import type ... from 'sortablejs'`：
+ * app 没有声明 `@types/sortablejs`，直接 import 会报 TS7016；
+ * 走 vueuse 的声明则能解析到提升目录里的类型。
+ */
+type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>
+
+/**
  * ColumnSortList —— 可拖拽排序 + 显隐勾选的列表（参考 greensketch 同名组件）。
  * `v-model` 绑定 `ColumnDraftItem[]`，拖拽后数组顺序同步更新。
  */
@@ -19,8 +28,8 @@ const { start } = useSortable(listRef, items, {
   fallbackOnBody: true,
   fallbackTolerance: 3,
   filter: 'input, textarea, select, option',
-  onUpdate: (e: { oldIndex: number, newIndex: number }) => {
-    moveArrayElement(items, e.oldIndex, e.newIndex, e)
+  onUpdate: (e: SortableEvent) => {
+    moveArrayElement(items, e.oldIndex ?? 0, e.newIndex ?? 0, e)
   },
 } as any)
 

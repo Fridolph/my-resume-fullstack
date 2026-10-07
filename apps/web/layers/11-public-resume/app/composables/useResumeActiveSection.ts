@@ -1,4 +1,4 @@
-import type { ResumeSectionKey } from '../types/resume'
+import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
 
 /**
  * 当前正在阅读的区块（用于把模块名显示到页面头部）。

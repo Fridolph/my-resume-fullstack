@@ -9,7 +9,7 @@
 | [nuxt-naming-and-pitfalls.md](./nuxt-naming-and-pitfalls.md) | Nuxt 布局/组件命名规则、三个高频坑、统一验证流程 |
 | [admin-ui-patterns.md](./admin-ui-patterns.md) | admin 布局、导航、二级侧栏、用户下拉、占位页的统一模板 |
 | [css-conventions.md](./css-conventions.md) | CSS/Tailwind 基础约定：响应式封顶 1920、间距、BEM、content-pad |
-| [layers.md](./layers.md) | Nuxt Layers 分层约定：依赖方向、layer 划分、公共组件 vs 共享层 |
+| [layers.md](./layers.md) | Nuxt Layers 分层约定：依赖方向、layer 划分、公共组件 vs 共享层、路径别名与 import 约定 |
 | [data-layer.md](./data-layer.md) | 数据层约定：`$request` 请求层、Pinia Colada 缓存层、query key 与失效策略 |
 | [workflow.md](./workflow.md) | 开发流程：分支模型、Issue 驱动、提交规范、质量门与发布 |
 | [resume-display-architecture.md](./resume-display-architecture.md) | 简历展示页架构：布局模式、主题/背景模型、组件拆分与编辑模式分期 |

@@ -1,14 +1,14 @@
 import type { Component } from 'vue'
 
-import type { ResumeSectionKey, ResumeSlotKey } from '../types/resume'
+import type { ResumeSectionKey, ResumeSlotKey } from '#layers/public-resume/app/types/resume'
 
-import ResumeEducationSection from '../components/resume/ResumeEducationSection.vue'
-import ResumeEvaluationsSection from '../components/resume/ResumeEvaluationsSection.vue'
-import ResumeExperienceSection from '../components/resume/ResumeExperienceSection.vue'
-import ResumeHeroCard from '../components/resume/ResumeHeroCard.vue'
-import ResumeHighlightsSection from '../components/resume/ResumeHighlightsSection.vue'
-import ResumeProjectsSection from '../components/resume/ResumeProjectsSection.vue'
-import ResumeSkillsSection from '../components/resume/ResumeSkillsSection.vue'
+import ResumeEducationSection from '#layers/public-resume/app/components/resume/ResumeEducationSection.vue'
+import ResumeEvaluationsSection from '#layers/public-resume/app/components/resume/ResumeEvaluationsSection.vue'
+import ResumeExperienceSection from '#layers/public-resume/app/components/resume/ResumeExperienceSection.vue'
+import ResumeHeroCard from '#layers/public-resume/app/components/resume/ResumeHeroCard.vue'
+import ResumeHighlightsSection from '#layers/public-resume/app/components/resume/ResumeHighlightsSection.vue'
+import ResumeProjectsSection from '#layers/public-resume/app/components/resume/ResumeProjectsSection.vue'
+import ResumeSkillsSection from '#layers/public-resume/app/components/resume/ResumeSkillsSection.vue'
 
 /** 区块定义：决定它叫什么、放哪一栏、默认第几个出现 */
 export interface ResumeSectionDefinition {

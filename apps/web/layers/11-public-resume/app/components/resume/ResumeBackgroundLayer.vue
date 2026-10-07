@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ResumeBackgroundConfig } from '../../types/resume'
-import { resumeBackgroundPresets } from '../../mock/resume-display'
+import type { ResumeBackgroundConfig } from '#layers/public-resume/app/types/resume'
+import { resumeBackgroundPresets } from '#layers/public-resume/app/mock/resume-display'
 
 /**
  * 背景层：位于所有卡片之下。

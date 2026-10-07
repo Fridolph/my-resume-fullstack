@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useResumeDisplay } from '../../composables/useResumeDisplay'
+import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
 import ResumeSettingsPanel from './ResumeSettingsPanel.vue'
 
 /**

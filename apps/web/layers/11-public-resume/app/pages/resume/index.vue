@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import ResumeLoginButton from '../../components/resume/ResumeLoginButton.vue'
-import ResumePageContainer from '../../components/resume/ResumePageContainer.vue'
-import ResumePageHeader from '../../components/resume/ResumePageHeader.vue'
-import ResumeSectionEditorDrawer from '../../components/resume/ResumeSectionEditorDrawer.vue'
-import ResumeSettingsDrawer from '../../components/resume/ResumeSettingsDrawer.vue'
-import { getSectionDefinition } from '../../config/resume-sections'
-import { useResumeActiveSection } from '../../composables/useResumeActiveSection'
-import { useResumeAdmin } from '../../composables/useResumeAdmin'
-import { useResumeContent } from '../../composables/useResumeContent'
-import { useResumeDisplay } from '../../composables/useResumeDisplay'
-import type { ResumeSectionKey } from '../../types/resume'
+import ResumeLoginButton from '#layers/public-resume/app/components/resume/ResumeLoginButton.vue'
+import ResumePageContainer from '#layers/public-resume/app/components/resume/ResumePageContainer.vue'
+import ResumePageHeader from '#layers/public-resume/app/components/resume/ResumePageHeader.vue'
+import ResumeSectionEditorDrawer from '#layers/public-resume/app/components/resume/ResumeSectionEditorDrawer.vue'
+import ResumeSettingsDrawer from '#layers/public-resume/app/components/resume/ResumeSettingsDrawer.vue'
+import { getSectionDefinition } from '#layers/public-resume/app/config/resume-sections'
+import { useResumeActiveSection } from '#layers/public-resume/app/composables/useResumeActiveSection'
+import { useResumeAdmin } from '#layers/public-resume/app/composables/useResumeAdmin'
+import { useResumeContent } from '#layers/public-resume/app/composables/useResumeContent'
+import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
+import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
 
 /**
  * 公开简历页 —— 只做编排。

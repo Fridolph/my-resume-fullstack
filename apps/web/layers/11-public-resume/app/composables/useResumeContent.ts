@@ -1,5 +1,5 @@
-import type { ResumeContent } from '../types/resume'
-import { resumeContentMockZh } from '../mock/resume-content.zh'
+import type { ResumeContent } from '#layers/public-resume/app/types/resume'
+import { resumeContentMockZh } from '#layers/public-resume/app/mock/resume-content.zh'
 
 const STORAGE_KEY = 'my-resume.resume-content'
 

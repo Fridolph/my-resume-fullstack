@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeFieldGroupSchema } from '../../../config/resume-editor-schemas'
+import type { ResumeFieldGroupSchema } from '#layers/public-resume/app/config/resume-editor-schemas'
 import ResumeFieldInput from './ResumeFieldInput.vue'
 
 /**

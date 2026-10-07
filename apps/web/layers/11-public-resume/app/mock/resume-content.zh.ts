@@ -1,4 +1,4 @@
-import type { ResumeContent } from '../types/resume'
+import type { ResumeContent } from '#layers/public-resume/app/types/resume'
 
 /**
  * 头像占位图（内联 SVG data-URI，不引入图片资源）。

@@ -3,6 +3,15 @@ import type { ComponentPublicInstance } from 'vue'
 import { useEventListener, useMounted } from '@vueuse/core'
 import { moveArrayElement, useSortable } from '@vueuse/integrations/useSortable'
 
+/**
+ * 拖拽事件类型。
+ *
+ * 从 `moveArrayElement` 的参数推导，而不是直接 `import type ... from 'sortablejs'`：
+ * app 没有声明 `@types/sortablejs`，直接 import 会报 TS7016；
+ * 走 vueuse 的声明则能解析到提升目录里的类型。
+ */
+type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>
+
 type ScrollAreaExposed = ComponentPublicInstance & { $el: HTMLElement }
 
 /**
@@ -118,8 +127,8 @@ const { start, stop } = useSortable(
         document.body.classList.remove('option-sort-active')
       }
     },
-    onUpdate: (e: { oldIndex: number, newIndex: number }) => {
-      moveArrayElement(items, e.oldIndex, e.newIndex, e)
+    onUpdate: (e: SortableEvent) => {
+      moveArrayElement(items, e.oldIndex ?? 0, e.newIndex ?? 0, e)
       nextTick(updateScrollState)
     },
   } as any,

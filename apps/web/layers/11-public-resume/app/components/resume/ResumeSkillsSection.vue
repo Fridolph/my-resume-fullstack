@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeSectionProps } from '../../types/resume'
+import type { ResumeSectionProps } from '#layers/public-resume/app/types/resume'
 import ResumeSectionCard from './ResumeSectionCard.vue'
 
 /** 专业技能：按能力分组展示标签（可视化图表另立任务） */

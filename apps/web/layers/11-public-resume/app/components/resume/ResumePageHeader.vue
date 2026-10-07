@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeBrandConfig } from '../../types/resume'
+import type { ResumeBrandConfig } from '#layers/public-resume/app/types/resume'
 
 /**
  * 页面头：只排版，不做业务。

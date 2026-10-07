@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
-import { TextFontFamily } from '../contants'
+import { TextFontFamily } from '~/components/TextEditor/contants'
 
 const props = defineProps<{
   editor: Editor

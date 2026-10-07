@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useResumeAdmin } from '../../composables/useResumeAdmin'
+import { useResumeAdmin } from '#layers/public-resume/app/composables/useResumeAdmin'
 
 /**
  * 管理员登录弹窗（**本地 mock**）。

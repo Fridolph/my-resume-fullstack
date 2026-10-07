@@ -6,10 +6,10 @@ import type {
   ResumeDisplayConfig,
   ResumeSectionKey,
   ResumeSlotKey,
-} from '../../types/resume'
-import { getSectionDefinition, resumeSectionDefinitions } from '../../config/resume-sections'
-import { useResumeActiveSection } from '../../composables/useResumeActiveSection'
-import { useResumeDisplay } from '../../composables/useResumeDisplay'
+} from '#layers/public-resume/app/types/resume'
+import { getSectionDefinition, resumeSectionDefinitions } from '#layers/public-resume/app/config/resume-sections'
+import { useResumeActiveSection } from '#layers/public-resume/app/composables/useResumeActiveSection'
+import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
 import ResumeBackgroundLayer from './ResumeBackgroundLayer.vue'
 import ResumeColumn from './ResumeColumn.vue'
 

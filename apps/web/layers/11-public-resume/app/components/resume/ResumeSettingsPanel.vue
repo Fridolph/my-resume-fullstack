@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { ResumeLayoutMode, ResumeSectionKey } from '../../types/resume'
-import { resumeSectionDefinitions } from '../../config/resume-sections'
+import type { ResumeLayoutMode, ResumeSectionKey } from '#layers/public-resume/app/types/resume'
+import { resumeSectionDefinitions } from '#layers/public-resume/app/config/resume-sections'
 import {
   resumeBackgroundPresets,
   resumeStylePresets,
   resumeThemePresets,
-} from '../../mock/resume-display'
-import { useResumeDisplay } from '../../composables/useResumeDisplay'
+} from '#layers/public-resume/app/mock/resume-display'
+import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
 
 /**
  * 展示设置面板：布局 / 主题 / 风格 / 背景 / 区块显隐。

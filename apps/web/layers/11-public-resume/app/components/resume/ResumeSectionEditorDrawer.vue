@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { ResumeSectionKey } from '../../types/resume'
-import { resumeEditorSchemas } from '../../config/resume-editor-schemas'
-import { getSectionDefinition } from '../../config/resume-sections'
-import { useResumeContent } from '../../composables/useResumeContent'
+import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
+import { resumeEditorSchemas } from '#layers/public-resume/app/config/resume-editor-schemas'
+import { getSectionDefinition } from '#layers/public-resume/app/config/resume-sections'
+import { useResumeContent } from '#layers/public-resume/app/composables/useResumeContent'
 import ResumeSchemaForm from './editors/ResumeSchemaForm.vue'
 
 /**

@@ -3,7 +3,7 @@ import type {
   ResumeDisplayConfig,
   ResumeStyleId,
   ResumeThemeConfig,
-} from '../types/resume'
+} from '#layers/public-resume/app/types/resume'
 
 /**
  * 风格预设（本轮两档）。

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeSectionProps } from '../../types/resume'
+import type { ResumeSectionProps } from '#layers/public-resume/app/types/resume'
 
 /**
  * 基本信息卡片（左侧信息栏）。

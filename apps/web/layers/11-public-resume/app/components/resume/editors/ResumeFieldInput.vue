@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeFieldSchema } from '../../../config/resume-editor-schemas'
+import type { ResumeFieldSchema } from '#layers/public-resume/app/config/resume-editor-schemas'
 
 /**
  * 单个字段的输入控件（按 schema 的类型分发）。

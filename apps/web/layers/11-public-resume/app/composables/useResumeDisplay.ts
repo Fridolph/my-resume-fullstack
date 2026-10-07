@@ -7,8 +7,8 @@ import type {
   ResumeSplitSide,
   ResumeStyleId,
   ResumeThemeConfig,
-} from '../types/resume'
-import { resumeDisplayMock } from '../mock/resume-display'
+} from '#layers/public-resume/app/types/resume'
+import { resumeDisplayMock } from '#layers/public-resume/app/mock/resume-display'
 
 const STORAGE_KEY = 'my-resume.display-config'
 

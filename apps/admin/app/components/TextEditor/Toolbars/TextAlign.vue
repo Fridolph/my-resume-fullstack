@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
-import { TextAlign } from '../contants'
+import { TextAlign } from '~/components/TextEditor/contants'
 
 const props = defineProps<{
   editor: Editor

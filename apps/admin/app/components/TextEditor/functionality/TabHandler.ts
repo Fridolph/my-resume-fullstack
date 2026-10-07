@@ -1,5 +1,5 @@
 import { Extension } from '@tiptap/vue-3'
-import { decreaseIndent } from '../utils'
+import { decreaseIndent } from '~/components/TextEditor/utils'
 
 export default Extension.create({
   name: 'tabHandler',

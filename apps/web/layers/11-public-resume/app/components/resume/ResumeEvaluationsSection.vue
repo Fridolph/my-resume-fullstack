@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeSectionProps } from '../../types/resume'
+import type { ResumeSectionProps } from '#layers/public-resume/app/types/resume'
 import ResumeSectionCard from './ResumeSectionCard.vue'
 
 /** 自我评价：列表 + 结尾致谢 */

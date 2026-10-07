@@ -6,8 +6,8 @@ import type {
   ResumeSlotKey,
   ResumeStyleId,
   ResumeThemeConfig,
-} from '../../types/resume'
-import { getSectionDefinition, resumeSectionComponents } from '../../config/resume-sections'
+} from '#layers/public-resume/app/types/resume'
+import { getSectionDefinition, resumeSectionComponents } from '#layers/public-resume/app/config/resume-sections'
 
 /**
  * 单栏：渲染某个栏位里的有序区块列表。

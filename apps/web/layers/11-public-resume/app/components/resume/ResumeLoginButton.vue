@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useResumeAdmin } from '../../composables/useResumeAdmin'
+import { useResumeAdmin } from '#layers/public-resume/app/composables/useResumeAdmin'
 import ResumeAdminLoginModal from './ResumeAdminLoginModal.vue'
 
 /**

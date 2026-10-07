@@ -1,4 +1,4 @@
-import type { ResumeSectionKey } from '../types/resume'
+import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
 
 /**
  * 区块编辑 schema。
