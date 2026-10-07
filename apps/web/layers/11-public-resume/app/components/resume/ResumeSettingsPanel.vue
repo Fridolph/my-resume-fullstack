@@ -12,7 +12,6 @@ import { useResumeDisplay } from '../../composables/useResumeDisplay'
  */
 const {
   config,
-  isDirty,
   setLayoutMode,
   setSplitSide,
   toggleStickySide,
@@ -22,8 +21,6 @@ const {
   setBackgroundType,
   setBackgroundImage,
   toggleSection,
-  reset,
-  saveLocal,
 } = useResumeDisplay()
 
 const layoutModes: { value: ResumeLayoutMode, label: string, icon: string }[] = [
@@ -38,10 +35,7 @@ function isHidden(key: ResumeSectionKey) {
 </script>
 
 <template>
-  <div
-    class="mx-auto w-full max-w-6xl space-y-4 px-4 pb-4 sm:px-6"
-    :style="{ color: 'var(--resume-text, #0f172a)' }"
-  >
+  <div class="space-y-6" :style="{ color: 'var(--resume-text, #0f172a)' }">
     <div class="grid gap-4 lg:grid-cols-3">
       <!-- 布局 -->
       <section class="space-y-2">
@@ -181,11 +175,5 @@ function isHidden(key: ResumeSectionKey) {
         />
       </div>
     </section>
-
-    <div class="flex items-center gap-2 border-t pt-3" :style="{ borderColor: 'var(--resume-border, #e2e8f0)' }">
-      <UButton size="xs" icon="i-lucide-save" label="保存到本地" @click="saveLocal" />
-      <UButton size="xs" color="neutral" variant="ghost" label="重置" @click="reset" />
-      <span v-if="isDirty" class="text-xs" :style="{ color: 'var(--resume-muted, #64748b)' }">有未保存的改动</span>
-    </div>
   </div>
 </template>

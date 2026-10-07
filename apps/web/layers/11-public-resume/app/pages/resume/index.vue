@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import ResumeAdminLoginModal from '../../components/resume/ResumeAdminLoginModal.vue'
+import ResumeLoginButton from '../../components/resume/ResumeLoginButton.vue'
 import ResumePageContainer from '../../components/resume/ResumePageContainer.vue'
 import ResumePageHeader from '../../components/resume/ResumePageHeader.vue'
 import ResumeSectionEditorDrawer from '../../components/resume/ResumeSectionEditorDrawer.vue'
-import ResumeSettingsPanel from '../../components/resume/ResumeSettingsPanel.vue'
-import type { ResumeSectionKey } from '../../types/resume'
+import ResumeSettingsDrawer from '../../components/resume/ResumeSettingsDrawer.vue'
+import { getSectionDefinition } from '../../config/resume-sections'
+import { useResumeActiveSection } from '../../composables/useResumeActiveSection'
 import { useResumeAdmin } from '../../composables/useResumeAdmin'
 import { useResumeContent } from '../../composables/useResumeContent'
 import { useResumeDisplay } from '../../composables/useResumeDisplay'
+import type { ResumeSectionKey } from '../../types/resume'
 
 /**
  * 公开简历页 —— 只做编排。
  *
- * 顶栏（登录 / 编辑操作 + 设置面板）+ 正文容器 + 内容编辑抽屉。
- * 两套状态分工明确：`useResumeDisplay` 管呈现方式，`useResumeContent` 管领域内容。
+ * 头部（品牌 + 滚动模块名 + 操作）· 正文容器 · 两个抽屉（设置 / 内容编辑）。
+ * 操作块本身都在组件里：登录入口自带弹窗，设置自带抽屉，页面只负责开关状态。
  */
 definePageMeta({
   title: '公开简历',
@@ -24,7 +26,6 @@ const {
   settingsOpen,
   editable,
   isDirty: displayDirty,
-  toggleSettings,
   toggleSection,
   saveLocal: saveDisplay,
   reset: resetDisplay,
@@ -40,13 +41,29 @@ const {
   reset: resetContent,
 } = useResumeContent()
 
-const { session, isAdmin, signOut, restore } = useResumeAdmin()
+const { isAdmin, restore } = useResumeAdmin()
+const { activeKey } = useResumeActiveSection()
 
-const loginOpen = ref(false)
 const editorOpen = ref(false)
 const editingKey = ref<ResumeSectionKey | null>(null)
 
 const hasChanges = computed(() => displayDirty.value || contentDirty.value)
+
+/** 品牌：优先用配置，未配置回退预设（姓名首字 / 姓名 / 定位） */
+const brand = computed(() => ({
+  ...config.value.brand,
+  logoText:
+    config.value.brand.logoText
+    || content.value.profile.avatarText
+    || content.value.profile.name.slice(0, 1),
+  title: config.value.brand.title || content.value.profile.name,
+  description: config.value.brand.description ?? content.value.profile.headline,
+}))
+
+/** 头部中区：滚动正文时显示当前模块名 */
+const activeSectionTitle = computed(() =>
+  activeKey.value ? getSectionDefinition(activeKey.value)?.label ?? '' : '',
+)
 
 // 登录态与已保存内容都在客户端恢复：SSR 不渲染编辑态，避免水合不一致
 onMounted(() => {
@@ -75,51 +92,27 @@ function resetAll() {
 
 <template>
   <div>
-    <ResumePageHeader
-      :title="`${content.profile.name} · 简历公开页`"
-      :subtitle="
-        editable
-          ? '编辑模式：拖拽手柄调整顺序与栏位，铅笔编辑内容'
-          : '内容 / 布局 / 主题三分；当前为 mock 数据'
-      "
-    >
+    <ResumePageHeader :brand="brand" :active-section-title="activeSectionTitle">
       <template #actions>
         <template v-if="isAdmin">
-          <UBadge color="success" variant="subtle" :label="`编辑模式 · ${session?.username}`" />
           <UButton v-if="hasChanges" size="xs" color="warning" variant="subtle" label="未保存" />
           <UButton size="xs" icon="i-lucide-save" label="保存" @click="saveAll" />
           <UButton size="xs" color="neutral" variant="ghost" label="重置" @click="resetAll" />
+        </template>
+
+        <ResumeLoginButton />
+
+        <UTooltip text="展示设置">
           <UButton
             size="xs"
             color="neutral"
             variant="outline"
-            icon="i-lucide-log-out"
-            label="退出"
-            @click="signOut"
+            icon="i-lucide-sliders-horizontal"
+            aria-label="展示设置"
+            @click="settingsOpen = true"
           />
-        </template>
-
-        <UButton
-          v-else
-          size="xs"
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-log-in"
-          label="管理员登录"
-          @click="loginOpen = true"
-        />
-
-        <UButton
-          size="xs"
-          color="neutral"
-          :variant="settingsOpen ? 'soft' : 'outline'"
-          :icon="settingsOpen ? 'i-lucide-x' : 'i-lucide-sliders-horizontal'"
-          :label="settingsOpen ? '收起设置' : '展示设置'"
-          @click="toggleSettings"
-        />
+        </UTooltip>
       </template>
-
-      <ResumeSettingsPanel v-if="settingsOpen" />
     </ResumePageHeader>
 
     <ResumePageContainer
@@ -130,7 +123,7 @@ function resetAll() {
       @edit="openEditor"
     />
 
-    <ResumeAdminLoginModal v-model:open="loginOpen" />
+    <ResumeSettingsDrawer v-model:open="settingsOpen" />
     <ResumeSectionEditorDrawer v-model:open="editorOpen" :section-key="editingKey" />
   </div>
 </template>

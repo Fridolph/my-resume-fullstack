@@ -48,6 +48,12 @@ export function useResumeDisplay() {
     config.value.layout.sideWidth = width
   }
 
+  // ── 品牌 ──────────────────────────────────────────────
+  /** 只覆盖传入的字段；留空字段仍走预设 */
+  function setBrand(patch: Partial<ResumeDisplayConfig['brand']>) {
+    config.value.brand = { ...config.value.brand, ...patch }
+  }
+
   // ── 主题 / 背景 ───────────────────────────────────────
   function applyTheme(preset: ResumeThemeConfig) {
     config.value.theme = { ...preset }
@@ -145,7 +151,8 @@ export function useResumeDisplay() {
     setSplitSide,
     toggleStickySide,
     setSideWidth,
-    // 主题 / 背景
+    // 品牌 / 主题 / 背景
+    setBrand,
     applyTheme,
     setBackgroundType,
     setTexture,
