@@ -177,6 +177,34 @@ export interface ResumeBackgroundConfig {
 - **编辑入口仍由容器注入**：`ResumeColumn` 在 `editable` 时多渲染一个铅笔按钮并 emit `edit`，
   区块组件依旧不感知编辑态；抽屉 `ResumeSectionEditorDrawer` 只负责「取 schema → 交给通用表单 → 标脏 / 保存」。
 
+## 6.1 页面外壳（chrome）：头部瘦身与入口栏
+
+头部「重」的根因不是 `ResumePageHeader`（它只有 37 行），而是**编排层**把登录、保存、设置开关、两个弹窗都堆在页面里。
+
+### 第 1 期（已交付，PR #12）
+
+- `ResumeLoginButton`：登录按钮与弹窗合并；`variant: text | icon` —— 第 2 期可直接放进入口栏。
+- `ResumeSettingsDrawer`：设置改由 `UDrawer` 承载，`ResumeSettingsPanel` 退化为**纯内容组件**（无宽度样式、无页脚动作）。
+  好处：头部高度不再随设置开合变化。
+- `ResumeDisplayConfig.brand`：`logoText` / `logoUrl` / `title` / `description`，**未配置回退预设**（姓名首字 / 姓名 / 定位）。
+  解析在页面完成（`brand` computed），`ResumePageHeader` 只排版。
+- `useResumeActiveSection`：`IntersectionObserver` 观察正文栏的 `[data-section-key]`，
+  `rootMargin: '-72px 0px -55% 0px'` 取「当前正在读」的区块；头部中区显示其标题，回到顶部恢复品牌区。
+  只观察 main 栏，符合「主内容模块才参与」的预期。
+
+### 第 2 期（已确认方向，待实施）
+
+把操作入口从头部迁进**收起式左侧窄栏（rail）**：
+
+- **形态**：自定义 `aside`（固定宽 56px）+ `UTooltip` + `UButton`，不使用 `UDashboardSidebar` ——
+  后者属于后台仪表盘体系，会给公开站引入整页布局语义。
+- **可见性**：按登录态分级 —— 未登录只显示访客也用得上的项（主题 / 语言 / 登录）；
+  登录后再出现设置、编辑、AI 等。
+- **契约**：`ResumeChromeAction { key, label, icon, group: 'main' | 'footer', visible?, onSelect }`；
+  暂不与 admin 共享组件（形态与语义不同），但形状保持一致，将来若三处复用再抽到 `packages`。
+- **响应式**：< `lg` 隐藏 rail，改为头部一个「菜单」图标 → 打开 Drawer 呈现**同一份 items**（只有一份配置）。
+- **注意**：正文容器需要 `lg:pl-14` 偏移；rail 默认半透明 + hover 提亮，避免访客误以为进了后台。
+
 ## 7. 与 admin 的关系（本轮不动 admin）
 
 - `ResumeDisplayConfig` 是共享形状；本轮 web 侧扩展（`layout` / `sections` / `theme.mode` / `background`）后，会与 admin 的 `useResumeLayout` **暂时分叉**。

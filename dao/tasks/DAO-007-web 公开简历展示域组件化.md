@@ -70,6 +70,10 @@
 | 意图验 | B 期：SSR 抓未登录 `/resume`                                                                 | 通过；出现「管理员登录」，**无** `data-drag-handle` / 「编辑模式」文案 → SSR 不吐编辑态，水合安全 | 登录后的客户端状态未在 SSR 断言                   |
 | 意图验 | B 期：拖拽落点算法（锚点语义）用 `/tmp` 脚本跑 6 个用例（同栏上移/下移、跨栏、落末尾、原地不动） | 通过；`applyDragResult` 的顺序与归属结果均符合预期（脚本在 /tmp，未进仓库）      | 端到端拖拽需人工在浏览器验证（环境无本地 Playwright 包） |
 | 机器验 | 内容编辑：`pnpm --filter @template/web typecheck`；`oxlint apps/web`                            | 通过；oxlint 0 warning / 0 error（39 files）                                  | 全仓 `format:check` 仍是既有缺口（DAO-006）      |
+| 机器验 | Header 瘦身：`pnpm --filter @template/web typecheck`；`oxlint apps/web`                        | 通过；oxlint 0 warning / 0 error（42 files）                                  | 全仓 `format:check` 仍是既有缺口（DAO-006）      |
+| 结构验 | Header 瘦身：登录入口自带弹窗（`ResumeLoginButton`）；设置改 `ResumeSettingsDrawer` 承载，`ResumeSettingsPanel` 退化为纯内容 | 通过；页面不再出现登录按钮 / 弹窗 / 设置面板本体                                 | 入口栏（rail）属第 2 期                            |
+| 意图验 | Header 瘦身：SSR 抓 `/resume`                                                              | 通过；品牌区回退预设（首字「厉」/ 厉飞雨 / 全栈开发 / 前端方向），操作区只有「管理员登录 + 展示设置」，设置内容不在初始 HTML | 滚动标题联动依赖客户端 IO，需人工验证             |
+| 意图验 | Header 瘦身：临时把 mock 的 `brand` 改成自定义值再抓页                                      | 通过；`LFY` / `自定义标题` / `用配置覆盖的描述` 均生效（改完已还原）            | —                                                  |
 | 结构验 | 内容编辑：区块编辑 schema 与展示注册表分离（`config/resume-editor-schemas.ts`）；区块组件未改动 | 通过；新增区块只有三处：展示组件 / 展示注册表 / 编辑 schema                      | 富文本与字段级校验未纳入                          |
 | 意图验 | 内容编辑：`/tmp` 脚本验证字段路径读写与列表操作（嵌套路径、根级数组、列表上移 / 越界不动）      | 通过；共 9 项断言全部通过                                                        | 端到端表单交互需人工验证                          |
 | 意图验 | 内容编辑：SSR 抓未登录 `/resume`                                                              | 通过；只有「管理员登录」，无编辑入口图标（pencil / grip / eye-off）与「编辑模式」→ 水合安全 | 登录后表单行为未在 SSR 断言                       |
@@ -79,7 +83,7 @@
 - 已完成：阶段一（类型 / 注册表 / mock / 区块组件 / 页面初版，随 PR #4 合入 dev）；阶段二（薄页面编排、组件拆分、三种布局、纹理背景层）；B 期（mock 登录、编辑模式、跨栏拖拽、保存）；内容编辑（`useResumeContent` + schema 驱动表单 + 编辑抽屉，随 PR #10 合入 dev）。
 - 当前状态：`in-progress`（web 侧展示与交互主体已具备；C 期待后端 auth 就绪）
 - 阻塞：无。
-- 下一步第一刀：C 期 —— 接后端 auth（登录接口 + token + 角色）与提交接口（内容与展示配置各一个 `PUT`），把 mock 登录与 `saveLocal` 换成真实链路。
+- 下一步第一刀：第 2 期「入口栏（rail）」—— 按已确认方向实施：自定义左侧窄栏 + Tooltip、按登录态分级显示、移动端用 Drawer 呈现同一份 items、正文容器 `lg:pl-14` 偏移。之后是 C 期接后端。
 - 文档锚点：`Issue #3`、`docs/dev/layers.md`、`docs/dev/data-layer.md`
 - 集成锚点：`待 feat/3-* -> dev`
 
