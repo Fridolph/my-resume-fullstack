@@ -1,0 +1,35 @@
+{
+  "name": "fullstack-template",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reusable Turbo + pnpm full-stack template",
+  "scripts": {
+    "dev": "pnpm --filter @template/common build && turbo run dev",
+    "build": "turbo run build",
+    "build:fresh": "turbo run build --force",
+    "typecheck": "turbo run typecheck",
+    "lint": "oxlint .",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "test": "turbo run test",
+    "clean": "rm -rf .turbo apps/*/.nuxt apps/*/.output apps/api/dist packages/*/dist",
+    "release": "standard-version",
+    "release:first": "standard-version --first-release",
+    "release:patch": "standard-version --release-as patch",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "changelog": "standard-version --skip.bump --skip.commit --skip.tag"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.48.0",
+    "oxlint": "^1.63.0",
+    "standard-version": "^9.5.0",
+    "turbo": "^2.9.3",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "packageManager": "pnpm@10.29.2"
+}

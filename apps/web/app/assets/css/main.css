@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  @apply bg-default text-default;
+}

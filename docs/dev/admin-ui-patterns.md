@@ -1,0 +1,233 @@
+# admin 布局与组件统一模板
+
+`apps/admin` 的公共 UI 骨架约定。新增页面/模块时按下面的模式走，保持一致性。
+
+## 1. 布局
+
+| 布局 | 文件 | 用途 |
+|---|---|---|
+| `has-sidebar` | `layouts/has-sidebar.vue` | 后台管理页：左侧可折叠侧栏 + Sticky Header + 可滚动内容 |
+| `empty` | `layouts/empty.vue` | 无边框，页面完全自控 |
+| `demo` | `layouts/demo.vue` | 组件/交互演示页（顶部 Demo 条 + 居中容器） |
+| `docs` | `layouts/docs.vue` | 帮助/说明/版本记录类页面（顶部返回条 + 锚点跳转） |
+
+登录页用 `layout: false`（`AuthSplitLayout` 自带全屏容器）。
+
+## 2. `has-sidebar` 结构
+
+```
+UDashboardGroup (--ui-header-height: 4rem)
+├── AdminSidebar（可折叠，1/2 级导航 + 外部链接 + 底部 AdminUserMenu）
+└── UDashboardPanel
+    ├── #header → AdminHeader（sticky top-0）
+    └── #body → <main class="min-h-full"><slot /></main>
+```
+
+- 页面：`definePageMeta({ layout: "has-sidebar", title: "..." })`。
+- `title` 显示在 Sticky Header；子页面（嵌套路由）的 `title` 会覆盖父页标题。
+- **布局 body 不带 padding**：每个页面自己加 `p-4 sm:p-6`（projects / team / settings 内容区统一此留白，保持一致）。
+- ⚠️ `UDashboardPanel` 的 body 默认主题自带 `sm:p-6`（响应式内边距）：只覆写 `p-0` 不够，必须同时写 `p-0 sm:p-0` 才能彻底去掉，否则桌面端会多一圈内边距、二级侧栏无法贴住主 sidebar。
+
+## 3. 导航配置
+
+### 3.1 主侧栏（`config/admin-navigation.ts`）
+
+```ts
+export const adminNavigation: AdminNavigationItem[] = [
+  { label: "Dashboard", icon: "i-lucide-layout-dashboard", to: "/" },
+  {
+    label: "Projects",
+    icon: "i-lucide-folder-kanban",
+    defaultOpen: true,
+    children: [                       // 二级菜单
+      { label: "All projects", to: "/projects" },
+      { label: "Recently viewed", to: "/projects/recent" },
+    ],
+  },
+];
+```
+
+- 一级菜单：`label + icon + to`。
+- 二级菜单：加 `children`，配合 `defaultOpen` 默认展开。
+- 外部链接：`adminExternalNavigation` 单独一组，`UNavigationMenu` 渲染在侧栏底部。
+- ⚠️ 不要用扁平的 `childList: 'ms-6 ...'` 去覆写二级菜单缩进：`UNavigationMenu` 默认主题已用 **compound variant** 区分「内联展开（`ms-5 border-s`）」与「弹出 popover（无缩进）」，扁平覆写会把 24px 同时打到两种模式。要定制子项样式只改 `childLink` / `childItem`。
+
+### 3.2 二级侧栏（`layers/13-settings/app/config/settings-navigation.ts`）
+
+```ts
+export const settingsNavigation: SettingsNavigationItem[] = [
+  { type: "label", label: "Organization" },           // 分组标题
+  { label: "Company profile", icon: "i-lucide-building-2", to: "/settings/company" },
+];
+```
+
+- `type: "label"` 是分组标题（`UNavigationMenu` 原生支持）。
+- 普通项 `label + icon + to`。
+
+## 4. 二级侧栏布局（Settings 模式）
+
+当一个模块有多个子页面时，用「父页 + 二级左侧 sidebar + `<NuxtPage />`」（Settings 这套已迁入 `layers/13-settings/app/`，`pages/` 指该 layer 内的 `app/pages/`）：
+
+```
+pages/
+├── settings.vue              # 父页：layout "has-sidebar" + 二级侧栏 + <NuxtPage />
+└── settings/
+    ├── index.vue             # /settings 重定向到第一个子页
+    ├── company.vue           # 占位子页
+    └── team.vue              # 占位子页
+```
+
+`settings.vue` 要点：
+
+```vue
+<template>
+  <section class="flex">
+    <aside class="hidden w-60 shrink-0 border-r border-default bg-default lg:block">
+      <!-- 标题 + UNavigationMenu(:items="settingsNavigation") -->
+    </aside>
+    <div class="min-w-0 flex-1 p-4 sm:p-6">
+      <NuxtPage />
+    </div>
+  </section>
+</template>
+```
+
+- 子页面 `definePageMeta({ title: "..." })` 即可，不用重复声明 layout（继承父页）。
+- `/settings` 用 `middleware` 重定向到第一个子页，避免空内容：
+
+```ts
+definePageMeta({
+  middleware(to) {
+    if (!to.redirectedFrom)
+      return navigateTo("/settings/company", { replace: true });
+  },
+});
+```
+
+> 约定：`has-sidebar` 布局 body 不带 padding（`<main class="min-h-full">`），由页面自行控制留白（统一 `p-4 sm:p-6`）。所以 settings 父页**不需要负 margin**——侧栏天然贴边，内容区 `p-4 sm:p-6` 与 projects 保持一致。
+
+## 5. 用户下拉菜单（`AdminUserMenu.vue`）
+
+侧栏底部用户区用 `UDropdownMenu`，mock 数据 + 交互，后续接真实账号。
+
+```ts
+const items = computed<DropdownMenuItem[][]>(() => [
+  [{ type: "label", slot: "user" }],          // 用户信息（自定义 slot）
+  [
+    { label: "My account", icon: "i-lucide-user-round", onSelect: () => toast.add(...) },
+    { label: "Settings", icon: "i-lucide-settings-2", to: "/settings" },
+  ],
+  [
+    { label: "Sign out", icon: "i-lucide-log-out", color: "error",
+      onSelect: () => { toast.add(...); navigateTo("/login") } },
+  ],
+]);
+```
+
+要点：
+- `DropdownMenuItem[][]`：**外层数组的每个内层数组 = 一组**（组间自动分隔线）。
+- `type: "label"` + `slot: "user"` → 用 `<template #user-label>` 自定义该 label 的内容。
+- 触发区是 `UButton`，用 `:avatar="{ text: initials }"` 显示头像，`:square="collapsed"` 处理折叠态。
+- 列表项用 `to` 就是链接，用 `onSelect` 就是动作（toast / navigateTo）。
+
+## 6. 占位页模板
+
+导航里指向但尚未实现的子页面，先建一个占位页，避免 404：
+
+```vue
+<script setup lang="ts">
+definePageMeta({
+  layout: "has-sidebar",
+  title: "Members",
+});
+</script>
+
+<template>
+  <div>
+    <h1 class="text-xl font-semibold tracking-tight text-highlighted">Members</h1>
+    <p class="mt-2 text-sm text-muted">Placeholder — implement here.</p>
+  </div>
+</template>
+```
+
+新增子页面的两步：在 `pages/<module>/` 下加 `.vue` 文件 + 在对应 `*-navigation.ts` 里补一条导航。
+
+## 7. 组件库（Comps 二级菜单）
+
+侧栏的 **Comps** 二级菜单是一个「组件库索引」，像开源项目那样把基础/公共组件与 demo 集中展示，作为快速 AI 开发与标准化开发的参考：
+
+- **组件**：`components/<category>/<Name>.vue`，自动命名 = `<Category><Name>`（如 `components/modal/Confirm.vue` → `ModalConfirm`）。
+- **Demo 页**：`pages/comps/<name>.vue`（layout `has-sidebar` + `content-pad`），每个组件一段用法示例。
+- **导航**：`config/admin-navigation.ts` 的 Comps 项下加 `children`（如 `{ label: "Modal", to: "/comps/modal" }`）。
+- **共享逻辑**：跨组件的 composable 放 `composables/`，纯工具放 `utils/`（如 `utils/cn.ts`）；第三方工具用 `@vueuse/core`。
+
+> 注：路由用 `comps`（`pages/comps/`），不用 `components`——`components` 是 Nuxt 保留目录，会导致路由 404。
+
+当前已落地：
+- 弹窗：`ModalConfirm`（确认）、`ModalDeleteConfirm`（删除确认 + 倒计时防误删）、`ModalResponsive`（响应式 Modal/Drawer）、`ModalForbidden`（无权限提示）。
+- 加载：`LoadersColorSpin`（区域加载，放 `relative` 容器内居中；`size` 控制直径）；骨架屏后续 `LoadersSkeleton`。
+- 引导：`TourSpotlight` / `TourSpotlightStep`（Spotlight 挖洞引导）+ `useSpotlightTour` composable（`/comps/tour`、`/comps/tour-light`）。
+- 权限：`PermissionWrapper`（按权限显隐内容，配合 `usePermission()`；`/comps/permission-wrapper`）。
+- PDF：`PdfPage` / `PdfCover` / `PdfDocument` / `PdfDocVnode`（A4 纸张渲染 + 自动页码）、`PdfCoverSheet`（配置驱动封面）+ `usePdf` / `usePdfExport` composable + `pdf` layout（demo 在 `/demos/pdf-review`；后端导出接口 `apis/pdf.ts`）。
+
+### 组件 demo 核对表
+
+每个组件 demo 落地后打勾（✅ = 已验证可渲染，🚧 = 进行中）：
+
+| 组件 | Demo 页 | 状态 |
+|---|---|---|
+| `ModalConfirm` / `ModalDeleteConfirm` / `ModalResponsive` / `ModalForbidden` | `/comps/modal` | ✅ |
+| `LoadersColorSpin` | `/comps/loaders` | ✅ |
+| `TourSpotlight` / `TourSpotlightStep` | `/comps/tour`、`/comps/tour-light` | ✅ |
+| `PermissionWrapper` | `/comps/permission-wrapper` | ✅ |
+| `PdfPage` / `PdfCover` / `PdfCoverSheet` / `PdfDocVnode` | `/demos/pdf-review` | ✅ |
+| `TextEditor` | `/comps/text-editor` | 🚧 进行中 |
+
+**新增一个 comp demo 的三步核对**：
+
+1. **组件**：`app/components/<category>/<Name>.vue`（PascalCase，自动名 = `<Category><Name>`）；确认模板里用的是最终组件名（看 `.nuxt/types/components.d.ts`）。
+2. **Demo 页**：`layers/20-comps/app/pages/comps/<name>.vue`（`layout: "has-sidebar"` + `content-pad`），跑通 `typecheck` + dev SSR（`grep` 关键节点、无 `Failed to resolve component` / `NUXT_E*`）。
+3. **导航**：`app/config/admin-navigation.ts` 的 Comps `children` 补一条 `{ label, to: "/comps/<name>" }`。
+
+### loading 约定
+
+涉及用户等待 / 接口交互的按钮，统一用 `UButton` 的 loading 态：
+
+```vue
+<UButton label="保存" :loading="saving" @click="save" />   <!-- 手动控制 -->
+<UButton label="提交" loading-auto @click="asyncSubmit" />  <!-- 返回 Promise 自动管理 -->
+```
+
+- 手动：`:loading="ref"`，在异步逻辑里置 true/false。
+- 自动：`loading-auto` + `@click` 返回 Promise，请求期间自动 loading。
+
+## 8. 目录约定速查
+
+```
+app/
+├── components/
+│   ├── auth/          # 登录相关（AuthSplitLayout / LoginForm → AuthLoginForm）
+│   ├── admin/         # 后台相关（AdminSidebar / AdminHeader / AdminUserMenu）
+│   ├── modal/         # 组件库：ModalConfirm / ModalDeleteConfirm / ModalResponsive / ModalForbidden
+│   ├── loaders/       # 组件库：LoadersColorSpin（骨架屏后续 LoadersSkeleton）
+│   ├── tour/          # 组件库：TourSpotlight / TourSpotlightStep
+│   ├── permission/    # 组件库：PermissionWrapper（按权限显隐）
+│   └── pdf/           # 组件库：PdfPage / PdfCover / PdfDocument / PdfDocVnode
+├── config/
+│   └── admin-navigation.ts      # 主侧栏导航（含 Comps 组件库）
+├── layouts/           # kebab-case：has-sidebar / empty / demo / docs
+├── pages/
+│   ├── index.vue          # dashboard（layout "has-sidebar"）
+│   ├── login.vue          # layout: false
+│   ├── help.vue           # 帮助页（layout "docs"）
+│   └── release-notes.vue  # 版本记录（layout "docs"）
+├── utils/cn.ts        # class 合并（组件默认类 + ui/class 覆盖）
+├── composables/       # 预留：跨组件共享逻辑
+└── types/admin.ts     # 布局/导航/登录相关类型
+
+layers/                # Nuxt layers（自动发现，见 docs/dev/layers.md）
+├── 11-projects/       # app/pages/projects/*（项目域占位页）
+├── 12-teams/          # app/pages/team/*（团队域占位页）
+├── 13-settings/       # app/config/settings-navigation.ts + app/pages/settings*（二级侧栏）
+└── 20-comps/          # app/pages/comps/*（组件库 demo：modal / loaders）
+```

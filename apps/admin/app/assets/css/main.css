@@ -1,0 +1,131 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@nuxt/ui";
+
+/*
+ * 基础样式约定（详见 docs/dev/css-conventions.md）
+ * 1) 移动优先；内容区最大宽度 1920px（Header 全宽，main 内容区 max-w-1920）
+ * 2) 间距：移动端 p-1~p-2；md/lg 内边距 8px、外边距 ≤16px；xl+ 16~24px
+ * 3) 单个 class 超过 12 个类时，抽离为 BEM 命名 + @apply
+ *
+ * 参考自 greensketch 的 app/assets/css/main.css：只取通用项（cursor/ms-reveal/
+ * 滚动条隐藏/PDF 打印）与 tw-animate-css；品牌色/渐变/自定义列表/shimmer 等
+ * 项目特有样式不搬。
+ */
+
+@theme {
+  /* 内容区最大宽度：>1920px（2k/4k）统一按 1920px 处理 */
+  --container-1920: 1920px;
+}
+
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  /* 锚点跳转平滑滚动（docs / help / release-notes 页内导航用） */
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-default text-default;
+  font-weight: 450;
+}
+
+/* 隐藏 Edge 密码框的“显示密码”眼睛图标 */
+::-ms-reveal {
+  display: none;
+}
+
+/* 可交互元素统一 pointer 手型（Nuxt UI 部分按钮默认不带） */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* 统一页面内容区留白：移动/桌面 8px，大屏 16~24px（对应上面第 2 条） */
+@utility content-pad {
+  @apply p-2 md:p-4 2xl:p-6;
+}
+
+/* 隐藏滚动条，但允许滚动 */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.box-shadow-none {
+  box-shadow: none !important;
+}
+
+/* ============================================================
+ * 打印 / PDF 相关样式（参考 greensketch，供后续 PDF 页面复用）
+ * ============================================================ */
+@media print {
+  /**
+   * 使用「命名页（named pages）」支持同一份文档内混排纵向 / 横向页面。
+   * @page 的 size 是文档级的、无法用选择器条件化，因此通过命名页 + `page`
+   * 属性把每一页绑定到对应尺寸，实现逐页方向控制。
+   */
+  @page portrait {
+    size: 210mm 297mm;
+    margin: 0;
+  }
+
+  @page landscape {
+    size: 297mm 210mm;
+    margin: 0;
+  }
+
+  /* 默认纸张为纵向 */
+  @page {
+    size: 210mm 297mm;
+    margin: 0;
+  }
+
+  /* 整个文档默认归属 portrait 命名页（page 属性可继承），避免首尾多空白页 */
+  html {
+    page: portrait;
+  }
+
+  .pdf-page[data-orientation="portrait"] {
+    page: portrait;
+  }
+
+  .pdf-page[data-orientation="landscape"] {
+    page: landscape;
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .pdf-pages-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    background: #fff !important;
+    display: block !important;
+    gap: 0 !important;
+  }
+
+  .break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
