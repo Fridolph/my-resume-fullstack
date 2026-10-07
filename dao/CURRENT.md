@@ -1,6 +1,7 @@
 # 当前关键任务
 
-- [`DAO-005` 建立 my-resume Nuxt 实现场的基础设施骨架](./tasks/DAO-005-建立%20my-resume%20Nuxt%20实现场基础设施骨架.md) —— 状态：`designed`
+- [`DAO-007` web 公开简历展示域组件化](./tasks/DAO-007-web%20公开简历展示域组件化.md) —— 状态：`in-progress`
+- [`DAO-005` 建立 my-resume Nuxt 实现场的基础设施骨架](./tasks/DAO-005-建立%20my-resume%20Nuxt%20实现场基础设施骨架.md) —— 状态：`in-progress`（待 alova 迁移收尾）
 
 任务卡仍是状态、目标、验证与交接的唯一事实源；本文件只指向当前任务，不复制目标、状态或证据。
 
