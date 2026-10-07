@@ -26,7 +26,7 @@ const props = defineProps<{
   editable?: boolean
 }>()
 
-const emit = defineEmits<{ hide: [key: ResumeSectionKey] }>()
+const emit = defineEmits<{ hide: [key: ResumeSectionKey]; edit: [key: ResumeSectionKey] }>()
 
 const { applyDragResult } = useResumeDisplay()
 const containerRef = useTemplateRef<HTMLElement>('containerRef')
@@ -218,6 +218,7 @@ watch(
           :theme="config.theme"
           :editable="editable"
           @hide="emit('hide', $event)"
+          @edit="emit('edit', $event)"
         />
       </div>
 
@@ -230,6 +231,7 @@ watch(
           :theme="config.theme"
           :editable="editable"
           @hide="emit('hide', $event)"
+          @edit="emit('edit', $event)"
         />
       </div>
 
@@ -242,6 +244,7 @@ watch(
           :theme="config.theme"
           :editable="editable"
           @hide="emit('hide', $event)"
+          @edit="emit('edit', $event)"
         />
       </div>
     </div>

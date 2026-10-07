@@ -164,6 +164,19 @@ export interface ResumeBackgroundConfig {
 - 于是同一份区块组件同时服务 web 展示与 admin 编辑；admin 现有的 `useResumeLayout` 将来收敛到这套契约。
 - 拖拽实现优先复用已有依赖 `sortablejs`（admin 在用，经 `@vueuse/integrations`），不新增拖拽库。
 
+### 内容编辑（2026-10-07 追加）
+
+布局能调、内容改不了是缺口，所以补上「点区块 → 编辑字段 → 实时预览 → 保存」：
+
+- **状态分离**：`useResumeContent` 管领域内容，`useResumeDisplay` 管呈现方式，两者各自持久化（`my-resume.resume-content` / `my-resume.display-config`）。
+  内容字段太多，逐个写 `setXxx` 不现实 —— 表单**就地改字段** + `touch()` 标脏；展示配置仍只走动作（它改的是结构，值得约束）。
+- **schema 驱动**：`config/resume-editor-schemas.ts` 声明每个区块要编辑哪些字段（`fields` 直改根对象路径、`list` 编辑数组），
+  于是 **新增区块只有三处**：展示组件、展示注册表、编辑 schema。
+- **两类字段**：`fields`（`profile.name` 这类路径，支持根级如 `evaluations`）与 `list`（`experience` 这类对象数组，支持增删 / 上下移动）。
+  字段类型先覆盖 `text` / `textarea` / `tags`（标签数组，回车添加、点标签删除）。
+- **编辑入口仍由容器注入**：`ResumeColumn` 在 `editable` 时多渲染一个铅笔按钮并 emit `edit`，
+  区块组件依旧不感知编辑态；抽屉 `ResumeSectionEditorDrawer` 只负责「取 schema → 交给通用表单 → 标脏 / 保存」。
+
 ## 7. 与 admin 的关系（本轮不动 admin）
 
 - `ResumeDisplayConfig` 是共享形状；本轮 web 侧扩展（`layout` / `sections` / `theme.mode` / `background`）后，会与 admin 的 `useResumeLayout` **暂时分叉**。
