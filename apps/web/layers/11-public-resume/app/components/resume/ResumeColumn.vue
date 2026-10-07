@@ -24,13 +24,26 @@ defineProps<{
   editable?: boolean
 }>()
 
-const emit = defineEmits<{ hide: [key: ResumeSectionKey] }>()
+const emit = defineEmits<{ hide: [key: ResumeSectionKey]; edit: [key: ResumeSectionKey] }>()
 </script>
 
 <template>
   <div class="grid gap-6" :data-slot="slotKey">
     <div v-for="key in keys" :key="key" class="relative" :data-section-key="key">
       <div v-if="editable" class="absolute end-2 top-2 z-10 flex items-center gap-1">
+        <button
+          type="button"
+          class="rounded-md border p-1"
+          :style="{
+            background: 'var(--resume-surface)',
+            borderColor: 'var(--resume-border)',
+            color: 'var(--resume-muted)',
+          }"
+          :title="`编辑「${getSectionDefinition(key)?.label ?? key}」内容`"
+          @click="emit('edit', key)"
+        >
+          <UIcon name="i-lucide-pencil" class="size-4" />
+        </button>
         <button
           type="button"
           data-drag-handle
