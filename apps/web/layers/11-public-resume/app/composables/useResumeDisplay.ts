@@ -86,6 +86,28 @@ export function useResumeDisplay() {
     config.value.sections.slot = { ...config.value.sections.slot, [key]: slot }
   }
 
+  /**
+   * 拖拽落地的唯一入口（B 期由容器传入拖拽结果）。
+   *
+   * 用「放到谁前面」的锚点语义，同栏排序与跨栏拖拽是同一套逻辑：
+   * - 归属写入 `sections.slot`
+   * - 顺序把 key 插到 `anchorKey` 之前（没有锚点则落到末尾）
+   */
+  function applyDragResult(input: {
+    key: ResumeSectionKey
+    toSlot: ResumeSlotKey
+    /** 拖拽后紧跟在它后面的那个区块；为空表示落在该栏末尾 */
+    anchorKey?: ResumeSectionKey
+  }) {
+    config.value.sections.slot = { ...config.value.sections.slot, [input.key]: input.toSlot }
+
+    const order = config.value.sections.order.filter((key) => key !== input.key)
+    const anchorIndex = input.anchorKey ? order.indexOf(input.anchorKey) : -1
+    order.splice(anchorIndex >= 0 ? anchorIndex : order.length, 0, input.key)
+
+    config.value.sections.order = order
+  }
+
   // ── 面板与持久化 ──────────────────────────────────────
   function toggleSettings() {
     settingsOpen.value = !settingsOpen.value
@@ -132,6 +154,7 @@ export function useResumeDisplay() {
     toggleSection,
     moveSection,
     assignSlot,
+    applyDragResult,
     // 面板 / 持久化
     toggleSettings,
     setEditable,

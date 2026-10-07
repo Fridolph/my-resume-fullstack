@@ -18,11 +18,13 @@
     "@pinia/nuxt": "^1.0.2",
     "@template/common": "workspace:*",
     "nuxt": "^4.2.2",
+    "sortablejs": "^1.15.7",
     "vue": "^3.5.22"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.74",
     "@tailwindcss/vite": "^4.1.18",
+    "@types/sortablejs": "^1.15.9",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.1.5"
