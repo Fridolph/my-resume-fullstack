@@ -8,8 +8,9 @@ import ResumeSchemaForm from './editors/ResumeSchemaForm.vue'
 /**
  * 区块内容编辑抽屉。
  *
- * 只负责「取 schema → 交给通用表单 → 标记改动 / 保存」，
- * 具体有哪些字段由 `config/resume-editor-schemas.ts` 决定。
+ * 只负责「取 schema → 交给通用表单 → 标记改动 / 保存」：
+ * 有哪些字段、分几段由 `config/resume-editor-schemas.ts` 决定；
+ * 数组定位（含 `profile.links` 这类点号路径）交给 `ResumeSchemaForm`。
  */
 const open = defineModel<boolean>('open', { default: false })
 const props = defineProps<{ sectionKey: ResumeSectionKey | null }>()
@@ -20,17 +21,6 @@ const schema = computed(() => (props.sectionKey ? resumeEditorSchemas[props.sect
 const title = computed(() =>
   props.sectionKey ? getSectionDefinition(props.sectionKey)?.label ?? props.sectionKey : '',
 )
-
-/** list 模式要编辑的数组：就地在 content 上改 */
-const listItems = computed(() => {
-  const path = schema.value?.listPath
-  if (!path) {
-    return undefined
-  }
-  return (content.value as unknown as Record<string, unknown>)[path] as
-    | Record<string, unknown>[]
-    | undefined
-})
 
 function save() {
   saveLocal()
@@ -48,12 +38,8 @@ function save() {
     <template #body>
       <ResumeSchemaForm
         v-if="schema"
-        :mode="schema.mode"
         :root="content as unknown as Record<string, unknown>"
-        :items="listItems"
-        :fields="schema.fields"
-        :title-key="schema.titleKey"
-        :blank="schema.blank"
+        :segments="schema.segments"
         @change="touch"
       />
     </template>

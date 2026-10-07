@@ -4,6 +4,7 @@ import type {
   ResumeDisplayOptions,
   ResumeSectionKey,
   ResumeSlotKey,
+  ResumeStyleId,
   ResumeThemeConfig,
 } from '../../types/resume'
 import { getSectionDefinition, resumeSectionComponents } from '../../config/resume-sections'
@@ -14,6 +15,7 @@ import { getSectionDefinition, resumeSectionComponents } from '../../config/resu
  * 它只认识「注册表 + 契约」，不认识任何具体区块 —— 加区块不用改这里。
  * 编辑态的拖拽手柄与隐藏按钮也在这层注入：**区块组件本身不感知编辑**，
  * 因此同一份区块组件既能给公开站渲染，也能给 admin 复用。
+ * `variant`（风格）本层不判断、只透传 —— 「长什么样」由区块组件自己决定。
  */
 defineProps<{
   slotKey: ResumeSlotKey
@@ -21,6 +23,8 @@ defineProps<{
   content: ResumeContent
   options: ResumeDisplayOptions
   theme: ResumeThemeConfig
+  /** 风格变体：原样透传给区块组件 */
+  variant: ResumeStyleId
   editable?: boolean
 }>()
 
@@ -78,6 +82,7 @@ const emit = defineEmits<{ hide: [key: ResumeSectionKey]; edit: [key: ResumeSect
         :content="content"
         :options="options"
         :theme="theme"
+        :variant="variant"
       />
     </div>
   </div>

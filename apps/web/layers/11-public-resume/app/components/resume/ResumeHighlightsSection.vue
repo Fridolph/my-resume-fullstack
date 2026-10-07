@@ -7,7 +7,7 @@ defineProps<ResumeSectionProps>()
 </script>
 
 <template>
-  <ResumeSectionCard :section="section">
+  <ResumeSectionCard :section="section" :variant="variant">
     <ul class="space-y-3">
       <li v-for="item in content.highlights" :key="item.title" class="flex gap-3">
         <span

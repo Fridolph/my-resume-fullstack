@@ -1,30 +1,30 @@
 <script setup lang="ts">
-import type { ResumeFieldSchema } from '../../../config/resume-editor-schemas'
+import type { ResumeFieldGroupSchema } from '../../../config/resume-editor-schemas'
 import ResumeFieldInput from './ResumeFieldInput.vue'
 
 /**
- * 通用字段表单（schema 驱动）。
+ * 通用字段表单（schema 驱动，支持多段）。
  *
- * - `fields`：直接编辑根对象上的若干字段（路径可含点号，如 `profile.name`）
- * - `list`：编辑根对象上的某个数组（增删项 / 上下移动 / 项内字段）
+ * 每段要么是 `fields`（按点号路径直接改根对象上的字段，如 `profile.hero.slogans`），
+ * 要么是 `list`（编辑根对象上的某个数组，**路径同样支持点号**，如 `profile.links`）。
  *
- * 区块要加字段，只改 `config/resume-editor-schemas.ts`，不用动这里。
+ * 区块要加字段只改 `config/resume-editor-schemas.ts`；要加「一段」也不用动这里。
+ * 数组的定位在这里完成，所以抽屉不需要知道 `listPath` 怎么写。
  */
 const props = defineProps<{
-  mode: 'fields' | 'list'
+  /** 编辑的根对象（这里是 `ResumeContent`） */
   root?: Record<string, unknown>
-  items?: Record<string, unknown>[]
-  fields: ResumeFieldSchema[]
-  titleKey?: string
-  blank?: Record<string, unknown>
+  segments: ResumeFieldGroupSchema[]
 }>()
 
 const emit = defineEmits<{ change: [] }>()
 
-function readPath(path: string): unknown {
+function readPath(path: string, base?: unknown): unknown {
+  const start = base ?? props.root
+
   return path.split('.').reduce<unknown>((acc, key) => {
     return acc && typeof acc === 'object' ? (acc as Record<string, unknown>)[key] : undefined
-  }, props.root)
+  }, start)
 }
 
 function writePath(path: string, value: unknown) {
@@ -38,22 +38,32 @@ function writePath(path: string, value: unknown) {
   emit('change')
 }
 
-function addItem() {
-  props.items?.push(structuredClone(props.blank ?? {}))
+/** 段内的数组（`list` 模式）：路径可含点号，如 `profile.links` */
+function itemsOf(segment: ResumeFieldGroupSchema): Record<string, unknown>[] | undefined {
+  if (!segment.listPath) {
+    return undefined
+  }
+
+  return readPath(segment.listPath) as Record<string, unknown>[] | undefined
+}
+
+function addItem(segment: ResumeFieldGroupSchema) {
+  itemsOf(segment)?.push(structuredClone(segment.blank ?? {}))
   emit('change')
 }
 
-function removeItem(index: number) {
-  props.items?.splice(index, 1)
+function removeItem(segment: ResumeFieldGroupSchema, index: number) {
+  itemsOf(segment)?.splice(index, 1)
   emit('change')
 }
 
-function moveItem(index: number, delta: number) {
-  const list = props.items
+function moveItem(segment: ResumeFieldGroupSchema, index: number, delta: number) {
+  const list = itemsOf(segment)
   const target = index + delta
   if (!list || target < 0 || target >= list.length) {
     return
   }
+
   const [item] = list.splice(index, 1)
   if (item) {
     list.splice(target, 0, item)
@@ -63,79 +73,97 @@ function moveItem(index: number, delta: number) {
 </script>
 
 <template>
-  <!-- fields 模式 -->
-  <div v-if="mode === 'fields'" class="grid gap-4 sm:grid-cols-2">
-    <UFormField
-      v-for="field in fields"
-      :key="field.path"
-      :label="field.label"
-      :class="field.wide ? 'sm:col-span-2' : ''"
-    >
-      <ResumeFieldInput
-        :field="field"
-        :value="readPath(field.path ?? '')"
-        @update:value="writePath(field.path ?? '', $event)"
-      />
-    </UFormField>
-  </div>
+  <div class="space-y-8">
+    <section v-for="(segment, segmentIndex) in segments" :key="segmentIndex" class="space-y-4">
+      <p
+        v-if="segment.label"
+        class="border-b pb-2 text-sm font-semibold"
+        :style="{ borderColor: 'var(--resume-border, #e2e8f0)' }"
+      >
+        {{ segment.label }}
+      </p>
 
-  <!-- list 模式 -->
-  <div v-else class="space-y-4">
-    <UCard
-      v-for="(item, index) in items"
-      :key="index"
-      :ui="{ body: 'space-y-4 p-4 sm:p-4' }"
-    >
-      <div class="flex items-center justify-between gap-2">
-        <p class="truncate text-sm font-medium">
-          {{ titleKey ? String(item[titleKey] ?? `第 ${index + 1} 项`) : `第 ${index + 1} 项` }}
-        </p>
-        <div class="flex shrink-0 items-center gap-1">
-          <UButton
-            size="xs"
-            color="neutral"
-            variant="ghost"
-            icon="i-lucide-arrow-up"
-            :disabled="index === 0"
-            aria-label="上移"
-            @click="moveItem(index, -1)"
-          />
-          <UButton
-            size="xs"
-            color="neutral"
-            variant="ghost"
-            icon="i-lucide-arrow-down"
-            :disabled="index === (items?.length ?? 1) - 1"
-            aria-label="下移"
-            @click="moveItem(index, 1)"
-          />
-          <UButton
-            size="xs"
-            color="error"
-            variant="ghost"
-            icon="i-lucide-trash-2"
-            aria-label="删除这一项"
-            @click="removeItem(index)"
-          />
-        </div>
-      </div>
-
-      <div class="grid gap-4 sm:grid-cols-2">
+      <!-- fields：直接改字段 -->
+      <div v-if="segment.mode === 'fields'" class="grid gap-4 sm:grid-cols-2">
         <UFormField
-          v-for="field in fields"
-          :key="field.key"
+          v-for="field in segment.fields"
+          :key="field.path"
           :label="field.label"
           :class="field.wide ? 'sm:col-span-2' : ''"
         >
           <ResumeFieldInput
             :field="field"
-            :value="item[field.key ?? '']"
-            @update:value="item[field.key ?? ''] = $event; emit('change')"
+            :value="readPath(field.path ?? '')"
+            @update:value="writePath(field.path ?? '', $event)"
           />
         </UFormField>
       </div>
-    </UCard>
 
-    <UButton size="sm" variant="outline" icon="i-lucide-plus" label="新增一项" @click="addItem" />
+      <!-- list：增删 / 上下移动数组项 -->
+      <template v-else>
+        <UCard
+          v-for="(item, index) in itemsOf(segment)"
+          :key="index"
+          :ui="{ body: 'space-y-4 p-4 sm:p-4' }"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <p class="truncate text-sm font-medium">
+              {{ segment.titleKey ? String(item[segment.titleKey] ?? `第 ${index + 1} 项`) : `第 ${index + 1} 项` }}
+            </p>
+            <div class="flex shrink-0 items-center gap-1">
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-arrow-up"
+                :disabled="index === 0"
+                aria-label="上移"
+                @click="moveItem(segment, index, -1)"
+              />
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-arrow-down"
+                :disabled="index === (itemsOf(segment)?.length ?? 1) - 1"
+                aria-label="下移"
+                @click="moveItem(segment, index, 1)"
+              />
+              <UButton
+                size="xs"
+                color="error"
+                variant="ghost"
+                icon="i-lucide-trash-2"
+                aria-label="删除这一项"
+                @click="removeItem(segment, index)"
+              />
+            </div>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <UFormField
+              v-for="field in segment.fields"
+              :key="field.key"
+              :label="field.label"
+              :class="field.wide ? 'sm:col-span-2' : ''"
+            >
+              <ResumeFieldInput
+                :field="field"
+                :value="item[field.key ?? '']"
+                @update:value="item[field.key ?? ''] = $event; emit('change')"
+              />
+            </UFormField>
+          </div>
+        </UCard>
+
+        <UButton
+          size="sm"
+          variant="outline"
+          icon="i-lucide-plus"
+          label="新增一项"
+          @click="addItem(segment)"
+        />
+      </template>
+    </section>
   </div>
 </template>

@@ -1,14 +1,21 @@
 <script setup lang="ts">
 import type { ResumeLayoutMode, ResumeSectionKey } from '../../types/resume'
 import { resumeSectionDefinitions } from '../../config/resume-sections'
-import { resumeBackgroundPresets, resumeThemePresets } from '../../mock/resume-display'
+import {
+  resumeBackgroundPresets,
+  resumeStylePresets,
+  resumeThemePresets,
+} from '../../mock/resume-display'
 import { useResumeDisplay } from '../../composables/useResumeDisplay'
 
 /**
- * 展示设置面板：布局 / 主题 / 背景 / 区块显隐。
+ * 展示设置面板：布局 / 主题 / 风格 / 背景 / 区块显隐。
  *
  * 它只调用 `useResumeDisplay` 的动作，不直接改配置对象；
  * 面板本体与页面分离，页面上才看得清「结构」，而不是被控件淹没。
+ *
+ * 四个维度互相正交：布局改怎么排、主题改什么颜色、风格改长什么样、
+ * 背景改衬什么底 —— 改一个不影响另外三个。
  */
 const {
   config,
@@ -17,6 +24,7 @@ const {
   toggleStickySide,
   setSideWidth,
   applyTheme,
+  setStyle,
   setTexture,
   setBackgroundType,
   setBackgroundImage,
@@ -86,7 +94,7 @@ function isHidden(key: ResumeSectionKey) {
         </div>
       </section>
 
-      <!-- 主题 -->
+      <!-- 主题（配色） -->
       <section class="space-y-2">
         <p class="text-xs font-medium" :style="{ color: 'var(--resume-muted, #64748b)' }">主题</p>
         <div class="flex flex-wrap gap-2">
@@ -100,6 +108,26 @@ function isHidden(key: ResumeSectionKey) {
             @click="applyTheme(preset)"
           />
         </div>
+      </section>
+
+      <!-- 风格（区块长什么样） -->
+      <section class="space-y-2">
+        <p class="text-xs font-medium" :style="{ color: 'var(--resume-muted, #64748b)' }">风格</p>
+        <div class="flex flex-wrap gap-2">
+          <UButton
+            v-for="preset in resumeStylePresets"
+            :key="preset.id"
+            size="xs"
+            :icon="preset.icon"
+            :label="preset.label"
+            :color="config.style.id === preset.id ? 'primary' : 'neutral'"
+            :variant="config.style.id === preset.id ? 'solid' : 'outline'"
+            @click="setStyle(preset.id)"
+          />
+        </div>
+        <p class="text-xs" :style="{ color: 'var(--resume-muted, #64748b)' }">
+          只管区块的样子，不改变颜色与顺序
+        </p>
       </section>
 
       <!-- 背景 -->

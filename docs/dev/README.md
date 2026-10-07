@@ -13,6 +13,7 @@
 | [data-layer.md](./data-layer.md) | 数据层约定：`$request` 请求层、Pinia Colada 缓存层、query key 与失效策略 |
 | [workflow.md](./workflow.md) | 开发流程：分支模型、Issue 驱动、提交规范、质量门与发布 |
 | [resume-display-architecture.md](./resume-display-architecture.md) | 简历展示页架构：布局模式、主题/背景模型、组件拆分与编辑模式分期 |
+| [resume-styles.md](./resume-styles.md) | 简历风格维度（`minimal` / `standard`）：token / variant / 整页模板三层落点、GS 模板切换机制参考与避坑 |
 
 ## 快速验证命令
 

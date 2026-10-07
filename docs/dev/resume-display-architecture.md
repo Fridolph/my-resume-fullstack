@@ -1,8 +1,8 @@
 # 简历展示页架构设计（布局 / 主题 / 背景 / 编辑预留）
 
-> 状态：**待 Owner 确认**（确认后才进入编码）
-> 关联：`DAO-007` 第二阶段、Issue #3（已交付初版）、[layers.md](./layers.md)、[data-layer.md](./data-layer.md)
-> 现状：`pages/resume/index.vue` 138 行，顶栏 + 设置面板 + 渲染编排混在一起；`ResumeDisplayRenderer.vue` 95 行；只有一种左右布局。
+> 状态：**历史设计稿 + 交付记录**。§1–§5、§8–§10 是阶段二开工时的设计稿；其中的待确认项（§3.3、§9）已于 2026-10-07 由 Owner 逐项定下，结果写在对应段落里，**以结果为准**。§6 起为交付后追加的实现记录。
+> 关联：`DAO-007`、Issue #3 / #5 / #7 / #9 / #11、[resume-styles.md](./resume-styles.md)（风格维度，Issue #13）、[layers.md](./layers.md)、[data-layer.md](./data-layer.md)
+> 现状：`pages/resume/index.vue` 只做编排；组件已按 §2 拆分并继续演进（`ResumeLoginButton` / `ResumeSettingsDrawer` / `editors/*`，见 §6.1）；布局、主题、背景均由配置驱动。
 
 ## 1. 要解决的问题
 
@@ -70,7 +70,9 @@ export interface ResumeSectionsConfig {
 - 注册表里每个区块增加 `defaultSlot`；配置的 `slot` 覆盖它。
 - 默认：`profile → side`、`evaluations → rail`、其余 `→ main`。
 
-### 3.3 主题：明暗与配色拆成两个正交维度
+### 3.3 主题（设计稿原案，**未被采用**）
+
+> **已确认结果（2026-10-07）**：保持**合并式预设** —— 一套预设自带明暗与配色（`resumeThemePresets` 里每项带 `dark` 标志），**不做** `mode × preset` 拆分。下面拆维度是当时的备选方案，保留以便追溯，不要照它实现。
 
 ```ts
 export type ResumeColorMode = 'light' | 'dark'
@@ -92,7 +94,7 @@ export interface ResumeThemeConfig {          // 生效值 = mode + preset（允
 }
 ```
 
-> 拆开后：`mode`（light / dark）× `preset`（简约白 / 绿色清新 / 蓝色商务 / 青色科技）= 8 种组合，UI 是两个独立按钮组，而不是 4 个混在一起的预设。
+> 原案理由（**未采用**）：拆开后 `mode`（light / dark）× `preset`（简约白 / 绿色清新 / 蓝色商务 / 青色科技）= 8 种组合，UI 是两个独立按钮组，而不是 4 个混在一起的预设。
 
 ### 3.4 背景
 
@@ -211,7 +213,7 @@ export interface ResumeBackgroundConfig {
 - 打通（admin 生成配置 → web 渲染）放到后续任务，届时以 web 侧契约为准收敛，并做一次显式字段迁移。
 - 分叉期的风险要写进任务卡，避免以后"以为两边还是同一份"。
 
-## 8. 编码顺序（确认后执行）
+## 8. 编码顺序（阶段二已按此执行完毕）
 
 1. 类型与 mock 升级（`layout` / `sections` / `theme` / `background`）→ `typecheck` 过
 2. `composables/useResumeDisplay.ts` 状态层，页面与面板改调动作
@@ -220,14 +222,14 @@ export interface ResumeBackgroundConfig {
 5. 主题（mode × preset）+ 背景（plain / texture，image 只建模）
 6. 验证：`typecheck`、SSR 抓 `/resume`、配置切换实测、移动端目测
 
-## 9. 待 Owner 确认
+## 9. 待 Owner 确认（2026-10-07 已全部确认，结果如下）
 
-1. **编辑能力归属**：web 端原地编辑（登录后）/ 只在 admin 编辑 / 先只读，编辑以后再说。
-2. **主题模型**：`mode × preset` 正交，还是保持现在「一套预设含明暗」的合并式。
-3. **背景范围**：先做纯 CSS 纹理 + 图片 URL 建模，还是这一轮就要图片上传。
-4. 三栏比例 `1/6 : 2/3 : 1/6` 落为 `1fr 4fr 1fr` 是否符合预期。
-5. 接受 web 侧契约先扩展、admin 暂不跟进（后续单独打通）。
+1. **编辑能力归属** → **web 端原地编辑**（登录后；按 A / B / C 分期，A、B 已交付，C 期接后端）。
+2. **主题模型** → **保持合并式预设**，不做 `mode × preset`（见 §3.3）。
+3. **背景范围** → **纯 CSS / SVG 纹理 + 图片仅建模**，本轮不做上传。
+4. **三栏比例** → 按 `1fr 4fr 1fr`（= 1/6 : 2/3 : 1/6）。
+5. **契约先扩展** → 接受 web 侧先扩展、admin 暂不跟进（分叉期风险见 §7；`brand`、`style` 均属这批扩展）。
 
-## 10. 本轮明确不做
+## 10. 阶段二明确不做（后续各节按需解锁）
 
 拖拽实现、登录 / 鉴权、后端入库、图片上传、PDF 导出、i18n、技能可视化图表。

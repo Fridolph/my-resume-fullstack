@@ -7,7 +7,7 @@ defineProps<ResumeSectionProps>()
 </script>
 
 <template>
-  <ResumeSectionCard :section="section">
+  <ResumeSectionCard :section="section" :variant="variant">
     <article v-for="item in content.projects" :key="item.name" class="space-y-2">
       <header class="flex flex-wrap items-baseline justify-between gap-2">
         <p class="font-medium" :style="{ color: 'var(--resume-text)' }">

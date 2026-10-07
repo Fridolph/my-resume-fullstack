@@ -1,8 +1,20 @@
 import type {
   ResumeBackgroundPreset,
   ResumeDisplayConfig,
+  ResumeStyleId,
   ResumeThemeConfig,
 } from '../types/resume'
+
+/**
+ * 风格预设（本轮两档）。
+ *
+ * 与主题预设不同：这里只声明「有哪些风格」，具体视觉参数由 `styleVars`（容器）
+ * 与区块组件的 `variant` 分支承载，见 docs/dev/resume-styles.md。
+ */
+export const resumeStylePresets: { id: ResumeStyleId, label: string, icon: string }[] = [
+  { id: 'minimal', label: '极简', icon: 'i-lucide-minus' },
+  { id: 'standard', label: '标准', icon: 'i-lucide-layout-panel-top' },
+]
 
 /**
  * 主题预设（合并式：一套预设自带明暗与配色）。
@@ -83,4 +95,6 @@ export const resumeDisplayMock: ResumeDisplayConfig = {
     textureId: 'none',
     image: { url: '', fit: 'cover', overlay: 30, blur: 0 },
   },
+  // 默认 minimal：切风格是显式动作，默认观感保持不变
+  style: { id: 'minimal' },
 }

@@ -7,7 +7,7 @@ defineProps<ResumeSectionProps>()
 </script>
 
 <template>
-  <ResumeSectionCard :section="section">
+  <ResumeSectionCard :section="section" :variant="variant">
     <article v-for="item in content.experience" :key="item.company" class="flex flex-col gap-1 sm:flex-row sm:gap-4">
       <p class="w-32 shrink-0 text-xs" :style="{ color: 'var(--resume-muted)' }">{{ item.period }}</p>
       <div class="min-w-0 space-y-2">

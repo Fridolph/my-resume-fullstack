@@ -1,6 +1,17 @@
 import type { ResumeContent } from '../types/resume'
 
 /**
+ * 头像占位图（内联 SVG data-URI，不引入图片资源）。
+ *
+ * 真图由后端快照提供；这里让 `standard` 的头像与翻牌在本地可预览，
+ * 同时也验证「有图用图、无图回退 `avatarText`」两条路径。
+ */
+const AVATAR_FRONT
+  = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%231578d0'/%3E%3Ctext x='100' y='124' font-size='84' font-family='sans-serif' fill='%23ffffff' text-anchor='middle'%3E%E5%8E%89%3C/text%3E%3C/svg%3E"
+const AVATAR_BACK
+  = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%232f9e63'/%3E%3Ctext x='100' y='124' font-size='84' font-family='sans-serif' fill='%23ffffff' text-anchor='middle'%3E%E9%9B%A8%3C/text%3E%3C/svg%3E"
+
+/**
  * 简历内容 mock（中文）。
  *
  * 来源：`my-resume/public/lifeiyu-mock-zh.md` 的结构化版本。
@@ -13,12 +24,27 @@ export const resumeContentMockZh: ResumeContent = {
     summary:
       '5 年全栈开发经验，前端为主（Vue / React），兼顾 Node.js 服务端；重视组件化、配置驱动与工程化沉淀，当前学习 AI Agent 应用工程化。',
     avatarText: '厉',
+    hero: {
+      frontImageUrl: AVATAR_FRONT,
+      backImageUrl: AVATAR_BACK,
+      // 旧站指向站内 AI 对话页；本仓只存不跳转（翻牌是纯视觉）
+      linkUrl: '/ai-talk',
+      slogans: ['热爱 Coding，生命不息，折腾不止', '羽毛球爱好者，快乐挥拍，球场飞翔'],
+    },
     contact: [
       { key: 'education', label: '学历', value: '全日制本科 · 软件工程', icon: 'i-lucide-graduation-cap' },
       { key: 'years', label: '工作年限', value: '5 年', icon: 'i-lucide-hourglass' },
       { key: 'location', label: '所在地', value: '中国 四川 成都', icon: 'i-lucide-map-pin' },
       { key: 'email', label: '邮箱', value: 'lifeiyu.mock@example.com', icon: 'i-lucide-mail' },
       { key: 'phone', label: '电话', value: '13800000000', icon: 'i-lucide-phone' },
+    ],
+    links: [
+      { label: 'GitHub', url: 'https://github.com/Fridolph', icon: 'ri:github-fill' },
+      { label: '技术博客', url: 'https://example.com/blog', icon: 'ri:article-line' },
+    ],
+    interests: [
+      { label: '羽毛球', icon: 'ri:ping-pong-line' },
+      { label: '摄影', icon: 'ri:camera-line' },
     ],
   },
   highlights: [

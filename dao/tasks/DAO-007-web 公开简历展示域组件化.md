@@ -4,10 +4,10 @@
 
 ## 身份
 
-- 状态：`in-progress`
+- 状态：`review-ready`
 - Owner：`昇哥确认方向（对齐旧站左右布局 + admin 的配置驱动能力）并指定 mock 来源；归枢协作执行`
 - 创建日期：`2026-10-07`
-- 关联：`Issue #3`、`DAO-005`、`docs/dev/layers.md`、`docs/dev/data-layer.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、配置参考 `apps/admin/layers/20-comps/app/pages/demos/resume-config-layout.vue`
+- 关联：`Issue #3`（阶段一）、`#5`（阶段二）、`#7`（B 期）、`#9`（内容编辑）、`#11`（Header 瘦身）、`DAO-005`、`docs/dev/layers.md`、`docs/dev/data-layer.md`、`docs/dev/resume-display-architecture.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、配置参考 `apps/admin/layers/20-comps/app/pages/demos/resume-config-layout.vue`
 
 ## 状态轨迹
 
@@ -15,6 +15,8 @@
 | ----------------------- | ---------------------------------------------------------------------------------------- | ---------- | ---------- |
 | `planned -> designed`   | 已确认参考对象（旧站左右布局 + admin 配置驱动）与 mock 来源，契约边界可写清              | Owner 确认 | 2026-10-07 |
 | `designed -> in-progress` | Issue #3 已建，分支 `feat/3-web-resume-display-components` 从 `dev` 开出                | 归枢记录   | 2026-10-07 |
+| `in-progress -> self-tested` | 阶段一 / 二（PR #4、#6）、B 期（PR #8）、内容编辑（PR #10）与 Header 瘦身第 1 期（PR #12）陆续合入 dev，各期均有机器验 + 意图验证据（见下） | 归枢记录 | 2026-10-07 |
+| `self-tested -> review-ready` | 交接包齐全（已完成 / 未验证边界 / 未承接项 / 文档锚点齐备），可交 Owner 判 `done` | 归枢记录 | 2026-10-07 |
 
 ## Grill：开工前对齐
 
@@ -80,19 +82,20 @@
 
 ## 交接
 
-- 已完成：阶段一（类型 / 注册表 / mock / 区块组件 / 页面初版，随 PR #4 合入 dev）；阶段二（薄页面编排、组件拆分、三种布局、纹理背景层）；B 期（mock 登录、编辑模式、跨栏拖拽、保存）；内容编辑（`useResumeContent` + schema 驱动表单 + 编辑抽屉，随 PR #10 合入 dev）。
-- 当前状态：`in-progress`（web 侧展示与交互主体已具备；C 期待后端 auth 就绪）
+- 已完成：阶段一（类型 / 注册表 / mock / 区块组件 / 页面初版，PR #4）；阶段二（薄页面编排、组件拆分、三种布局、纹理背景层，PR #6）；B 期（mock 登录、编辑模式、跨栏拖拽、本地保存，PR #8）；内容编辑（`useResumeContent` + schema 驱动表单 + 编辑抽屉，PR #10）；Header 瘦身第 1 期（登录组件化、设置改 Drawer、品牌可配、滚动模块名，PR #12）。
+- 当前状态：`review-ready`（展示域主体与交互链路已具备，等 Owner 判 `done`）
 - 阻塞：无。
-- 下一步第一刀：第 2 期「入口栏（rail）」—— 按已确认方向实施：自定义左侧窄栏 + Tooltip、按登录态分级显示、移动端用 Drawer 呈现同一份 items、正文容器 `lg:pl-14` 偏移。之后是 C 期接后端。
-- 文档锚点：`Issue #3`、`docs/dev/layers.md`、`docs/dev/data-layer.md`
-- 集成锚点：`待 feat/3-* -> dev`
+- 下一步第一刀：本卡无下一步。
+- 未承接项（须由别的任务承接，勿随本卡一起关闭）：① `resume-display-architecture.md` §6.1 第 2 期「入口栏 rail」——方向已确认、尚未实施；② C 期「保存接后端 + 公开快照携带配置」；③ 技能可视化图表；④ 真实浏览器端到端验证（登录 → 拖拽 → 保存 → 刷新 → 退出），环境缺本地 Playwright 包。
+- 文档锚点：`docs/dev/resume-display-architecture.md`、`docs/dev/layers.md`、`docs/dev/data-layer.md`、`Issue #3 / #5 / #7 / #9 / #11`
+- 集成锚点：`已集成（各期经 PR #4 / #6 / #8 / #10 / #12 合入 dev）`
 
 ## 收口与沉淀
 
-- `dao-review` 结论：`未执行`
-- 最终验证证据：`待补`
-- Git / PR：`待补`
-- 常规提交：`待补`
-- Dao Commit：`不适用`
-- 沉淀候选：`无`
-- 收口备注：本卡同时验证「展示域如何与 admin 配置域共享同一份布局契约」这一判断是否站得住。
+- `dao-review` 结论：`可收口（本卡交付已全部合入 dev；done 由 Owner 确认）`
+- 最终验证证据：各期机器验（`pnpm --filter @template/web typecheck`、`oxlint apps/web` 0 warning / 0 error）与意图验（SSR 抓 `/resume`、临时改 mock 验证配置驱动、`/tmp` 脚本验证拖拽落点与字段路径）见上表；原始输出与 PR 级说明在 PR #4 / #6 / #8 / #10 / #12。
+- Git / PR：`PR #4（9d1a200）、#6（ba321be）、#8（5b2ba1b）、#10（3af8d05）、#12（7fd33f0）`
+- 常规提交：`已关联（上述 SHA）`
+- Dao Commit：`不适用（各期按 feat -> dev 集成，标题形式为 [Feat] …，未使用卦象锚点）`
+- 沉淀候选：`候选观察`——「可插拔展示域 = 注册表 + 统一 props 契约 + 编辑能力外置」在 4 期迭代里始终成立：新增区块只动三处（展示组件 / 注册表 / 编辑 schema），7 个区块组件从未因拖拽或内容编辑而改动。是否跨项目成立（尤其 React 版）待第二仓验证。
+- 收口备注：① 本卡同时验证「展示域与 admin 配置域共享同一份布局契约」这一判断，但 web 侧契约已先扩展（`brand` 等），与 admin 的 `useResumeLayout` 仍处分叉期，收敛时机另定；② 全仓 `format:check` 缺口由 DAO-006 单独处理。

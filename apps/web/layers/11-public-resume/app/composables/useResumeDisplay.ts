@@ -5,6 +5,7 @@ import type {
   ResumeSectionKey,
   ResumeSlotKey,
   ResumeSplitSide,
+  ResumeStyleId,
   ResumeThemeConfig,
 } from '../types/resume'
 import { resumeDisplayMock } from '../mock/resume-display'
@@ -22,7 +23,7 @@ function createDefaultConfig(): ResumeDisplayConfig {
  * 约定：
  * - 用 `useState` 而不是 module 级 `reactive`（后者在 SSR 下会跨请求串状态）；
  * - 页面与设置面板**只调用动作**，不直接改配置对象 —— 将来换成后端提交时只需改这里；
- * - 拖拽排序 / 显隐 / 主题 / 背景都走同一份 config，切布局不丢编排。
+ * - 拖拽排序 / 显隐 / 主题 / 背景 / 风格都走同一份 config，切布局不丢编排。
  */
 export function useResumeDisplay() {
   const config = useState<ResumeDisplayConfig>('resume-display-config', createDefaultConfig)
@@ -67,6 +68,17 @@ export function useResumeDisplay() {
   }
   function setBackgroundImage(patch: Partial<ResumeDisplayConfig['background']['image']>) {
     config.value.background.image = { ...config.value.background.image, ...patch }
+  }
+
+  // ── 风格 ──────────────────────────────────────────────
+  /**
+   * 风格只改「区块长什么样」。
+   *
+   * 与 `theme`（颜色）、`sections`（编排）互不影响：
+   * 切风格不会动 order / slot / hidden，也不会改主题色。
+   */
+  function setStyle(id: ResumeStyleId) {
+    config.value.style.id = id
   }
 
   // ── 区块编排 ──────────────────────────────────────────
@@ -157,6 +169,8 @@ export function useResumeDisplay() {
     setBackgroundType,
     setTexture,
     setBackgroundImage,
+    // 风格
+    setStyle,
     // 编排
     toggleSection,
     moveSection,

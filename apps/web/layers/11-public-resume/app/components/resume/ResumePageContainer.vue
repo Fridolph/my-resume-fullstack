@@ -16,8 +16,9 @@ import ResumeColumn from './ResumeColumn.vue'
 /**
  * 正文容器：布局与拖拽的唯一实现处。
  *
- * - 注入主题 CSS 变量 + 背景层
+ * - 注入主题与**风格** CSS 变量 + 背景层
  * - 把区块按「配置顺序 + 栏位归属」分到三栏；三种布局共用同一份 order / slot
+ * - 把 `style.id` 作为 `variant` 往下传（结构差异用），并输出 `data-resume-style` 供样式选择
  * - `editable` 时启用跨栏拖拽（sortablejs，仅客户端），拖拽结果交给 useResumeDisplay
  * - `lg` 以下一律单列（移动端优先），DOM 顺序为 side → main → rail
  */
@@ -126,6 +127,46 @@ const themeVars = computed(() => {
   }
 })
 
+/**
+ * 风格 → CSS 变量（与主题变量**同层**下发，将来容器瘦身也不用另找注入点）。
+ *
+ * 只放「视觉参数」（圆角 / 内边距 / 表面 / 阴影 / 标题字级）；
+ * 结构差异（hero 呈现、外壳标题结构）由 `variant` prop 决定。
+ *
+ * ⚠️ 取值必须从 `--resume-*` 派生（`color-mix`），**禁止写死品牌色** ——
+ * 否则换主题时风格会残留本色，破坏「风格 × 主题」正交（见 docs/dev/resume-styles.md §7）。
+ */
+const styleVars = computed(() => {
+  const { theme } = props.config
+
+  if (props.config.style.id !== 'standard') {
+    return {
+      '--resume-card-radius': '1rem',
+      '--resume-card-padding': '1.25rem',
+      '--resume-card-bg': 'var(--resume-surface)',
+      '--resume-card-shadow': 'none',
+      '--resume-card-shadow-hover': 'none',
+      '--resume-title-size': '0.875rem',
+    }
+  }
+
+  const deep = theme.dark ? 'var(--resume-chip-bg)' : 'var(--resume-chip-bg)'
+
+  return {
+    '--resume-card-radius': '1.5rem',
+    '--resume-card-padding': '1.5rem',
+    // 卡片表面：两处主色光斑 + 表面色渐变，全部由主题变量派生
+    '--resume-card-bg': [
+      'radial-gradient(circle at top left, color-mix(in srgb, var(--resume-primary) 10%, transparent), transparent 34%)',
+      'radial-gradient(circle at bottom right, color-mix(in srgb, var(--resume-primary) 6%, transparent), transparent 28%)',
+      `linear-gradient(180deg, color-mix(in srgb, var(--resume-surface) 88%, transparent), color-mix(in srgb, ${deep} 60%, var(--resume-surface)))`,
+    ].join(', '),
+    '--resume-card-shadow': '0 16px 40px color-mix(in srgb, var(--resume-text) 7%, transparent)',
+    '--resume-card-shadow-hover': '0 20px 44px color-mix(in srgb, var(--resume-primary) 18%, transparent)',
+    '--resume-title-size': '1.5rem',
+  }
+})
+
 // ── 拖拽（仅客户端、仅编辑态）──────────────────────────
 let instances: Sortable[] = []
 
@@ -220,7 +261,8 @@ watch(
   <div
     ref="containerRef"
     class="relative min-h-screen py-8 sm:py-10"
-    :style="{ ...themeVars, background: 'var(--resume-page)' }"
+    :data-resume-style="config.style.id"
+    :style="{ ...themeVars, ...styleVars, background: 'var(--resume-page)' }"
   >
     <ResumeBackgroundLayer :background="config.background" :dark="config.theme.dark" />
 
@@ -235,6 +277,7 @@ watch(
           :content="content"
           :options="config.options"
           :theme="config.theme"
+          :variant="config.style.id"
           :editable="editable"
           @hide="emit('hide', $event)"
           @edit="emit('edit', $event)"
@@ -248,6 +291,7 @@ watch(
           :content="content"
           :options="config.options"
           :theme="config.theme"
+          :variant="config.style.id"
           :editable="editable"
           @hide="emit('hide', $event)"
           @edit="emit('edit', $event)"
@@ -261,6 +305,7 @@ watch(
           :content="content"
           :options="config.options"
           :theme="config.theme"
+          :variant="config.style.id"
           :editable="editable"
           @hide="emit('hide', $event)"
           @edit="emit('edit', $event)"
