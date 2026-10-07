@@ -69,13 +69,17 @@
 | 结构验 | B 期：编辑态由容器注入（`ResumeColumn` 渲染手柄与隐藏按钮），区块组件未改动                  | 通过；7 个区块组件的 props 契约保持只读、未触碰                                | 拖拽手柄的视觉/可达性未做专项检查                 |
 | 意图验 | B 期：SSR 抓未登录 `/resume`                                                                 | 通过；出现「管理员登录」，**无** `data-drag-handle` / 「编辑模式」文案 → SSR 不吐编辑态，水合安全 | 登录后的客户端状态未在 SSR 断言                   |
 | 意图验 | B 期：拖拽落点算法（锚点语义）用 `/tmp` 脚本跑 6 个用例（同栏上移/下移、跨栏、落末尾、原地不动） | 通过；`applyDragResult` 的顺序与归属结果均符合预期（脚本在 /tmp，未进仓库）      | 端到端拖拽需人工在浏览器验证（环境无本地 Playwright 包） |
+| 机器验 | 内容编辑：`pnpm --filter @template/web typecheck`；`oxlint apps/web`                            | 通过；oxlint 0 warning / 0 error（39 files）                                  | 全仓 `format:check` 仍是既有缺口（DAO-006）      |
+| 结构验 | 内容编辑：区块编辑 schema 与展示注册表分离（`config/resume-editor-schemas.ts`）；区块组件未改动 | 通过；新增区块只有三处：展示组件 / 展示注册表 / 编辑 schema                      | 富文本与字段级校验未纳入                          |
+| 意图验 | 内容编辑：`/tmp` 脚本验证字段路径读写与列表操作（嵌套路径、根级数组、列表上移 / 越界不动）      | 通过；共 9 项断言全部通过                                                        | 端到端表单交互需人工验证                          |
+| 意图验 | 内容编辑：SSR 抓未登录 `/resume`                                                              | 通过；只有「管理员登录」，无编辑入口图标（pencil / grip / eye-off）与「编辑模式」→ 水合安全 | 登录后表单行为未在 SSR 断言                       |
 
 ## 交接
 
-- 已完成：阶段一（类型 / 注册表 / mock / 区块组件 / 页面初版，随 PR #4 合入 dev）；阶段二（薄页面编排、组件拆分、三种布局、纹理背景层、`useResumeDisplay` 状态层）；B 期（`useResumeAdmin` 本地 mock 登录、编辑模式 `editable`、跨栏拖拽与锚点落点、保存到 localStorage）。
-- 当前状态：`in-progress`（A/B 已交付；C 期待后端 auth 就绪）
+- 已完成：阶段一（类型 / 注册表 / mock / 区块组件 / 页面初版，随 PR #4 合入 dev）；阶段二（薄页面编排、组件拆分、三种布局、纹理背景层）；B 期（mock 登录、编辑模式、跨栏拖拽、保存）；内容编辑（`useResumeContent` + schema 驱动表单 + 编辑抽屉，随 PR #10 合入 dev）。
+- 当前状态：`in-progress`（web 侧展示与交互主体已具备；C 期待后端 auth 就绪）
 - 阻塞：无。
-- 下一步第一刀：C 期 —— 接后端 auth（登录接口 + token + 角色）与配置提交接口（`PUT /resume/display-config`），把 `useResumeAdmin` 的 mock 换成真实会话、`saveLocal` 换成提交。
+- 下一步第一刀：C 期 —— 接后端 auth（登录接口 + token + 角色）与提交接口（内容与展示配置各一个 `PUT`），把 mock 登录与 `saveLocal` 换成真实链路。
 - 文档锚点：`Issue #3`、`docs/dev/layers.md`、`docs/dev/data-layer.md`
 - 集成锚点：`待 feat/3-* -> dev`
 
