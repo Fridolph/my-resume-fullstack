@@ -1,0 +1,30 @@
+name: Task
+description: 非功能性的工程或文档任务
+title: '[Task] '
+labels:
+  - task
+body:
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望产出
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: 完成定义（Definition of Done）
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: 验证方式
+    validations:
+      required: true

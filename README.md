@@ -10,6 +10,14 @@
 - `packages/common`：统一响应结构与错误结构
 - 根目录：Oxlint、Oxfmt、Standard Version 与协作规范
 
+## 当前用途：my-resume 的 Nuxt 实现场
+
+本仓的底座是 `dao-monorepo-temp` 模板；当前用途是**先用熟悉的技术栈把 `my-resume` 的功能与页面逐模块实现出来**（Nuxt 4 + Nuxt UI + layers + `@pinia/colada`，NestJS + PostgreSQL + Redis）。验证过的结论再带回 `my-resume` 仓，用 React + Next.js + Python 重做同一套功能，形成“先熟后生”的学习闭环。
+
+- 推进方式：一个关键任务一张 `dao/tasks/DAO-*.md` 任务卡，只落一个模块或一条闭环；当前任务见 [`dao/CURRENT.md`](./dao/CURRENT.md)，任务边界见 [AGENTS.md](./AGENTS.md)。
+- 底座与业务分层：底座能力（工程骨架、公共组件、校验与工具）保持通用可抽离；`my-resume` 的业务实现放在应用自身的业务域 layer 与后端模块内。
+- 外部蓝图：`my-resume/docs/rs/` 的三份文档（三端职责、数据模型与 PostgreSQL 选型、AI 能力与迁移清理）。
+
 ## 工程约定
 
 - 使用 pnpm workspace 与 Turborepo 管理多应用和共享包。

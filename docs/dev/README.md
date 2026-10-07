@@ -10,6 +10,8 @@
 | [admin-ui-patterns.md](./admin-ui-patterns.md) | admin 布局、导航、二级侧栏、用户下拉、占位页的统一模板 |
 | [css-conventions.md](./css-conventions.md) | CSS/Tailwind 基础约定：响应式封顶 1920、间距、BEM、content-pad |
 | [layers.md](./layers.md) | Nuxt Layers 分层约定：依赖方向、layer 划分、公共组件 vs 共享层 |
+| [data-layer.md](./data-layer.md) | 数据层约定：`$request` 请求层、Pinia Colada 缓存层、query key 与失效策略 |
+| [workflow.md](./workflow.md) | 开发流程：分支模型、Issue 驱动、提交规范、质量门与发布 |
 
 ## 快速验证命令
 

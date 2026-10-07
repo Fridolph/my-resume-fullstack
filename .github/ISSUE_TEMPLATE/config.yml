@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 协作规范与开发流程
+    url: https://github.com/Fridolph/my-resume-fullstack/blob/main/AGENTS.md
+    about: 提交 Issue 前请先阅读协作规范与开发流程
