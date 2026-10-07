@@ -1,16 +1,17 @@
 # AGENTS 协作规范
 
-本仓库是供 `dao-*` 项目复用的全栈模板，也是 `Dao-is-Coding` 的一个真实验证场。它不是 `Dao-is-Coding` 母仓：项目内的业务、实现和局部经验留在这里；经验证且跨项目成立的规则，才以候选形式回灌母仓。
+本仓库的底座是供 `dao-*` 项目复用的全栈模板（源自 `dao-monorepo-temp`），当前已转型为 `my-resume` 的 Nuxt 实现场：用熟悉的 Nuxt 4 + NestJS 栈先逐模块把功能与页面实现出来，再把验证过的结论带回 `my-resume` 仓，用 React + Next.js + Python 重做同一套功能。它也是 `Dao-is-Coding` 的一个真实验证场，但不是 `Dao-is-Coding` 母仓：项目内的业务、实现和局部经验留在这里；经验证且跨项目成立的规则，才以候选形式回灌母仓。
 
 更深层目录中的 `AGENTS.md` 可补充具体实现约定；安全要求与本文件的主线、验证、归母边界不得被弱化。
 
 ## 1. 项目定位与边界
 
-- 保持模板通用性：只沉淀多个项目复用的工程能力，不在模板中堆叠具体业务、领域模型或产品功能。
-- 当前技术栈为 `pnpm workspace`、Turborepo、Nuxt 4、Nuxt UI、Tailwind CSS 4、NestJS 与 TypeScript。
+- 分层看待底座与业务：底座是多个项目可复用的工程能力（骨架、公共组件、校验与工具），保持通用、可抽离；`my-resume` 的业务实现放在应用自身的业务域 layer 与后端模块内，不反向污染底座能力。
+- 当前技术栈为 `pnpm workspace`、Turborepo、Nuxt 4、Nuxt UI、Tailwind CSS 4、`@pinia/colada`、NestJS、PostgreSQL、Redis 与 TypeScript。
 - `apps/web` 是用户端，`apps/admin` 是管理端，`apps/api` 是后端服务，`packages/common` 存放跨应用的稳定类型与基础能力。
+- 业务按模块推进：一个任务卡只落一个模块或一条闭环，不顺手扩展相邻模块；未定的选型写进任务卡待确认项，不靠猜测落地。
 - 新增目录、包、基础设施或共享契约前，先说明动机、影响范围、回滚方式，并同步更新 README。
-- 本模板默认直接在 `main` 小步推进；不因模板开发而强制建立功能分支。多人并行、发布分支或主干不稳定时，再按当前复杂度另行选择工作流。
+- 分支模型：`main` 只承载发布与正式版本，**不直接在 `main` 上开发**；日常开发在 `dev`，并从 `dev` 开 `feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…` 短分支，验证完成后合回 `dev`。完整流程见 [docs/dev/workflow.md](./docs/dev/workflow.md)。
 
 ## 2. 安全与隐私
 
@@ -60,7 +61,7 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
 - 先明确目标、非目标、风险、改动文件和验收标准，再开始实现；任务变大时拆分，不顺手扩展无关范围。
 - 主线重于扩展，验证重于堆功能，决策与取舍应在代码或文档中可追溯。
 - 优先小步、可验证、可回滚的改动；相同逻辑出现三处以上再抽取公共能力，避免过度抽象和过早优化。
-- 发现旁支问题时记录为独立 Issue；除非它直接阻塞当前验收，否则不得混入当前改动。
+- 先建 Issue 再写代码：Issue 写明背景、目标、非目标、范围、验收与测试计划；分支名带 Issue 编号；发现旁支问题时记录为独立 Issue，除非它直接阻塞当前验收，否则不得混入当前改动。
 - API、共享类型或目录结构改变时，同步检查调用方、README、测试和相关文档。
 - TypeScript 保持严格类型；前端使用 Vue Composition API 与 `<script setup lang="ts">`；NestJS 按 module、controller、service 与 common 边界组织。
 - 测试文件优先放在对应模块的 `__tests__/` 目录，验证真实行为，不提交只为凑覆盖率的模板测试。

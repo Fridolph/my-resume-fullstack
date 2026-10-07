@@ -38,8 +38,9 @@ apps/admin/
 │   ├── types/editor.d.ts       # 编辑器领域类型（如 IMention）
 │   └── app.vue                 # UApp + <NuxtLayout><NuxtPage /></NuxtLayout>
 └── layers/                     # Nuxt Layers（自动发现，见 docs/dev/layers.md）
-    ├── 11-projects/            # app/pages/projects/*（项目域）
-    ├── 12-teams/               # app/pages/team/*（团队域）
+    ├── 11-resume/              # app/pages/resume/*（简历编辑域：草稿 / 布局 / 主题 / 版本）
+    ├── 11-projects/            # 模板遗留 demo：app/pages/projects/*（去留待定）
+    ├── 12-teams/               # 模板遗留 demo：app/pages/team/*（去留待定）
     ├── 13-settings/            # app/config/settings-navigation.ts + app/pages/settings*（二级侧栏）
     └── 20-comps/               # app/pages/comps/*（demo：modal / loaders / tour / permission-wrapper / pdf-review / …）
 ```
@@ -62,6 +63,15 @@ apps/admin/
 - 依赖方向：`layers/00-shared` ← feature layers（11~20）← `app/`；feature layer 只能依赖 `00-shared` + 自身。
 - 公共/基础组件放 `app/components/`（全局自动导入），不急于下沉到 `00-shared`。
 - 详见 [docs/dev/layers.md](../../docs/dev/layers.md)。
+
+## 数据层（Pinia Colada）
+
+数据层统一用 `@pinia/colada`，完整约定见 [docs/dev/data-layer.md](../../docs/dev/data-layer.md)：
+
+- `plugins/httpRequest.ts` 注入 `$request`（ofetch）：baseURL、鉴权头、统一响应解包（对齐 `packages/common` 的 `{ success, data, message }`）与错误归一化。
+- `app/apis/*` 只做取数；缓存与失效在 `app/composables/*` 的 query / mutation 里声明；query key 集中在 `app/lib/query-keys.ts`。
+- 示例：`useHealthQuery()` + `/` 页面的 Infrastructure check 卡片（SSR 首屏取数 + 失效重取）。
+- 模板遗留的 alova（上传）待迁移为原生 XHR + colada mutation，见 data-layer.md 第 5、6 节。
 
 ## 登录页
 

@@ -13,21 +13,10 @@ export const adminNavigation: AdminNavigationItem[] = [
     to: "/",
   },
   {
-    label: "Projects",
-    icon: "i-lucide-folder-kanban",
-    defaultOpen: true,
-    children: [
-      { label: "All projects", to: "/projects" },
-      { label: "Recently viewed", to: "/projects/recent" },
-    ],
-  },
-  {
-    label: "Team",
-    icon: "i-lucide-users",
-    children: [
-      { label: "Members", to: "/team/members" },
-      { label: "Roles & access", to: "/team/roles" },
-    ],
+    // 业务域入口：my-resume 的简历编辑域（layers/11-resume）
+    label: "简历",
+    icon: "i-lucide-file-text",
+    to: "/resume",
   },
   {
     label: "Settings",
@@ -50,9 +39,14 @@ export const adminNavigation: AdminNavigationItem[] = [
     ],
   },
   {
+    // 模板示例（原一级 Projects / Team）与功能 demo 折叠在同一个入口下
     label: "Demos",
     icon: "i-lucide-flask-conical",
     children: [
+      { label: "Projects demo", to: "/projects" },
+      { label: "Projects recent", to: "/projects/recent" },
+      { label: "Team members", to: "/team/members" },
+      { label: "Team roles", to: "/team/roles" },
       { label: "PDF review", to: "/demos/pdf-review" },
       { label: "Plugins", to: "/demos/plugins" },
       { label: "Utils", to: "/demos/utils" },

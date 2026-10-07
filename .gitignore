@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Turborepo cache
 .turbo/
+
+# AI 会话本地产物
+.reasonix/

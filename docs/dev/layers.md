@@ -16,8 +16,9 @@ layers/00-shared  ←  feature layers（11~20）  ←  app/
 
 | 目录 | name | 形态 | 内容 |
 |---|---|---|---|
-| `layers/11-projects` | `projects` | 完整 layer | `app/pages/projects/*`（项目域页面） |
-| `layers/12-teams` | `teams` | 完整 layer | `app/pages/team/*`（团队域页面） |
+| `layers/11-resume` | `resume` | 完整 layer | `app/pages/resume/*`（简历编辑域：草稿 / 布局 / 主题 / 版本） |
+| `layers/11-projects` | `projects` | 模板遗留 demo | `app/pages/projects/*`（项目域示例页，my-resume 暂未使用，去留待定） |
+| `layers/12-teams` | `teams` | 模板遗留 demo | `app/pages/team/*`（团队域示例页，同上） |
 | `layers/13-settings` | `settings` | 完整 layer | `app/config/settings-navigation.ts` + `app/pages/settings*`（二级侧栏 + 子页） |
 | `layers/20-comps` | `comps` | 参考层 | `app/pages/comps/*`（组件库 demo 页，路由 `/comps/*`） |
 | `layers/00-shared` | `base-config` | 共享层 | **待建**（见下） |
