@@ -139,11 +139,23 @@ export interface ResumeBackgroundConfig {
 
 你设想的是「管理员登录后直接在页面里配：模块可拖拽、确认后保存入库」。建议分三期：
 
-| 阶段 | 内容 | 本轮 |
+| 阶段 | 内容 | 状态 |
 | --- | --- | --- |
-| A | 只读渲染 + 设置面板（本地演示用）；契约里预留 `editable` | ✅ 设计 |
-| B | 登录态判定（admin 身份）→ 编辑模式：跨栏拖拽排序、显隐、主题 / 背景选择、保存 | 下一轮 |
-| C | 保存接后端（`PUT /resume/display-config`），公开快照携带该配置 | 后续 |
+| A | 只读渲染 + 设置面板；契约预留 `editable` | ✅ 已交付（PR #6） |
+| B | 管理员登录 → 编辑模式：跨栏拖拽排序、显隐、主题 / 背景、保存到本地 | ✅ 已交付（PR #8，登录为**本地 mock**） |
+| C | 保存接后端（`PUT /resume/display-config`），公开快照携带该配置 | 待做 |
+
+### B 期实现要点（2026-10-07）
+
+- **登录是 mock**：`composables/useResumeAdmin.ts` 在**前端**校验 `admin / admin`，只用于把交互链路跑通。
+  ⚠️ 它不提供任何安全保护（账号写在前端，任何人可绕过）；接后端 auth 时替换 `signIn` 与 `isAdmin` 即可。
+- **SSR 不渲染编辑态**：登录态与本地配置都在 `onMounted` 恢复，`editable` 初始为 `false`，避免水合不一致。
+- **拖拽只在客户端、只在编辑态**：`ResumePageContainer` 里动态 `import('sortablejs')`，
+  用 `data-slot` 定位栏容器，`handle: '[data-drag-handle]'`；栏为空时元素不存在，自然跳过。
+- **落点用锚点语义**：拖拽结束后取 `item.nextElementSibling` 的 `data-section-key` 作为锚点，
+  `applyDragResult({ key, toSlot, anchorKey })` 把 key 插到锚点之前 —— 同栏排序与跨栏拖拽是同一套逻辑。
+- **编辑能力仍由容器注入**：手柄与隐藏按钮在 `ResumeColumn` 这一层渲染，区块组件照旧只读。
+- **保存**：`localStorage`（`my-resume.display-config`），C 期换成后端接口。
 
 **让组件可复用的关键约束**（这条决定组件会不会写脏）：
 

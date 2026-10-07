@@ -65,13 +65,17 @@
 | 意图验 | 阶段二：SSR 抓默认 `/resume`                                                              | 通过；`grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]` + 固定栏 sticky + 主题变量注入 | —                                                    |
 | 意图验 | 阶段二：临时把 mock 改成 `threeColumn` + `mesh` 纹理 + 深色主题，再抓 `/resume`            | 通过；`lg:grid-cols-[1fr_4fr_1fr]`、背景层出现 `radial-gradient(...)`、`--resume-page:rgb(3 7 18)` | 图片背景仅建模，上传后置                          |
 | 意图验 | 阶段二：临时改成 `single`，再抓 `/resume`                                                 | 通过；只剩 `grid-cols-1`（无多列类），6 个区块标题仍在（profile 为 hero 卡片无标题行） | 移动端断点靠静态类保证，未逐屏截图                |
+| 机器验 | B 期：`pnpm --filter @template/web typecheck`；`oxlint apps/web`                            | 通过；oxlint 0 warning / 0 error（34 files）                                  | 全仓 `format:check` 仍是既有缺口（DAO-006）      |
+| 结构验 | B 期：编辑态由容器注入（`ResumeColumn` 渲染手柄与隐藏按钮），区块组件未改动                  | 通过；7 个区块组件的 props 契约保持只读、未触碰                                | 拖拽手柄的视觉/可达性未做专项检查                 |
+| 意图验 | B 期：SSR 抓未登录 `/resume`                                                                 | 通过；出现「管理员登录」，**无** `data-drag-handle` / 「编辑模式」文案 → SSR 不吐编辑态，水合安全 | 登录后的客户端状态未在 SSR 断言                   |
+| 意图验 | B 期：拖拽落点算法（锚点语义）用 `/tmp` 脚本跑 6 个用例（同栏上移/下移、跨栏、落末尾、原地不动） | 通过；`applyDragResult` 的顺序与归属结果均符合预期（脚本在 /tmp，未进仓库）      | 端到端拖拽需人工在浏览器验证（环境无本地 Playwright 包） |
 
 ## 交接
 
-- 已完成：阶段一（类型 / 注册表 / mock / 区块组件 / 页面初版，随 PR #4 合入 dev）；阶段二设计与落地（薄页面编排、组件拆分、三种布局、纹理背景层、`useResumeDisplay` 状态层、拖拽与 `editable` 契约预留）。
-- 当前状态：`in-progress`（阶段二代码已完成并自测；B 期编辑模式待开）
+- 已完成：阶段一（类型 / 注册表 / mock / 区块组件 / 页面初版，随 PR #4 合入 dev）；阶段二（薄页面编排、组件拆分、三种布局、纹理背景层、`useResumeDisplay` 状态层）；B 期（`useResumeAdmin` 本地 mock 登录、编辑模式 `editable`、跨栏拖拽与锚点落点、保存到 localStorage）。
+- 当前状态：`in-progress`（A/B 已交付；C 期待后端 auth 就绪）
 - 阻塞：无。
-- 下一步第一刀：B 期「编辑模式」——登录态判定（管理员）→ 开启 `editable` → 跨栏拖拽（复用 `sortablejs`）→ 保存（先 localStorage，C 期换后端接口）。
+- 下一步第一刀：C 期 —— 接后端 auth（登录接口 + token + 角色）与配置提交接口（`PUT /resume/display-config`），把 `useResumeAdmin` 的 mock 换成真实会话、`saveLocal` 换成提交。
 - 文档锚点：`Issue #3`、`docs/dev/layers.md`、`docs/dev/data-layer.md`
 - 集成锚点：`待 feat/3-* -> dev`
 
