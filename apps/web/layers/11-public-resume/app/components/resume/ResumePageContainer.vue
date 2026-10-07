@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type Sortable from 'sortablejs'
+import type { SortableEvent } from 'sortablejs'
 import type {
   ResumeContent,
   ResumeDisplayConfig,
@@ -6,21 +8,28 @@ import type {
   ResumeSlotKey,
 } from '../../types/resume'
 import { getSectionDefinition, resumeSectionDefinitions } from '../../config/resume-sections'
+import { useResumeDisplay } from '../../composables/useResumeDisplay'
 import ResumeBackgroundLayer from './ResumeBackgroundLayer.vue'
 import ResumeColumn from './ResumeColumn.vue'
 
 /**
- * 正文容器：布局的唯一实现处。
+ * 正文容器：布局与拖拽的唯一实现处。
  *
  * - 注入主题 CSS 变量 + 背景层
- * - 把区块按「配置顺序 + 栏位归属」分到三栏
- * - 三种布局共用同一份 order / slot，切布局不丢编排
+ * - 把区块按「配置顺序 + 栏位归属」分到三栏；三种布局共用同一份 order / slot
+ * - `editable` 时启用跨栏拖拽（sortablejs，仅客户端），拖拽结果交给 useResumeDisplay
  * - `lg` 以下一律单列（移动端优先），DOM 顺序为 side → main → rail
  */
 const props = defineProps<{
   content: ResumeContent
   config: ResumeDisplayConfig
+  editable?: boolean
 }>()
+
+const emit = defineEmits<{ hide: [key: ResumeSectionKey] }>()
+
+const { applyDragResult } = useResumeDisplay()
+const containerRef = useTemplateRef<HTMLElement>('containerRef')
 
 /** 区块归属：配置覆盖 > 注册表默认 */
 function slotOf(key: ResumeSectionKey): ResumeSlotKey {
@@ -114,10 +123,83 @@ const themeVars = computed(() => {
     '--resume-chip-text': theme.dark ? 'rgb(226 232 240)' : 'rgb(51 65 85)',
   }
 })
+
+// ── 拖拽（仅客户端、仅编辑态）──────────────────────────
+let instances: Sortable[] = []
+
+function destroySortables() {
+  instances.forEach((instance) => instance.destroy())
+  instances = []
+}
+
+/** 用 data-slot 定位栏容器：栏为空时元素不存在，自然跳过 */
+function columnElement(slot: ResumeSlotKey) {
+  return containerRef.value?.querySelector<HTMLElement>(`[data-slot="${slot}"]`) ?? null
+}
+
+async function initSortables() {
+  destroySortables()
+  if (!import.meta.client || !props.editable) {
+    return
+  }
+
+  const SortableCtor = (await import('sortablejs')).default
+
+  for (const slot of ['side', 'main', 'rail'] as const) {
+    const el = columnElement(slot)
+    if (!el) {
+      continue
+    }
+
+    instances.push(
+      SortableCtor.create(el, {
+        group: 'resume-sections',
+        handle: '[data-drag-handle]',
+        animation: 150,
+        ghostClass: 'opacity-40',
+        onEnd(evt: SortableEvent) {
+          const item = evt.item as HTMLElement
+          const key = item.dataset.sectionKey as ResumeSectionKey | undefined
+          if (!key) {
+            return
+          }
+
+          const toSlot = ((evt.to as HTMLElement).dataset.slot ?? slot) as ResumeSlotKey
+          const next = item.nextElementSibling as HTMLElement | null
+
+          applyDragResult({
+            key,
+            toSlot,
+            anchorKey: next?.dataset.sectionKey as ResumeSectionKey | undefined,
+          })
+        },
+      }),
+    )
+  }
+}
+
+onMounted(() => {
+  void initSortables()
+})
+onBeforeUnmount(destroySortables)
+
+// 编辑态、布局模式或区块集合变化后，DOM 结构变了，需要重建实例
+watch(
+  () => [
+    props.editable,
+    props.config.layout.mode,
+    props.config.sections.order.length,
+    props.config.sections.hidden.length,
+  ],
+  () => {
+    void nextTick(initSortables)
+  },
+)
 </script>
 
 <template>
   <div
+    ref="containerRef"
     class="relative min-h-screen py-8 sm:py-10"
     :style="{ ...themeVars, background: 'var(--resume-page)' }"
   >
@@ -129,28 +211,37 @@ const themeVars = computed(() => {
     >
       <div v-if="columns.side.length" :class="columnClass('side')">
         <ResumeColumn
+          slot-key="side"
           :keys="columns.side"
           :content="content"
           :options="config.options"
           :theme="config.theme"
+          :editable="editable"
+          @hide="emit('hide', $event)"
         />
       </div>
 
       <div v-if="columns.main.length" :class="columnClass('main')">
         <ResumeColumn
+          slot-key="main"
           :keys="columns.main"
           :content="content"
           :options="config.options"
           :theme="config.theme"
+          :editable="editable"
+          @hide="emit('hide', $event)"
         />
       </div>
 
       <div v-if="columns.rail.length" :class="columnClass('rail')">
         <ResumeColumn
+          slot-key="rail"
           :keys="columns.rail"
           :content="content"
           :options="config.options"
           :theme="config.theme"
+          :editable="editable"
+          @hide="emit('hide', $event)"
         />
       </div>
     </div>
