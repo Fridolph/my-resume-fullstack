@@ -12,14 +12,10 @@
     <header class="sticky top-0 z-20 border-b border-default bg-default/90 backdrop-blur">
       <div class="mx-auto flex h-14 items-center justify-between gap-4 px-4 sm:px-6">
         <div class="flex items-center gap-3">
-          <span
-            class="rounded-md bg-warning/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-warning"
-          >
+          <span class="rounded-md bg-warning/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-warning">
             Demo
           </span>
-          <NuxtLink to="/" class="text-sm text-muted hover:text-highlighted">
-            ← Back to app
-          </NuxtLink>
+          <NuxtLink to="/" class="text-sm text-muted hover:text-highlighted"> ← Back to app </NuxtLink>
         </div>
 
         <slot name="actions" />

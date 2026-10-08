@@ -1,92 +1,92 @@
 <script setup lang="ts">
-import { queryKeys } from "~/lib/query-keys";
+import { queryKeys } from '~/lib/query-keys'
 
 definePageMeta({
-  layout: "has-sidebar",
-  title: "Dashboard",
-});
+  layout: 'has-sidebar',
+  title: 'Dashboard',
+})
 
 const summary = [
   {
-    label: "Active projects",
-    value: "24",
-    change: "+12.5%",
-    icon: "i-lucide-folder-kanban",
-    tone: "text-primary",
+    label: 'Active projects',
+    value: '24',
+    change: '+12.5%',
+    icon: 'i-lucide-folder-kanban',
+    tone: 'text-primary',
   },
   {
-    label: "Team members",
-    value: "18",
-    change: "+4.2%",
-    icon: "i-lucide-users",
-    tone: "text-info",
+    label: 'Team members',
+    value: '18',
+    change: '+4.2%',
+    icon: 'i-lucide-users',
+    tone: 'text-info',
   },
   {
-    label: "Open tasks",
-    value: "62",
-    change: "-8.1%",
-    icon: "i-lucide-list-checks",
-    tone: "text-warning",
+    label: 'Open tasks',
+    value: '62',
+    change: '-8.1%',
+    icon: 'i-lucide-list-checks',
+    tone: 'text-warning',
   },
-];
+]
 
 const recentActivity = [
   {
-    title: "Project brief approved",
-    description: "Northwind rollout",
-    time: "12 min ago",
-    icon: "i-lucide-check-circle-2",
+    title: 'Project brief approved',
+    description: 'Northwind rollout',
+    time: '12 min ago',
+    icon: 'i-lucide-check-circle-2',
   },
   {
-    title: "New team member joined",
-    description: "Alex Morgan",
-    time: "46 min ago",
-    icon: "i-lucide-user-plus",
+    title: 'New team member joined',
+    description: 'Alex Morgan',
+    time: '46 min ago',
+    icon: 'i-lucide-user-plus',
   },
   {
-    title: "Review requested",
-    description: "Q4 campaign workspace",
-    time: "2 hr ago",
-    icon: "i-lucide-message-square-more",
+    title: 'Review requested',
+    description: 'Q4 campaign workspace',
+    time: '2 hr ago',
+    icon: 'i-lucide-message-square-more',
   },
-];
+]
 
 /**
  * 数据层自检：colada query 打真实后端接口（/api/health）。
  * 换后端或加鉴权后，这里用来观察请求层 + 缓存层是否仍然成立。
  */
-const queryCache = useQueryCache();
-const { data: health, error: healthError, asyncStatus: healthStatus } = useHealthQuery();
+const queryCache = useQueryCache()
+const { data: health, error: healthError, asyncStatus: healthStatus } = useHealthQuery()
 
-const isHealthLoading = computed(() => healthStatus.value === "loading");
+const isHealthLoading = computed(() => healthStatus.value === 'loading')
 const healthTone = computed(() =>
-  healthError.value ? "text-error" : isHealthLoading.value ? "text-muted" : "text-success",
-);
+  healthError.value ? 'text-error' : isHealthLoading.value ? 'text-muted' : 'text-success',
+)
 const healthIcon = computed(() =>
   healthError.value
-    ? "i-lucide-triangle-alert"
+    ? 'i-lucide-triangle-alert'
     : isHealthLoading.value
-      ? "i-lucide-loader-circle"
-      : "i-lucide-plug-zap",
-);
+      ? 'i-lucide-loader-circle'
+      : 'i-lucide-plug-zap',
+)
 const healthSummary = computed(() => {
   if (isHealthLoading.value) {
-    return "Checking backend…";
+    return 'Checking backend…'
   }
   if (healthError.value) {
-    return getApiErrorMessage(healthError.value, "Backend unreachable");
+    return getApiErrorMessage(healthError.value, 'Backend unreachable')
   }
   return health.value
     ? `${health.value.service} online · uptime ${Math.round(health.value.uptime)}s`
-    : "Waiting for first check";
-});
+    : 'Waiting for first check'
+})
 const healthRaw = computed(() =>
-  health.value ? JSON.stringify(health.value) : healthError.value ? String(healthError.value) : "—",
-);
+  health.value ? JSON.stringify(health.value) : healthError.value ? String(healthError.value) : '—',
+)
 
 /** 失效重取：演示 colada 的缓存失效与重新取数 */
 function recheckHealth() {
-  void queryCache.invalidateQueries({ key: queryKeys.health() });
+  void queryCache.invalidateQueries({ key: queryKeys.health() })
 }
 </script>
 
@@ -95,9 +95,7 @@ function recheckHealth() {
     <section class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div>
         <p class="text-sm font-medium text-primary">Monday, October 5, 2026</p>
-        <h2 class="mt-1 text-2xl font-semibold tracking-tight text-highlighted sm:text-3xl">
-          Good morning, admin.
-        </h2>
+        <h2 class="mt-1 text-2xl font-semibold tracking-tight text-highlighted sm:text-3xl">Good morning, admin.</h2>
         <p class="mt-2 text-sm text-muted">Here is what is happening across your workspace.</p>
       </div>
       <UButton icon="i-lucide-plus" label="New project" />
@@ -127,15 +125,11 @@ function recheckHealth() {
         <template #header>
           <div>
             <h3 class="font-semibold text-highlighted">Infrastructure check</h3>
-            <p class="mt-1 text-sm text-muted">
-              Pinia Colada query hitting the real API; invalidate to refetch.
-            </p>
+            <p class="mt-1 text-sm text-muted">Pinia Colada query hitting the real API; invalidate to refetch.</p>
           </div>
           <UButton label="View report" color="neutral" variant="outline" size="sm" />
         </template>
-        <div
-          class="grid min-h-72 place-items-center bg-linear-to-br from-primary/5 via-default to-info/5 p-6"
-        >
+        <div class="grid min-h-72 place-items-center bg-linear-to-br from-primary/5 via-default to-info/5 p-6">
           <div class="w-full max-w-md space-y-3">
             <div class="flex items-center justify-between gap-3">
               <div class="flex items-center gap-2">
@@ -161,20 +155,12 @@ function recheckHealth() {
         <template #header>
           <div class="flex items-center justify-between gap-4">
             <h3 class="font-semibold text-highlighted">Recent activity</h3>
-            <UButton
-              icon="i-lucide-ellipsis"
-              color="neutral"
-              variant="ghost"
-              size="xs"
-              aria-label="Activity options"
-            />
+            <UButton icon="i-lucide-ellipsis" color="neutral" variant="ghost" size="xs" aria-label="Activity options" />
           </div>
         </template>
         <div class="space-y-5">
           <div v-for="activity in recentActivity" :key="activity.title" class="flex gap-3">
-            <span
-              class="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"
-            >
+            <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
               <UIcon :name="activity.icon" class="size-4" />
             </span>
             <div class="min-w-0">

@@ -9,13 +9,13 @@ const {
   active = true,
   tooltipText,
 } = defineProps<{
-  label?: number | string;
-  showChip?: boolean;
-  active?: boolean;
-  tooltipText?: string;
-}>();
+  label?: number | string
+  showChip?: boolean
+  active?: boolean
+  tooltipText?: string
+}>()
 
-const badgeBgClass = computed(() => (active ? "bg-[#3ec064]" : "bg-[#9ca3af]"));
+const badgeBgClass = computed(() => (active ? 'bg-[#3ec064]' : 'bg-[#9ca3af]'))
 </script>
 
 <template>

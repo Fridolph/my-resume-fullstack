@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useResumeAdmin } from "#layers/public-resume/app/composables/useResumeAdmin";
-import ResumeAdminLoginModal from "./ResumeAdminLoginModal.vue";
+import { useResumeAdmin } from '#layers/public-resume/app/composables/useResumeAdmin'
+import ResumeAdminLoginModal from './ResumeAdminLoginModal.vue'
 
 /**
  * 登录入口：按钮与登录弹窗一体。
@@ -10,20 +10,15 @@ import ResumeAdminLoginModal from "./ResumeAdminLoginModal.vue";
  *
  * 弹窗状态收在组件内部，页面因此不再需要持有 `loginOpen`。
  */
-withDefaults(defineProps<{ variant?: "text" | "icon" }>(), { variant: "text" });
+withDefaults(defineProps<{ variant?: 'text' | 'icon' }>(), { variant: 'text' })
 
-const { session, isAdmin, signOut } = useResumeAdmin();
-const open = ref(false);
+const { session, isAdmin, signOut } = useResumeAdmin()
+const open = ref(false)
 </script>
 
 <template>
   <template v-if="isAdmin">
-    <UBadge
-      v-if="variant === 'text'"
-      color="success"
-      variant="subtle"
-      :label="`编辑模式 · ${session?.username}`"
-    />
+    <UBadge v-if="variant === 'text'" color="success" variant="subtle" :label="`编辑模式 · ${session?.username}`" />
 
     <UButton
       v-if="variant === 'text'"

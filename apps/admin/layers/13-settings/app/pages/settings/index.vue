@@ -5,10 +5,10 @@
 definePageMeta({
   middleware(to) {
     if (!to.redirectedFrom) {
-      return navigateTo("/settings/company", { replace: true });
+      return navigateTo('/settings/company', { replace: true })
     }
   },
-});
+})
 </script>
 
 <template>

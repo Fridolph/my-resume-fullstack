@@ -13,5 +13,5 @@
  * ```
  */
 export const queryKeys = {
-  health: () => ["health"] as const,
-};
+  health: () => ['health'] as const,
+}

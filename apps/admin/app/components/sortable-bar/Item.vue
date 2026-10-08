@@ -6,21 +6,21 @@
  */
 withDefaults(
   defineProps<{
-    item: Record<string, any>;
-    index?: number;
-    active?: boolean;
-    theme?: "dark" | "light";
-    showHandle?: boolean;
+    item: Record<string, any>
+    index?: number
+    active?: boolean
+    theme?: 'dark' | 'light'
+    showHandle?: boolean
   }>(),
   {
     index: 0,
     active: false,
-    theme: "dark",
+    theme: 'dark',
     showHandle: true,
   },
-);
+)
 
-const emit = defineEmits<{ select: [] }>();
+const emit = defineEmits<{ select: [] }>()
 </script>
 
 <template>

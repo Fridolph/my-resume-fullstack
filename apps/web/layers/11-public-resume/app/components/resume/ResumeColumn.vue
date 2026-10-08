@@ -6,11 +6,8 @@ import type {
   ResumeSlotKey,
   ResumeStyleId,
   ResumeThemeConfig,
-} from "#layers/public-resume/app/types/resume";
-import {
-  getSectionDefinition,
-  resumeSectionComponents,
-} from "#layers/public-resume/app/config/resume-sections";
+} from '#layers/public-resume/app/types/resume'
+import { getSectionDefinition, resumeSectionComponents } from '#layers/public-resume/app/config/resume-sections'
 
 /**
  * 单栏：渲染某个栏位里的有序区块列表。
@@ -23,25 +20,25 @@ import {
  * 空栏在编辑态下也要渲染落点（虚线占位），否则「把一栏清空后就拖不回去」。
  */
 defineProps<{
-  slotKey: ResumeSlotKey;
-  keys: ResumeSectionKey[];
-  content: ResumeContent;
-  options: ResumeDisplayOptions;
-  theme: ResumeThemeConfig;
+  slotKey: ResumeSlotKey
+  keys: ResumeSectionKey[]
+  content: ResumeContent
+  options: ResumeDisplayOptions
+  theme: ResumeThemeConfig
   /** 风格变体：原样透传给区块组件 */
-  variant: ResumeStyleId;
-  editable?: boolean;
-}>();
+  variant: ResumeStyleId
+  editable?: boolean
+}>()
 
 const emit = defineEmits<{
-  hide: [key: ResumeSectionKey];
-  edit: [key: ResumeSectionKey];
+  hide: [key: ResumeSectionKey]
+  edit: [key: ResumeSectionKey]
   /** 栏内上移 / 下移（delta = -1 / +1）：键盘与触屏的拖拽替代入口 */
-  move: [key: ResumeSectionKey, delta: number];
-}>();
+  move: [key: ResumeSectionKey, delta: number]
+}>()
 
 function labelOf(key: ResumeSectionKey) {
-  return getSectionDefinition(key)?.label ?? key;
+  return getSectionDefinition(key)?.label ?? key
 }
 </script>
 
@@ -69,12 +66,7 @@ function labelOf(key: ResumeSectionKey) {
           <UIcon name="i-lucide-arrow-down" class="size-4" />
           <span class="sr-only">下移</span>
         </button>
-        <button
-          type="button"
-          class="resume-tool-btn"
-          :title="`编辑「${labelOf(key)}」内容`"
-          @click="emit('edit', key)"
-        >
+        <button type="button" class="resume-tool-btn" :title="`编辑「${labelOf(key)}」内容`" @click="emit('edit', key)">
           <UIcon name="i-lucide-pencil" class="size-4" />
           <span class="sr-only">编辑内容</span>
         </button>

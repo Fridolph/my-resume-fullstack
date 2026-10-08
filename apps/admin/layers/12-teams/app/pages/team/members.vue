@@ -1,8 +1,8 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: "has-sidebar",
-  title: "Members",
-});
+  layout: 'has-sidebar',
+  title: 'Members',
+})
 </script>
 
 <template>

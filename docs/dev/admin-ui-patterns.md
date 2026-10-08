@@ -34,18 +34,18 @@ UDashboardGroup (--ui-header-height: 4rem)
 
 ```ts
 export const adminNavigation: AdminNavigationItem[] = [
-  { label: "Dashboard", icon: "i-lucide-layout-dashboard", to: "/" },
+  { label: 'Dashboard', icon: 'i-lucide-layout-dashboard', to: '/' },
   {
-    label: "Projects",
-    icon: "i-lucide-folder-kanban",
+    label: 'Projects',
+    icon: 'i-lucide-folder-kanban',
     defaultOpen: true,
     children: [
       // 二级菜单
-      { label: "All projects", to: "/projects" },
-      { label: "Recently viewed", to: "/projects/recent" },
+      { label: 'All projects', to: '/projects' },
+      { label: 'Recently viewed', to: '/projects/recent' },
     ],
   },
-];
+]
 ```
 
 - 一级菜单：`label + icon + to`。
@@ -57,9 +57,9 @@ export const adminNavigation: AdminNavigationItem[] = [
 
 ```ts
 export const settingsNavigation: SettingsNavigationItem[] = [
-  { type: "label", label: "Organization" }, // 分组标题
-  { label: "Company profile", icon: "i-lucide-building-2", to: "/settings/company" },
-];
+  { type: 'label', label: 'Organization' }, // 分组标题
+  { label: 'Company profile', icon: 'i-lucide-building-2', to: '/settings/company' },
+]
 ```
 
 - `type: "label"` 是分组标题（`UNavigationMenu` 原生支持）。
@@ -99,9 +99,9 @@ pages/
 ```ts
 definePageMeta({
   middleware(to) {
-    if (!to.redirectedFrom) return navigateTo("/settings/company", { replace: true });
+    if (!to.redirectedFrom) return navigateTo('/settings/company', { replace: true })
   },
-});
+})
 ```
 
 > 约定：`has-sidebar` 布局 body 不带 padding（`<main class="min-h-full">`），由页面自行控制留白（统一 `p-4 sm:p-6`）。所以 settings 父页**不需要负 margin**——侧栏天然贴边，内容区 `p-4 sm:p-6` 与 projects 保持一致。
@@ -138,9 +138,9 @@ const items = computed<DropdownMenuItem[][]>(() => [
 ```vue
 <script setup lang="ts">
 definePageMeta({
-  layout: "has-sidebar",
-  title: "Members",
-});
+  layout: 'has-sidebar',
+  title: 'Members',
+})
 </script>
 
 <template>

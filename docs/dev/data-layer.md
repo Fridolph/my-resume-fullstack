@@ -33,8 +33,8 @@
 集中在 `app/lib/query-keys.ts`，结构为 `[scope, ...segments]`：
 
 ```ts
-queryKeys.resume.draft(); // ['resume', 'draft']
-queryKeys.resume.published("zh"); // ['resume', 'published', 'zh']
+queryKeys.resume.draft() // ['resume', 'draft']
+queryKeys.resume.published('zh') // ['resume', 'published', 'zh']
 ```
 
 - `scope` 与业务域同名；域内细分放 segments，便于按前缀批量失效。
@@ -43,8 +43,8 @@ queryKeys.resume.published("zh"); // ['resume', 'published', 'zh']
 ## 4. 失效与重取
 
 ```ts
-const queryCache = useQueryCache();
-queryCache.invalidateQueries({ key: queryKeys.resume.draft() });
+const queryCache = useQueryCache()
+queryCache.invalidateQueries({ key: queryKeys.resume.draft() })
 ```
 
 - mutation 成功后由 **mutation 自己** 声明要失效的 key（写在 mutation 的 `onSuccess` 里），

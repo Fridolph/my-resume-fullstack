@@ -4,7 +4,7 @@ import type {
   ResumeStyleId,
   ResumeThemeColorKey,
   ResumeThemePreset,
-} from "#layers/public-resume/app/types/resume";
+} from '#layers/public-resume/app/types/resume'
 
 /**
  * 风格预设（本轮两档）。
@@ -13,10 +13,10 @@ import type {
  * 与区块组件的 `variant` 分支承载，见 docs/dev/resume-styles.md。
  */
 export const resumeStylePresets: { id: ResumeStyleId; label: string; icon: string }[] = [
-  { id: "minimal", label: "极简", icon: "i-lucide-minus" },
-  { id: "standard", label: "标准", icon: "i-lucide-layout-panel-top" },
-  { id: "pro", label: "精致", icon: "i-lucide-sparkles" },
-];
+  { id: 'minimal', label: '极简', icon: 'i-lucide-minus' },
+  { id: 'standard', label: '标准', icon: 'i-lucide-layout-panel-top' },
+  { id: 'pro', label: '精致', icon: 'i-lucide-sparkles' },
+]
 
 /**
  * 主题预设：每套配色自带 **light / dark 两组**色值（都写全，方便自定义逐项改）。
@@ -28,106 +28,106 @@ export const resumeStylePresets: { id: ResumeStyleId; label: string; icon: strin
  */
 export const resumeThemePresets: ResumeThemePreset[] = [
   {
-    id: "blue",
-    label: "蓝色简约",
+    id: 'blue',
+    label: '蓝色简约',
     light: {
-      primary: "#1578d0",
-      gradientFrom: "#1578d0",
-      gradientTo: "#3ec064",
-      surface: "#ffffff",
-      text: "#0f172a",
-      muted: "#64748b",
-      border: "#e2e8f0",
-      chipBg: "#f1f5f9",
-      chipText: "#334155",
+      primary: '#1578d0',
+      gradientFrom: '#1578d0',
+      gradientTo: '#3ec064',
+      surface: '#ffffff',
+      text: '#0f172a',
+      muted: '#64748b',
+      border: '#e2e8f0',
+      chipBg: '#f1f5f9',
+      chipText: '#334155',
     },
     dark: {
-      primary: "#60a5fa",
-      gradientFrom: "#60a5fa",
-      gradientTo: "#34d399",
-      surface: "#111827",
-      text: "#e5e7eb",
-      muted: "#94a3b8",
-      border: "#1f2937",
-      chipBg: "#1f2937",
-      chipText: "#e2e8f0",
+      primary: '#60a5fa',
+      gradientFrom: '#60a5fa',
+      gradientTo: '#34d399',
+      surface: '#111827',
+      text: '#e5e7eb',
+      muted: '#94a3b8',
+      border: '#1f2937',
+      chipBg: '#1f2937',
+      chipText: '#e2e8f0',
     },
   },
   {
-    id: "green",
-    label: "绿色清新",
+    id: 'green',
+    label: '绿色清新',
     light: {
-      primary: "#2f9e63",
-      gradientFrom: "#2f9e63",
-      gradientTo: "#7ac943",
-      surface: "#ffffff",
-      text: "#0f172a",
-      muted: "#64748b",
-      border: "#e2e8f0",
-      chipBg: "#f1f5f9",
-      chipText: "#334155",
+      primary: '#2f9e63',
+      gradientFrom: '#2f9e63',
+      gradientTo: '#7ac943',
+      surface: '#ffffff',
+      text: '#0f172a',
+      muted: '#64748b',
+      border: '#e2e8f0',
+      chipBg: '#f1f5f9',
+      chipText: '#334155',
     },
     dark: {
-      primary: "#4ade80",
-      gradientFrom: "#4ade80",
-      gradientTo: "#a3e635",
-      surface: "#111827",
-      text: "#e5e7eb",
-      muted: "#94a3b8",
-      border: "#1f2937",
-      chipBg: "#1f2937",
-      chipText: "#e2e8f0",
+      primary: '#4ade80',
+      gradientFrom: '#4ade80',
+      gradientTo: '#a3e635',
+      surface: '#111827',
+      text: '#e5e7eb',
+      muted: '#94a3b8',
+      border: '#1f2937',
+      chipBg: '#1f2937',
+      chipText: '#e2e8f0',
     },
   },
   {
-    id: "tech",
-    label: "科技感",
+    id: 'tech',
+    label: '科技感',
     // 浅色组：冷调浅底 + 青蓝主色（与其它预设的 light 区分在整体色调，而非只换主色）
     light: {
-      primary: "#0891b2",
-      gradientFrom: "#0891b2",
-      gradientTo: "#6366f1",
-      surface: "#f8fafc",
-      text: "#0f172a",
-      muted: "#64748b",
-      border: "#e2e8f0",
-      chipBg: "#e0f2fe",
-      chipText: "#0e7490",
+      primary: '#0891b2',
+      gradientFrom: '#0891b2',
+      gradientTo: '#6366f1',
+      surface: '#f8fafc',
+      text: '#0f172a',
+      muted: '#64748b',
+      border: '#e2e8f0',
+      chipBg: '#e0f2fe',
+      chipText: '#0e7490',
     },
     // 深色组：黑色为主 + 青色高光
     dark: {
-      primary: "#22d3ee",
-      gradientFrom: "#22d3ee",
-      gradientTo: "#6366f1",
-      surface: "#000000",
-      text: "#e5e7eb",
-      muted: "#94a3b8",
-      border: "#27272a",
-      chipBg: "#18181b",
-      chipText: "#a5f3fc",
+      primary: '#22d3ee',
+      gradientFrom: '#22d3ee',
+      gradientTo: '#6366f1',
+      surface: '#000000',
+      text: '#e5e7eb',
+      muted: '#94a3b8',
+      border: '#27272a',
+      chipBg: '#18181b',
+      chipText: '#a5f3fc',
     },
   },
-];
+]
 
 /** 「自定义」主题的 id / 标签：切到它时复制当前配色的两组值，之后逐项微调 */
-export const RESUME_CUSTOM_THEME = { id: "custom", label: "自定义" } as const;
+export const RESUME_CUSTOM_THEME = { id: 'custom', label: '自定义' } as const
 
 /** 调色盘展示 / 编辑的项目（两组共用同一份字段表，顺序即面板中的顺序） */
 export const resumeThemeFields: { key: ResumeThemeColorKey; label: string }[] = [
-  { key: "primary", label: "主色" },
-  { key: "gradientFrom", label: "渐变起" },
-  { key: "gradientTo", label: "渐变止" },
-  { key: "surface", label: "纸面" },
-  { key: "text", label: "正文" },
-  { key: "muted", label: "次要文字" },
-  { key: "border", label: "边框" },
-  { key: "chipBg", label: "标签底" },
-  { key: "chipText", label: "标签字" },
-];
+  { key: 'primary', label: '主色' },
+  { key: 'gradientFrom', label: '渐变起' },
+  { key: 'gradientTo', label: '渐变止' },
+  { key: 'surface', label: '纸面' },
+  { key: 'text', label: '正文' },
+  { key: 'muted', label: '次要文字' },
+  { key: 'border', label: '边框' },
+  { key: 'chipBg', label: '标签底' },
+  { key: 'chipText', label: '标签字' },
+]
 
 /** 噪点纹理：体积极小的 SVG data-URI（`#` 已编码为 `%23`） */
 const NOISE_SVG =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E\")";
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E\")"
 
 /**
  * 背景纹理预设：全部是纯 CSS / SVG，不新增依赖。
@@ -135,27 +135,27 @@ const NOISE_SVG =
  * `css` 直接喂给背景层的 `background`，`size` 给 `background-size`。
  */
 export const resumeBackgroundPresets: ResumeBackgroundPreset[] = [
-  { id: "none", label: "纯色", css: "", size: "auto" },
+  { id: 'none', label: '纯色', css: '', size: 'auto' },
   {
-    id: "dots",
-    label: "点阵",
-    css: "radial-gradient(rgb(148 163 184 / 0.45) 1px, transparent 1px)",
-    size: "16px 16px",
+    id: 'dots',
+    label: '点阵',
+    css: 'radial-gradient(rgb(148 163 184 / 0.45) 1px, transparent 1px)',
+    size: '16px 16px',
   },
   {
-    id: "grid",
-    label: "细网格",
-    css: "linear-gradient(rgb(148 163 184 / 0.3) 1px, transparent 1px), linear-gradient(90deg, rgb(148 163 184 / 0.3) 1px, transparent 1px)",
-    size: "24px 24px",
+    id: 'grid',
+    label: '细网格',
+    css: 'linear-gradient(rgb(148 163 184 / 0.3) 1px, transparent 1px), linear-gradient(90deg, rgb(148 163 184 / 0.3) 1px, transparent 1px)',
+    size: '24px 24px',
   },
   {
-    id: "mesh",
-    label: "渐变光斑",
-    css: "radial-gradient(60% 50% at 15% 20%, rgb(21 120 208 / 0.3), transparent 70%), radial-gradient(50% 45% at 85% 15%, rgb(62 192 100 / 0.28), transparent 70%), radial-gradient(55% 50% at 70% 85%, rgb(99 102 241 / 0.26), transparent 70%)",
-    size: "auto",
+    id: 'mesh',
+    label: '渐变光斑',
+    css: 'radial-gradient(60% 50% at 15% 20%, rgb(21 120 208 / 0.3), transparent 70%), radial-gradient(50% 45% at 85% 15%, rgb(62 192 100 / 0.28), transparent 70%), radial-gradient(55% 50% at 70% 85%, rgb(99 102 241 / 0.26), transparent 70%)',
+    size: 'auto',
   },
-  { id: "noise", label: "噪点", css: NOISE_SVG, size: "120px 120px" },
-];
+  { id: 'noise', label: '噪点', css: NOISE_SVG, size: '120px 120px' },
+]
 
 /**
  * 展示配置 mock（接后端后由公开快照携带）。
@@ -167,21 +167,13 @@ export const resumeDisplayMock: ResumeDisplayConfig = {
   // 留空即走预设（姓名 / 定位 / 姓名首字）
   brand: {},
   layout: {
-    mode: "split",
-    splitSide: "left",
+    mode: 'split',
+    splitSide: 'left',
     stickySide: true,
-    sideWidth: "compact",
+    sideWidth: 'compact',
   },
   sections: {
-    order: [
-      "profile",
-      "highlights",
-      "education",
-      "experience",
-      "projects",
-      "skills",
-      "evaluations",
-    ],
+    order: ['profile', 'highlights', 'education', 'experience', 'projects', 'skills', 'evaluations'],
     slot: {},
     hidden: [],
   },
@@ -194,12 +186,12 @@ export const resumeDisplayMock: ResumeDisplayConfig = {
     showAchievements: true,
   },
   // 默认：蓝色简约 + 浅色模式
-  theme: { ...resumeThemePresets[0]!, mode: "light" },
+  theme: { ...resumeThemePresets[0]!, mode: 'light' },
   background: {
-    type: "plain",
-    textureId: "none",
-    image: { url: "", fit: "cover", overlay: 30, blur: 0 },
+    type: 'plain',
+    textureId: 'none',
+    image: { url: '', fit: 'cover', overlay: 30, blur: 0 },
   },
   // 默认 minimal：切风格是显式动作，默认观感保持不变
-  style: { id: "minimal" },
-};
+  style: { id: 'minimal' },
+}

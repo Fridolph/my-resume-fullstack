@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { DropdownMenuItem } from "@nuxt/ui";
-import type { Editor } from "@tiptap/vue-3";
-import useEditor from "./useEditor";
+import type { DropdownMenuItem } from '@nuxt/ui'
+import type { Editor } from '@tiptap/vue-3'
+import useEditor from './useEditor'
 
 const props = defineProps({
   textContent: {
@@ -10,7 +10,7 @@ const props = defineProps({
   },
   placeholder: {
     type: String,
-    default: "",
+    default: '',
   },
   disabled: {
     type: Boolean,
@@ -28,125 +28,124 @@ const props = defineProps({
     type: Array<string>,
     default: () => [],
   },
-});
+})
 
-const { controlType, heading, textAlign, textFontFamily, handlers, extensions, selectionUpdate } =
-  useEditor();
+const { controlType, heading, textAlign, textFontFamily, handlers, extensions, selectionUpdate } = useEditor()
 
 const toolsConfig: DropdownMenuItem[][] = [
-  [{ slot: "heading" }, { slot: "text-font-family" }],
+  [{ slot: 'heading' }, { slot: 'text-font-family' }],
   [
     {
-      icon: "i-lucide-bold",
-      kind: "bold",
-      tooltip: { text: "Bold", content: { side: "top" }, delayDuration: 0 },
+      icon: 'i-lucide-bold',
+      kind: 'bold',
+      tooltip: { text: 'Bold', content: { side: 'top' }, delayDuration: 0 },
     },
     {
-      icon: "i-lucide-italic",
-      kind: "italic",
-      tooltip: { text: "Italic", content: { side: "top" }, delayDuration: 0 },
+      icon: 'i-lucide-italic',
+      kind: 'italic',
+      tooltip: { text: 'Italic', content: { side: 'top' }, delayDuration: 0 },
     },
     {
-      icon: "i-lucide-underline",
-      kind: "underline",
-      tooltip: { text: "Underline", content: { side: "top" }, delayDuration: 0 },
+      icon: 'i-lucide-underline',
+      kind: 'underline',
+      tooltip: { text: 'Underline', content: { side: 'top' }, delayDuration: 0 },
     },
-    { slot: "font-color" },
-    { slot: "bg-color" },
+    { slot: 'font-color' },
+    { slot: 'bg-color' },
   ],
   [
-    { slot: "text-align" },
+    { slot: 'text-align' },
     {
-      icon: "i-lucide-list-ordered",
-      kind: "orderList",
-      tooltip: { text: "Numbered list", content: { side: "top" }, delayDuration: 0 },
+      icon: 'i-lucide-list-ordered',
+      kind: 'orderList',
+      tooltip: { text: 'Numbered list', content: { side: 'top' }, delayDuration: 0 },
     },
     {
-      icon: "i-lucide-list",
-      kind: "bulletList",
-      tooltip: { text: "Bulleted list", content: { side: "top" }, delayDuration: 0 },
+      icon: 'i-lucide-list',
+      kind: 'bulletList',
+      tooltip: { text: 'Bulleted list', content: { side: 'top' }, delayDuration: 0 },
     },
     {
-      icon: "i-lucide-indent-increase",
-      kind: "increase",
-      tooltip: { text: "Increase indent", content: { side: "top" }, delayDuration: 0 },
+      icon: 'i-lucide-indent-increase',
+      kind: 'increase',
+      tooltip: { text: 'Increase indent', content: { side: 'top' }, delayDuration: 0 },
     },
     {
-      icon: "i-lucide-indent-decrease",
-      kind: "decrease",
-      tooltip: { text: "Decrease indent", content: { side: "top" }, delayDuration: 0 },
+      icon: 'i-lucide-indent-decrease',
+      kind: 'decrease',
+      tooltip: { text: 'Decrease indent', content: { side: 'top' }, delayDuration: 0 },
     },
   ],
   [
-    { slot: "link" },
-    { slot: "image" },
-    { slot: "variable" },
+    { slot: 'link' },
+    { slot: 'image' },
+    { slot: 'variable' },
     {
-      icon: "i-lucide-minus",
-      kind: "horizontal",
-      tooltip: { text: "Insert horizontal line", content: { side: "top" }, delayDuration: 0 },
+      icon: 'i-lucide-minus',
+      kind: 'horizontal',
+      tooltip: { text: 'Insert horizontal line', content: { side: 'top' }, delayDuration: 0 },
     },
-    { slot: "more" },
-    { slot: "operation" },
+    { slot: 'more' },
+    { slot: 'operation' },
   ],
-];
+]
 
 const cToolsConfig = computed(() => {
-  const list: DropdownMenuItem[][] = [];
-  toolsConfig.forEach((item) => {
-    const list2: DropdownMenuItem[] = [];
-    item.forEach((item2) => {
+  const list: DropdownMenuItem[][] = []
+  toolsConfig.forEach(item => {
+    const list2: DropdownMenuItem[] = []
+    item.forEach(item2 => {
       if (!props.excludeToolBar.includes(item2.kind || item2.slot)) {
-        list2.push(item2);
+        list2.push(item2)
       }
-    });
+    })
     if (list2.length) {
-      list.push(list2);
+      list.push(list2)
     }
-  });
-  return list;
-});
+  })
+  return list
+})
 
-const editorRef = ref();
-const editorValue = defineModel<string>({ default: "" });
+const editorRef = ref()
+const editorValue = defineModel<string>({ default: '' })
 
-const uploading = shallowRef(false);
+const uploading = shallowRef(false)
 // UEditor 的 editor 是异步就绪的 ShallowRef，等它就绪后再注入 mention 变量
 watch(
   () => editorRef.value?.editor as Editor | undefined,
-  (editor) => {
-    const mentionStorage = (editor?.extensionStorage as Record<string, any> | undefined)?.mention;
+  editor => {
+    const mentionStorage = (editor?.extensionStorage as Record<string, any> | undefined)?.mention
     if (mentionStorage) {
-      mentionStorage.variables = props.variables;
+      mentionStorage.variables = props.variables
     }
   },
   { immediate: true },
-);
+)
 
-const sourceCode = shallowRef("");
+const sourceCode = shallowRef('')
 function handleControlTypeChange() {
-  const editor = editorRef.value?.editor as Editor | undefined;
+  const editor = editorRef.value?.editor as Editor | undefined
   if (!editor) {
-    return;
+    return
   }
-  if (controlType.value === "view") {
+  if (controlType.value === 'view') {
     editor.commands.setContent(sourceCode.value, {
       parseOptions: {
-        preserveWhitespace: "full",
+        preserveWhitespace: 'full',
       },
-    });
+    })
   } else {
-    const html = editor.getHTML();
+    const html = editor.getHTML()
     if (html) {
-      sourceCode.value = html;
+      sourceCode.value = html
     }
   }
 }
 
 function addVariable(variable: IMention) {
-  const editor = editorRef.value?.editor as Editor | undefined;
+  const editor = editorRef.value?.editor as Editor | undefined
   if (!editor) {
-    return;
+    return
   }
   editor
     .chain()
@@ -154,12 +153,12 @@ function addVariable(variable: IMention) {
       id: variable.placeholder,
     })
     .focus()
-    .run();
+    .run()
 }
 
 defineExpose({
   addVariable,
-});
+})
 </script>
 
 <template>
@@ -201,11 +200,7 @@ defineExpose({
         }"
       >
         <template #heading>
-          <TextEditorToolbarsHeading
-            v-model="heading"
-            :disabled="controlType === 'code'"
-            :editor="editor"
-          />
+          <TextEditorToolbarsHeading v-model="heading" :disabled="controlType === 'code'" :editor="editor" />
         </template>
         <template #text-font-family>
           <TextEditorToolbarsTextFontFamily
@@ -221,28 +216,16 @@ defineExpose({
           <TextEditorToolbarsBackgroundColor :editor="editor" :disabled="controlType === 'code'" />
         </template>
         <template #text-align>
-          <TextEditorToolbarsTextAlign
-            v-model="textAlign"
-            :editor="editor"
-            :disabled="controlType === 'code'"
-          />
+          <TextEditorToolbarsTextAlign v-model="textAlign" :editor="editor" :disabled="controlType === 'code'" />
         </template>
         <template #link>
           <TextEditorToolbarsLink :editor="editor" :disabled="controlType === 'code'" />
         </template>
         <template #image>
-          <TextEditorToolbarsImage
-            v-model:loading="uploading"
-            :editor="editor"
-            :disabled="controlType === 'code'"
-          />
+          <TextEditorToolbarsImage v-model:loading="uploading" :editor="editor" :disabled="controlType === 'code'" />
         </template>
         <template #variable>
-          <TextEditorToolbarsVariable
-            :variables="variables"
-            :editor="editor"
-            :disabled="controlType === 'code'"
-          />
+          <TextEditorToolbarsVariable :variables="variables" :editor="editor" :disabled="controlType === 'code'" />
         </template>
         <template #more>
           <TextEditorToolbarsMore :editor="editor" :disabled="controlType === 'code'" />
@@ -256,11 +239,7 @@ defineExpose({
         </template>
       </UEditorToolbar>
     </UEditor>
-    <div
-      v-if="!disabled"
-      v-show="controlType === 'code'"
-      class="absolute top-11.25 z-1 h-[calc(100%-45px)] w-full"
-    >
+    <div v-if="!disabled" v-show="controlType === 'code'" class="absolute top-11.25 z-1 h-[calc(100%-45px)] w-full">
       <UTextarea
         v-model="sourceCode"
         class="h-full w-full flex-col bg-white"
@@ -356,7 +335,7 @@ defineExpose({
     @apply my-1;
   }
 
-  div[data-type="horizontalRule"] {
+  div[data-type='horizontalRule'] {
     @apply my-0;
   }
 

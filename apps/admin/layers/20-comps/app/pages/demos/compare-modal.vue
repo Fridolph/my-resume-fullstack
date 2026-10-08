@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Resume } from "~/config/resume-demo";
-import { RESUMES, RESUME_COMPARE_FIELDS } from "~/config/resume-demo";
+import type { Resume } from '~/config/resume-demo'
+import { RESUMES, RESUME_COMPARE_FIELDS } from '~/config/resume-demo'
 
 /**
  * 对比对话框 demo（参考 greensketch OptionCompareModal）。
@@ -10,12 +10,12 @@ import { RESUMES, RESUME_COMPARE_FIELDS } from "~/config/resume-demo";
  * - 完全数据无关：把 options 换成任意对象数组、fields 换成任意字段即可复用
  */
 definePageMeta({
-  layout: "demo",
-  title: "Compare modal",
-});
+  layout: 'demo',
+  title: 'Compare modal',
+})
 
-const open = ref(false);
-const resumes = ref<Resume[]>(RESUMES);
+const open = ref(false)
+const resumes = ref<Resume[]>(RESUMES)
 </script>
 
 <template>
@@ -33,8 +33,7 @@ const resumes = ref<Resume[]>(RESUMES);
           <p class="font-medium text-highlighted">共 {{ resumes.length }} 份简历版本</p>
           <p class="mt-1 text-sm text-muted">
             字段配置在 <code class="rounded bg-muted px-1">config/resume-demo.ts</code> 的
-            <code class="rounded bg-muted px-1">RESUME_COMPARE_FIELDS</code>，可按需增删分组 / 行 /
-            best 规则。
+            <code class="rounded bg-muted px-1">RESUME_COMPARE_FIELDS</code>，可按需增删分组 / 行 / best 规则。
           </p>
         </div>
         <UButton icon="i-lucide-git-compare-arrows" label="打开对比" @click="open = true" />

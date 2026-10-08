@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import type {
-  SpotlightTourSide,
-  TourSpotlightFooterSlotProps,
-} from "~/composables/useSpotlightTour";
-import { tourSpotlightKey } from "~/composables/useSpotlightTour";
+import type { SpotlightTourSide, TourSpotlightFooterSlotProps } from '~/composables/useSpotlightTour'
+import { tourSpotlightKey } from '~/composables/useSpotlightTour'
 
 /**
  * 声明式引导步骤。放在 TourSpotlight 内：
@@ -15,47 +12,47 @@ import { tourSpotlightKey } from "~/composables/useSpotlightTour";
  */
 const props = withDefaults(
   defineProps<{
-    target?: string | null;
-    step?: number;
-    side?: SpotlightTourSide;
-    requireAction?: boolean;
-    fallbackTarget?: string;
+    target?: string | null
+    step?: number
+    side?: SpotlightTourSide
+    requireAction?: boolean
+    fallbackTarget?: string
     /** 额外挖洞目标，如 InputMenu 建议列表选择器 */
-    includeTargets?: string[];
+    includeTargets?: string[]
   }>(),
   {
     target: null,
     requireAction: false,
     includeTargets: () => [],
   },
-);
+)
 
 defineSlots<{
-  default?: () => unknown;
+  default?: () => unknown
   /** 本步自定义底部；作用域参数见 TourSpotlightFooterSlotProps */
-  footer?: (props: TourSpotlightFooterSlotProps) => unknown;
-}>();
+  footer?: (props: TourSpotlightFooterSlotProps) => unknown
+}>()
 
-const ctx = inject(tourSpotlightKey, null);
+const ctx = inject(tourSpotlightKey, null)
 if (import.meta.dev && !ctx) {
-  console.warn("[TourSpotlightStep] 必须放在 <TourSpotlight> 内使用");
+  console.warn('[TourSpotlightStep] 必须放在 <TourSpotlight> 内使用')
 }
 
-const slots = useSlots();
-const id = useId();
-let registered = false;
+const slots = useSlots()
+const id = useId()
+let registered = false
 
 function getContent() {
-  return slots.default?.();
+  return slots.default?.()
 }
 
 function getFooter(slotProps: TourSpotlightFooterSlotProps) {
-  return slots.footer?.(slotProps);
+  return slots.footer?.(slotProps)
 }
 
 function syncRegister() {
   if (!ctx || !import.meta.client) {
-    return;
+    return
   }
   const payload = {
     id,
@@ -68,10 +65,10 @@ function syncRegister() {
     includeTargets: props.includeTargets,
     getContent,
     getFooter: slots.footer ? getFooter : undefined,
-  };
+  }
   if (!registered) {
-    ctx.register(payload);
-    registered = true;
+    ctx.register(payload)
+    registered = true
   } else {
     ctx.update(id, {
       step: props.step,
@@ -82,43 +79,36 @@ function syncRegister() {
       includeTargets: props.includeTargets,
       getContent,
       getFooter: slots.footer ? getFooter : undefined,
-    });
+    })
   }
 }
 
 onMounted(() => {
-  syncRegister();
-});
+  syncRegister()
+})
 
 watch(
   () =>
-    [
-      props.target,
-      props.step,
-      props.side,
-      props.requireAction,
-      props.fallbackTarget,
-      props.includeTargets,
-    ] as const,
+    [props.target, props.step, props.side, props.requireAction, props.fallbackTarget, props.includeTargets] as const,
   () => {
     if (registered) {
-      syncRegister();
+      syncRegister()
     }
   },
   { deep: true },
-);
+)
 
 onBeforeUnmount(() => {
   if (registered) {
-    ctx?.unregister(id);
-    registered = false;
+    ctx?.unregister(id)
+    registered = false
   }
-});
+})
 </script>
 
 <!-- headless：不渲染 DOM；default / footer 插槽由父组件消费 -->
 <script lang="ts">
 export default {
   render: () => null,
-};
+}
 </script>

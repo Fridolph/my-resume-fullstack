@@ -1,53 +1,53 @@
 <script setup lang="ts">
-import type { DropdownMenuItem } from "@nuxt/ui";
+import type { DropdownMenuItem } from '@nuxt/ui'
 
 interface UserMenuProps {
-  collapsed?: boolean;
+  collapsed?: boolean
 }
 
-const props = withDefaults(defineProps<UserMenuProps>(), { collapsed: false });
+const props = withDefaults(defineProps<UserMenuProps>(), { collapsed: false })
 
-const toast = useToast();
+const toast = useToast()
 
 // Mock 用户信息 —— 接入真实账号后替换为 store / useAuthState 的数据。
 const user = {
-  name: "Admin User",
-  email: "admin@example.com",
-  initials: "AD",
+  name: 'Admin User',
+  email: 'admin@example.com',
+  initials: 'AD',
   avatar: undefined as string | undefined,
-};
+}
 
 const items = computed<DropdownMenuItem[][]>(() => [
   // 第一组：用户信息（自定义 label slot）
-  [{ type: "label", slot: "user" }],
+  [{ type: 'label', slot: 'user' }],
   // 第二组：账号相关
   [
     {
-      label: "My account",
-      icon: "i-lucide-user-round",
+      label: 'My account',
+      icon: 'i-lucide-user-round',
       onSelect: () => {
         toast.add({
-          title: "My account",
-          description: "TODO: 接入账号详情页/弹窗",
-          color: "info",
-        });
+          title: 'My account',
+          description: 'TODO: 接入账号详情页/弹窗',
+          color: 'info',
+        })
       },
     },
-    { label: "Settings", icon: "i-lucide-settings-2", to: "/settings" },
+    { label: 'Settings', icon: 'i-lucide-settings-2', to: '/settings' },
   ],
   // 第三组：退出
   [
     {
-      label: "Sign out",
-      icon: "i-lucide-log-out",
-      color: "error",
+      label: 'Sign out',
+      icon: 'i-lucide-log-out',
+      color: 'error',
       onSelect: () => {
-        toast.add({ title: "Signed out (demo)", color: "success" });
-        navigateTo("/login");
+        toast.add({ title: 'Signed out (demo)', color: 'success' })
+        navigateTo('/login')
       },
     },
   ],
-]);
+])
 </script>
 
 <template>
@@ -57,9 +57,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
     :ui="{ content: 'min-w-60' }"
   >
     <UButton
-      :avatar="
-        user.avatar ? { src: user.avatar, alt: user.name } : { text: user.initials, alt: user.name }
-      "
+      :avatar="user.avatar ? { src: user.avatar, alt: user.name } : { text: user.initials, alt: user.name }"
       color="neutral"
       variant="ghost"
       block

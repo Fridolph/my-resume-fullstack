@@ -1,4 +1,4 @@
-import { OrderedList } from "@tiptap/extension-list";
+import { OrderedList } from '@tiptap/extension-list'
 
 export default OrderedList.extend({
   addAttributes() {
@@ -7,24 +7,24 @@ export default OrderedList.extend({
       level: {
         default: 1,
         parseHTML: (element: HTMLElement) => {
-          let level = 1;
+          let level = 1
           // 反显层级
-          let parent = element.parentElement?.parentElement;
-          while (parent && parent.nodeName === "OL") {
-            level++;
-            parent = parent.parentElement?.parentElement;
+          let parent = element.parentElement?.parentElement
+          while (parent && parent.nodeName === 'OL') {
+            level++
+            parent = parent.parentElement?.parentElement
           }
-          return level;
+          return level
         },
-        renderHTML: (attributes) => {
-          const level = attributes.level;
-          const listType = ["decimal", "lower-alpha", "lower-roman"][(level - 1) % 3];
+        renderHTML: attributes => {
+          const level = attributes.level
+          const listType = ['decimal', 'lower-alpha', 'lower-roman'][(level - 1) % 3]
           return {
-            "data-level": attributes.level,
+            'data-level': attributes.level,
             style: `list-style-type: ${listType}`,
-          };
+          }
         },
       },
-    };
+    }
   },
-});
+})

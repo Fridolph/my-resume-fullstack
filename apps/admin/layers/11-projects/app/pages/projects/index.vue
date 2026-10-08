@@ -1,8 +1,8 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: "has-sidebar",
-  title: "All projects",
-});
+  layout: 'has-sidebar',
+  title: 'All projects',
+})
 </script>
 
 <template>

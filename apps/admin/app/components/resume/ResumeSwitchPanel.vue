@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import type { ResumeSwitchOption } from "~/composables/useResumeLayout";
+import type { ResumeSwitchOption } from '~/composables/useResumeLayout'
 
 /**
  * ResumeSwitchPanel —— 通用开关列表面板（合并 greensketch 的 SensitiveDataPanel / PageExportPanel）。
  * 用 `options` 描述每行：label + switchKey + 可选 inverted / hint。
  */
 defineProps<{
-  width: number;
-  title: string;
-  getSwitch: (key?: string) => number;
-  options: ResumeSwitchOption[];
-}>();
+  width: number
+  title: string
+  getSwitch: (key?: string) => number
+  options: ResumeSwitchOption[]
+}>()
 
 const emit = defineEmits<{
-  toggle: [key: string];
-}>();
+  toggle: [key: string]
+}>()
 
 function checked(opt: ResumeSwitchOption, getSwitch: (key?: string) => number) {
-  const v = !!getSwitch(opt.switchKey);
-  return opt.inverted ? !v : v;
+  const v = !!getSwitch(opt.switchKey)
+  return opt.inverted ? !v : v
 }
 </script>
 
@@ -38,10 +38,7 @@ function checked(opt: ResumeSwitchOption, getSwitch: (key?: string) => number) {
           <p class="text-sm">{{ opt.label }}</p>
           <p v-if="opt.hint" class="mt-0.5 text-xs text-muted">{{ opt.hint }}</p>
         </div>
-        <USwitch
-          :model-value="checked(opt, getSwitch)"
-          @update:model-value="emit('toggle', opt.switchKey)"
-        />
+        <USwitch :model-value="checked(opt, getSwitch)" @update:model-value="emit('toggle', opt.switchKey)" />
       </div>
     </div>
   </aside>

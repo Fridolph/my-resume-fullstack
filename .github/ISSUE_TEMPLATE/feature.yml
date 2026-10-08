@@ -1,6 +1,6 @@
 name: Feature
 description: 新功能开发
-title: "[Feat] "
+title: '[Feat] '
 labels:
   - feature
 body:

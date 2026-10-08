@@ -6,12 +6,12 @@
  */
 withDefaults(
   defineProps<{
-    size?: number;
+    size?: number
   }>(),
   {
     size: 64,
   },
-);
+)
 </script>
 
 <template>
@@ -60,7 +60,7 @@ withDefaults(
 }
 
 .color-spin-loader::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 10px;
   background-color: #fff;

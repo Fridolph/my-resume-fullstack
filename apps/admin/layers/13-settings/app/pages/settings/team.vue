@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({
-  title: "Team members",
-});
+  title: 'Team members',
+})
 </script>
 
 <template>

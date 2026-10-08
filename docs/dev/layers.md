@@ -48,7 +48,7 @@ layers/00-shared  ←  feature layers（11~20）  ←  app/
 1. `mkdir layers/<NN>-<name>/app/pages/...`，写入页面。
 2. 建 `layers/<NN>-<name>/nuxt.config.ts`：
    ```ts
-   export default defineNuxtConfig({ $meta: { name: "<name>" } });
+   export default defineNuxtConfig({ $meta: { name: '<name>' } })
    ```
 3. admin：在 `app/config/admin-navigation.ts` 的主导航里补对应 `children`/路由。
 4. `pnpm --filter @template/<app> typecheck` + dev server SSR 验证。

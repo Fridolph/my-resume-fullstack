@@ -1,25 +1,25 @@
 <script lang="ts" setup>
-import { FileApi } from "~/apis/files";
-import { useUploadFile } from "~/composables/useUploadFile";
+import { FileApi } from '~/apis/files'
+import { useUploadFile } from '~/composables/useUploadFile'
 
 interface Document {
-  fileName: string;
-  originalFilePath: string;
-  thumbnailFilePath?: string | null;
+  fileName: string
+  originalFilePath: string
+  thumbnailFilePath?: string | null
 }
 
 interface Props {
-  modelValue?: Document[] | null;
-  disabled?: boolean;
-  loading?: boolean;
-  maxCount?: number;
-  maxFileSize?: number;
+  modelValue?: Document[] | null
+  disabled?: boolean
+  loading?: boolean
+  maxCount?: number
+  maxFileSize?: number
 }
 
 interface Emits {
-  (event: "update:modelValue", value: Document[]): void;
-  (event: "uploadStart"): void;
-  (event: "uploadEnd"): void;
+  (event: 'update:modelValue', value: Document[]): void
+  (event: 'uploadStart'): void
+  (event: 'uploadEnd'): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -27,54 +27,52 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   maxCount: 4,
   maxFileSize: 50 * 1024 * 1024, // 50MB
-});
+})
 
-const emit = defineEmits<Emits>();
+const emit = defineEmits<Emits>()
 
-const uploadPdfFiles = ref<File[]>([]);
+const uploadPdfFiles = ref<File[]>([])
 
 const { loading: hookLoading, handleFileSelect } = useUploadFile({
   maxFileSize: props.maxFileSize,
-  accept: ["application/pdf"],
+  accept: ['application/pdf'],
   apiContentType: 2,
   onSuccess: () => {
-    emit("uploadEnd");
+    emit('uploadEnd')
   },
-});
+})
 
 const documents = computed({
   get: () => props.modelValue || [],
-  set: (val) => emit("update:modelValue", val),
-});
+  set: val => emit('update:modelValue', val),
+})
 
 async function uploadPdf(files: File[] | null | undefined) {
   if (!files || files.length === 0) {
-    return;
+    return
   }
 
-  emit("uploadStart");
-  const res = await handleFileSelect(files, async (formData) => {
-    return FileApi.uploadFile(formData, { contentType: 2 });
-  });
+  emit('uploadStart')
+  const res = await handleFileSelect(files, async formData => {
+    return FileApi.uploadFile(formData, { contentType: 2 })
+  })
 
   if (res) {
-    documents.value = [...documents.value, ...res];
-    uploadPdfFiles.value = [];
+    documents.value = [...documents.value, ...res]
+    uploadPdfFiles.value = []
   }
 }
 
 function delDocument(item: Document) {
-  documents.value = documents.value.filter((v) => v.originalFilePath !== item.originalFilePath);
+  documents.value = documents.value.filter(v => v.originalFilePath !== item.originalFilePath)
 }
 
 function downloadDocument(item: Document) {
-  window.open(item.originalFilePath, "_blank");
+  window.open(item.originalFilePath, '_blank')
 }
 
-const isLoading = computed(() => props.loading || hookLoading.value);
-const canAddMore = computed(
-  () => !props.disabled && documents.value.length < (props.maxCount || 4),
-);
+const isLoading = computed(() => props.loading || hookLoading.value)
+const canAddMore = computed(() => !props.disabled && documents.value.length < (props.maxCount || 4))
 </script>
 
 <template>
@@ -97,11 +95,7 @@ const canAddMore = computed(
             class="cursor-pointer text-lg text-primary"
             @click="delDocument(doc)"
           />
-          <UIcon
-            name="i-lucide-download"
-            class="cursor-pointer text-lg text-primary"
-            @click="downloadDocument(doc)"
-          />
+          <UIcon name="i-lucide-download" class="cursor-pointer text-lg text-primary" @click="downloadDocument(doc)" />
         </div>
       </div>
     </div>
@@ -150,7 +144,7 @@ const canAddMore = computed(
 
 <style scoped lang="css">
 .add-card {
-  &[disabled="true"] {
+  &[disabled='true'] {
     opacity: 0.8;
     pointer-events: none;
   }

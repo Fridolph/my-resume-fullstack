@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeBrandConfig } from "#layers/public-resume/app/types/resume";
+import type { ResumeBrandConfig } from '#layers/public-resume/app/types/resume'
 
 /**
  * 页面头：只排版，不做业务。
@@ -11,11 +11,11 @@ import type { ResumeBrandConfig } from "#layers/public-resume/app/types/resume";
 withDefaults(
   defineProps<{
     /** 已解析好的品牌信息（logoText / title 一定有值） */
-    brand: ResumeBrandConfig & { logoText: string; title: string };
-    activeSectionTitle?: string;
+    brand: ResumeBrandConfig & { logoText: string; title: string }
+    activeSectionTitle?: string
   }>(),
-  { activeSectionTitle: "" },
-);
+  { activeSectionTitle: '' },
+)
 </script>
 
 <template>
@@ -34,12 +34,7 @@ withDefaults(
             background: `linear-gradient(135deg, var(--resume-gradient-from), var(--resume-gradient-to))`,
           }"
         >
-          <img
-            v-if="brand.logoUrl"
-            :src="brand.logoUrl"
-            :alt="brand.title"
-            class="size-6 object-contain"
-          />
+          <img v-if="brand.logoUrl" :src="brand.logoUrl" :alt="brand.title" class="size-6 object-contain" />
           <span v-else>{{ brand.logoText }}</span>
         </span>
 

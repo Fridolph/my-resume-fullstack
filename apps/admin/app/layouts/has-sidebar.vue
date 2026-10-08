@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { adminBrand, adminExternalNavigation, adminNavigation } from "../config/admin-navigation";
+import { adminBrand, adminExternalNavigation, adminNavigation } from '../config/admin-navigation'
 
 /**
  * has-sidebar —— 通用后台布局
@@ -13,13 +13,11 @@ import { adminBrand, adminExternalNavigation, adminNavigation } from "../config/
  * 页面通过 `definePageMeta({ layout: "has-sidebar", title: "..." })` 使用；
  * `title` 会作为 Sticky Header 的标题，也支持 `breadcrumbs`。
  */
-const route = useRoute();
-const sidebarOpen = ref(true);
-const sidebarCollapsed = ref(false);
+const route = useRoute()
+const sidebarOpen = ref(true)
+const sidebarCollapsed = ref(false)
 
-const pageTitle = computed(() =>
-  typeof route.meta.title === "string" ? route.meta.title : "Dashboard",
-);
+const pageTitle = computed(() => (typeof route.meta.title === 'string' ? route.meta.title : 'Dashboard'))
 </script>
 
 <template>

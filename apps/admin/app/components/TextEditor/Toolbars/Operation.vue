@@ -1,9 +1,9 @@
 <script setup lang="ts">
 const options = [
-  { label: "View", value: "view" },
-  { label: "Code", value: "code" },
-];
-const modelValue = defineModel<string>({ default: "view" });
+  { label: 'View', value: 'view' },
+  { label: 'Code', value: 'code' },
+]
+const modelValue = defineModel<string>({ default: 'view' })
 </script>
 
 <template>

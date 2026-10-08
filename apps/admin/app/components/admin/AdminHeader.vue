@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import type { AdminBreadcrumb } from "../../types/admin";
+import type { AdminBreadcrumb } from '../../types/admin'
 
 withDefaults(
   defineProps<{
-    title: string;
-    breadcrumbs?: AdminBreadcrumb[];
-    showSearch?: boolean;
+    title: string
+    breadcrumbs?: AdminBreadcrumb[]
+    showSearch?: boolean
   }>(),
   {
     breadcrumbs: () => [],
     showSearch: true,
   },
-);
+)
 </script>
 
 <template>
@@ -39,24 +39,13 @@ withDefaults(
 
     <template #default>
       <slot name="center">
-        <UInput
-          v-if="showSearch"
-          icon="i-lucide-search"
-          placeholder="Search"
-          class="hidden w-48 md:block lg:w-64"
-        />
+        <UInput v-if="showSearch" icon="i-lucide-search" placeholder="Search" class="hidden w-48 md:block lg:w-64" />
       </slot>
     </template>
 
     <template #right>
       <slot name="actions" />
-      <UButton
-        icon="i-lucide-bell"
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        aria-label="Notifications"
-      />
+      <UButton icon="i-lucide-bell" color="neutral" variant="ghost" size="sm" aria-label="Notifications" />
       <slot name="profile">
         <UAvatar text="AD" size="sm" alt="Admin user" />
       </slot>

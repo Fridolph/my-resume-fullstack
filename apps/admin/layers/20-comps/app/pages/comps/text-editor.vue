@@ -1,19 +1,19 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: "has-sidebar",
-  title: "TextEditor",
-});
+  layout: 'has-sidebar',
+  title: 'TextEditor',
+})
 
 const content = ref(
-  "<h2>Rich text editor</h2><p>Try the toolbar: headings, bold, lists, links, images, code blocks, variables…</p>",
-);
+  '<h2>Rich text editor</h2><p>Try the toolbar: headings, bold, lists, links, images, code blocks, variables…</p>',
+)
 
 const variables: IMention[] = [
-  { id: 1, placeholder: "{{company_name}}", desc: "Company name" },
-  { id: 2, placeholder: "{{client_name}}", desc: "Client full name" },
-  { id: 3, placeholder: "{{proposal_link}}", desc: "Proposal link" },
-  { id: 4, placeholder: "{{sales_email}}", desc: "Sales email" },
-];
+  { id: 1, placeholder: '{{company_name}}', desc: 'Company name' },
+  { id: 2, placeholder: '{{client_name}}', desc: 'Client full name' },
+  { id: 3, placeholder: '{{proposal_link}}', desc: 'Proposal link' },
+  { id: 4, placeholder: '{{sales_email}}', desc: 'Sales email' },
+]
 </script>
 
 <template>

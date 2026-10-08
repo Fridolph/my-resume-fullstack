@@ -54,20 +54,20 @@ GS 的 proposal 有**两个正交维度**，值得学的是"拆法"，不是它�
 
 ```ts
 /** 预设风格：决定区块「长什么样」，与 theme（颜色）、layout（编排）正交 */
-export type ResumeStyleId = "minimal" | "standard"; // cool 在 P2 实现时再加
+export type ResumeStyleId = 'minimal' | 'standard' // cool 在 P2 实现时再加
 
 export interface ResumeStyleConfig {
-  id: ResumeStyleId;
+  id: ResumeStyleId
 }
 
 export interface ResumeDisplayConfig {
-  layout: ResumeLayoutConfig;
-  sections: ResumeSectionsConfig;
-  options: ResumeDisplayOptions;
-  theme: ResumeThemeConfig;
-  background: ResumeBackgroundConfig;
-  brand: ResumeBrandConfig;
-  style: ResumeStyleConfig; // 本轮新增
+  layout: ResumeLayoutConfig
+  sections: ResumeSectionsConfig
+  options: ResumeDisplayOptions
+  theme: ResumeThemeConfig
+  background: ResumeBackgroundConfig
+  brand: ResumeBrandConfig
+  style: ResumeStyleConfig // 本轮新增
 }
 ```
 
@@ -75,7 +75,7 @@ export interface ResumeDisplayConfig {
 
 ```ts
 function setStyle(id: ResumeStyleId) {
-  config.value.style.id = id;
+  config.value.style.id = id
 }
 ```
 
@@ -85,13 +85,13 @@ function setStyle(id: ResumeStyleId) {
 interface ResumeProfile {
   // …既有 name / headline / summary / avatarText / contact
   hero: {
-    frontImageUrl: string; // standard 头像正面图
-    backImageUrl: string; // 翻牌背面图
-    linkUrl: string; // 旧站指向 /ai-talk，本轮只存不跳转
-    slogans: string[]; // 旧站 slice(0, 2)，我们最多渲染 2 条
-  };
-  links: { label: string; url: string; icon?: string }[];
-  interests: { label: string; icon?: string }[];
+    frontImageUrl: string // standard 头像正面图
+    backImageUrl: string // 翻牌背面图
+    linkUrl: string // 旧站指向 /ai-talk，本轮只存不跳转
+    slogans: string[] // 旧站 slice(0, 2)，我们最多渲染 2 条
+  }
+  links: { label: string; url: string; icon?: string }[]
+  interests: { label: string; icon?: string }[]
 }
 ```
 
@@ -103,11 +103,11 @@ interface ResumeProfile {
 
 ```ts
 export interface ResumeSectionProps {
-  section: { key: ResumeSectionKey; label: string; icon: string };
-  content: ResumeContent;
-  options: ResumeDisplayOptions;
-  theme: ResumeThemeConfig;
-  variant: ResumeStyleId; // 本轮新增
+  section: { key: ResumeSectionKey; label: string; icon: string }
+  content: ResumeContent
+  options: ResumeDisplayOptions
+  theme: ResumeThemeConfig
+  variant: ResumeStyleId // 本轮新增
 }
 ```
 
@@ -126,16 +126,16 @@ ResumePageContainer  :variant="config.style.id"
 
 ```ts
 export interface ResumeFieldGroupSchema {
-  mode: "fields" | "list";
-  label: string; // 段标题，抽屉里显示
-  listPath?: string;
-  titleKey?: string;
-  blank?: Record<string, unknown>;
-  fields: ResumeFieldSchema[];
+  mode: 'fields' | 'list'
+  label: string // 段标题，抽屉里显示
+  listPath?: string
+  titleKey?: string
+  blank?: Record<string, unknown>
+  fields: ResumeFieldSchema[]
 }
 
 export interface ResumeSectionEditorSchema {
-  segments: ResumeFieldGroupSchema[];
+  segments: ResumeFieldGroupSchema[]
 }
 ```
 
@@ -246,29 +246,29 @@ split 的两档（`320/360`，wide `380/420`）与 single 的 `max-w-4xl` 限宽
 现在的模型（正交两维）：
 
 ```ts
-export type ResumeColorMode = "light" | "dark";
+export type ResumeColorMode = 'light' | 'dark'
 
 export interface ResumeThemePalette {
-  primary;
-  gradientFrom;
-  gradientTo;
-  surface;
-  text;
-  muted;
-  border;
-  chipBg;
-  chipText;
+  primary
+  gradientFrom
+  gradientTo
+  surface
+  text
+  muted
+  border
+  chipBg
+  chipText
 }
 
 export interface ResumeThemePreset {
-  id: string;
-  label: string;
-  light: ResumeThemePalette; // 每套预设自带两组色值
-  dark: ResumeThemePalette;
+  id: string
+  label: string
+  light: ResumeThemePalette // 每套预设自带两组色值
+  dark: ResumeThemePalette
 }
 
 export interface ResumeThemeConfig extends ResumeThemePreset {
-  mode: ResumeColorMode; // 当前生效的明暗
+  mode: ResumeColorMode // 当前生效的明暗
 }
 ```
 
@@ -319,13 +319,13 @@ export interface ResumeThemeConfig extends ResumeThemePreset {
 
 ### 11.1 定位与分期
 
-| 档         | 定位                                                  | 状态                  |
-| ---------- | ----------------------------------------------------- | --------------------- |
-| `minimal`  | 极简：文本方块 + 列表                                 | ✅                    |
-| `standard` | 标准：翻牌头像 + 分块 + eyebrow（对齐旧站）           | ✅                    |
-| `pro`      | 精致：画廊 / 数字块 / 能力雷达 / 求职状态，版式更讲究 | ✅ 排版部分；动效分期 |
+| 档         | 定位                                                                   | 状态                         |
+| ---------- | ---------------------------------------------------------------------- | ---------------------------- |
+| `minimal`  | 极简：文本方块 + 列表                                                  | ✅                           |
+| `standard` | 标准：翻牌头像 + 分块 + eyebrow（对齐旧站）                            | ✅                           |
+| `pro`      | 精致：**展示形式的维度转换**（tooltip / 折叠 / 3D / 图表联动，见 §14） | ✅ hero 已重做；其余区块待补 |
 
-动效（入场 stagger、滚动视差、hover 特效）留到下一期 —— 独立文件已经为它留好位置。
+动效与交互**已按 §14 的新定位在 hero 上落地**（入场 stagger / hover 联动 / 3D 倾斜 / 折叠 / tooltip）；其余区块按同一思路待补。
 
 ### 11.2 实现方式：入口薄壳 + 三档实现（一次明确的取舍）
 
@@ -356,10 +356,10 @@ components/resume/
 ```ts
 interface ResumeProfile {
   // …既有 name / headline / summary / avatarText / hero / contact / links / interests
-  availability?: string; // 求职状态徽标文案，留空则不展示
-  stats?: ResumeProfileStat[]; // { label, value, hint? } 数字块
-  gallery?: ResumeProfileGalleryItem[]; // { url, alt? } 形象画廊（本轮只建模 + 展示 URL）
-  radar?: ResumeProfileRadarItem[]; // { label, value: 0~100 } 能力雷达
+  availability?: string // 求职状态徽标文案，留空则不展示
+  stats?: ResumeProfileStat[] // { label, value, hint? } 数字块
+  gallery?: ResumeProfileGalleryItem[] // { url, alt? } 形象画廊（本轮只建模 + 展示 URL）
+  radar?: ResumeProfileRadarItem[] // { label, value: 0~100 } 能力雷达
 }
 ```
 
@@ -457,3 +457,50 @@ components/resume/
 ## 13. 本轮明确不做
 
 `cool` 风格、整页模板组件、头像跳转 / AI 对话入口、`contact` 的 key 与结构变更、图片上传、`publishedAt`、PDF、i18n、技能可视化图表、admin 侧风格选择。
+
+## 14. `pro` 的定位：展示形式的**维度转换**（2026-10-08 重设）
+
+> 关联：`Issue #24`、`dao/tasks/DAO-016-*.md`（hero 打样）。
+> §11 当时写的是「版式更讲究」，Owner 实看后判定**精致感没出来**；定位据此重设为下面这条。
+
+### 14.1 一句话定位
+
+> `pro` = **在 `standard` 之上，把同一份信息换一种维度去呈现**；文字仍是主体，
+> 变的是「展示形式」，不是「装饰数量」。
+
+- **不是**：堆动画、堆渐变、堆阴影、堆图标；
+- **是**：同一份数据的另一种读法 —— 能悬停展开的、能折叠收起的、能跟随三维的、能联动图表的。
+
+### 14.2 手法清单（按「是不是维度转换」筛）
+
+| 手法               | 维度转换在哪                           | hero 已落地                                                 |
+| ------------------ | -------------------------------------- | ----------------------------------------------------------- |
+| **压缩 + tooltip** | 空间：默认只占一行，需要时给完整信息   | 联系方式 = 图标 + 截断值胶囊 → hover 出完整值 → 点击复制    |
+| **折叠 / 展开**    | 注意力：长文默认收起，读者决定何时展开 | INTRO 超长时 `line-clamp` + 展开按钮（带过渡）              |
+| **三维动效**       | 空间感：平面 → 有纵深                  | 画廊鼠标跟随倾斜（≤ 8°）+ 跟随高光，移开平滑归位            |
+| **图表化**         | 数量：文字 → 形状                      | 能力雷达（SVG 手绘，不引库）                                |
+| **图表联动**       | 交互：图与表互相点亮                   | hover 图例 ↔ 轴 / 顶点 / 数值同时高亮（键盘 `@focus` 同效） |
+| **状态与反馈**     | 时间：静态 → 有反应                    | 复制成功图标切换、求职状态脉动点、卡片与 chip 的 hover 抬升 |
+| **入场 stagger**   | 节奏：一次出现 → 依次出现              | 各块 `animation-delay: calc(var(--i) * 70ms)`               |
+
+### 14.3 不算「维度转换」的做法（别做）
+
+1. 只是把颜色 / 阴影 / 圆角调得更花 —— 那属于 **token**（§12.1 手段 ①），别占用 pro 的差异额度；
+2. 纯装饰的粒子 / 光斑 / 背景循环动画 —— 与信息无关；
+3. 为动而动的循环动画（承担「状态」含义的除外，如脉动点）；
+4. 动到影响可读性：位移过大、过渡过慢、闪烁。
+
+### 14.4 硬约束
+
+1. **文字仍是主体**：交互不能把信息变成「只有 hover 才看得见」——tooltip 只是更快看到完整值，`aria-label` / `sr-only` 必须齐；
+2. **`prefers-reduced-motion: reduce` 下全部降级**：不位移、不缩放、无 animation；
+3. 不引第三方动画 / 图表库（`@keyframes` + SVG 手绘足够）；
+4. 交互要能用键盘触达（可聚焦元素 + `@focus` 联动，如雷达图例 `tabindex="0"`）。
+
+### 14.5 落地状态
+
+| 组件                           | 状态                                                                                                        |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `hero/ResumeHeroPro.vue`       | ✅ 已按新定位重做（六类手法）                                                                               |
+| `experience` / `skills` 的 pro | ⏳ 目前是「静态排版」型（时间线 / 组头），**待按新定位补交互**：折叠成果列表、hover 联动、数字块 tooltip 等 |
+| 未拆的 4 个区块                | ⏳ 落三档时直接按新定位写（别先做静态版再返工）                                                             |

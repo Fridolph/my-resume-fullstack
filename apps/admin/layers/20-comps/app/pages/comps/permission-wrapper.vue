@@ -1,34 +1,34 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: "has-sidebar",
-  title: "Permission wrapper",
-});
+  layout: 'has-sidebar',
+  title: 'Permission wrapper',
+})
 
-const { permissionKeys, setPermissionKeys } = usePermission();
+const { permissionKeys, setPermissionKeys } = usePermission()
 
-const allPermissions = ["project.read", "project.create", "project.delete", "team.manage"];
+const allPermissions = ['project.read', 'project.create', 'project.delete', 'team.manage']
 
-const grantedKeys = computed(() => new Set(permissionKeys.value));
+const grantedKeys = computed(() => new Set(permissionKeys.value))
 
 function toggle(key: string) {
-  const next = new Set(permissionKeys.value);
-  if (next.has(key)) next.delete(key);
-  else next.add(key);
-  setPermissionKeys([...next]);
+  const next = new Set(permissionKeys.value)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  setPermissionKeys([...next])
 }
 
 function grantAll() {
-  setPermissionKeys([...allPermissions]);
+  setPermissionKeys([...allPermissions])
 }
 
 function revokeAll() {
-  setPermissionKeys([]);
+  setPermissionKeys([])
 }
 
 // 首次进入给一个权限，方便直观看到效果
 onMounted(() => {
-  if (!permissionKeys.value.length) setPermissionKeys(["project.read"]);
-});
+  if (!permissionKeys.value.length) setPermissionKeys(['project.read'])
+})
 </script>
 
 <template>
@@ -38,8 +38,8 @@ onMounted(() => {
       按权限显隐内容。
       <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">PermissionWrapper</code> 依据
       <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">permissions</code> 与当前用户权限（
-      <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">usePermission()</code
-      >）决定是否渲染默认插槽。 点下面的开关增减权限，观察下方示例显隐。
+      <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">usePermission()</code>）决定是否渲染默认插槽。
+      点下面的开关增减权限，观察下方示例显隐。
     </p>
 
     <section class="mt-6">
@@ -65,20 +65,13 @@ onMounted(() => {
           icon="i-lucide-check-check"
           @click="grantAll"
         />
-        <UButton
-          size="sm"
-          color="neutral"
-          variant="soft"
-          label="Revoke all"
-          icon="i-lucide-x"
-          @click="revokeAll"
-        />
+        <UButton size="sm" color="neutral" variant="soft" label="Revoke all" icon="i-lucide-x" @click="revokeAll" />
       </div>
 
       <p class="mt-3 text-sm text-muted">
         Current keys:
         <code v-if="permissionKeys.length" class="rounded bg-elevated px-1.5 py-0.5 text-xs">{{
-          permissionKeys.join(", ")
+          permissionKeys.join(', ')
         }}</code>
         <span v-else class="text-dimmed">（空）</span>
       </p>
@@ -90,8 +83,7 @@ onMounted(() => {
           No <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">permissions</code> prop
         </h2>
         <p class="mt-1 text-sm text-muted">
-          不传 <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">permissions</code> →
-          始终显示。
+          不传 <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">permissions</code> → 始终显示。
         </p>
         <div class="mt-3">
           <PermissionWrapper>
@@ -129,9 +121,7 @@ onMounted(() => {
         <div class="mt-3">
           <PermissionWrapper :permissions="['project.read', 'project.create']">
             <UCard>
-              <p class="text-sm text-muted">
-                Visible only when the user has <strong>both</strong> permissions.
-              </p>
+              <p class="text-sm text-muted">Visible only when the user has <strong>both</strong> permissions.</p>
             </UCard>
           </PermissionWrapper>
         </div>
@@ -141,8 +131,7 @@ onMounted(() => {
         <h2 class="text-lg font-semibold text-highlighted">Gate an action</h2>
         <p class="mt-1 text-sm text-muted">
           用权限包裹危险操作按钮：只有
-          <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">project.delete</code> 才显示
-          Delete。
+          <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">project.delete</code> 才显示 Delete。
         </p>
         <UCard class="mt-3">
           <div class="flex items-center justify-between gap-4">
@@ -168,10 +157,8 @@ onMounted(() => {
           <PermissionWrapper permissions="team.manage">
             <template #default="{ permissionKeys: keys, hasPermission: has }">
               <UCard>
-                <p class="text-sm text-muted">keys: {{ keys.join(", ") || "—" }}</p>
-                <p class="mt-1 text-sm text-muted">
-                  hasPermission('team.manage'): {{ has("team.manage") }}
-                </p>
+                <p class="text-sm text-muted">keys: {{ keys.join(', ') || '—' }}</p>
+                <p class="mt-1 text-sm text-muted">hasPermission('team.manage'): {{ has('team.manage') }}</p>
               </UCard>
             </template>
           </PermissionWrapper>

@@ -1,72 +1,70 @@
 <script setup lang="ts">
-import { FileApi } from "~/apis/files";
-import { useUploadFile } from "~/composables/useUploadFile";
+import { FileApi } from '~/apis/files'
+import { useUploadFile } from '~/composables/useUploadFile'
 
 // 多张图片上传，默认 16 张，可通过 limitCount 控制，支持数据类型：数组
 const props = withDefaults(
   defineProps<{
-    modelValue?: Record<string, any>[] | null;
-    tip?: string;
-    maxFileSize?: number;
-    imageContainerSize?: string;
-    limitCount?: number;
-    verifyUploadedFileKey?: string;
-    hiddenCover?: boolean;
+    modelValue?: Record<string, any>[] | null
+    tip?: string
+    maxFileSize?: number
+    imageContainerSize?: string
+    limitCount?: number
+    verifyUploadedFileKey?: string
+    hiddenCover?: boolean
   }>(),
   {
     maxFileSize: 1024 * 1024 * 2,
-    imageContainerSize: "w-40 h-40",
+    imageContainerSize: 'w-40 h-40',
     limitCount: 16,
-    verifyUploadedFileKey: "verify_uploaded_file",
+    verifyUploadedFileKey: 'verify_uploaded_file',
     hiddenCover: false,
   },
-);
-const emits = defineEmits(["update:modelValue"]);
+)
+const emits = defineEmits(['update:modelValue'])
 
-const attrs = useAttrs();
-const defaultTip = "JPG / PNG, max 2MB";
+const attrs = useAttrs()
+const defaultTip = 'JPG / PNG, max 2MB'
 
-const uploadFiles = ref<File[]>([]);
+const uploadFiles = ref<File[]>([])
 
 const { loading, handleFileSelect } = useUploadFile({
   maxFileSize: props.maxFileSize,
-  accept: ["image/*"],
-});
+  accept: ['image/*'],
+})
 
 function handleClickCover(file: Record<string, any>) {
-  props.modelValue?.forEach((v) => {
+  props.modelValue?.forEach(v => {
     if (file === v) {
-      v.coverFlag = 1;
+      v.coverFlag = 1
     } else {
-      v.coverFlag = 0;
+      v.coverFlag = 0
     }
-  });
-  emits("update:modelValue", [...(props.modelValue || [])]);
+  })
+  emits('update:modelValue', [...(props.modelValue || [])])
 }
 
 async function onFileSelect(files: File[] | null | undefined) {
   if (!files || files.length === 0) {
-    return;
+    return
   }
 
   const res = await handleFileSelect(files, async (formData: FormData) => {
-    return FileApi.uploadFile(formData);
-  });
+    return FileApi.uploadFile(formData)
+  })
 
   if (res) {
-    emits("update:modelValue", [...(props.modelValue || []), ...(res || [])]);
-    uploadFiles.value = [];
+    emits('update:modelValue', [...(props.modelValue || []), ...(res || [])])
+    uploadFiles.value = []
   }
 }
 
 function removeFile(file: Record<string, any>) {
-  const newFiles = props.modelValue?.filter((v) => v.originalFilePath !== file.originalFilePath);
-  emits("update:modelValue", newFiles);
+  const newFiles = props.modelValue?.filter(v => v.originalFilePath !== file.originalFilePath)
+  emits('update:modelValue', newFiles)
 }
 
-const canAddMore = computed(
-  () => !attrs.disabled && (props.modelValue?.length || 0) < (props.limitCount || 16),
-);
+const canAddMore = computed(() => !attrs.disabled && (props.modelValue?.length || 0) < (props.limitCount || 16))
 </script>
 
 <template>
@@ -82,7 +80,7 @@ const canAddMore = computed(
         >
           <img
             :src="file.originalFilePath"
-            onload="this.style.opacity = 1;"
+            onload="this.style.opacity = 1"
             style="opacity: 0; transition: opacity 0.2s"
             alt="logo"
             class="m-auto h-full w-full object-contain"

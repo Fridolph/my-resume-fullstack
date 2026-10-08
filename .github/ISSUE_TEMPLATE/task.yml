@@ -1,6 +1,6 @@
 name: Task
 description: 非功能性的工程或文档任务
-title: "[Task] "
+title: '[Task] '
 labels:
   - task
 body:

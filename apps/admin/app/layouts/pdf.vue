@@ -10,30 +10,23 @@
  * 页面用 `definePageMeta({ layout: 'pdf' })`；外层 `.pdf-pages-wrapper`
  * 复用 `assets/css/main.css` 里的命名页打印规则（@page portrait/landscape 等）。
  */
-const router = useRouter();
-const { openDrawer } = usePdfConfig();
+const router = useRouter()
+const { openDrawer } = usePdfConfig()
 
 function handleBack() {
-  if (import.meta.client && window.history.length > 1) router.back();
-  else navigateTo("/");
+  if (import.meta.client && window.history.length > 1) router.back()
+  else navigateTo('/')
 }
 
 function handlePrint() {
-  if (import.meta.client) window.print();
+  if (import.meta.client) window.print()
 }
 </script>
 
 <template>
   <div class="pdf-layout min-h-dvh bg-muted print:bg-white" data-layout="pdf">
     <div class="fixed right-4 top-4 z-[60] flex items-center gap-2 print:hidden">
-      <UButton
-        icon="i-lucide-arrow-left"
-        color="neutral"
-        variant="solid"
-        size="sm"
-        label="Back"
-        @click="handleBack"
-      />
+      <UButton icon="i-lucide-arrow-left" color="neutral" variant="solid" size="sm" label="Back" @click="handleBack" />
       <UButton
         icon="i-lucide-sliders-horizontal"
         color="neutral"

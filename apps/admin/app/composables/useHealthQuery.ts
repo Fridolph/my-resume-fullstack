@@ -1,5 +1,5 @@
-import { fetchHealth } from "~/apis/health";
-import { queryKeys } from "~/lib/query-keys";
+import { fetchHealth } from '~/apis/health'
+import { queryKeys } from '~/lib/query-keys'
 
 /**
  * 后端连通性查询。
@@ -13,5 +13,5 @@ export function useHealthQuery() {
     key: queryKeys.health(),
     query: fetchHealth,
     staleTime: 30_000,
-  });
+  })
 }

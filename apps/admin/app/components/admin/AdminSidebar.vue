@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import type { AdminBrandConfig, AdminNavigationItem } from "../../types/admin";
+import type { AdminBrandConfig, AdminNavigationItem } from '../../types/admin'
 
 interface AdminSidebarProps {
-  items: AdminNavigationItem[];
-  externalItems?: AdminNavigationItem[];
-  brand?: AdminBrandConfig;
+  items: AdminNavigationItem[]
+  externalItems?: AdminNavigationItem[]
+  brand?: AdminBrandConfig
 }
 
 withDefaults(defineProps<AdminSidebarProps>(), {
   externalItems: () => [],
-  brand: () => ({ name: "Admin Studio", mark: "A", href: "/" }),
-});
+  brand: () => ({ name: 'Admin Studio', mark: 'A', href: '/' }),
+})
 
-const open = defineModel<boolean>("open", { default: true });
-const collapsed = defineModel<boolean>("collapsed", { default: false });
+const open = defineModel<boolean>('open', { default: true })
+const collapsed = defineModel<boolean>('collapsed', { default: false })
 </script>
 
 <template>
@@ -39,12 +39,7 @@ const collapsed = defineModel<boolean>("collapsed", { default: false });
         <span
           class="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-sm font-bold text-inverted shadow-sm"
         >
-          <img
-            v-if="brand.logoSrc"
-            :src="brand.logoSrc"
-            :alt="brand.name"
-            class="size-7 object-contain"
-          />
+          <img v-if="brand.logoSrc" :src="brand.logoSrc" :alt="brand.name" class="size-7 object-contain" />
           <span v-else>{{ brand.mark || brand.name.slice(0, 1) }}</span>
         </span>
         <span v-if="!isCollapsed" class="truncate text-base font-semibold">{{ brand.name }}</span>

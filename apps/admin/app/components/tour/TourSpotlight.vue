@@ -4,8 +4,8 @@ import type {
   TourSpotlightFooterConfig,
   TourSpotlightFooterSlotProps,
   TourSpotlightStepRegistration,
-} from "~/composables/useSpotlightTour";
-import { tourSpotlightKey } from "~/composables/useSpotlightTour";
+} from '~/composables/useSpotlightTour'
+import { tourSpotlightKey } from '~/composables/useSpotlightTour'
 
 /**
  * Spotlight 引导容器：
@@ -16,96 +16,96 @@ import { tourSpotlightKey } from "~/composables/useSpotlightTour";
 const props = withDefaults(
   defineProps<{
     /** 打开时自动 start */
-    autoStart?: boolean;
+    autoStart?: boolean
     /** 默认底部栏配置；某步提供 #footer 时该步优先用自定义 */
-    footer?: TourSpotlightFooterConfig;
-    dimClass?: string;
-    coachClass?: string;
-    zIndexDim?: number;
+    footer?: TourSpotlightFooterConfig
+    dimClass?: string
+    coachClass?: string
+    zIndexDim?: number
   }>(),
   {
     autoStart: true,
     footer: () => ({}),
-    dimClass: "gs-tour-dim",
-    coachClass: "gs-tour-coach",
+    dimClass: 'gs-tour-dim',
+    coachClass: 'gs-tour-coach',
     zIndexDim: 100,
   },
-);
+)
 
 const emit = defineEmits<{
-  action: [];
-  "update:open": [value: boolean];
-}>();
+  action: []
+  'update:open': [value: boolean]
+}>()
 
 const FOOTER_DEFAULTS: Required<TourSpotlightFooterConfig> = {
   show: true,
   showStep: true,
   showAction: true,
   showHint: true,
-  actionLabel: "下一步",
+  actionLabel: '下一步',
   actionDisabled: false,
-  hintLabel: "请点击高亮区域",
-};
+  hintLabel: '请点击高亮区域',
+}
 
 const footerConfig = computed<Required<TourSpotlightFooterConfig>>(() => ({
   ...FOOTER_DEFAULTS,
   ...props.footer,
-}));
+}))
 
-const entries = ref<TourSpotlightStepRegistration[]>([]);
-let orderSeq = 0;
+const entries = ref<TourSpotlightStepRegistration[]>([])
+let orderSeq = 0
 
 function register(entry: TourSpotlightStepRegistration) {
   const next = {
     ...entry,
     order: orderSeq++,
-  };
-  entries.value = [...entries.value, next];
+  }
+  entries.value = [...entries.value, next]
 }
 
 function unregister(id: string) {
-  entries.value = entries.value.filter((e) => e.id !== id);
+  entries.value = entries.value.filter(e => e.id !== id)
 }
 
 function update(
   id: string,
-  patch: Partial<Omit<TourSpotlightStepRegistration, "id">> & {
-    getContent?: TourSpotlightStepRegistration["getContent"];
-    getFooter?: TourSpotlightStepRegistration["getFooter"];
+  patch: Partial<Omit<TourSpotlightStepRegistration, 'id'>> & {
+    getContent?: TourSpotlightStepRegistration['getContent']
+    getFooter?: TourSpotlightStepRegistration['getFooter']
   },
 ) {
-  entries.value = entries.value.map((e) => (e.id === id ? { ...e, ...patch } : e));
+  entries.value = entries.value.map(e => (e.id === id ? { ...e, ...patch } : e))
 }
 
 const sortedEntries = computed(() =>
   [...entries.value].sort((a, b) => {
-    const ka = a.step ?? a.order;
-    const kb = b.step ?? b.order;
+    const ka = a.step ?? a.order
+    const kb = b.step ?? b.order
     if (ka !== kb) {
-      return ka - kb;
+      return ka - kb
     }
-    return a.order - b.order;
+    return a.order - b.order
   }),
-);
+)
 
 const tourSteps = computed<SpotlightTourStep[]>(() =>
-  sortedEntries.value.map((e) => ({
+  sortedEntries.value.map(e => ({
     target: e.target,
     side: e.side,
     requireAction: e.requireAction,
     fallbackTarget: e.fallbackTarget,
     includeTargets: e.includeTargets,
   })),
-);
+)
 
-const tour = useSpotlightTour(tourSteps);
+const tour = useSpotlightTour(tourSteps)
 
-const open = computed(() => tour.open.value);
-const dimParts = computed(() => tour.dimParts.value);
-const highlightEl = computed(() => tour.highlightEl.value);
-const coachContent = computed(() => tour.coachContent.value);
-const requireAction = computed(() => tour.requireAction.value);
-const stepLabel = computed(() => `${tour.index.value + 1} / ${tour.total.value}`);
+const open = computed(() => tour.open.value)
+const dimParts = computed(() => tour.dimParts.value)
+const highlightEl = computed(() => tour.highlightEl.value)
+const coachContent = computed(() => tour.coachContent.value)
+const requireAction = computed(() => tour.requireAction.value)
+const stepLabel = computed(() => `${tour.index.value + 1} / ${tour.total.value}`)
 
 const footerSlotProps = computed<TourSpotlightFooterSlotProps>(() => ({
   index: tour.index.value,
@@ -114,77 +114,77 @@ const footerSlotProps = computed<TourSpotlightFooterSlotProps>(() => ({
   requireAction: requireAction.value,
   isLast: tour.index.value >= tour.total.value - 1,
   footer: footerConfig.value,
-  action: () => emit("action"),
-}));
+  action: () => emit('action'),
+}))
 
 const activeId = computed(() => {
   if (!open.value) {
-    return null;
+    return null
   }
-  return sortedEntries.value[tour.index.value]?.id ?? null;
-});
+  return sortedEntries.value[tour.index.value]?.id ?? null
+})
 
 provide(tourSpotlightKey, {
   register,
   unregister,
   update,
   activeId,
-});
+})
 
-const currentEntry = computed(() => sortedEntries.value[tour.index.value]);
-const hasStepFooter = computed(() => !!currentEntry.value?.getFooter);
+const currentEntry = computed(() => sortedEntries.value[tour.index.value])
+const hasStepFooter = computed(() => !!currentEntry.value?.getFooter)
 
-const coachOpen = computed(() => open.value && !!highlightEl.value);
+const coachOpen = computed(() => open.value && !!highlightEl.value)
 
 const coachUi = computed(() => ({
   content: props.coachClass,
-}));
+}))
 
 const StepContent = defineComponent({
-  name: "TourSpotlightStepContent",
+  name: 'TourSpotlightStepContent',
   setup() {
-    return () => currentEntry.value?.getContent?.() ?? null;
+    return () => currentEntry.value?.getContent?.() ?? null
   },
-});
+})
 
 const StepFooter = defineComponent({
-  name: "TourSpotlightStepFooter",
+  name: 'TourSpotlightStepFooter',
   setup() {
-    return () => currentEntry.value?.getFooter?.(footerSlotProps.value) ?? null;
+    return () => currentEntry.value?.getFooter?.(footerSlotProps.value) ?? null
   },
-});
+})
 
-watch(open, (value) => {
-  emit("update:open", value);
-});
+watch(open, value => {
+  emit('update:open', value)
+})
 
-let started = false;
+let started = false
 
 async function tryAutoStart() {
   if (!props.autoStart || started || !import.meta.client) {
-    return;
+    return
   }
   if (tourSteps.value.length > 0) {
-    started = true;
-    tour.start(0);
-    await tour.updateHole();
+    started = true
+    tour.start(0)
+    await tour.updateHole()
   }
 }
 
 // ClientOnly 内子步骤在父 onMounted 之后才注册，需监听长度
 watch(
   () => tourSteps.value.length,
-  (len) => {
+  len => {
     if (len > 0) {
-      tryAutoStart();
+      tryAutoStart()
     }
   },
-  { flush: "post" },
-);
+  { flush: 'post' },
+)
 
 onMounted(() => {
-  tryAutoStart();
-});
+  tryAutoStart()
+})
 
 defineExpose({
   open: tour.open,
@@ -195,8 +195,8 @@ defineExpose({
   isCentered: tour.isCentered,
   highlightEl: tour.highlightEl,
   start: (...args: Parameters<typeof tour.start>) => {
-    started = true;
-    return tour.start(...args);
+    started = true
+    return tour.start(...args)
   },
   finish: tour.finish,
   goTo: tour.goTo,
@@ -205,7 +205,7 @@ defineExpose({
   prev: tour.prev,
   updateHole: tour.updateHole,
   clearHighlight: tour.clearHighlight,
-});
+})
 </script>
 
 <template>
@@ -217,12 +217,7 @@ defineExpose({
 
     <Teleport to="body">
       <template v-if="open">
-        <div
-          v-for="(part, i) in dimParts"
-          :key="i"
-          :class="dimClass"
-          :style="{ ...part, zIndex: zIndexDim }"
-        />
+        <div v-for="(part, i) in dimParts" :key="i" :class="dimClass" :style="{ ...part, zIndex: zIndexDim }" />
       </template>
     </Teleport>
 

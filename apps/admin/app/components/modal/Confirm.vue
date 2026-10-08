@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useDebounceFn } from "@vueuse/core";
+import { useDebounceFn } from '@vueuse/core'
 
 /**
  * ModalConfirm —— 标准确认弹窗（参考 greensketch modal/Base.vue）
@@ -10,38 +10,38 @@ import { useDebounceFn } from "@vueuse/core";
  */
 const props = withDefaults(
   defineProps<{
-    title?: string;
-    content?: string;
-    icon?: string;
-    cancelText?: string;
-    confirmText?: string;
-    confirm?: () => void | Promise<void>;
+    title?: string
+    content?: string
+    icon?: string
+    cancelText?: string
+    confirmText?: string
+    confirm?: () => void | Promise<void>
   }>(),
   {
-    title: "Confirm",
-    content: "",
-    icon: "i-lucide-triangle-alert",
-    cancelText: "Cancel",
-    confirmText: "Confirm",
+    title: 'Confirm',
+    content: '',
+    icon: 'i-lucide-triangle-alert',
+    cancelText: 'Cancel',
+    confirmText: 'Confirm',
   },
-);
+)
 
-const emit = defineEmits<{ close: [payload?: boolean] }>();
+const emit = defineEmits<{ close: [payload?: boolean] }>()
 
-const open = defineModel<boolean>("open", { default: true });
+const open = defineModel<boolean>('open', { default: true })
 
 function close() {
-  if (!open.value) return;
-  open.value = false;
-  emit("close", true);
+  if (!open.value) return
+  open.value = false
+  emit('close', true)
 }
 
 // 200ms 防抖，避免连续点击重复触发
-const handleCancel = useDebounceFn(() => close(), 200);
+const handleCancel = useDebounceFn(() => close(), 200)
 const handleConfirm = useDebounceFn(() => {
-  props.confirm?.();
-  close();
-}, 200);
+  props.confirm?.()
+  close()
+}, 200)
 </script>
 
 <template>
@@ -79,11 +79,7 @@ const handleConfirm = useDebounceFn(() => {
         :ui="{ base: 'min-w-20 justify-center' }"
         @click="handleCancel"
       />
-      <UButton
-        :label="confirmText"
-        :ui="{ base: 'min-w-20 justify-center' }"
-        @click="handleConfirm"
-      />
+      <UButton :label="confirmText" :ui="{ base: 'min-w-20 justify-center' }" @click="handleConfirm" />
     </template>
   </UModal>
 </template>

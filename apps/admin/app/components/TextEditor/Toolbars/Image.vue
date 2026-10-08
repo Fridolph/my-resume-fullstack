@@ -1,45 +1,45 @@
 <script setup lang="ts">
-import type { Editor } from "@tiptap/vue-3";
+import type { Editor } from '@tiptap/vue-3'
 
 const props = defineProps<{
-  editor: Editor;
-  disabled?: boolean;
-}>();
+  editor: Editor
+  disabled?: boolean
+}>()
 
-const loading = defineModel<boolean>("loading", { default: false });
-const toast = useToast();
-const file = shallowRef<File | null>(null);
+const loading = defineModel<boolean>('loading', { default: false })
+const toast = useToast()
+const file = shallowRef<File | null>(null)
 
 function handleUpload() {
   if (!file.value) {
-    return;
+    return
   }
 
-  const isImg = ["jpeg", "jpg", "png"].some((v: string) => file.value!.type.includes(v));
-  const tooLarge = file.value!.size > 1024 * 1024 * 5;
+  const isImg = ['jpeg', 'jpg', 'png'].some((v: string) => file.value!.type.includes(v))
+  const tooLarge = file.value!.size > 1024 * 1024 * 5
   if (!isImg || tooLarge) {
     toast.add({
-      title: "Error",
-      description: "Please upload a valid image (jpg/png, max 5MB).",
-      color: "error",
-      icon: "i-lucide-circle-x",
-    });
-    return;
+      title: 'Error',
+      description: 'Please upload a valid image (jpg/png, max 5MB).',
+      color: 'error',
+      icon: 'i-lucide-circle-x',
+    })
+    return
   }
 
-  loading.value = true;
-  const reader = new FileReader();
+  loading.value = true
+  const reader = new FileReader()
   reader.onload = () => {
-    const src = reader.result as string;
+    const src = reader.result as string
     if (src) {
-      props.editor.chain().setImage({ src }).focus().run();
+      props.editor.chain().setImage({ src }).focus().run()
     }
-    loading.value = false;
-  };
+    loading.value = false
+  }
   reader.onerror = () => {
-    loading.value = false;
-  };
-  reader.readAsDataURL(file.value!);
+    loading.value = false
+  }
+  reader.readAsDataURL(file.value!)
 }
 </script>
 
@@ -55,12 +55,7 @@ function handleUpload() {
     @change="handleUpload"
   >
     <template #leading>
-      <UTooltip
-        text="Insert image"
-        :content="{ side: 'top' }"
-        :delay-duration="0"
-        :disabled="disabled"
-      >
+      <UTooltip text="Insert image" :content="{ side: 'top' }" :delay-duration="0" :disabled="disabled">
         <UButton
           icon="i-lucide-image"
           color="neutral"

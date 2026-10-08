@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({
-  title: "Company profile",
-});
+  title: 'Company profile',
+})
 </script>
 
 <template>

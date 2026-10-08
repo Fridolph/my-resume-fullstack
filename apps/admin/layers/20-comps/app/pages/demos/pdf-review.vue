@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { FormSubmitEvent } from "@nuxt/ui";
-import type { TableColumn } from "@nuxt/ui";
-import type { PdfAlign, PdfCoverImageMode, PdfTextVertical } from "~/types/pdf";
-import * as z from "zod";
+import type { FormSubmitEvent } from '@nuxt/ui'
+import type { TableColumn } from '@nuxt/ui'
+import type { PdfAlign, PdfCoverImageMode, PdfTextVertical } from '~/types/pdf'
+import * as z from 'zod'
 
 /**
  * PDF 预览 / 导出 demo（原 /comps/pdf-review，迁到 /demos 下）。
@@ -15,21 +15,14 @@ import * as z from "zod";
  * 后续做个人简历：改 `createDefaultPdfConfig()` 的默认值 + 换掉下面几页内容即可。
  */
 definePageMeta({
-  layout: "pdf",
-  title: "PDF review",
-});
+  layout: 'pdf',
+  title: 'PDF review',
+})
 
-const toast = useToast();
+const toast = useToast()
 
 // 抽屉开关 / 生效配置 / 编辑态 / 保存取消
-const {
-  open: configOpen,
-  config,
-  draft,
-  save: saveConfig,
-  cancel: cancelConfig,
-  reset: resetDraft,
-} = usePdfConfig();
+const { open: configOpen, config, draft, save: saveConfig, cancel: cancelConfig, reset: resetDraft } = usePdfConfig()
 
 /* ---------- 表单校验（参考项目既有 UForm + Zod 写法） ----------
  * - 导出文件名：必填
@@ -37,7 +30,7 @@ const {
  */
 const schema = z
   .object({
-    fileName: z.string().trim().min(1, "导出文件名必填"),
+    fileName: z.string().trim().min(1, '导出文件名必填'),
     header: z.object({
       enabled: z.boolean(),
       title: z.string().optional(),
@@ -49,11 +42,11 @@ const schema = z
       eyebrow: z.string().optional(),
       description: z.string().optional(),
       image: z.string().optional(),
-      imageMode: z.enum(["none", "banner", "background"]).optional(),
+      imageMode: z.enum(['none', 'banner', 'background']).optional(),
       footerTitle: z.string().optional(),
       footerText: z.string().optional(),
-      align: z.enum(["left", "center", "right"]).optional(),
-      vertical: z.enum(["top", "center", "bottom"]).optional(),
+      align: z.enum(['left', 'center', 'right']).optional(),
+      vertical: z.enum(['top', 'center', 'bottom']).optional(),
       gradientFrom: z.string().optional(),
       gradientTo: z.string().optional(),
     }),
@@ -61,104 +54,104 @@ const schema = z
   .superRefine((value, ctx) => {
     // 只有开启封面页时才要求标题
     if (value.cover.enabled && !value.cover.title?.trim()) {
-      ctx.addIssue({ code: "custom", path: ["cover", "title"], message: "开启封面页时标题必填" });
+      ctx.addIssue({ code: 'custom', path: ['cover', 'title'], message: '开启封面页时标题必填' })
     }
-  });
+  })
 
-const formRef = useTemplateRef<{ submit: () => Promise<unknown> }>("formRef");
+const formRef = useTemplateRef<{ submit: () => Promise<unknown> }>('formRef')
 
 /** UForm 校验通过才会触发 @submit */
 function onSubmit(_event: FormSubmitEvent<z.output<typeof schema>>) {
-  saveConfig();
-  toast.add({ title: "Config saved", description: config.value.fileName, color: "success" });
+  saveConfig()
+  toast.add({ title: 'Config saved', description: config.value.fileName, color: 'success' })
 }
 
 /** footer 的 Save：走一遍表单校验 */
 async function submitForm() {
-  await formRef.value?.submit();
+  await formRef.value?.submit()
 }
 
 function resetConfig() {
-  resetDraft();
-  toast.add({ title: "Reset to defaults", description: "点 Save 生效", color: "neutral" });
+  resetDraft()
+  toast.add({ title: 'Reset to defaults', description: '点 Save 生效', color: 'neutral' })
 }
 
 const alignItems: { label: string; value: PdfAlign }[] = [
-  { label: "Left", value: "left" },
-  { label: "Center", value: "center" },
-  { label: "Right", value: "right" },
-];
+  { label: 'Left', value: 'left' },
+  { label: 'Center', value: 'center' },
+  { label: 'Right', value: 'right' },
+]
 
 const verticalItems: { label: string; value: PdfTextVertical }[] = [
-  { label: "Top", value: "top" },
-  { label: "Center", value: "center" },
-  { label: "Bottom", value: "bottom" },
-];
+  { label: 'Top', value: 'top' },
+  { label: 'Center', value: 'center' },
+  { label: 'Bottom', value: 'bottom' },
+]
 
 const imageModeItems: { label: string; value: PdfCoverImageMode }[] = [
-  { label: "None", value: "none" },
-  { label: "Banner (top)", value: "banner" },
-  { label: "Background (full)", value: "background" },
-];
+  { label: 'None', value: 'none' },
+  { label: 'Banner (top)', value: 'banner' },
+  { label: 'Background (full)', value: 'background' },
+]
 
 // SSR / CSR 保持一致的“今天”，供页眉 meta = 'auto' 使用
-const today = useState("pdf-demo-today", () => new Date().toISOString().slice(0, 10));
+const today = useState('pdf-demo-today', () => new Date().toISOString().slice(0, 10))
 const headerMeta = computed(() =>
-  config.value.header.meta === "auto" ? today.value : (config.value.header.meta ?? ""),
-);
+  config.value.header.meta === 'auto' ? today.value : (config.value.header.meta ?? ''),
+)
 
 /* ---------- 后端导出（预留） ---------- */
-const requestUrl = useRequestURL();
-const previewUrl = computed(() => (import.meta.client ? window.location.href : requestUrl.href));
+const requestUrl = useRequestURL()
+const previewUrl = computed(() => (import.meta.client ? window.location.href : requestUrl.href))
 
 const { isPending, exportPdf, printPdf } = usePdfExport({
-  onSuccess: (url) => toast.add({ title: "PDF ready", description: url, color: "success" }),
-  onError: (e) =>
+  onSuccess: url => toast.add({ title: 'PDF ready', description: url, color: 'success' }),
+  onError: e =>
     toast.add({
-      title: "Export failed",
-      description: getApiErrorMessage(e) || "后端导出未接入，可先用 Print 降级。",
-      color: "error",
+      title: 'Export failed',
+      description: getApiErrorMessage(e) || '后端导出未接入，可先用 Print 降级。',
+      color: 'error',
     }),
-});
+})
 
 async function exportServer() {
   // 用生效配置（config），不把未保存的 draft 带出去
   await exportPdf({
     url: previewUrl.value,
-    scene: "pdf-review",
+    scene: 'pdf-review',
     fileName: config.value.fileName,
     options: { cover: config.value.cover.enabled, header: config.value.header.enabled },
-  });
+  })
 }
 
 /* ---------- mock 内容 ---------- */
 const summary = [
-  { label: "Active projects", value: "24", diff: "+12.5%" },
-  { label: "Team members", value: "18", diff: "+4.2%" },
-  { label: "Open tasks", value: "62", diff: "-8.1%" },
-];
+  { label: 'Active projects', value: '24', diff: '+12.5%' },
+  { label: 'Team members', value: '18', diff: '+4.2%' },
+  { label: 'Open tasks', value: '62', diff: '-8.1%' },
+]
 
 const projectRows = [
-  { name: "Northwind rollout", owner: "Alex Morgan", status: "In progress", updated: "2026-10-04" },
-  { name: "Harbor solar array", owner: "Jamie Lee", status: "Sent", updated: "2026-10-03" },
-  { name: "Maple battery retrofit", owner: "Alex Morgan", status: "Signed", updated: "2026-10-01" },
-  { name: "Riverside microgrid", owner: "Priya Nair", status: "Ordered", updated: "2026-09-28" },
-  { name: "Coastal wind survey", owner: "Jamie Lee", status: "Closed", updated: "2026-09-20" },
-];
+  { name: 'Northwind rollout', owner: 'Alex Morgan', status: 'In progress', updated: '2026-10-04' },
+  { name: 'Harbor solar array', owner: 'Jamie Lee', status: 'Sent', updated: '2026-10-03' },
+  { name: 'Maple battery retrofit', owner: 'Alex Morgan', status: 'Signed', updated: '2026-10-01' },
+  { name: 'Riverside microgrid', owner: 'Priya Nair', status: 'Ordered', updated: '2026-09-28' },
+  { name: 'Coastal wind survey', owner: 'Jamie Lee', status: 'Closed', updated: '2026-09-20' },
+]
 
 const activity = [
-  { title: "Project brief approved", meta: "Northwind rollout", time: "12 min ago" },
-  { title: "New team member joined", meta: "Alex Morgan", time: "46 min ago" },
-  { title: "Review requested", meta: "Q4 campaign workspace", time: "2 hr ago" },
-  { title: "Proposal sent", meta: "Harbor solar array", time: "5 hr ago" },
-];
+  { title: 'Project brief approved', meta: 'Northwind rollout', time: '12 min ago' },
+  { title: 'New team member joined', meta: 'Alex Morgan', time: '46 min ago' },
+  { title: 'Review requested', meta: 'Q4 campaign workspace', time: '2 hr ago' },
+  { title: 'Proposal sent', meta: 'Harbor solar array', time: '5 hr ago' },
+]
 
 const columns: TableColumn<(typeof projectRows)[number]>[] = [
-  { accessorKey: "name", header: "Project" },
-  { accessorKey: "owner", header: "Owner" },
-  { accessorKey: "status", header: "Status" },
-  { accessorKey: "updated", header: "Updated" },
-];
+  { accessorKey: 'name', header: 'Project' },
+  { accessorKey: 'owner', header: 'Owner' },
+  { accessorKey: 'status', header: 'Status' },
+  { accessorKey: 'updated', header: 'Updated' },
+]
 </script>
 
 <template>
@@ -177,11 +170,7 @@ const columns: TableColumn<(typeof projectRows)[number]>[] = [
 
         <USeparator />
 
-        <USwitch
-          v-model="draft.cover.enabled"
-          label="封面页"
-          description="关闭后直接从内容页开始"
-        />
+        <USwitch v-model="draft.cover.enabled" label="封面页" description="关闭后直接从内容页开始" />
 
         <template v-if="draft.cover.enabled">
           <UFormField name="cover.title" label="标题" required>
@@ -197,11 +186,7 @@ const columns: TableColumn<(typeof projectRows)[number]>[] = [
           </UFormField>
 
           <UFormField name="cover.image" label="封面图 URL" hint="可选">
-            <UInput
-              v-model="draft.cover.image"
-              placeholder="https://… 或 /cover.jpg"
-              class="w-full"
-            />
+            <UInput v-model="draft.cover.image" placeholder="https://… 或 /cover.jpg" class="w-full" />
           </UFormField>
 
           <UFormField name="cover.imageMode" label="图片模式" hint="可选">
@@ -255,8 +240,7 @@ const columns: TableColumn<(typeof projectRows)[number]>[] = [
         />
         <p class="text-xs text-muted">
           后端导出接口见
-          <code class="rounded bg-elevated px-1">apis/pdf.ts</code>；暂无后端时会失败，用 Print
-          降级。
+          <code class="rounded bg-elevated px-1">apis/pdf.ts</code>；暂无后端时会失败，用 Print 降级。
         </p>
       </div>
     </template>
@@ -289,11 +273,7 @@ const columns: TableColumn<(typeof projectRows)[number]>[] = [
         <h2 class="text-lg font-semibold text-gray-900">Summary</h2>
 
         <div class="mt-4 grid grid-cols-3 gap-4">
-          <div
-            v-for="item in summary"
-            :key="item.label"
-            class="rounded-lg border border-gray-200 p-4"
-          >
+          <div v-for="item in summary" :key="item.label" class="rounded-lg border border-gray-200 p-4">
             <p class="text-xs text-gray-500">
               {{ item.label }}
             </p>
@@ -350,11 +330,7 @@ const columns: TableColumn<(typeof projectRows)[number]>[] = [
         <h2 class="text-lg font-semibold text-gray-900">Recent activity</h2>
 
         <ul class="mt-4 divide-y divide-gray-100">
-          <li
-            v-for="item in activity"
-            :key="item.title"
-            class="flex items-center justify-between py-3"
-          >
+          <li v-for="item in activity" :key="item.title" class="flex items-center justify-between py-3">
             <div>
               <p class="text-sm font-medium text-gray-900">
                 {{ item.title }}

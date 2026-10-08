@@ -1,31 +1,25 @@
 <script lang="ts" setup>
 interface PdfPageProps {
   /** 手动指定当前页码（不传则由 PdfDocument 自动计算） */
-  page?: number;
+  page?: number
   /** 手动指定总页数（不传则由 PdfDocument 自动计算） */
-  totalPages?: number;
+  totalPages?: number
   /** 页类型 */
-  pageType?: "cover" | "content";
+  pageType?: 'cover' | 'content'
   /** 内容额外样式 */
-  contentClass?: any;
+  contentClass?: any
   /** 横向布局（宽高互换） */
-  landscape?: boolean;
+  landscape?: boolean
 }
 
-const {
-  page,
-  totalPages,
-  pageType = "content",
-  contentClass,
-  landscape = false,
-} = defineProps<PdfPageProps>();
+const { page, totalPages, pageType = 'content', contentClass, landscape = false } = defineProps<PdfPageProps>()
 
 // 向最近的 PdfDocument 注册自身（携带页类型），自动获取页码与总页数
-const { pageNumber: autoPage, totalPages: autoTotal } = usePdfPage(() => pageType);
+const { pageNumber: autoPage, totalPages: autoTotal } = usePdfPage(() => pageType)
 
 // props 优先，其次回退到自动计算的值
-const resolvedPage = computed(() => page ?? (autoPage.value || undefined));
-const resolvedTotal = computed(() => totalPages ?? (autoTotal.value || undefined));
+const resolvedPage = computed(() => page ?? (autoPage.value || undefined))
+const resolvedTotal = computed(() => totalPages ?? (autoTotal.value || undefined))
 </script>
 
 <template>
@@ -38,10 +32,7 @@ const resolvedTotal = computed(() => totalPages ?? (autoTotal.value || undefined
       <slot name="header" />
     </header>
 
-    <div
-      class="min-h-0 flex-1 overflow-hidden"
-      :class="{ 'py-4': pageType === 'content', ...contentClass }"
-    >
+    <div class="min-h-0 flex-1 overflow-hidden" :class="{ 'py-4': pageType === 'content', ...contentClass }">
       <slot />
     </div>
 
@@ -68,16 +59,16 @@ const resolvedTotal = computed(() => totalPages ?? (autoTotal.value || undefined
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 
-  &[data-orientation="landscape"] {
+  &[data-orientation='landscape'] {
     width: 297mm;
     height: 210mm;
   }
 
-  &[data-page-type="cover"] {
+  &[data-page-type='cover'] {
     padding: 0;
   }
 
-  &[data-page-type="content"] {
+  &[data-page-type='content'] {
     padding: 10.58333mm;
   }
 }
@@ -97,7 +88,7 @@ const resolvedTotal = computed(() => totalPages ?? (autoTotal.value || undefined
     print-color-adjust: exact !important;
   }
 
-  .pdf-page[data-orientation="landscape"] {
+  .pdf-page[data-orientation='landscape'] {
     width: 297mm !important;
     height: 210mm !important;
     min-height: 210mm !important;
@@ -109,11 +100,11 @@ const resolvedTotal = computed(() => totalPages ?? (autoTotal.value || undefined
     break-after: auto !important;
   }
 
-  &[data-page-type="cover"] {
+  &[data-page-type='cover'] {
     padding: 0 !important;
   }
 
-  &[data-page-type="content"] {
+  &[data-page-type='content'] {
     padding: 10.58333mm !important;
   }
 }

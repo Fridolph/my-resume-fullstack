@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ResumeSectionKey } from "#layers/public-resume/app/types/resume";
-import { getSectionDefinition } from "#layers/public-resume/app/config/resume-sections";
+import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
+import { getSectionDefinition } from '#layers/public-resume/app/config/resume-sections'
 
 /**
  * 未使用模块托盘（仅编辑态）。
@@ -8,12 +8,12 @@ import { getSectionDefinition } from "#layers/public-resume/app/config/resume-se
  * 它和三栏共用同一个 sortable group：**拖到这里 = 隐藏**，从托盘拖回任意栏 = 恢复。
  * 另外给一个「点回」按钮，作为拖拽的替代入口（键盘 / 触屏 / 精准操作都方便）。
  */
-defineProps<{ keys: ResumeSectionKey[] }>();
+defineProps<{ keys: ResumeSectionKey[] }>()
 
-const emit = defineEmits<{ restore: [key: ResumeSectionKey] }>();
+const emit = defineEmits<{ restore: [key: ResumeSectionKey] }>()
 
 function labelOf(key: ResumeSectionKey) {
-  return getSectionDefinition(key)?.label ?? key;
+  return getSectionDefinition(key)?.label ?? key
 }
 </script>
 
@@ -26,12 +26,7 @@ function labelOf(key: ResumeSectionKey) {
 
     <div class="resume-tray" data-slot="tray">
       <div v-for="key in keys" :key="key" class="resume-tray-item" :data-section-key="key">
-        <button
-          type="button"
-          data-drag-handle
-          class="resume-tool-btn"
-          :title="`拖拽「${labelOf(key)}」回到栏位`"
-        >
+        <button type="button" data-drag-handle class="resume-tool-btn" :title="`拖拽「${labelOf(key)}」回到栏位`">
           <UIcon name="i-lucide-grip-vertical" class="size-4" />
           <span class="sr-only">拖拽</span>
         </button>

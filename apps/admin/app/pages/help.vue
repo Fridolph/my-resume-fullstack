@@ -1,24 +1,22 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: "docs",
-  title: "Help & guides",
-});
+  layout: 'docs',
+  title: 'Help & guides',
+})
 
 const sections = [
-  { id: "overview", label: "Overview" },
-  { id: "getting-started", label: "Getting started" },
-  { id: "modules", label: "Key modules" },
-  { id: "ai-assistant", label: "AI assistant" },
-  { id: "resources", label: "Resources" },
-];
+  { id: 'overview', label: 'Overview' },
+  { id: 'getting-started', label: 'Getting started' },
+  { id: 'modules', label: 'Key modules' },
+  { id: 'ai-assistant', label: 'AI assistant' },
+  { id: 'resources', label: 'Resources' },
+]
 </script>
 
 <template>
   <div class="mx-auto max-w-3xl">
     <p class="text-sm font-medium text-primary">Help &amp; guides</p>
-    <h1 class="mt-2 text-3xl font-semibold tracking-tight text-highlighted">
-      What this app does, and how to use it.
-    </h1>
+    <h1 class="mt-2 text-3xl font-semibold tracking-tight text-highlighted">What this app does, and how to use it.</h1>
     <p class="mt-3 text-sm leading-6 text-muted">
       A concise walkthrough of the workspace, its modules, and where to find more help.
     </p>
@@ -39,9 +37,8 @@ const sections = [
       <section id="overview" class="scroll-mt-24">
         <h2 class="text-xl font-semibold text-highlighted">Overview</h2>
         <p class="mt-2 text-sm leading-6 text-muted">
-          This admin workspace is the control center for managing projects, team, and settings. It
-          is built on Nuxt 4 + Nuxt UI and serves as a reusable starting point for admin
-          applications.
+          This admin workspace is the control center for managing projects, team, and settings. It is built on Nuxt 4 +
+          Nuxt UI and serves as a reusable starting point for admin applications.
         </p>
       </section>
 
@@ -55,8 +52,7 @@ const sections = [
           <li>Use the left sidebar to switch between modules.</li>
           <li>
             Start from the
-            <ULink to="/" class="text-primary hover:underline">dashboard</ULink>, then drill into
-            projects and team.
+            <ULink to="/" class="text-primary hover:underline">dashboard</ULink>, then drill into projects and team.
           </li>
         </ol>
       </section>
@@ -64,24 +60,15 @@ const sections = [
       <section id="modules" class="scroll-mt-24">
         <h2 class="text-xl font-semibold text-highlighted">Key modules</h2>
         <div class="mt-3 grid gap-3 sm:grid-cols-2">
-          <ULink
-            to="/projects"
-            class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated"
-          >
+          <ULink to="/projects" class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated">
             <p class="text-sm font-medium text-highlighted">Projects</p>
             <p class="mt-1 text-xs text-muted">Manage projects and their status.</p>
           </ULink>
-          <ULink
-            to="/team/members"
-            class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated"
-          >
+          <ULink to="/team/members" class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated">
             <p class="text-sm font-medium text-highlighted">Team</p>
             <p class="mt-1 text-xs text-muted">Members and roles &amp; access.</p>
           </ULink>
-          <ULink
-            to="/settings"
-            class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated"
-          >
+          <ULink to="/settings" class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated">
             <p class="text-sm font-medium text-highlighted">Settings</p>
             <p class="mt-1 text-xs text-muted">Company profile and configuration.</p>
           </ULink>
@@ -91,8 +78,8 @@ const sections = [
       <section id="ai-assistant" class="scroll-mt-24">
         <h2 class="text-xl font-semibold text-highlighted">AI assistant</h2>
         <p class="mt-2 text-sm leading-6 text-muted">
-          Documentation for AI-powered features will live here. For now this section is a
-          placeholder for onboarding, prompt guidance, and usage tips.
+          Documentation for AI-powered features will live here. For now this section is a placeholder for onboarding,
+          prompt guidance, and usage tips.
         </p>
       </section>
 
@@ -100,18 +87,12 @@ const sections = [
         <h2 class="text-xl font-semibold text-highlighted">Resources</h2>
         <ul class="mt-3 space-y-2 text-sm">
           <li>
-            <ULink
-              href="https://nuxt.com/docs"
-              target="_blank"
-              class="text-primary hover:underline"
-            >
+            <ULink href="https://nuxt.com/docs" target="_blank" class="text-primary hover:underline">
               Nuxt documentation
             </ULink>
           </li>
           <li>
-            <ULink href="https://ui.nuxt.com" target="_blank" class="text-primary hover:underline">
-              Nuxt UI
-            </ULink>
+            <ULink href="https://ui.nuxt.com" target="_blank" class="text-primary hover:underline"> Nuxt UI </ULink>
           </li>
         </ul>
       </section>

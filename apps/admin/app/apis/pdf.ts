@@ -1,4 +1,4 @@
-import type { PdfExportPayload } from "~/types/pdf";
+import type { PdfExportPayload } from '~/types/pdf'
 
 /**
  * 后端 PDF 导出接口。
@@ -16,15 +16,15 @@ import type { PdfExportPayload } from "~/types/pdf";
  *
  * 注意：请求会带上 `utils/requestContext` 的公共头，鉴权与分区由请求层统一处理。
  */
-export const PDF_EXPORT_ENDPOINT = "/pdf/download";
+export const PDF_EXPORT_ENDPOINT = '/pdf/download'
 
 /** 请求后端生成 PDF，返回文件下载地址 */
 export async function requestPdfExport(payload: PdfExportPayload): Promise<string> {
-  const { $request } = useNuxtApp();
+  const { $request } = useNuxtApp()
 
   // httpRequest 插件已解包 { code, msg, data }，这里拿到的就是 data（文件 URL）
   return await $request<string>(PDF_EXPORT_ENDPOINT, {
-    method: "POST",
+    method: 'POST',
     body: payload,
-  });
+  })
 }

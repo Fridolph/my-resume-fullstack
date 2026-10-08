@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { ResumeSectionKey } from "#layers/public-resume/app/types/resume";
-import { resumeEditorSchemas } from "#layers/public-resume/app/config/resume-editor-schemas";
-import { getSectionDefinition } from "#layers/public-resume/app/config/resume-sections";
-import { useResumeContent } from "#layers/public-resume/app/composables/useResumeContent";
-import ResumeSchemaForm from "./editors/ResumeSchemaForm.vue";
+import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
+import { resumeEditorSchemas } from '#layers/public-resume/app/config/resume-editor-schemas'
+import { getSectionDefinition } from '#layers/public-resume/app/config/resume-sections'
+import { useResumeContent } from '#layers/public-resume/app/composables/useResumeContent'
+import ResumeSchemaForm from './editors/ResumeSchemaForm.vue'
 
 /**
  * 区块内容编辑抽屉。
@@ -15,30 +15,30 @@ import ResumeSchemaForm from "./editors/ResumeSchemaForm.vue";
  * 内容与布局一样是**自动保存**（防抖落盘，见 useResumeContent），
  * 所以这里不再有「保存」按钮，只显示状态 + 关闭。
  */
-const open = defineModel<boolean>("open", { default: false });
-const props = defineProps<{ sectionKey: ResumeSectionKey | null }>();
+const open = defineModel<boolean>('open', { default: false })
+const props = defineProps<{ sectionKey: ResumeSectionKey | null }>()
 
-const { content, touch, saveState, savedAt, flushSave } = useResumeContent();
+const { content, touch, saveState, savedAt, flushSave } = useResumeContent()
 
-const schema = computed(() => (props.sectionKey ? resumeEditorSchemas[props.sectionKey] : null));
+const schema = computed(() => (props.sectionKey ? resumeEditorSchemas[props.sectionKey] : null))
 const title = computed(() =>
-  props.sectionKey ? (getSectionDefinition(props.sectionKey)?.label ?? props.sectionKey) : "",
-);
+  props.sectionKey ? (getSectionDefinition(props.sectionKey)?.label ?? props.sectionKey) : '',
+)
 
 const statusText = computed(() => {
-  if (saveState.value === "pending") {
-    return "保存中…";
+  if (saveState.value === 'pending') {
+    return '保存中…'
   }
-  if (saveState.value === "saved" && savedAt.value) {
-    return "已自动保存";
+  if (saveState.value === 'saved' && savedAt.value) {
+    return '已自动保存'
   }
-  return "改动会自动保存";
-});
+  return '改动会自动保存'
+})
 
 /** 关闭前兜底落盘一次：不在防抖窗口里"看着存了其实还没写" */
 function close() {
-  flushSave();
-  open.value = false;
+  flushSave()
+  open.value = false
 }
 </script>
 

@@ -1,8 +1,8 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
-import * as z from "zod";
+import { isValidPhoneNumber } from 'libphonenumber-js'
+import * as z from 'zod'
 
 export function zNonEmptyString(msg?: string) {
-  return z.string().min(1, { message: msg });
+  return z.string().min(1, { message: msg })
 }
 
 /**
@@ -11,17 +11,17 @@ export function zNonEmptyString(msg?: string) {
  * - `required: true`：必须非空且合法
  */
 export function zPhone(options?: { required?: boolean; message?: string }) {
-  const required = options?.required ?? false;
-  const message = options?.message;
+  const required = options?.required ?? false
+  const message = options?.message
 
   const isValid = (val: string | null | undefined) => {
-    if (!val) return !required;
-    return isValidPhoneNumber(val);
-  };
-
-  if (required) {
-    return z.string({ message }).refine(isValid, { error: message });
+    if (!val) return !required
+    return isValidPhoneNumber(val)
   }
 
-  return z.string().nullish().refine(isValid, { error: message });
+  if (required) {
+    return z.string({ message }).refine(isValid, { error: message })
+  }
+
+  return z.string().nullish().refine(isValid, { error: message })
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ColumnDraftItem } from "~/types/column-sort";
-import { moveArrayElement, useSortable } from "@vueuse/integrations/useSortable";
+import type { ColumnDraftItem } from '~/types/column-sort'
+import { moveArrayElement, useSortable } from '@vueuse/integrations/useSortable'
 
 /**
  * 拖拽事件类型。
@@ -9,43 +9,39 @@ import { moveArrayElement, useSortable } from "@vueuse/integrations/useSortable"
  * app 没有声明 `@types/sortablejs`，直接 import 会报 TS7016；
  * 走 vueuse 的声明则能解析到提升目录里的类型。
  */
-type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>;
+type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>
 
 /**
  * ColumnSortList —— 可拖拽排序 + 显隐勾选的列表（参考 greensketch 同名组件）。
  * `v-model` 绑定 `ColumnDraftItem[]`，拖拽后数组顺序同步更新。
  */
-const items = defineModel<ColumnDraftItem[]>({ required: true });
+const items = defineModel<ColumnDraftItem[]>({ required: true })
 
-const listRef = useTemplateRef<HTMLElement>("list");
+const listRef = useTemplateRef<HTMLElement>('list')
 
 const { start } = useSortable(listRef, items, {
   watchElement: true,
-  handle: ".drag-handle",
+  handle: '.drag-handle',
   animation: 150,
-  ghostClass: "column-sort-ghost",
+  ghostClass: 'column-sort-ghost',
   forceFallback: true,
   fallbackOnBody: true,
   fallbackTolerance: 3,
-  filter: "input, textarea, select, option",
+  filter: 'input, textarea, select, option',
   onUpdate: (e: SortableEvent) => {
-    moveArrayElement(items, e.oldIndex ?? 0, e.newIndex ?? 0, e);
+    moveArrayElement(items, e.oldIndex ?? 0, e.newIndex ?? 0, e)
   },
-} as any);
+} as any)
 
 onMounted(async () => {
-  await nextTick();
-  start();
-});
+  await nextTick()
+  start()
+})
 </script>
 
 <template>
   <div ref="list" class="divide-y divide-default">
-    <div
-      v-for="item in items"
-      :key="item.key"
-      class="column-sort-item flex items-center gap-3 py-3"
-    >
+    <div v-for="item in items" :key="item.key" class="column-sort-item flex items-center gap-3 py-3">
       <span class="drag-handle" aria-hidden="true">
         <UIcon name="i-lucide-grip-vertical" class="size-4" />
       </span>

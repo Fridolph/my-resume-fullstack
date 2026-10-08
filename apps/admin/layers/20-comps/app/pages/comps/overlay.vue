@@ -1,42 +1,42 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: "has-sidebar",
-  title: "Overlay（共享浮层）",
-});
+  layout: 'has-sidebar',
+  title: 'Overlay（共享浮层）',
+})
 
 /**
  * 共享浮层组件示例（来自 packages/ui）
  *
  * 覆盖：基础抽屉 / 方向与尺寸 / 自定义 header + footer / 内置动作区（异步确认）/ AppModal 的响应式退化。
  */
-const toast = useToast();
+const toast = useToast()
 
-const basicOpen = ref(false);
+const basicOpen = ref(false)
 
-const directionOpen = ref(false);
-const direction = ref<"top" | "right" | "bottom" | "left">("right");
-const size = ref<"sm" | "md" | "lg" | "xl" | "full">("md");
+const directionOpen = ref(false)
+const direction = ref<'top' | 'right' | 'bottom' | 'left'>('right')
+const size = ref<'sm' | 'md' | 'lg' | 'xl' | 'full'>('md')
 
-const customOpen = ref(false);
+const customOpen = ref(false)
 
-const actionsOpen = ref(false);
-const saving = ref(false);
+const actionsOpen = ref(false)
+const saving = ref(false)
 async function submit() {
-  saving.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 1200));
-  saving.value = false;
-  actionsOpen.value = false;
+  saving.value = true
+  await new Promise(resolve => setTimeout(resolve, 1200))
+  saving.value = false
+  actionsOpen.value = false
   toast.add({
-    title: "已保存",
-    description: "示例：异步提交成功后才关闭（close-on-confirm=false）",
-    color: "success",
-  });
+    title: '已保存',
+    description: '示例：异步提交成功后才关闭（close-on-confirm=false）',
+    color: 'success',
+  })
 }
 
-const modalOpen = ref(false);
+const modalOpen = ref(false)
 
-const DIRECTIONS = ["right", "left", "top", "bottom"] as const;
-const SIZES = ["sm", "md", "lg", "xl", "full"] as const;
+const DIRECTIONS = ['right', 'left', 'top', 'bottom'] as const
+const SIZES = ['sm', 'md', 'lg', 'xl', 'full'] as const
 </script>
 
 <template>
@@ -68,9 +68,7 @@ const SIZES = ["sm", "md", "lg", "xl", "full"] as const;
             <UButton class="mt-3" label="打开基础抽屉" />
           </template>
 
-          <p class="text-sm leading-6 text-muted">
-            这里是正文。内容变长时只有这一段滚动，头尾保持固定。
-          </p>
+          <p class="text-sm leading-6 text-muted">这里是正文。内容变长时只有这一段滚动，头尾保持固定。</p>
           <p class="mt-3 text-sm leading-6 text-muted">
             面板只在打开时才渲染，所以 SSR 首屏里不会出现浮层，也不需要外挂 ClientOnly。
           </p>
@@ -117,9 +115,7 @@ const SIZES = ["sm", "md", "lg", "xl", "full"] as const;
             <UButton class="mt-3" color="neutral" variant="outline" label="按当前配置打开" />
           </template>
 
-          <p class="text-sm leading-6 text-muted">
-            改上面的按钮再打开，观察抽屉从哪一侧滑出、占多宽（或高）。
-          </p>
+          <p class="text-sm leading-6 text-muted">改上面的按钮再打开，观察抽屉从哪一侧滑出、占多宽（或高）。</p>
         </AppDrawer>
       </section>
 
@@ -140,14 +136,7 @@ const SIZES = ["sm", "md", "lg", "xl", "full"] as const;
           <template #header="{ close }">
             <div class="flex w-full items-center justify-between gap-2">
               <span class="text-sm font-semibold text-highlighted">自定义 Header</span>
-              <UButton
-                size="xs"
-                color="neutral"
-                variant="ghost"
-                icon="i-lucide-x"
-                aria-label="关闭"
-                @click="close()"
-              />
+              <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-x" aria-label="关闭" @click="close()" />
             </div>
           </template>
 
@@ -173,8 +162,7 @@ const SIZES = ["sm", "md", "lg", "xl", "full"] as const;
       <section>
         <h2 class="text-lg font-semibold text-highlighted">内置动作区（异步确认）</h2>
         <p class="mt-1 text-sm text-muted">
-          <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">show-actions</code> 渲染「取消 /
-          确认 + footerText」；
+          <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">show-actions</code> 渲染「取消 / 确认 + footerText」；
           <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">loading</code> 挂到确认按钮上；
           <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">close-on-confirm=false</code>
           用于"提交成功后才关"。
@@ -206,8 +194,8 @@ const SIZES = ["sm", "md", "lg", "xl", "full"] as const;
         <h2 class="text-lg font-semibold text-highlighted">AppModal（响应式退化）</h2>
         <p class="mt-1 text-sm text-muted">
           ≥ 768px 用
-          <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">UModal</code>；&lt; 768px
-          退化为底部抽屉。 把窗口拖窄（或用 DevTools 设备模式）再打开即可看到。
+          <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">UModal</code>；&lt; 768px 退化为底部抽屉。
+          把窗口拖窄（或用 DevTools 设备模式）再打开即可看到。
         </p>
 
         <AppModal

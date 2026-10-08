@@ -1,6 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "@nuxt/ui";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '@nuxt/ui';
 
 /* 共享 layer（packages/ui）里的 Tailwind 类也要被扫到，否则那些类不会生成 */
 @source "../../../../../packages/ui";
@@ -43,7 +43,7 @@ body {
 /* 可交互元素统一 pointer 手型（Nuxt UI 部分按钮默认不带） */
 @layer base {
   button:not(:disabled),
-  [role="button"]:not(:disabled) {
+  [role='button']:not(:disabled) {
     cursor: pointer;
   }
 }
@@ -97,11 +97,11 @@ body {
     page: portrait;
   }
 
-  .pdf-page[data-orientation="portrait"] {
+  .pdf-page[data-orientation='portrait'] {
     page: portrait;
   }
 
-  .pdf-page[data-orientation="landscape"] {
+  .pdf-page[data-orientation='landscape'] {
     page: landscape;
   }
 

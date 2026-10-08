@@ -3,15 +3,15 @@ async function withErrorHandler<T>(
   handler: string | ((error: unknown) => void),
 ): Promise<T | null> {
   try {
-    return await fn();
+    return await fn()
   } catch (error) {
-    if (typeof handler === "function") {
-      handler(error);
+    if (typeof handler === 'function') {
+      handler(error)
     } else {
-      console.error(handler, error);
+      console.error(handler, error)
     }
-    return null;
+    return null
   }
 }
 
-export { withErrorHandler };
+export { withErrorHandler }

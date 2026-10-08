@@ -83,10 +83,10 @@
   // apps/web/app.config.ts
   export default defineAppConfig({
     ui: {
-      colors: { primary: "indigo", neutral: "slate" },
-      drawer: { slots: { content: "w-full sm:max-w-md" } },
+      colors: { primary: 'indigo', neutral: 'slate' },
+      drawer: { slots: { content: 'w-full sm:max-w-md' } },
     },
-  });
+  })
   ```
 
   > 只收敛「所有实例都该一致」的覆写；实例特例（如编辑抽屉要 `max-w-3xl`、登录弹窗要默认宽度）留在组件上。
@@ -154,10 +154,10 @@ useHead({
     style: computed(() =>
       Object.entries(resumeVars.value)
         .map(([k, v]) => `${k}:${v}`)
-        .join(";"),
+        .join(';'),
     ),
   },
-});
+})
 ```
 
 原因：`UModal` / `UDrawer` 等是 **teleport 到 `body`** 的，挂在内层容器上的 CSS 变量它们解析不到，控件颜色 / 圆角就不会跟随主题。

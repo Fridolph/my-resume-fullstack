@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useResumeLayout } from "~/composables/useResumeLayout";
-import { RESUME_CONTENT } from "~/config/resume-content";
+import { useResumeLayout } from '~/composables/useResumeLayout'
+import { RESUME_CONTENT } from '~/config/resume-content'
 
 /**
  * 简历综合配置展示页（参考 greensketch proposal 页的布局配置 + 主题模板能力）。
@@ -12,14 +12,14 @@ import { RESUME_CONTENT } from "~/config/resume-content";
  * - 点「保存」持久化到 localStorage
  */
 definePageMeta({
-  layout: "demo",
-  title: "Resume config layout",
-});
+  layout: 'demo',
+  title: 'Resume config layout',
+})
 
-const toast = useToast();
-const content = RESUME_CONTENT;
+const toast = useToast()
+const content = RESUME_CONTENT
 
-const layout = useResumeLayout();
+const layout = useResumeLayout()
 const {
   sections,
   sectionMap,
@@ -38,60 +38,56 @@ const {
   applyTheme,
   saveLayout,
   resetLayout,
-} = layout;
+} = layout
 
 const panels = [
-  { id: "page-layout", icon: "i-lucide-layout-list" },
-  { id: "page-theme", icon: "i-lucide-palette", activeIcon: "i-lucide-palette" },
-  { id: "page-sensitive-data", icon: "i-lucide-shield-check" },
-  { id: "page-export", icon: "i-lucide-file-text" },
-];
+  { id: 'page-layout', icon: 'i-lucide-layout-list' },
+  { id: 'page-theme', icon: 'i-lucide-palette', activeIcon: 'i-lucide-palette' },
+  { id: 'page-sensitive-data', icon: 'i-lucide-shield-check' },
+  { id: 'page-export', icon: 'i-lucide-file-text' },
+]
 
-const previewRef = useTemplateRef<HTMLElement>("previewRef");
+const previewRef = useTemplateRef<HTMLElement>('previewRef')
 
 function handleSave() {
-  saveLayout();
+  saveLayout()
   toast.add({
-    title: "已保存",
-    description: "布局与主题配置已应用（localStorage 模拟后端）",
-    color: "success",
-  });
+    title: '已保存',
+    description: '布局与主题配置已应用（localStorage 模拟后端）',
+    color: 'success',
+  })
 }
 
 function handleAction(key: string) {
   toast.add({
-    title: "配置入口",
+    title: '配置入口',
     description: `模块 ${key} 的配置面板（demo 占位）`,
-    color: "neutral",
-  });
+    color: 'neutral',
+  })
 }
 
 function scrollToModule(id: string) {
-  const el = previewRef.value?.querySelector<HTMLElement>(`[data-module-id="${id}"]`);
-  if (!el) return;
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
-  el.classList.add("layout-highlight");
-  setTimeout(() => el.classList.remove("layout-highlight"), 3000);
+  const el = previewRef.value?.querySelector<HTMLElement>(`[data-module-id="${id}"]`)
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  el.classList.add('layout-highlight')
+  setTimeout(() => el.classList.remove('layout-highlight'), 3000)
 }
 
 const themeVars = computed(() => ({
-  "--resume-primary": themeColor.value,
-  "--resume-gradient-from": gradientFrom.value,
-  "--resume-gradient-to": gradientTo.value,
-}));
+  '--resume-primary': themeColor.value,
+  '--resume-gradient-from': gradientFrom.value,
+  '--resume-gradient-to': gradientTo.value,
+}))
 
-const isDark = computed(() => themePreset.value.dark === true);
-const paperClass = computed(() =>
-  isDark.value ? "bg-neutral-900 border-neutral-800" : "bg-white border-default",
-);
-const headingClass = computed(() => (isDark.value ? "text-neutral-100" : "text-neutral-900"));
-const mutedClass = computed(() => (isDark.value ? "text-neutral-400" : "text-muted"));
-const chipClass = computed(() =>
-  isDark.value ? "bg-neutral-800 text-neutral-200" : "bg-neutral-100 text-neutral-700",
-);
+const isDark = computed(() => themePreset.value.dark === true)
+const paperClass = computed(() => (isDark.value ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-default'))
+const headingClass = computed(() => (isDark.value ? 'text-neutral-100' : 'text-neutral-900'))
+const mutedClass = computed(() => (isDark.value ? 'text-neutral-400' : 'text-muted'))
+const chipClass = computed(() => (isDark.value ? 'bg-neutral-800 text-neutral-200' : 'bg-neutral-100 text-neutral-700'))
 
 function labelOf(id: string) {
-  return sectionMap.value[id]?.label ?? id;
+  return sectionMap.value[id]?.label ?? id
 }
 </script>
 
@@ -155,9 +151,7 @@ function labelOf(id: string) {
       <div class="mx-auto max-w-3xl" :style="themeVars">
         <div class="mb-4 flex items-center justify-between">
           <p class="text-sm" :class="mutedClass">实时预览 · 拖拽/显隐/主题即时生效</p>
-          <span v-if="isDirty" class="rounded bg-warning/15 px-2 py-0.5 text-xs text-warning"
-            >未保存</span
-          >
+          <span v-if="isDirty" class="rounded bg-warning/15 px-2 py-0.5 text-xs text-warning">未保存</span>
         </div>
 
         <!-- 简历纸 -->
@@ -200,10 +194,7 @@ function labelOf(id: string) {
                     class="mb-2 flex items-center gap-2 text-sm font-semibold"
                     :style="{ color: 'var(--resume-primary)' }"
                   >
-                    <span
-                      class="inline-block size-1.5 rounded-full"
-                      :style="{ background: 'var(--resume-primary)' }"
-                    />
+                    <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
                   <p class="text-sm leading-6" :class="mutedClass">{{ content.summary }}</p>
@@ -215,19 +206,14 @@ function labelOf(id: string) {
                     class="mb-3 flex items-center gap-2 text-sm font-semibold"
                     :style="{ color: 'var(--resume-primary)' }"
                   >
-                    <span
-                      class="inline-block size-1.5 rounded-full"
-                      :style="{ background: 'var(--resume-primary)' }"
-                    />
+                    <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
                   <div class="space-y-4">
                     <div v-for="(item, i) in content.experience" :key="i" class="flex gap-3">
                       <div class="w-28 shrink-0 text-xs" :class="mutedClass">{{ item.period }}</div>
                       <div class="min-w-0">
-                        <p class="text-sm font-medium" :class="headingClass">
-                          {{ item.role }} · {{ item.company }}
-                        </p>
+                        <p class="text-sm font-medium" :class="headingClass">{{ item.role }} · {{ item.company }}</p>
                         <p class="mt-1 text-sm leading-6" :class="mutedClass">
                           {{ item.description }}
                         </p>
@@ -242,19 +228,14 @@ function labelOf(id: string) {
                     class="mb-3 flex items-center gap-2 text-sm font-semibold"
                     :style="{ color: 'var(--resume-primary)' }"
                   >
-                    <span
-                      class="inline-block size-1.5 rounded-full"
-                      :style="{ background: 'var(--resume-primary)' }"
-                    />
+                    <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
                   <div class="space-y-4">
                     <div v-for="(item, i) in content.projects" :key="i" class="flex gap-3">
                       <div class="w-28 shrink-0 text-xs" :class="mutedClass">{{ item.period }}</div>
                       <div class="min-w-0">
-                        <p class="text-sm font-medium" :class="headingClass">
-                          {{ item.name }} · {{ item.role }}
-                        </p>
+                        <p class="text-sm font-medium" :class="headingClass">{{ item.name }} · {{ item.role }}</p>
                         <p class="mt-1 text-sm leading-6" :class="mutedClass">
                           {{ item.description }}
                         </p>
@@ -278,19 +259,14 @@ function labelOf(id: string) {
                     class="mb-3 flex items-center gap-2 text-sm font-semibold"
                     :style="{ color: 'var(--resume-primary)' }"
                   >
-                    <span
-                      class="inline-block size-1.5 rounded-full"
-                      :style="{ background: 'var(--resume-primary)' }"
-                    />
+                    <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
                   <div class="space-y-3">
                     <div v-for="(item, i) in content.education" :key="i" class="flex gap-3">
                       <div class="w-28 shrink-0 text-xs" :class="mutedClass">{{ item.period }}</div>
                       <div class="min-w-0">
-                        <p class="text-sm font-medium" :class="headingClass">
-                          {{ item.school }} · {{ item.degree }}
-                        </p>
+                        <p class="text-sm font-medium" :class="headingClass">{{ item.school }} · {{ item.degree }}</p>
                         <p class="mt-0.5 text-sm" :class="mutedClass">{{ item.major }}</p>
                       </div>
                     </div>
@@ -303,20 +279,13 @@ function labelOf(id: string) {
                     class="mb-2 flex items-center gap-2 text-sm font-semibold"
                     :style="{ color: 'var(--resume-primary)' }"
                   >
-                    <span
-                      class="inline-block size-1.5 rounded-full"
-                      :style="{ background: 'var(--resume-primary)' }"
-                    />
+                    <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
                   <div class="flex flex-wrap gap-1.5">
-                    <span
-                      v-for="s in content.skills"
-                      :key="s"
-                      class="rounded px-2 py-1 text-xs"
-                      :class="chipClass"
-                      >{{ s }}</span
-                    >
+                    <span v-for="s in content.skills" :key="s" class="rounded px-2 py-1 text-xs" :class="chipClass">{{
+                      s
+                    }}</span>
                   </div>
                 </section>
 
@@ -325,10 +294,7 @@ function labelOf(id: string) {
                     class="mb-2 flex items-center gap-2 text-sm font-semibold"
                     :style="{ color: 'var(--resume-primary)' }"
                   >
-                    <span
-                      class="inline-block size-1.5 rounded-full"
-                      :style="{ background: 'var(--resume-primary)' }"
-                    />
+                    <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
                   <ul class="list-inside list-disc space-y-1 text-sm" :class="mutedClass">
@@ -341,10 +307,7 @@ function labelOf(id: string) {
                     class="mb-2 flex items-center gap-2 text-sm font-semibold"
                     :style="{ color: 'var(--resume-primary)' }"
                   >
-                    <span
-                      class="inline-block size-1.5 rounded-full"
-                      :style="{ background: 'var(--resume-primary)' }"
-                    />
+                    <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
                   <div class="flex flex-wrap gap-1.5">
@@ -363,20 +326,13 @@ function labelOf(id: string) {
                     class="mb-2 flex items-center gap-2 text-sm font-semibold"
                     :style="{ color: 'var(--resume-primary)' }"
                   >
-                    <span
-                      class="inline-block size-1.5 rounded-full"
-                      :style="{ background: 'var(--resume-primary)' }"
-                    />
+                    <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
                   <div class="flex flex-wrap gap-1.5">
-                    <span
-                      v-for="h in content.hobbies"
-                      :key="h"
-                      class="rounded px-2 py-1 text-xs"
-                      :class="chipClass"
-                      >{{ h }}</span
-                    >
+                    <span v-for="h in content.hobbies" :key="h" class="rounded px-2 py-1 text-xs" :class="chipClass">{{
+                      h
+                    }}</span>
                   </div>
                 </section>
               </template>

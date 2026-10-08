@@ -27,9 +27,12 @@
 3. **先设计再实现**：目标、边界、涉及文件、风险、验收与第一步写清后再动代码；关键任务同步建 `dao/tasks/DAO-XXX-*.md` 任务卡。
 4. **实现与自测**：只做当前 Issue 范围；发现旁支问题记为独立 Issue，不混入当前分支。
 5. **质量门**：`pnpm typecheck && pnpm lint && pnpm test`；涉及构建或发布时补 `pnpm build`。
-   说明：**格式基线以当前 oxfmt 版本为准**（0.48.0，`.oxfmtrc.json` 为空配置 → 双引号 + 分号 + 折行）；
-   `DAO-006` 已全仓统一重排，`pnpm format:check` 已恢复为常规质量门。大量改动之后跑一次 `pnpm format`，
-   避免格式噪音混进语义 diff；不要手工调整风格（由工具决定）。
+   说明：**格式基线以仓库的 oxfmt 配置为准**（`.oxfmtrc.json`：单引号 / 无分号 / 2 空格 /
+   `printWidth: 120` / 尾逗号 `all` / 单参数箭头不带括号）。`DAO-006` 已全仓统一重排，
+   `pnpm format:check` 是常规质量门；大量改动之后跑一次 `pnpm format`，避免格式噪音混进语义 diff。
+   模板（`.vue`）格式同样交给 oxfmt：属性按 `printWidth` 折行（超宽则一行一个属性）——
+   ESLint Vue 的 `vue/max-attributes-per-line` 那类规则本项目**不采用**（oxlint 无对应实现）；
+   规则开关见 `.oxlintrc.json`（只保留 oxlint 真正支持的项）。
 6. **自审**：是否越界、是否留下可抽离能力、类型 / 契约 / 文档是否同步。
 7. **提交并推送**：Conventional Commits，推分支到远端。
 8. **合回 `dev`**：单人阶段可本地 squash 合并后 push，但必须保留可追踪提交与 Issue 链接；多人协作优先开 PR。

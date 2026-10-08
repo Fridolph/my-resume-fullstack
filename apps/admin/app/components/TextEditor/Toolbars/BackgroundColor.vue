@@ -1,31 +1,26 @@
 <script setup lang="ts">
-import type { Editor } from "@tiptap/vue-3";
-import { colors } from "~/components/TextEditor/contants";
+import type { Editor } from '@tiptap/vue-3'
+import { colors } from '~/components/TextEditor/contants'
 
 const props = defineProps<{
-  editor: Editor;
-  disabled?: boolean;
-}>();
+  editor: Editor
+  disabled?: boolean
+}>()
 
-const open = shallowRef(false);
+const open = shallowRef(false)
 function handleSelectColor(color: string) {
-  open.value = false;
-  props.editor.commands.setBackgroundColor(color);
+  open.value = false
+  props.editor.commands.setBackgroundColor(color)
 }
 function handleClearColor() {
-  open.value = false;
-  props.editor.commands.unsetBackgroundColor();
+  open.value = false
+  props.editor.commands.unsetBackgroundColor()
 }
 </script>
 
 <template>
   <UPopover v-model:open="open" :ui="{ content: 'p-0.5' }">
-    <UTooltip
-      text="Background color"
-      :content="{ side: 'top' }"
-      :delay-duration="0"
-      :disabled="disabled"
-    >
+    <UTooltip text="Background color" :content="{ side: 'top' }" :delay-duration="0" :disabled="disabled">
       <UButton
         icon="i-lucide-highlighter"
         color="neutral"

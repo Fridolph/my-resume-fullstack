@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
   $meta: {
-    name: "projects",
+    name: 'projects',
   },
-});
+})

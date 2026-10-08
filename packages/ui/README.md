@@ -21,9 +21,9 @@ web 与 admin 都要用的 **Vue / Nuxt UI 组件**放这里。它是一个 **Nu
 
 ```ts
 export default defineNuxtConfig({
-  extends: ["../../packages/ui"],
+  extends: ['../../packages/ui'],
   // …
-});
+})
 ```
 
 ⚠️ 还需要让 Tailwind 扫到这个目录（Tailwind v4 默认**不扫** app 目录之外的源码），

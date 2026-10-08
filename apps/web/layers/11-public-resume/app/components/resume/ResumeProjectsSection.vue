@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { ResumeSectionProps } from "#layers/public-resume/app/types/resume";
-import ResumeSectionCard from "./ResumeSectionCard.vue";
+import type { ResumeSectionProps } from '#layers/public-resume/app/types/resume'
+import ResumeSectionCard from './ResumeSectionCard.vue'
 
 /** 项目经历：概览 / 核心功能 / 亮点难点 / 技术栈 */
-defineProps<ResumeSectionProps>();
+defineProps<ResumeSectionProps>()
 </script>
 
 <template>
@@ -30,10 +30,7 @@ defineProps<ResumeSectionProps>();
         </span>
       </div>
 
-      <ul
-        v-if="options.showAchievements && item.highlights?.length"
-        class="list-inside list-disc space-y-1"
-      >
+      <ul v-if="options.showAchievements && item.highlights?.length" class="list-inside list-disc space-y-1">
         <li v-for="line in item.highlights" :key="line" class="resume-muted">{{ line }}</li>
       </ul>
 

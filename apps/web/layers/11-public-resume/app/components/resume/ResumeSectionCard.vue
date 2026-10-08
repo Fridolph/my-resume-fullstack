@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeStyleId } from "#layers/public-resume/app/types/resume";
+import type { ResumeStyleId } from '#layers/public-resume/app/types/resume'
 
 /**
  * 区块外壳：统一「标题行 + 卡片表面」。
@@ -14,14 +14,14 @@ import type { ResumeStyleId } from "#layers/public-resume/app/types/resume";
  */
 const props = withDefaults(
   defineProps<{
-    section: { key: string; label: string; icon: string };
+    section: { key: string; label: string; icon: string }
     /** 是否展示标题行（左侧信息栏的 profile 卡片用自己的排版） */
-    showHeader?: boolean;
+    showHeader?: boolean
     /** 风格变体：只决定标题结构，其余视觉参数来自变量 */
-    variant?: ResumeStyleId;
+    variant?: ResumeStyleId
   }>(),
-  { showHeader: true, variant: "minimal" },
-);
+  { showHeader: true, variant: 'minimal' },
+)
 
 /**
  * 三档标题结构。
@@ -33,35 +33,35 @@ const props = withDefaults(
 const HEADER_STYLE: Record<
   ResumeStyleId,
   {
-    wrapper: string;
+    wrapper: string
     /** 左侧渐变条的高度/宽度类；`null` 表示不画 */
-    bar: string | null;
-    titleClass: string;
+    bar: string | null
+    titleClass: string
     /** 是否在标题右侧补一条渐隐细线 */
-    rule: boolean;
+    rule: boolean
   }
 > = {
   minimal: {
-    wrapper: "mb-3 flex items-center gap-2",
+    wrapper: 'mb-3 flex items-center gap-2',
     bar: null,
-    titleClass: "resume-accent",
+    titleClass: 'resume-accent',
     rule: false,
   },
   standard: {
-    wrapper: "mb-4 flex items-center gap-3",
-    bar: "h-5 w-1",
-    titleClass: "resume-text",
+    wrapper: 'mb-4 flex items-center gap-3',
+    bar: 'h-5 w-1',
+    titleClass: 'resume-text',
     rule: false,
   },
   pro: {
-    wrapper: "mb-4 flex items-center gap-3",
-    bar: "h-6 w-1.5",
-    titleClass: "resume-text",
+    wrapper: 'mb-4 flex items-center gap-3',
+    bar: 'h-6 w-1.5',
+    titleClass: 'resume-text',
     rule: true,
   },
-};
+}
 
-const header = computed(() => HEADER_STYLE[props.variant]);
+const header = computed(() => HEADER_STYLE[props.variant])
 </script>
 
 <template>
@@ -74,8 +74,7 @@ const header = computed(() => HEADER_STYLE[props.variant]);
         class="shrink-0 rounded-full"
         :class="header.bar"
         :style="{
-          background:
-            'linear-gradient(180deg, var(--resume-gradient-from), var(--resume-gradient-to))',
+          background: 'linear-gradient(180deg, var(--resume-gradient-from), var(--resume-gradient-to))',
         }"
       />
       <UIcon :name="section.icon" class="resume-accent size-4 shrink-0" />

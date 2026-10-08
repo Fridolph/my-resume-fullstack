@@ -1,45 +1,40 @@
 <script setup lang="ts">
-import type { Editor } from "@tiptap/vue-3";
-import { useDebounceFn } from "@vueuse/core";
+import type { Editor } from '@tiptap/vue-3'
+import { useDebounceFn } from '@vueuse/core'
 
 const props = defineProps<{
-  editor: Editor;
-  disabled?: boolean;
-  variables: IMention[];
-}>();
+  editor: Editor
+  disabled?: boolean
+  variables: IMention[]
+}>()
 
-const variableFilterText = shallowRef("");
+const variableFilterText = shallowRef('')
 const variableFilter = computed(() => {
-  return props.variables.filter((item) => {
+  return props.variables.filter(item => {
     return (
-      variableFilterText.value === "" ||
+      variableFilterText.value === '' ||
       item.placeholder.includes(variableFilterText.value) ||
       item.desc.includes(variableFilterText.value)
-    );
-  });
-});
+    )
+  })
+})
 
-const open = shallowRef(false);
+const open = shallowRef(false)
 const handleVariableSelect = useDebounceFn((variable: IMention) => {
-  variableFilterText.value = "";
+  variableFilterText.value = ''
   props.editor
     .chain()
     .insertMention({
       id: variable.placeholder,
     })
     .focus()
-    .run();
-}, 200);
+    .run()
+}, 200)
 </script>
 
 <template>
   <UPopover v-model:open="open" :ui="{ content: 'p-0.5' }">
-    <UTooltip
-      text="Insert variable"
-      :content="{ side: 'top' }"
-      :delay-duration="0"
-      :disabled="disabled"
-    >
+    <UTooltip text="Insert variable" :content="{ side: 'top' }" :delay-duration="0" :disabled="disabled">
       <UButton
         icon="i-lucide-braces"
         color="neutral"

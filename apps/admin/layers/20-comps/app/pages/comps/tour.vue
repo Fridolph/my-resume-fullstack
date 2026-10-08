@@ -1,94 +1,92 @@
 <script setup lang="ts">
-import type { MaybeElement } from "@vueuse/core";
-import type { MaybeRefOrGetter } from "vue";
-import { unrefElement, useEventListener } from "@vueuse/core";
+import type { MaybeElement } from '@vueuse/core'
+import type { MaybeRefOrGetter } from 'vue'
+import { unrefElement, useEventListener } from '@vueuse/core'
 
 definePageMeta({
-  layout: "has-sidebar",
-  title: "Tour",
-});
+  layout: 'has-sidebar',
+  title: 'Tour',
+})
 
-const ctaRef = useTemplateRef("cta");
-const cardRef = useTemplateRef("card");
+const ctaRef = useTemplateRef('cta')
+const cardRef = useTemplateRef('card')
 
 const tour = useTour([
   {
     target: () => unrefElement(ctaRef),
-    title: "开始使用",
-    body: "点击这里创建你的第一个项目",
-    side: "bottom",
+    title: '开始使用',
+    body: '点击这里创建你的第一个项目',
+    side: 'bottom',
   },
   {
     target: () => unrefElement(cardRef),
-    title: "个人资料",
-    body: "在这里管理你的账户信息",
-    side: "right",
+    title: '个人资料',
+    body: '在这里管理你的账户信息',
+    side: 'right',
   },
-  { target: null, title: "完成", body: "你已经了解了所有功能！" },
-]);
+  { target: null, title: '完成', body: '你已经了解了所有功能！' },
+])
 
-const PAD = 6;
-const hole = ref<{ top: number; left: number; width: number; height: number } | null>(null);
+const PAD = 6
+const hole = ref<{ top: number; left: number; width: number; height: number } | null>(null)
 
 /** 四块遮罩拼出中间空洞，避免 SVG mask / box-shadow 的坐标系与层叠坑 */
 const dimParts = computed(() => {
   if (!hole.value) {
-    return [{ top: "0", left: "0", right: "0", bottom: "0" }];
+    return [{ top: '0', left: '0', right: '0', bottom: '0' }]
   }
 
-  const { top, left, width, height } = hole.value;
+  const { top, left, width, height } = hole.value
   return [
     // 上
-    { top: "0", left: "0", right: "0", height: `${Math.max(top, 0)}px` },
+    { top: '0', left: '0', right: '0', height: `${Math.max(top, 0)}px` },
     // 下
-    { top: `${top + height}px`, left: "0", right: "0", bottom: "0" },
+    { top: `${top + height}px`, left: '0', right: '0', bottom: '0' },
     // 左
-    { top: `${top}px`, left: "0", width: `${Math.max(left, 0)}px`, height: `${height}px` },
+    { top: `${top}px`, left: '0', width: `${Math.max(left, 0)}px`, height: `${height}px` },
     // 右
-    { top: `${top}px`, left: `${left + width}px`, right: "0", height: `${height}px` },
-  ];
-});
+    { top: `${top}px`, left: `${left + width}px`, right: '0', height: `${height}px` },
+  ]
+})
 
 function clearHighlight() {
-  document
-    .querySelectorAll(".tour-highlight")
-    .forEach((el) => el.classList.remove("tour-highlight"));
+  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'))
 }
 
 function updateHole() {
-  clearHighlight();
-  hole.value = null;
+  clearHighlight()
+  hole.value = null
 
   if (!tour.open.value) {
-    return;
+    return
   }
 
-  const el = unrefElement(tour.reference as MaybeRefOrGetter<MaybeElement>);
+  const el = unrefElement(tour.reference as MaybeRefOrGetter<MaybeElement>)
   if (!(el instanceof HTMLElement)) {
-    return;
+    return
   }
 
-  el.classList.add("tour-highlight");
-  const rect = el.getBoundingClientRect();
+  el.classList.add('tour-highlight')
+  const rect = el.getBoundingClientRect()
   hole.value = {
     top: rect.top - PAD,
     left: rect.left - PAD,
     width: rect.width + PAD * 2,
     height: rect.height + PAD * 2,
-  };
+  }
 }
 
 if (import.meta.client) {
   watch(
     [tour.open, tour.index],
     () => {
-      nextTick(updateHole);
+      nextTick(updateHole)
     },
     { immediate: true },
-  );
+  )
 
-  useEventListener(window, "resize", updateHole, { passive: true });
-  useEventListener(window, "scroll", updateHole, { passive: true, capture: true });
+  useEventListener(window, 'resize', updateHole, { passive: true })
+  useEventListener(window, 'scroll', updateHole, { passive: true, capture: true })
 }
 </script>
 
@@ -135,17 +133,9 @@ if (import.meta.client) {
         </p>
 
         <div class="flex justify-between items-center pt-2">
-          <span class="text-xs text-muted"
-            >{{ tour.index.value + 1 }} / {{ tour.total.value }}</span
-          >
+          <span class="text-xs text-muted">{{ tour.index.value + 1 }} / {{ tour.total.value }}</span>
           <div class="flex gap-2">
-            <UButton
-              v-if="tour.hasPrev.value"
-              size="xs"
-              variant="ghost"
-              label="上一步"
-              @click="tour.prev()"
-            />
+            <UButton v-if="tour.hasPrev.value" size="xs" variant="ghost" label="上一步" @click="tour.prev()" />
             <UButton
               size="xs"
               :label="tour.hasNext.value ? '下一步' : '完成'"

@@ -5,25 +5,22 @@
  */
 withDefaults(
   defineProps<{
-    name: string;
-    value: string;
-    best?: boolean;
-    subtext?: string;
+    name: string
+    value: string
+    best?: boolean
+    subtext?: string
   }>(),
   {
     best: false,
-    subtext: "",
+    subtext: '',
   },
-);
+)
 </script>
 
 <template>
   <div class="flex min-h-14 flex-col justify-center gap-0.5">
     <p class="text-xs text-muted">{{ name }}</p>
-    <p
-      class="flex items-center gap-1.5 text-sm"
-      :class="best ? 'compare-best' : 'text-highlighted'"
-    >
+    <p class="flex items-center gap-1.5 text-sm" :class="best ? 'compare-best' : 'text-highlighted'">
       {{ value }}
       <UIcon v-if="best" name="i-lucide-trophy" class="size-4 shrink-0" />
     </p>

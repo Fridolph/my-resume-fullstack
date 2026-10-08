@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useResumeLayout } from "~/composables/useResumeLayout";
+import { useResumeLayout } from '~/composables/useResumeLayout'
 
 /**
  * 布局编辑器 demo（参考 greensketch proposal 的布局配置能力）。
@@ -9,13 +9,13 @@ import { useResumeLayout } from "~/composables/useResumeLayout";
  * 点「保存」持久化到 localStorage，点「取消」回到上次保存。
  */
 definePageMeta({
-  layout: "demo",
-  title: "Layout editor",
-});
+  layout: 'demo',
+  title: 'Layout editor',
+})
 
-const toast = useToast();
+const toast = useToast()
 
-const layout = useResumeLayout();
+const layout = useResumeLayout()
 const {
   sections,
   order,
@@ -33,49 +33,49 @@ const {
   applyTheme,
   saveLayout,
   resetLayout,
-} = layout;
+} = layout
 
 const panels = [
-  { id: "page-layout", icon: "i-lucide-layout-list" },
-  { id: "page-theme", icon: "i-lucide-palette", activeIcon: "i-lucide-palette" },
-  { id: "page-sensitive-data", icon: "i-lucide-shield-check" },
-  { id: "page-export", icon: "i-lucide-file-text" },
-];
+  { id: 'page-layout', icon: 'i-lucide-layout-list' },
+  { id: 'page-theme', icon: 'i-lucide-palette', activeIcon: 'i-lucide-palette' },
+  { id: 'page-sensitive-data', icon: 'i-lucide-shield-check' },
+  { id: 'page-export', icon: 'i-lucide-file-text' },
+]
 
-const sidebarRef = useTemplateRef<{ toggle: () => void }>("sidebarRef");
-const previewRef = useTemplateRef<HTMLElement>("previewRef");
+const sidebarRef = useTemplateRef<{ toggle: () => void }>('sidebarRef')
+const previewRef = useTemplateRef<HTMLElement>('previewRef')
 
 function handleSave() {
-  saveLayout();
+  saveLayout()
   toast.add({
-    title: "已保存",
-    description: "布局配置已应用（localStorage 模拟后端）",
-    color: "success",
-  });
+    title: '已保存',
+    description: '布局配置已应用（localStorage 模拟后端）',
+    color: 'success',
+  })
 }
 
 function handleAction(key: string) {
   toast.add({
-    title: "配置入口",
+    title: '配置入口',
     description: `模块 ${key} 的配置面板（demo 占位）`,
-    color: "neutral",
-  });
+    color: 'neutral',
+  })
 }
 
 function scrollToModule(id: string) {
-  const el = previewRef.value?.querySelector<HTMLElement>(`[data-module-id="${id}"]`);
-  if (!el) return;
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
-  el.classList.add("layout-highlight");
-  setTimeout(() => el.classList.remove("layout-highlight"), 3000);
+  const el = previewRef.value?.querySelector<HTMLElement>(`[data-module-id="${id}"]`)
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  el.classList.add('layout-highlight')
+  setTimeout(() => el.classList.remove('layout-highlight'), 3000)
 }
 
 // 主题变量注入预览根节点
 const themeVars = computed(() => ({
-  "--resume-primary": themeColor.value,
-  "--resume-gradient-from": gradientFrom.value,
-  "--resume-gradient-to": gradientTo.value,
-}));
+  '--resume-primary': themeColor.value,
+  '--resume-gradient-from': gradientFrom.value,
+  '--resume-gradient-to': gradientTo.value,
+}))
 </script>
 
 <template>
@@ -138,16 +138,14 @@ const themeVars = computed(() => ({
       <div class="mx-auto max-w-3xl" :style="themeVars">
         <div class="mb-4 flex items-center justify-between">
           <p class="text-sm text-muted">实时预览 · 拖拽/显隐/主题色即时生效</p>
-          <span v-if="isDirty" class="rounded bg-warning/15 px-2 py-0.5 text-xs text-warning"
-            >未保存</span
-          >
+          <span v-if="isDirty" class="rounded bg-warning/15 px-2 py-0.5 text-xs text-warning">未保存</span>
         </div>
 
         <!-- 模块卡片：按 order + 显隐渲染 -->
         <div class="flex flex-col gap-4">
           <template v-for="id in order" :key="id">
             <section
-              v-if="getSwitch(sections.find((s) => s.id === id)?.switchKey)"
+              v-if="getSwitch(sections.find(s => s.id === id)?.switchKey)"
               :data-module-id="id"
               class="rounded-lg border border-default bg-default p-4"
             >
@@ -167,10 +165,7 @@ const themeVars = computed(() => ({
                     张
                   </div>
                 </div>
-                <div
-                  v-if="getSwitch('contactSwitch')"
-                  class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted"
-                >
+                <div v-if="getSwitch('contactSwitch')" class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
                   <span v-if="getSwitch('showPhoneSwitch')">📱 138-0000-0000</span>
                   <span v-if="getSwitch('showEmailSwitch')">📧 zhang@example.com</span>
                   <span>📍 杭州</span>
@@ -184,11 +179,8 @@ const themeVars = computed(() => ({
                   class="mb-2 flex items-center gap-2 text-sm font-semibold"
                   :style="{ color: 'var(--resume-primary)' }"
                 >
-                  <span
-                    class="inline-block size-1.5 rounded-full"
-                    :style="{ background: 'var(--resume-primary)' }"
-                  />
-                  {{ sections.find((s) => s.id === id)?.label }}
+                  <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
+                  {{ sections.find(s => s.id === id)?.label }}
                 </h2>
                 <div class="space-y-2">
                   <div class="h-3 w-full rounded bg-muted/60" />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeSectionBodyProps } from "#layers/public-resume/app/types/resume";
+import type { ResumeSectionBodyProps } from '#layers/public-resume/app/types/resume'
 
 /**
  * 工作经历 · 精致。
@@ -10,7 +10,7 @@ import type { ResumeSectionBodyProps } from "#layers/public-resume/app/types/res
  * 时间线是本区块独有零件，所以样式留在组件 scoped 里；
  * 跨区块复用的零件（block / chip / stats）已上提到 `resume.css`。
  */
-defineProps<ResumeSectionBodyProps>();
+defineProps<ResumeSectionBodyProps>()
 </script>
 
 <template>
@@ -55,16 +55,12 @@ defineProps<ResumeSectionBodyProps>();
 
 /* 竖线：从顶部渐隐到底部，避免"一整条硬线" */
 .exp-item::before {
-  content: "";
+  content: '';
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0.25rem;
   width: 1px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--resume-primary) 45%, transparent),
-    var(--resume-border)
-  );
+  background: linear-gradient(180deg, color-mix(in srgb, var(--resume-primary) 45%, transparent), var(--resume-border));
 }
 
 .exp-dot {
@@ -91,7 +87,7 @@ defineProps<ResumeSectionBodyProps>();
 }
 
 .exp-achievements li::before {
-  content: "";
+  content: '';
   position: absolute;
   inset-inline-start: 0;
   top: 0.55rem;

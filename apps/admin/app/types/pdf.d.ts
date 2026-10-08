@@ -8,59 +8,59 @@
 /** 封面图展示模式 */
 export type PdfCoverImageMode =
   /** 不显示图片，纯色/渐变封面 */
-  | "none"
+  | 'none'
   /** 图片作为上半页横幅，文字在其下方 */
-  | "banner"
+  | 'banner'
   /** 图片铺满整页，文字叠在图片上（自动加暗色遮罩） */
-  | "background";
+  | 'background'
 
 /** 内容水平对齐 */
-export type PdfAlign = "left" | "center" | "right";
+export type PdfAlign = 'left' | 'center' | 'right'
 
 /** 文本垂直位置 */
-export type PdfTextVertical = "top" | "center" | "bottom";
+export type PdfTextVertical = 'top' | 'center' | 'bottom'
 
 export interface PdfCoverConfig {
   /** 是否渲染封面页；false 时直接进入内容页 */
-  enabled: boolean;
+  enabled: boolean
   /** 封面图地址（完整 URL 或 static 路径）；为空则不渲染图片 */
-  image?: string;
+  image?: string
   /** 图片展示模式，默认 none */
-  imageMode?: PdfCoverImageMode;
+  imageMode?: PdfCoverImageMode
   /** 标题上方的 eyebrow 小字（如 “Report” / “Resume”） */
-  eyebrow?: string;
+  eyebrow?: string
   /** 主标题 */
-  title?: string;
+  title?: string
   /** 副标题 / 描述 */
-  description?: string;
+  description?: string
   /** 底部（渐变区）标题 */
-  footerTitle?: string;
+  footerTitle?: string
   /** 底部（渐变区）说明 */
-  footerText?: string;
+  footerText?: string
   /** 文本水平对齐，默认 left */
-  align?: PdfAlign;
+  align?: PdfAlign
   /** 文本垂直位置，默认 top */
-  vertical?: PdfTextVertical;
+  vertical?: PdfTextVertical
   /** 封面渐变起始色 */
-  gradientFrom?: string;
+  gradientFrom?: string
   /** 封面渐变结束色 */
-  gradientTo?: string;
+  gradientTo?: string
 }
 
 export interface PdfHeaderConfig {
   /** 是否显示每页页眉 */
-  enabled: boolean;
+  enabled: boolean
   /** 页眉左侧标题（不显示封面时，通常填文档标题，如“简历”） */
-  title?: string;
+  title?: string
   /** 页眉右侧文本；填 'auto' 表示自动使用今天日期 */
-  meta?: string;
+  meta?: string
 }
 
 export interface PdfDocConfig {
-  cover: PdfCoverConfig;
-  header: PdfHeaderConfig;
+  cover: PdfCoverConfig
+  header: PdfHeaderConfig
   /** 导出/打印的默认文件名（后端导出时作为文件名与业务标签） */
-  fileName?: string;
+  fileName?: string
 }
 
 /**
@@ -71,15 +71,15 @@ export interface PdfDocConfig {
  */
 export interface PdfExportPayload {
   /** 待渲染页面完整 URL（当前预览页地址） */
-  url: string;
+  url: string
   /** 业务场景标识（后端据此选模板 / 鉴权 / 存储路径） */
-  scene?: string | number;
+  scene?: string | number
   /** 业务主键，便于后端命名与鉴权，如项目 outerId */
-  outerId?: string | number;
+  outerId?: string | number
   /** 业务子键，如设计 designId */
-  designId?: string | number;
+  designId?: string | number
   /** 文件名 / 标签（即 config.fileName） */
-  fileName?: string;
+  fileName?: string
   /** 预留：透传给后端的额外参数（纸张、是否含封面等） */
-  options?: Record<string, unknown>;
+  options?: Record<string, unknown>
 }

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: "has-sidebar",
-  title: "简历",
-});
+  layout: 'has-sidebar',
+  title: '简历',
+})
 
 /**
  * 简历域入口（骨架）。
@@ -13,35 +13,35 @@ definePageMeta({
  */
 const plannedModules = [
   {
-    label: "草稿编辑",
-    description: "按 draft 编辑简历内容（去字段级 locale，多份草稿）",
-    icon: "i-lucide-pencil-line",
-    status: "planned",
+    label: '草稿编辑',
+    description: '按 draft 编辑简历内容（去字段级 locale，多份草稿）',
+    icon: 'i-lucide-pencil-line',
+    status: 'planned',
   },
   {
-    label: "版面布局",
-    description: "选择与调整简历版式，决定各区块的呈现顺序",
-    icon: "i-lucide-layout-template",
-    status: "planned",
+    label: '版面布局',
+    description: '选择与调整简历版式，决定各区块的呈现顺序',
+    icon: 'i-lucide-layout-template',
+    status: 'planned',
   },
   {
-    label: "主题",
-    description: "配色与排版主题，影响公开站的呈现",
-    icon: "i-lucide-palette",
-    status: "planned",
+    label: '主题',
+    description: '配色与排版主题，影响公开站的呈现',
+    icon: 'i-lucide-palette',
+    status: 'planned',
   },
   {
-    label: "版本与对比",
-    description: "草稿版本列表与差异对比",
-    icon: "i-lucide-git-compare",
-    status: "planned",
+    label: '版本与对比',
+    description: '草稿版本列表与差异对比',
+    icon: 'i-lucide-git-compare',
+    status: 'planned',
   },
-];
+]
 
-const statusMeta: Record<string, { label: string; color: "neutral" | "warning" }> = {
-  planned: { label: "待开发", color: "warning" },
-  ready: { label: "可用", color: "neutral" },
-};
+const statusMeta: Record<string, { label: string; color: 'neutral' | 'warning' }> = {
+  planned: { label: '待开发', color: 'warning' },
+  ready: { label: '可用', color: 'neutral' },
+}
 </script>
 
 <template>
@@ -57,9 +57,7 @@ const statusMeta: Record<string, { label: string; color: "neutral" | "warning" }
       <UCard v-for="item in plannedModules" :key="item.label" :ui="{ body: 'p-5 sm:p-5' }">
         <div class="flex items-start justify-between gap-4">
           <div class="flex gap-3">
-            <span
-              class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"
-            >
+            <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
               <UIcon :name="item.icon" class="size-5" />
             </span>
             <div>

@@ -6,5 +6,5 @@
  * （如果将来真需要冲突消解，先在项目里统一引入再改这一处。）
  */
 export function cn(...parts: Array<string | false | null | undefined>): string {
-  return parts.filter(Boolean).join(" ");
+  return parts.filter(Boolean).join(' ')
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Resume } from "~/config/resume-demo";
-import { RESUME_STATUS_META } from "~/config/resume-demo";
+import type { Resume } from '~/config/resume-demo'
+import { RESUME_STATUS_META } from '~/config/resume-demo'
 
 /**
  * ResumeOptionsTab —— 多份简历的标签页（参考 greensketch ProposalOptionsTab）。
@@ -12,89 +12,89 @@ import { RESUME_STATUS_META } from "~/config/resume-demo";
  */
 const props = withDefaults(
   defineProps<{
-    options: Resume[];
+    options: Resume[]
     /** 每个 tab 的估算宽度，用于点击时滚动定位 */
-    itemWidth?: number;
-    scrollStep?: number;
+    itemWidth?: number
+    scrollStep?: number
   }>(),
   {
     itemWidth: 160,
     scrollStep: 200,
   },
-);
+)
 
-const activeId = defineModel<number | null>("activeId", { default: null });
+const activeId = defineModel<number | null>('activeId', { default: null })
 
 const emit = defineEmits<{
-  "option-change": [id: number];
-  compare: [];
-}>();
+  'option-change': [id: number]
+  compare: []
+}>()
 
-const scrollAreaRef = useTemplateRef<{ $el: HTMLElement }>("scrollAreaRef");
-const showScrollButtons = ref(false);
-const isScrolledToStart = ref(true);
-const isScrolledToEnd = ref(false);
+const scrollAreaRef = useTemplateRef<{ $el: HTMLElement }>('scrollAreaRef')
+const showScrollButtons = ref(false)
+const isScrolledToStart = ref(true)
+const isScrolledToEnd = ref(false)
 
 function getScrollEl(): HTMLElement | undefined {
-  const el = scrollAreaRef.value?.$el;
-  return el instanceof HTMLElement ? el : undefined;
+  const el = scrollAreaRef.value?.$el
+  return el instanceof HTMLElement ? el : undefined
 }
 
 function checkScrollPosition() {
-  const el = getScrollEl();
-  if (!el) return;
-  const { scrollLeft, scrollWidth, clientWidth } = el;
-  isScrolledToStart.value = scrollLeft <= 0;
-  isScrolledToEnd.value = scrollLeft >= scrollWidth - clientWidth - 1;
+  const el = getScrollEl()
+  if (!el) return
+  const { scrollLeft, scrollWidth, clientWidth } = el
+  isScrolledToStart.value = scrollLeft <= 0
+  isScrolledToEnd.value = scrollLeft >= scrollWidth - clientWidth - 1
 }
 
 function checkIfScrollButtonsNeeded() {
-  const el = getScrollEl();
-  if (!el) return;
-  showScrollButtons.value = el.scrollWidth > el.clientWidth + 1;
+  const el = getScrollEl()
+  if (!el) return
+  showScrollButtons.value = el.scrollWidth > el.clientWidth + 1
 }
 
 function updateScrollState() {
-  checkIfScrollButtonsNeeded();
-  checkScrollPosition();
+  checkIfScrollButtonsNeeded()
+  checkScrollPosition()
 }
 
 function scrollTabsLeft() {
-  getScrollEl()?.scrollBy({ left: -props.scrollStep, behavior: "smooth" });
+  getScrollEl()?.scrollBy({ left: -props.scrollStep, behavior: 'smooth' })
 }
 
 function scrollTabsRight() {
-  getScrollEl()?.scrollBy({ left: props.scrollStep, behavior: "smooth" });
+  getScrollEl()?.scrollBy({ left: props.scrollStep, behavior: 'smooth' })
 }
 
 function scrollToItem(index: number) {
-  getScrollEl()?.scrollTo({ top: 0, left: index * props.itemWidth, behavior: "smooth" });
+  getScrollEl()?.scrollTo({ top: 0, left: index * props.itemWidth, behavior: 'smooth' })
 }
 
 function handleSelect(item: Resume, index: number) {
-  activeId.value = item.id;
-  emit("option-change", item.id);
-  scrollToItem(index);
+  activeId.value = item.id
+  emit('option-change', item.id)
+  scrollToItem(index)
 }
 
-let resizeObserver: ResizeObserver | undefined;
-let removeScrollListener: (() => void) | undefined;
+let resizeObserver: ResizeObserver | undefined
+let removeScrollListener: (() => void) | undefined
 
 onMounted(async () => {
-  await nextTick();
-  const el = getScrollEl();
-  if (!el) return;
-  el.addEventListener("scroll", checkScrollPosition, { passive: true });
-  removeScrollListener = () => el.removeEventListener("scroll", checkScrollPosition);
-  resizeObserver = new ResizeObserver(updateScrollState);
-  resizeObserver.observe(el);
-  updateScrollState();
-});
+  await nextTick()
+  const el = getScrollEl()
+  if (!el) return
+  el.addEventListener('scroll', checkScrollPosition, { passive: true })
+  removeScrollListener = () => el.removeEventListener('scroll', checkScrollPosition)
+  resizeObserver = new ResizeObserver(updateScrollState)
+  resizeObserver.observe(el)
+  updateScrollState()
+})
 
 onUnmounted(() => {
-  removeScrollListener?.();
-  resizeObserver?.disconnect();
-});
+  removeScrollListener?.()
+  resizeObserver?.disconnect()
+})
 </script>
 
 <template>
@@ -104,13 +104,7 @@ onUnmounted(() => {
       class="flex h-full shrink-0 items-center justify-center border-r border-default px-1"
       :class="{ hidden: isScrolledToStart }"
     >
-      <UButton
-        icon="i-lucide-arrow-left"
-        variant="link"
-        color="neutral"
-        size="sm"
-        @click="scrollTabsLeft"
-      />
+      <UButton icon="i-lucide-arrow-left" variant="link" color="neutral" size="sm" @click="scrollTabsLeft" />
     </div>
 
     <UScrollArea
@@ -153,13 +147,7 @@ onUnmounted(() => {
       class="flex h-full shrink-0 items-center justify-center border-x border-default px-1"
       :class="{ hidden: isScrolledToEnd }"
     >
-      <UButton
-        icon="i-lucide-arrow-right"
-        variant="link"
-        color="neutral"
-        size="sm"
-        @click="scrollTabsRight"
-      />
+      <UButton icon="i-lucide-arrow-right" variant="link" color="neutral" size="sm" @click="scrollTabsRight" />
     </div>
 
     <div class="flex h-full shrink-0 items-center px-2">

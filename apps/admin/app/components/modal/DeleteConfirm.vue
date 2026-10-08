@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useCountdown } from "@vueuse/core";
+import { useCountdown } from '@vueuse/core'
 
 /**
  * ModalDeleteConfirm —— 删除确认弹窗（带倒计时防误删）
@@ -11,57 +11,57 @@ import { useCountdown } from "@vueuse/core";
  */
 const props = withDefaults(
   defineProps<{
-    title?: string;
-    content?: string;
-    icon?: string;
-    cancelText?: string;
-    confirmText?: string;
+    title?: string
+    content?: string
+    icon?: string
+    cancelText?: string
+    confirmText?: string
     /** 倒计时秒数（防误删）；0 表示不启用 */
-    cooldown?: number;
+    cooldown?: number
     /** 点击确认时执行；返回 Promise 会等待完成再关闭 */
-    confirm?: () => void | Promise<void>;
+    confirm?: () => void | Promise<void>
   }>(),
   {
-    title: "Delete confirm",
-    content: "",
-    icon: "i-lucide-triangle-alert",
-    cancelText: "Cancel",
-    confirmText: "Delete",
+    title: 'Delete confirm',
+    content: '',
+    icon: 'i-lucide-triangle-alert',
+    cancelText: 'Cancel',
+    confirmText: 'Delete',
     cooldown: 3,
   },
-);
+)
 
-const emit = defineEmits<{ close: [payload?: boolean] }>();
+const emit = defineEmits<{ close: [payload?: boolean] }>()
 
-const open = defineModel<boolean>("open", { default: true });
+const open = defineModel<boolean>('open', { default: true })
 
-const loading = ref(false);
-const { remaining, start } = useCountdown(() => props.cooldown);
+const loading = ref(false)
+const { remaining, start } = useCountdown(() => props.cooldown)
 
 const confirmLabel = computed(() =>
   remaining.value > 0 ? `${props.confirmText} (${remaining.value})` : props.confirmText,
-);
+)
 
 function close(payload = true) {
-  if (!open.value) return;
-  open.value = false;
-  emit("close", payload);
+  if (!open.value) return
+  open.value = false
+  emit('close', payload)
 }
 
 async function handleConfirm() {
-  if (remaining.value > 0 || loading.value) return;
-  loading.value = true;
+  if (remaining.value > 0 || loading.value) return
+  loading.value = true
   try {
-    await props.confirm?.();
-    close(true);
+    await props.confirm?.()
+    close(true)
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 onMounted(() => {
-  if (props.cooldown > 0) start();
-});
+  if (props.cooldown > 0) start()
+})
 </script>
 
 <template>

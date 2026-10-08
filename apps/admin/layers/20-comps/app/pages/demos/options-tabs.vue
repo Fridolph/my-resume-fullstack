@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { FormSubmitEvent } from "@nuxt/ui";
-import * as z from "zod";
-import type { Resume } from "~/config/resume-demo";
-import { RESUMES, RESUME_COMPARE_FIELDS, RESUME_STATUS_META } from "~/config/resume-demo";
+import type { FormSubmitEvent } from '@nuxt/ui'
+import * as z from 'zod'
+import type { Resume } from '~/config/resume-demo'
+import { RESUMES, RESUME_COMPARE_FIELDS, RESUME_STATUS_META } from '~/config/resume-demo'
 
 /**
  * 多份简历 tabs demo（参考 greensketch ProposalOptionsTab）。
@@ -12,64 +12,64 @@ import { RESUMES, RESUME_COMPARE_FIELDS, RESUME_STATUS_META } from "~/config/res
  * - 「编辑」打开抽屉，改完保存到本地列表（模拟后端）
  */
 definePageMeta({
-  layout: "demo",
-  title: "Resume options tabs",
-});
+  layout: 'demo',
+  title: 'Resume options tabs',
+})
 
-const toast = useToast();
+const toast = useToast()
 
-const resumes = ref<Resume[]>(JSON.parse(JSON.stringify(RESUMES)));
-const activeId = ref<number | null>(resumes.value[0]?.id ?? null);
-const compareOpen = ref(false);
-const editOpen = ref(false);
+const resumes = ref<Resume[]>(JSON.parse(JSON.stringify(RESUMES)))
+const activeId = ref<number | null>(resumes.value[0]?.id ?? null)
+const compareOpen = ref(false)
+const editOpen = ref(false)
 
-const activeResume = computed(() => resumes.value.find((r) => r.id === activeId.value) ?? null);
+const activeResume = computed(() => resumes.value.find(r => r.id === activeId.value) ?? null)
 
 function onOptionChange(id: number) {
-  activeId.value = id;
+  activeId.value = id
 }
 
 /* ---------- 编辑抽屉 ---------- */
-const draft = ref<Resume | null>(null);
+const draft = ref<Resume | null>(null)
 const statusItems = [
-  { label: "草稿", value: "draft" },
-  { label: "定稿", value: "final" },
-  { label: "归档", value: "archived" },
-];
+  { label: '草稿', value: 'draft' },
+  { label: '定稿', value: 'final' },
+  { label: '归档', value: 'archived' },
+]
 
 const schema = z.object({
-  name: z.string().trim().min(1, "名称必填"),
-  targetRole: z.string().trim().min(1, "目标岗位必填"),
+  name: z.string().trim().min(1, '名称必填'),
+  targetRole: z.string().trim().min(1, '目标岗位必填'),
   summary: z.string().optional(),
-});
+})
 
-const formRef = useTemplateRef<{ submit: () => Promise<unknown> }>("formRef");
+const formRef = useTemplateRef<{ submit: () => Promise<unknown> }>('formRef')
 
 function openEdit() {
-  draft.value = JSON.parse(JSON.stringify(activeResume.value));
-  editOpen.value = true;
+  draft.value = JSON.parse(JSON.stringify(activeResume.value))
+  editOpen.value = true
 }
 
 function onSubmit(_e: FormSubmitEvent<z.output<typeof schema>>) {
-  const target = resumes.value.find((r) => r.id === draft.value!.id);
+  const target = resumes.value.find(r => r.id === draft.value!.id)
   if (target) {
-    Object.assign(target, draft.value);
+    Object.assign(target, draft.value)
   }
-  editOpen.value = false;
-  toast.add({ title: "已保存", description: target?.name, color: "success" });
+  editOpen.value = false
+  toast.add({ title: '已保存', description: target?.name, color: 'success' })
 }
 
 async function submitForm() {
-  await formRef.value?.submit();
+  await formRef.value?.submit()
 }
 
 const salaryItems = [
-  { label: "10k", value: 10 },
-  { label: "18k", value: 18 },
-  { label: "28k", value: 28 },
-  { label: "35k", value: 35 },
-  { label: "45k", value: 45 },
-];
+  { label: '10k', value: 10 },
+  { label: '18k', value: 18 },
+  { label: '28k', value: 28 },
+  { label: '35k', value: 35 },
+  { label: '45k', value: 45 },
+]
 </script>
 
 <template>
@@ -133,28 +133,12 @@ const salaryItems = [
   </div>
 
   <!-- 对比弹窗 -->
-  <ResumeCompareModal
-    v-model:open="compareOpen"
-    :options="resumes"
-    :fields="RESUME_COMPARE_FIELDS"
-  />
+  <ResumeCompareModal v-model:open="compareOpen" :options="resumes" :fields="RESUME_COMPARE_FIELDS" />
 
   <!-- 编辑抽屉 -->
-  <UDrawer
-    v-model:open="editOpen"
-    title="编辑简历"
-    description="改完点 Save 生效"
-    :ui="{ content: 'max-w-md w-full' }"
-  >
+  <UDrawer v-model:open="editOpen" title="编辑简历" description="改完点 Save 生效" :ui="{ content: 'max-w-md w-full' }">
     <template #body>
-      <UForm
-        v-if="draft"
-        ref="formRef"
-        :schema="schema"
-        :state="draft"
-        class="space-y-4"
-        @submit="onSubmit"
-      >
+      <UForm v-if="draft" ref="formRef" :schema="schema" :state="draft" class="space-y-4" @submit="onSubmit">
         <UFormField name="name" label="版本名称" required>
           <UInput v-model="draft.name" class="w-full" />
         </UFormField>

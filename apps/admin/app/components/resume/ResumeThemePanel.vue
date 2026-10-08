@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeThemePreset } from "~/composables/useResumeLayout";
+import type { ResumeThemePreset } from '~/composables/useResumeLayout'
 
 /**
  * ResumeThemePanel —— 主题面板（参考 greensketch proposal/layout/ThemePanel）。
@@ -8,22 +8,22 @@ import type { ResumeThemePreset } from "~/composables/useResumeLayout";
  * - 中部：主题色 / 渐变起止色（原生 <input type="color"> 微调，改完实时生效）
  */
 defineProps<{
-  width: number;
-  themeId: string;
-  presets: ResumeThemePreset[];
-  themeColor: string;
-  gradientFrom: string;
-  gradientTo: string;
-}>();
+  width: number
+  themeId: string
+  presets: ResumeThemePreset[]
+  themeColor: string
+  gradientFrom: string
+  gradientTo: string
+}>()
 
 const emit = defineEmits<{
-  "apply-theme": [id: string];
-  "update:themeColor": [value: string];
-  "update:gradientFromColor": [value: string];
-  "update:gradientToColor": [value: string];
-}>();
+  'apply-theme': [id: string]
+  'update:themeColor': [value: string]
+  'update:gradientFromColor': [value: string]
+  'update:gradientToColor': [value: string]
+}>()
 
-const colors = ["#3ec064", "#1578d0", "#0ea5e9", "#8b5cf6", "#f59e0b", "#ef4444", "#111827"];
+const colors = ['#3ec064', '#1578d0', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444', '#111827']
 </script>
 
 <template>
@@ -43,9 +43,7 @@ const colors = ["#3ec064", "#1578d0", "#0ea5e9", "#8b5cf6", "#f59e0b", "#ef4444"
             type="button"
             class="flex flex-col gap-1.5 rounded-lg border p-2 text-left transition"
             :class="
-              themeId === preset.id
-                ? 'border-primary ring-1 ring-primary'
-                : 'border-default hover:border-accented'
+              themeId === preset.id ? 'border-primary ring-1 ring-primary' : 'border-default hover:border-accented'
             "
             @click="emit('apply-theme', preset.id)"
           >
@@ -56,17 +54,12 @@ const colors = ["#3ec064", "#1578d0", "#0ea5e9", "#8b5cf6", "#f59e0b", "#ef4444"
               }"
             >
               <span class="size-2 rounded-full" :style="{ background: preset.themeColor }" />
-              <span class="text-[10px] text-white/90">{{ preset.dark ? "深" : "浅" }}</span>
+              <span class="text-[10px] text-white/90">{{ preset.dark ? '深' : '浅' }}</span>
             </span>
-            <span
-              class="text-xs font-medium"
-              :class="themeId === preset.id ? 'text-primary' : 'text-highlighted'"
-            >
+            <span class="text-xs font-medium" :class="themeId === preset.id ? 'text-primary' : 'text-highlighted'">
               {{ preset.label }}
             </span>
-            <span v-if="preset.description" class="text-[11px] leading-4 text-muted">{{
-              preset.description
-            }}</span>
+            <span v-if="preset.description" class="text-[11px] leading-4 text-muted">{{ preset.description }}</span>
           </button>
         </div>
       </div>
@@ -90,9 +83,7 @@ const colors = ["#3ec064", "#1578d0", "#0ea5e9", "#8b5cf6", "#f59e0b", "#ef4444"
               @change="emit('update:themeColor', c)"
             />
           </label>
-          <label
-            class="relative size-7 cursor-pointer overflow-hidden rounded-full border border-default"
-          >
+          <label class="relative size-7 cursor-pointer overflow-hidden rounded-full border border-default">
             <input
               :value="themeColor"
               type="color"

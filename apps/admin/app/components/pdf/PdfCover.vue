@@ -1,19 +1,19 @@
 <script lang="ts" setup>
 interface Props {
   /** 下半部分渐变起始色 */
-  gradientFrom?: string;
+  gradientFrom?: string
   /** 下半部分渐变结束色 */
-  gradientTo?: string;
+  gradientTo?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  gradientFrom: "#00e944",
-  gradientTo: "#06f",
-});
+  gradientFrom: '#00e944',
+  gradientTo: '#06f',
+})
 
 const gradientStyle = computed(() => ({
   background: `linear-gradient(132deg, ${props.gradientFrom} 0%, ${props.gradientTo} 101.41%)`,
-}));
+}))
 </script>
 
 <template>

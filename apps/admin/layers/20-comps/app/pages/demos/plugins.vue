@@ -1,37 +1,37 @@
 <script setup lang="ts">
-import { getApiErrorMessage } from "~/utils/requestContext";
+import { getApiErrorMessage } from '~/utils/requestContext'
 
 definePageMeta({
-  layout: "has-sidebar",
-  title: "Plugins",
-});
+  layout: 'has-sidebar',
+  title: 'Plugins',
+})
 
-const nuxtApp = useNuxtApp();
-const toast = useToast();
+const nuxtApp = useNuxtApp()
+const toast = useToast()
 
 // 演示：监听 400 业务码（plugins/httpRequest.ts 会通过 applyApiErrorHooks 触发）
 // 注：hook 名称是动态业务码，NuxtApp 的 hook 类型未逐一声明，这里断言绕过
-(nuxtApp.hook as any)("api:error:400", (payload: any) => {
-  toast.add({ title: "api:error:400 hook", description: payload?.message, color: "error" });
-});
+;(nuxtApp.hook as any)('api:error:400', (payload: any) => {
+  toast.add({ title: 'api:error:400 hook', description: payload?.message, color: 'error' })
+})
 
-const apiBase = String(useRuntimeConfig().public.apiBase || "");
+const apiBase = String(useRuntimeConfig().public.apiBase || '')
 
-const loading = ref(false);
-const result = ref("-");
-const lastPath = ref("/health");
+const loading = ref(false)
+const result = ref('-')
+const lastPath = ref('/health')
 
 async function sendRequest() {
-  loading.value = true;
-  result.value = "requesting…";
+  loading.value = true
+  result.value = 'requesting…'
   try {
-    const res = await nuxtApp.$request(lastPath.value, { method: "GET" });
-    result.value = JSON.stringify(res, null, 2);
+    const res = await nuxtApp.$request(lastPath.value, { method: 'GET' })
+    result.value = JSON.stringify(res, null, 2)
   } catch (e) {
-    result.value = getApiErrorMessage(e);
-    toast.add({ title: "Request failed", description: getApiErrorMessage(e), color: "error" });
+    result.value = getApiErrorMessage(e)
+    toast.add({ title: 'Request failed', description: getApiErrorMessage(e), color: 'error' })
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 </script>
@@ -43,10 +43,10 @@ async function sendRequest() {
       <p class="text-sm leading-6 text-muted">
         公共插件层：统一请求层
         <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">$request</code>（ofetch）按
-        <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">packages/common</code> 的 success /
-        data / message 契约解包；上传走
-        <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">原生 XHR + colada mutation</code
-        >（fetch 拿不到进度与取消）。
+        <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">packages/common</code> 的 success / data / message
+        契约解包；上传走
+        <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">原生 XHR + colada mutation</code>（fetch
+        拿不到进度与取消）。
       </p>
     </div>
 
@@ -62,9 +62,7 @@ async function sendRequest() {
       <template #header>
         <div>
           <p class="font-semibold">$request —— 统一请求层</p>
-          <p class="text-sm text-muted">
-            plugins/httpRequest.ts：ofetch 实例，自动挂鉴权头，统一响应解包 + 错误归一化
-          </p>
+          <p class="text-sm text-muted">plugins/httpRequest.ts：ofetch 实例，自动挂鉴权头，统一响应解包 + 错误归一化</p>
         </div>
       </template>
 
@@ -74,12 +72,7 @@ async function sendRequest() {
             <UInput v-model="lastPath" class="w-full" />
           </UFormField>
           <div class="flex items-center gap-2">
-            <UButton
-              :loading="loading"
-              icon="i-lucide-send"
-              label="发送 GET"
-              @click="sendRequest"
-            />
+            <UButton :loading="loading" icon="i-lucide-send" label="发送 GET" @click="sendRequest" />
             <span class="text-xs text-dimmed">baseURL = {{ apiBase }}</span>
           </div>
           <pre class="max-h-40 overflow-auto rounded-lg bg-elevated p-3 text-xs">{{ result }}</pre>
@@ -99,8 +92,7 @@ const data = await nuxtApp.$request('/sketch/projects/detail', {
         <div>
           <p class="font-semibold">上传 —— 原生 XHR + colada mutation</p>
           <p class="text-sm text-muted">
-            apis/files.ts 的 uploadFiles 负责 XHR（进度 + abort）；useFileUploader 用 colada
-            mutation 管状态
+            apis/files.ts 的 uploadFiles 负责 XHR（进度 + abort）；useFileUploader 用 colada mutation 管状态
           </p>
         </div>
       </template>
@@ -113,8 +105,7 @@ const data = await nuxtApp.$request('/sketch/projects/detail', {
         <p>
           实际用法见
           <ULink to="/comps/upload" class="text-primary hover:underline">组件库 · Upload</ULink>
-          页（<code class="text-xs">useFileUploader</code> /
-          <code class="text-xs">uploadFiles</code>）。
+          页（<code class="text-xs">useFileUploader</code> / <code class="text-xs">uploadFiles</code>）。
         </p>
         <pre class="overflow-auto rounded-lg bg-elevated p-3 text-xs">
 import { uploadFiles } from '~/apis/files'
@@ -126,9 +117,7 @@ import { uploadFiles } from '~/apis/files'
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            错误 hook：<code class="text-xs">api:error:&lt;code&gt;</code>
-          </p>
+          <p class="font-semibold">错误 hook：<code class="text-xs">api:error:&lt;code&gt;</code></p>
           <p class="text-sm text-muted">
             请求层按状态码触发 hook（400/401/403/404/500/502/503/504/其它），全局或页面级都能监听
           </p>

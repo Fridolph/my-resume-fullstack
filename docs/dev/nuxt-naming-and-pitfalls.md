@@ -132,3 +132,36 @@ Vite Error: .../ResumeEducationSection.vue — Invalid end tag.
    ```
 
 4. 大面积替换后，把「脚本 dry-run 输出」与「替换处数」一并记录下来（本次：语义类 33 处 + 按钮组 7 处 + fallback 10 处），便于复核是否漏改。
+
+## 6. 不要在模板里写多语句内联表达式（oxfmt 会折行，Vue 不认）
+
+**教训（2026-10-08，DAO-006 格式化基线）**：`oxfmt` 会把模板属性里的**多语句**表达式按 JS 语句折成多行：
+
+```vue
+<!-- 原来（单行、合法） -->
+@update:value="item[field.key ?? ''] = $event; emit('change')"
+
+<!-- 被格式化后（多行 → Vue 模板属性里非法） -->
+@update:value=" item[field.key ?? ''] = $event emit('change') "
+```
+
+Vue 的模板属性只能放**单个表达式**，多语句会被拒 → 报错出现在**构建期**（`pnpm build`），
+而 `typecheck` 与 `oxlint` 都不会报：
+
+```text
+[plugin vite:vue] .../ResumeSchemaForm.vue:152:32
+RolldownError: Error parsing JavaScript expression: Unexpected token, expected "," (3:18)
+```
+
+**规范**：
+
+1. 模板里一律**只写一个表达式**；需要「改值 + 派发事件」这类多步操作，抽成方法：
+   ```vue
+   @update:value="setItemValue(item, field.key ?? '', $event)"
+   ```
+2. `v-on` / `v-bind` 里不要出现 `;`（写 `;` 就等于给格式化工具留了一个折行陷阱）。
+3. 改完模板要跑 **`pnpm build`**（不只是 `typecheck`）—— 模板内联表达式的语法错误只有编译/构建阶段才暴露。
+4. 排查命令（找多语句内联表达式）：
+   ```bash
+   grep -rn --include='*.vue' -E '@[a-zA-Z:._-]+="[^"]*;' apps | grep -v node_modules
+   ```
