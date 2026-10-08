@@ -80,16 +80,50 @@ export default defineNuxtConfig({
 </MyModal>
 ```
 
+### `MyFullScreenGallery` —— 全屏图片浏览
+
+浏览一组图片（lightbox / gallery）。与上面两个组件的差别：它**全屏**，也没有"动作区"的概念。
+
+```vue
+<MyFullScreenGallery
+  v-model:open="open"
+  title="摄影"
+  description="扫街与旅行记录"
+  :items="[
+    { url: '/a.jpg', title: '扫街', href: 'https://example.com/street' },
+    { url: '/b.jpg', title: '在路上' },
+  ]"
+/>
+```
+
+| 类别           | 内容                                                                    |
+| -------------- | ----------------------------------------------------------------------- |
+| `v-model:open` | 打开状态（Esc / 关闭按钮 / 点「背景」都会同步回来）                     |
+| props          | `title` / `description` / `items` / `emptyText`                         |
+| item           | `{ id?, url, title?, description?, href? }`；有 `href` → 新窗口打开外链 |
+
+约定：
+
+- **基于 `UModal fullscreen`**：焦点陷阱、背景 inert、Esc 关闭、过渡动画都由 Nuxt UI 负责
+  （早期版本用原生 `<dialog>` + `showModal()` 手写约 185 行原生 CSS，已由它取代）
+- **「点空白关闭」按点到什么判断**：`fullscreen` 形态没有遮罩可点（面板铺满），
+  所以规则是「卡片 / 链接 / 图片 / caption 不关，其余（网格间隙、面板留白）算点空白」
+- **深色衬底**（lightbox 惯例），**不跟随业务主题** —— 图片衬底不该随主题明暗变化；
+  因此标题 / 说明 / 关闭按钮都覆写成白色系
+- 样式全部写在标签上（Tailwind），组件内没有 `<style>`；字号用 `text-[…]` 精确值，
+  避免 `text-sm` 之类**自带行高**的类改变原有行高
+- 组件与业务无关：`/comps/full-screen-modal` 是组件索引与变体，`/demos/hobby-modal` 是业务示例
+
 ### 共有 API
 
-| 类别             | 内容                                                                                                                                                 |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `v-model:open`   | 打开状态（也支持 `useOverlay` 那样默认打开）                                                                                                         |
-| props            | `title` / `description` / `size` / `dismissible` / `footerText` / `showActions` / `confirmText` / `cancelText` / `loading` / `closeOnConfirm` / `ui` |
+| 类别            | 内容                                                                                                                                                 |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `v-model:open`  | 打开状态（也支持 `useOverlay` 那样默认打开）                                                                                                         |
+| props           | `title` / `description` / `size` / `dismissible` / `footerText` / `showActions` / `confirmText` / `cancelText` / `loading` / `closeOnConfirm` / `ui` |
 | `MyDrawer` 专属 | `direction`（`top` / `right` / `bottom` / `left`）                                                                                                   |
 | `MyModal` 专属  | `breakpoint`、`mobileDirection`                                                                                                                      |
-| slots            | `trigger` / 默认（body）/ `header` / `title` / `description` / `actions` / `close` / `footer`                                                        |
-| emits            | `confirm`、`cancel`、`close(confirmed?)`                                                                                                             |
+| slots           | `trigger` / 默认（body）/ `header` / `title` / `description` / `actions` / `close` / `footer`                                                        |
+| emits           | `confirm`、`cancel`、`close(confirmed?)`                                                                                                             |
 
 约定：
 
@@ -100,12 +134,13 @@ export default defineNuxtConfig({
 
 ## 新增一个共享组件的步骤
 
-1. 在 `packages/ui/app/components/` 建 `AppXxx.vue`（文件名即自动导入名）
+1. 在 `packages/ui/app/components/` 建 `MyXxx.vue`（文件名即自动导入名；`My` 前缀与 Nuxt UI 的 `U*` 区分）
 2. 组件内**只用宿主提供的东西**（`UButton` 等 Nuxt UI 全局组件）与 layer 自己的 `app/utils/**`；
    **不要**引 `~/utils/…`、`~~/…` 这类宿主路径 —— 那是 app 私有代码，layer 里解析不到或者会反向依赖
 3. 需要新依赖时，加在 `packages/ui/package.json`（layer 自己的依赖，不污染 app）
-4. 在 admin 的 demos 页（`apps/admin/layers/20-comps/app/pages/demos/`）补用例，并在
-   `apps/admin/app/config/admin-navigation.ts` 挂上入口
+4. 在 admin 补两处：`comps/` 下建**组件索引页**（覆盖变体与边界）、`demos/` 下补**业务示例**，
+   并在 `apps/admin/app/config/admin-navigation.ts` 的 Comps / Demos 分组里挂上入口；
+   同时更新本文件的「组件」一节
 5. 两端跑 `pnpm --filter @template/web typecheck && pnpm --filter @template/admin typecheck`
 
 ## 为什么不用 npm 包

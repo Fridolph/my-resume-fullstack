@@ -420,13 +420,19 @@ components/resume/
 ├── <section>/                      # 该区块的全部风格实现放进一个目录
 │   ├── Resume<Section>Minimal.vue
 │   ├── Resume<Section>Standard.vue
-│   └── Resume<Section>Pro.vue
+│   ├── Resume<Section>Pro.vue
+│   └── parts/                      # 可选：该区块的**零件**（见下）
 └── hero/                           # hero 同构（它不用 ResumeSectionCard，薄壳自己挂外壳）
 ```
 
 - 薄壳用 **`Record<ResumeStyleId, Component>`** 路由，不是 `if/else`；
 - 三档实现接收 **`ResumeSectionBodyProps`**（`content` / `options` / `variant`）—— 没有 `section` / `theme`，
   因为标题与外观由外壳统一消费。
+- **`parts/` 子目录（2026-10-08 新增，hero 先行）**：当某一档变成"多个可独立演进的零件"时，
+  把零件放进 `<section>/parts/`，档位文件退回**纯组装**。判据是"零件是否有自己的数据/交互/样式"
+  —— 满足就放 `parts/`，不满足就别拆（否则只是把行数搬家）。
+  零件仍收 `ResumeSectionBodyProps`，并自己 `use<Section>(props)` 取数据，不由档位逐层透传。
+  回滚方式：把 `parts/` 里的文件移回 `<section>/` 并改 import（无契约变化）。
 
 ### 12.4 样式归属：零件放哪
 
@@ -434,7 +440,7 @@ components/resume/
 | ---------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | **跨区块复用的「风格语言」** | `app/assets/css/resume.css` 的 `.resume-pro-*` | `.resume-pro-block` / `-row` / `-chip` / `-stats`（原在 `ResumeHeroPro` 的 scoped 里，已上提） |
 | **该区块独有的零件**         | 组件内 `<style scoped>`                        | `experience` 的时间线、`skills` 的组头细线                                                     |
-| **三档共用的派生数据**       | composable                                     | `useResumeProfileView`（hero 三档共用）                                                        |
+| **三档共用的派生数据**       | composable                                     | `useHero`（hero 三档 + 零件的唯一数据入口）                                                    |
 
 判断标准只有一条：**是不是第二个地方也要用**。不是 → 留 scoped，等真复用再抽。
 
@@ -504,3 +510,140 @@ components/resume/
 | `hero/ResumeHeroPro.vue`       | ✅ 已按新定位重做（六类手法）                                                                               |
 | `experience` / `skills` 的 pro | ⏳ 目前是「静态排版」型（时间线 / 组头），**待按新定位补交互**：折叠成果列表、hover 联动、数字块 tooltip 等 |
 | 未拆的 4 个区块                | ⏳ 落三档时直接按新定位写（别先做静态版再返工）                                                             |
+
+## 15. hero 零件化 + hooks 化，以及 pro 的第二轮打磨（2026-10-08 追加）
+
+> 关联：`Issue #24` 后续、`docs/dev/resume-styles.md` §12（组织方式）、§14（pro 定位）。
+> 触发：Owner 实看第一版 pro 后反馈「不够区分、逻辑堆在一个文件里」，要求按 `experience/` 的做法抽组件与 hooks。
+
+### 15.1 组织方式：档位只组装，零件在 `parts/`，数据在 composables
+
+```text
+components/resume/hero/
+├── ResumeHeroCard.vue            薄壳（契约 + `.resume-card` 外壳 + variant 路由）
+├── ResumeHeroMinimal.vue         极简：自给自足（不需要零件）
+├── ResumeHeroStandard.vue        标准：组装 头像 / Info / 兴趣墙 + 自带 Intro 与 Links
+├── ResumeHeroPro.vue             精致：**只组装**（数字块留在此文件，见下）
+└── parts/
+    ├── ResumeHeroAvatar.vue        头像翻牌 + 跟随光晕（**standard / pro 共用**）
+    ├── ResumeHeroIntro.vue         Intro：打字机 + 折叠 + hover 聚焦
+    ├── ResumeHeroInfo.vue          原 Contact：standard 条目卡 / pro 琴键胶囊
+    ├── ResumeHeroLinks.vue         风铃挂卡（pro）
+    ├── ResumeHeroInterestWall.vue  兴趣墙：standard 标签+tooltip / pro 折叠词云
+    └── ResumeHeroSnapshots.vue     gallery 照片条（pro）
+
+composables/
+├── useHero.ts          hero 的数据视图与派生（原 `useResumeProfileView` 升级并改名）——
+│                       三档与全部零件的**唯一数据入口**，零件自己 `useHero(props)`，
+│                       不再由档位逐层透传 props
+├── useHeroTyping.ts    打字机：断句 / 字符切分 / 节奏 / 循环重播
+└── useHeroKeys.ts      琴键音效：C 大调音阶合成 + 首次点击解锁
+```
+
+**为什么 `数字块` 没拆**：它是"一个组件内的数据映射"（§12.1 手段 ②），
+没有独立的数据与交互，拆出去只是把行数搬家。判据同 §12.3：**零件是否有自己的数据/交互/样式**。
+
+> **能力雷达已从 hero 移出**（Owner 2026-10-08 判定）：它原来的用途是放在**专业技能**区，
+> 以 tabs 切换「词云 / 图表」两种展示。数据字段（`profile.radar`）与 mock 保留，
+> 但 hero 不再消费它（`useHero` 也不再返回），等 `skills` 区落地时再用。
+
+**为什么头像能两档共用**：两档用的是同一份数据（`hero.frontImageUrl/backImageUrl`）与同一段 3D 翻牌，
+差异只有"跟随光晕"与"徽标文案"——徽标用 `#badge` 插槽交给调用方（standard 是装饰、pro 是求职状态，语义不同）。
+
+### 15.2 Intro 打字机（Owner 指定参数）
+
+| 项   | 值                                                                      |
+| ---- | ----------------------------------------------------------------------- |
+| 节奏 | **135ms / 字**（`HERO_TYPING_SPEED`；Owner 逐轮校准 200 → 150 → 135）   |
+| 停留 | 打完 **5s** 后从头重播（`HERO_TYPING_HOLD`）                            |
+| 循环 | **无限循环**（Owner 明确要求，属"状态"语义）                            |
+| 断句 | **只在「。！？」断**（分号不断）—— 分号会切掉"主张句"的后半段           |
+| 字号 | 主张句 `0.95rem`（第一版 1.05rem 偏大）                                 |
+| 降级 | `prefers-reduced-motion: reduce` → 静态显示全文，**不循环、不显示光标** |
+
+实现要点（三条都有取舍）：
+
+1. **逐字用 CSS stagger，不是 JS 改文本**：字符始终在 DOM 里 → SSR 一致、文本可选中、
+   读屏可读（整句另有 `sr-only`，否则读屏把每个字当独立节点念）。速度与延迟都是变量，改配置不用改组件。
+2. **循环靠自增 `cycle` + 组件上 `:key`** 让 Vue 重建节点、重播 CSS 动画；比手动 reflow 干净。
+3. **`@media (prefers-reduced-motion: reduce)` 下 JS 也停**（`useHeroTyping` 里判 `matchMedia`），
+   否则会"动画停了但定时器还在跑"。
+
+> ⚠️ §14.3 第 3 条写着"不做为动而动的循环动画"。这里是有意的例外：打字机承担"正在输出"的状态含义，
+> 且由 Owner 指定。**仅此一处**，不要据此扩展成"其他区块也加循环动效"。
+
+### 15.3 Info（原 Contact）
+
+- **改名 Contact → Info**：这一块实际装的是学历 / 年限 / 所在地 / 邮箱 / 电话，**学历也在其中**，
+  名字与内容不符；改 Info 后信息浓度更高、也容得下更多条目（standard 与 pro 都改）。
+- **琴键交互（pro）**：每个胶囊是一个键，点击 → 复制 + 按 **C 大调音阶**逐个键位发声
+  （第 1 个键 C4 起，超出音阶自动升八度）；按下时有"键帽"感（下沉 1px、下缘厚度消失）+ ✓ + 涟漪。
+- **音效不外引资源**：`useHeroKeys` 用 `OscillatorNode`（三角波）+ 短包络合成，体积为零。
+  **首次点击才创建 `AudioContext`**（浏览器要求音频由用户手势解锁）；SSR / 不支持 Web Audio 时静默跳过，
+  音效是附加值，不影响复制。
+- **tooltip 只在真被截断时挂**：hover 时实测 `scrollWidth - clientWidth`，非截断条目 `:disabled`
+  掉 tooltip（原先每条都挂，是冗余的重复信息）。
+- **被截断的值 hover 时单程滚出**：位移由实测写入 `--info-shift`。
+  ⚠️ 不能用纯 CSS 算：`translateX` 的百分比基准是**元素自身宽度**（被裁剪后的可见宽度），
+  `calc(-100% + 可视宽)` 得不到「内容宽 − 可视宽」（实测差 23px，退化成不动）。
+
+### 15.4 风铃（Links）与兴趣（2026-10-08 二次修订）
+
+- **风铃挂在横杆上**：一根略粗、两端渐隐的横杆，每张卡有自己的**挂绳**；挂绳长短与卡片倾角按
+  **固定序列**交错（⚠️ 不用随机 —— 随机会让 SSR 与客户端算出不同结果、破坏水合）→ 卡片高低错落。
+  - **一排最多 8 个**（4~6 个是最佳观感），超出另起一根杆（`MAX_PER_ROW`）
+  - 分布用 **`space-around`**（每张卡左右等距），再给每张一个**小的水平偏移**（`DRIFT_PATTERN`）
+    打破"精确均分"的呆板感 —— 不用 `space-between`：两个时会被推到最左最右，显得空
+- **兴趣：一个兴趣一个图标 + hover tooltip**（`ResumeHeroInterestWall`，standard / pro 共用形态）。
+  上一版的「折叠 + 图 + 标签词云」被 Owner 判定过度设计而**推翻**；值得的递进只有"能不能点"：
+
+  | 档         | 交互                                         |
+  | ---------- | -------------------------------------------- |
+  | `standard` | 纯展示（hover 动效后续再补，当前无任何事件） |
+  | `pro`      | 多一个点击 → 全屏 gallery 浏览该兴趣的图集   |
+  | `minimal`  | 不含这一区（保持默认观感不变）               |
+  - 只有**配了图集**的兴趣才可点；没配就是普通标签（不给"点了没反应"的假入口）
+
+- **内容模型增量**：`ResumeProfileInterest.description?` + `images?: ResumeInterestImage[]`
+  （每张图 `{ url, href?, title? }`）。按 §7 落三处：`types/resume.ts`、`mock/resume-content.zh.ts`、
+  `config/resume-editor-schemas.ts`。
+  ⚠️ **`images` 本轮不在编辑表单里**：`ResumeSchemaForm` 只支持基础字段与「对象数组」两层，
+  图集是"数组里的数组"，要可编辑得先扩表单能力；展示侧按"无图集就不开弹窗"容错。
+
+### 15.5 `gallery` 归位
+
+第一版把 `gallery` 当 pro 的**主视觉**（两图网格），于是"头像"与"照片"混在一个字段上，
+`hero.frontImageUrl` 反而闲置。现在语义分开：**头像 = `hero`（翻牌）**、**照片 = `gallery`（结尾照片条）**，
+编辑者填「头像」与填「照片」是两件事。
+
+### 15.6 全屏 gallery：跨端共享组件的落点
+
+兴趣图集要 **web（公开简历）与 admin（组件索引 / 示例）两边都能用** → 按 `layers.md` §7 的判据
+（含模板、依赖 Nuxt UI → 进 `packages/ui`），它只能是共享 layer 组件：
+
+| 落点     | 文件                                                 | 职责                                |
+| -------- | ---------------------------------------------------- | ----------------------------------- |
+| 组件     | `packages/ui/app/components/MyFullScreenGallery.vue` | 全屏浏览，`v-model:open` + `items`  |
+| 组件索引 | `apps/admin/…/pages/comps/full-screen-modal.vue`     | 变体与边界（外链 / 纯展示 / 空态）  |
+| 业务示例 | `apps/admin/…/pages/demos/hobby-modal.vue`           | 用兴趣数据复现"点击兴趣 → 开图集"   |
+| 消费方   | `apps/web/…/hero/parts/ResumeHeroInterestWall.vue`   | pro 档点击打开（standard 是纯展示） |
+
+- **基于 `UModal fullscreen`**：焦点陷阱、背景 inert、Esc 关闭、过渡动画都由 Nuxt UI 提供
+  （早期版本用原生 `<dialog>` + `showModal()` 手写约 185 行 CSS，已由它取代 —— 自己重做最容易在焦点与滚动上留坑）。
+- **深色衬底**（lightbox 惯例），**不跟随业务主题** —— 图片衬底不该随主题明暗变化；
+  标题 / 说明 / 关闭按钮相应覆写成白色系。
+- 样式全部写在标签上（Tailwind），组件内没有 style 块；字号用 `text-[…]` 精确值，避免自带行高。
+- 命名沿用 `My` 前缀（DAO-017 定的），与 Nuxt UI 的 `U*` 区分；新增组件的完整步骤见 `packages/ui/README.md`。
+
+### 15.7 验证要点
+
+- 打字：字符数 × **135ms** ≈ 首→末间隔；打字窗口结束后光标停住；再等 `字数×135 + 5000` 后**重播**
+  （检测末字回落 —— 首字重播后 1ms 就亮，轮询抓不到）。
+- 琴键：点击后 `AudioContext` 才建；记录 `setValueAtTime` 的频率应依次递升（C4 261.63 → …）。
+  ⚠️ 读 `oscillator.frequency.value` 拿不到真实频率（它反映"当前时间"的值，恒为默认 440）。
+- 风铃：一行一根杆；分布为 `space-around`（两个时**不应贴到两端**，左右留白大致相等）；
+  挂绳长度不等（`--hang` 不同）→ 卡片顶边不齐；水平偏移（`--drift`）不同 → 间距不被精确均分。
+- 兴趣：standard 不可点（无 `button`、无弹窗）；pro 点击 → `<dialog>` 打开且 `items` 数量 = 该兴趣图集长度；
+  Esc / 点背板可关闭；没图集的兴趣仍是纯标签。
+- 回归：三档 SSR 均无 `Failed to resolve component` / `NUXT_E*`；`prefers-reduced-motion` 下
+  打字/光晕/翻牌/风铃/涟漪全部静态。
