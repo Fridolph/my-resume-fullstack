@@ -300,6 +300,74 @@ export interface ResumeThemeConfig extends ResumeThemePreset {
 - 面板：**`UDrawer` / `UModal` 在 SSR 不渲染内容** —— 要验证面板得临时把内容直出（之后 `git checkout` 还原）。
 - 抓取点：9 个字段标签各出现 2 次（两组平铺）、明暗按钮存在、**不含已删预设的文案**、无 `Failed to resolve component` / `NUXT_E*`。
 
-## 11. 本轮明确不做
+## 11. `pro`（精致）风格（2026-10-08 追加）
+
+> 关联：`Issue #21`、`dao/tasks/DAO-014-web 简历页 pro 风格与 hero 拆分.md`
+
+### 11.1 定位与分期
+
+| 档 | 定位 | 状态 |
+| --- | --- | --- |
+| `minimal` | 极简：文本方块 + 列表 | ✅ |
+| `standard` | 标准：翻牌头像 + 分块 + eyebrow（对齐旧站） | ✅ |
+| `pro` | 精致：画廊 / 数字块 / 能力雷达 / 求职状态，版式更讲究 | ✅ 排版部分；动效分期 |
+
+动效（入场 stagger、滚动视差、hover 特效）留到下一期 —— 独立文件已经为它留好位置。
+
+### 11.2 实现方式：入口薄壳 + 三档实现（一次明确的取舍）
+
+```text
+components/resume/
+├── ResumeHeroCard.vue          # 薄壳：契约 + .resume-card 外壳 + variant 路由（43 行）
+└── hero/
+    ├── ResumeHeroMinimal.vue
+    ├── ResumeHeroStandard.vue
+    └── ResumeHeroPro.vue
+```
+
+**为什么 hero 拆、而 `ResumeSectionCard` 不拆**：
+
+| | hero | ResumeSectionCard |
+| --- | --- | --- |
+| 使用处 | 全站 **1 处** | 被 **7 个区块**复用 |
+| 差异性质 | **结构差异大**（画廊/雷达 vs 文本块） | 仅标题结构（色条 vs icon） |
+| 拆分代价 | 无同步成本 | 抽变体要同步 7 处 |
+| 结论 | **拆**（薄壳 + 三实现） | **不拆**（外壳共用 + 结构分支） |
+
+判据（下次同类选择按这四条走）：① 使用处数量 ② 共享比例 ③ 差异是"参数"还是"结构" ④ 独立演进速度。
+
+> 注意：这里拆的是**组件内部实现**，`ResumeHeroCard` 对外的 `ResumeSectionProps` 契约、注册表项、编辑/拖拽注入方式**都没变** —— 所以拆与不拆对 admin 复用没有影响。
+
+### 11.3 `pro` 新增的内容字段（全部可选）
+
+```ts
+interface ResumeProfile {
+  // …既有 name / headline / summary / avatarText / hero / contact / links / interests
+  availability?: string                     // 求职状态徽标文案，留空则不展示
+  stats?: ResumeProfileStat[]               // { label, value, hint? } 数字块
+  gallery?: ResumeProfileGalleryItem[]      // { url, alt? } 形象画廊（本轮只建模 + 展示 URL）
+  radar?: ResumeProfileRadarItem[]          // { label, value: 0~100 } 能力雷达
+}
+```
+
+- **全部可选**：旧内容 / 旧 localStorage 里没有它们，组件侧用 `?? []` + `v-if` 容错，**不需要写迁移**。
+- 能力雷达**不引入图表库**：用 SVG 手绘（三角函数算顶点 + 底图多边形），维度少于 3 个时不画。
+- 编辑侧：`resume-editor-schemas.ts` 的 `profile` 段新增三段（数据块 / 能力雷达 / 形象画廊），
+  并新增字段类型 `number`（`ResumeFieldInput` 里的数字输入，`emit(Number(...))` 保证存进去是数字）。
+
+### 11.4 排版约束：按「窄栏」设计
+
+hero 默认落在 `side` 栏（300px），所以 pro 的版式**刻意不用视口断点** ——
+栏宽 ≠ 视口宽，`:sm` 这类断点会在窄栏里也命中、把内容挤坏。
+现状：画廊 2 列、数字块单列、雷达 120px + 右侧图例。
+若将来要"宽栏更铺开"，应改用**容器查询**（Tailwind v4 的 `@container` + `@[Npx]:` 变体）。
+
+### 11.5 验证要点
+
+- 三档各抓一次 SSR：`data-style="minimal|standard|pro"` 下分支内容正确、无告警。
+- `pro` 额外看：画廊图片数量、`Capability` 段是否出现（`radar ≥ 3` 时）、求职状态徽标。
+- 编辑抽屉：新增三段可增删改，`number` 字段落库为数字而非字符串。
+
+## 12. 本轮明确不做
 
 `cool` 风格、整页模板组件、头像跳转 / AI 对话入口、`contact` 的 key 与结构变更、图片上传、`publishedAt`、PDF、i18n、技能可视化图表、admin 侧风格选择。

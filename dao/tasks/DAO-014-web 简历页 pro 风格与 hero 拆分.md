@@ -1,0 +1,71 @@
+# 【DAO-014】web 简历页 pro 风格与 hero 拆分
+
+> 任务卡是这一关键事件的唯一事实源。只写改变下一步判断的事实；不要复制聊天记录或原始终端输出。
+
+## 身份
+
+- 状态：`self-tested`
+- Owner：`昇哥定范围（pro = 排版与动效分期；内容字段「加较多」；worktree 从 feat/18 开分支）`
+- 创建日期：`2026-10-08`
+- 关联：`Issue #21`、`DAO-008`（风格维度）、`DAO-010`（样式统一）、`DAO-012`（主题模型）、`docs/dev/resume-styles.md` §11
+
+## 状态轨迹
+
+| 迁移                      | 依据                                                                                     | 确认者     | 日期       |
+| ------------------------- | ---------------------------------------------------------------------------------------- | ---------- | ---------- |
+| `planned -> designed`     | Owner 选定：pro「排版 + 动效分期」；内容字段「加较多（画廊 / 雷达等）」；用 worktree 从 feat/18 开分支 | Owner 确认 | 2026-10-08 |
+| `designed -> in-progress` | Issue #21 建立；worktree `feat/21-resume-hero-pro` 从 `8d505d5` 开出（不污染 feat/20 的未提交改动） | 归枢记录 | 2026-10-08 |
+| `in-progress -> self-tested` | hero 三档拆分 + pro 实现 + 字段/编辑扩展落地；typecheck / oxlint / 三档 SSR 通过 | 归枢记录 | 2026-10-08 |
+
+## Grill：开工前对齐
+
+- 目标：① hero 拆成「入口薄壳 + 三档实现」；② 实现 `pro`（画廊 / 数字块 / 能力雷达 / 求职状态，**排版部分**）；③ `ResumeStyleId` 加 `pro` 并进风格预设；④ `profile` 加 4 个**可选**字段；⑤ 编辑侧支持（含新增 `number` 字段类型）。
+- 边界：只改 `apps/web/layers/11-public-resume/app/**` 与 `docs/dev/resume-styles.md`；不动 admin、不接 API、不引图表库。
+- 不做：动效（分期）、图片上传、整页模板、admin 侧风格选择、`contact` 键位变更。
+- 涉及文件 / 模块：`types/resume.ts`、`mock/resume-content.zh.ts`、`mock/resume-display.ts`、`composables/useResumeProfileView.ts`（新）、`components/resume/ResumeHeroCard.vue`、`components/resume/hero/*`（新 3 个）、`config/resume-editor-schemas.ts`、`components/resume/editors/ResumeFieldInput.vue`。
+- 风险与未知：① 拆组件容易被误读为"改了对外契约"（实际只动内部实现）；② 雷达是 SVG 手绘，顶点计算与窄栏可读性未目视；③ pro 版式按窄栏设计，宽栏下可能显得不够铺开；④ 新字段可选 → 组件必须容错（`?? []` / `v-if`）。
+- 验收：见 `Issue #21`（三档 SSR 各自正确、质量门通过、契约未变、编辑可改新字段、文档记录判据）。
+- 第一刀：先落类型与 mock，再拆 hero，最后接编辑 schema。
+- 过门判断：`可开工`。
+
+## 设计与决策
+
+| 决策                                                     | 理由 / 证据                                                                             | 确认者   | 日期       |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------- | -------- | ---------- |
+| hero 拆「薄壳 + 三档实现」                                | 使用处仅 1 处、结构差异大、无同步成本；判据：① 使用处数量 ② 共享比例 ③ 差异是参数还是结构 ④ 独立演进速度 | Owner 确认（形态选择） | 2026-10-08 |
+| `ResumeSectionCard` 仍走「外壳共用 + 结构分支」           | 它被 7 个区块复用，抽变体会产生同步成本 —— 同样是风格维度，两者取舍相反是有依据的 | 归枢起草 | 2026-10-08 |
+| 拆分只动组件内部，不动对外契约                            | `ResumeSectionProps` / 注册表 / 编辑与拖拽注入方式都不变 → 对 admin 复用无影响          | 归枢起草 | 2026-10-08 |
+| 新增字段**全部可选**                                      | 旧内容与旧 localStorage 无需迁移；组件侧 `?? []` + `v-if` 容错                          | 归枢起草 | 2026-10-08 |
+| 能力雷达用 SVG 手绘                                       | 不引入图表库（与既有"技能可视化另立卡"约束一致）；维度 < 3 时不画                        | 归枢起草 | 2026-10-08 |
+| 字段类型新增 `number`                                     | 雷达 `value` 是数值，用 `text` 存会变字符串（类型不符）；`emit(Number(...))` 保证落库为数字 | 归枢起草 | 2026-10-08 |
+| pro 版式**不用视口断点**                                  | hero 落在 300px 侧栏，栏宽 ≠ 视口宽，`sm:` 会在窄栏里命中把内容挤坏；要"宽栏铺开"应改用容器查询（`@container`） | 归枢起草 | 2026-10-08 |
+| `pro` 不进"未实现枚举"的旧规矩例外                        | 本轮真正实现了它，所以此时加进 `ResumeStyleId` 是合规的（该字段会进公开快照，不能塞空壳） | 归枢起草 | 2026-10-08 |
+
+## 执行与验证
+
+| 类型   | 命令 / 样本 / 链接 | 结果 | 仍未验证的边界 |
+| ------ | ------------------ | ---- | -------------- |
+| 机器验 | `pnpm --filter @template/web typecheck`；`oxlint apps/web` | 通过；oxlint 0 warning / 0 error（47 files，含 4 个新文件） | 全仓 `format:check` 仍是既有缺口（DAO-006） |
+| 结构验 | 薄壳 `ResumeHeroCard.vue` 43 行；三档实现各 1 文件；注册表 / `ResumeSectionProps` / 编辑与拖拽注入均未改 | 通过；拆分只发生在组件内部 | — |
+| 意图验 | 三档 SSR 抓 `/resume`（临时切 mock 的 `style.id`，验证后已还原） | 通过；`standard` → `flip-inner=1`；`pro` → `pro-shot=1` / `Capability=1` / `pro-availability=1`；`minimal` → 三者皆 0；三档均无 `Failed to resolve component` / `NUXT_E*` | pro 在 300px 信息栏下的**实际观感**未目视（画廊 2 列 + 雷达是否挤） |
+| 意图验 | 编辑 schema：`profile` 段由 4 段增至 7 段（新增 数据块 / 能力雷达 / 形象画廊）；新增 `number` 字段 | 通过（typecheck 校验字段类型与 `listPath`） | 抽屉里实际增删改新字段、`number` 是否落库为数字，未在浏览器跑 |
+| 结构验 | 内容字段全部可选（`availability` / `stats` / `gallery` / `radar`） | 通过；旧内容 / 旧 localStorage 缺字段时组件走回退分支 | 未用真实旧 localStorage 数据端到端跑 |
+
+## 交接
+
+- 已完成：hero 拆分为「入口薄壳 + `hero/` 三档实现」；`pro` 排版实现（形象画廊、数字块、能力雷达 SVG、求职状态徽标）；`ResumeStyleId` 加 `pro` + 风格预设「精致」；`profile` 4 个可选字段 + mock 内容；编辑 schema 三段 + `number` 字段类型；`docs/dev/resume-styles.md` §11 记录定位、取舍判据、字段与排版约束。
+- 当前状态：`self-tested`（编码与机器验证完成）
+- 阻塞：无。
+- 下一步第一刀：提交并 push，开 PR；**动效分期**（pro 的入场 stagger / 视差 / hover 特效）可作为下一张卡 —— 薄壳 + 独立文件的形态已经为它留好位置。
+- 文档锚点：`Issue #21`、`docs/dev/resume-styles.md` §11
+- 集成锚点：`待 feat/21-* -> dev`
+
+## 收口与沉淀
+
+- `dao-review` 结论：`未执行`
+- 最终验证证据：`见上表（三档 SSR + 质量门）`
+- Git / PR：`待补`
+- 常规提交：`待补`
+- Dao Commit：`不适用`
+- 沉淀候选：`候选观察` —— 「多档风格该同组件分支还是拆组件」的四条判据（使用处数量 / 共享比例 / 差异性质 / 演进速度），以及"拆分只动内部实现、对外契约不变"这条区分；两者在 React 版同样会遇到，值得对照验证。
+- 收口备注：本卡在**独立 worktree（`feat/21`）**上完成，与 `feat/20`（packages/ui 公共层）互不干扰；注意 `DAO-013` 已被公共层占用，故本卡为 `DAO-014`。
