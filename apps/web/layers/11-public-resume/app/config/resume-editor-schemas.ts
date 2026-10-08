@@ -145,10 +145,14 @@ export const resumeEditorSchemas: Record<ResumeSectionKey, ResumeSectionEditorSc
         label: '兴趣',
         listPath: 'profile.interests',
         titleKey: 'label',
-        blank: { label: '新兴趣', icon: '' },
+        blank: { label: '新兴趣', icon: '', description: '' },
+        // 注：`images`（图集）本轮**不在表单里编辑** —— 现有 `ResumeSchemaForm` 只支持
+        // 基础字段与「对象数组」两层，图集是「数组里的数组」，要它可编辑得先扩表单能力。
+        // 展示侧已按「无图集就不开弹窗」容错，所以不影响编辑者使用其它字段。
         fields: [
           { key: 'label', label: '名称', type: 'text' },
           { key: 'icon', label: '图标名', type: 'text', placeholder: '如 ri:camera-line' },
+          { key: 'description', label: '说明', type: 'textarea', placeholder: '一句话，hover 时以 tooltip 显示' },
         ],
       },
     ],

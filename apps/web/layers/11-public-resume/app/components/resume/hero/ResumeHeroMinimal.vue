@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import type { ResumeHeroProps } from '#layers/public-resume/app/types/resume'
-import { useResumeProfileView } from '#layers/public-resume/app/composables/useResumeProfileView'
+import { useHero } from '#layers/public-resume/app/composables/useHero'
 
 /**
- * hero · 极简：文本方块 + 姓名 / 定位 / 概述 / 联系方式列表。
+ * hero · 极简：文本方块 + 姓名 / 定位 / 概述 / 信息列表。
  *
  * 三档实现之一（外层契约与卡片外壳见 `ResumeHeroCard.vue`）。
+ * 数据走 `useHero`（与另两档同一入口）；本档不需要头像翻牌 / 打字机 / 兴趣墙等零件。
  */
 const props = defineProps<ResumeHeroProps>()
-const { profile, avatarText, visibleContact } = useResumeProfileView(props)
+const { profile, avatarText, visibleContact } = useHero(props)
 </script>
 
 <template>

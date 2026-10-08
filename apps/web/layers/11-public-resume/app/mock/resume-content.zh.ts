@@ -12,6 +12,14 @@ const AVATAR_BACK =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%232f9e63'/%3E%3Ctext x='100' y='124' font-size='84' font-family='sans-serif' fill='%23ffffff' text-anchor='middle'%3E%E9%9B%A8%3C/text%3E%3C/svg%3E"
 
 /**
+ * 兴趣墙配图占位（同上，内联 SVG data-URI）。
+ *
+ * `color` 传不带 `#` 的十六进制（data-URI 里 `#` 必须写成 `%23`）。
+ */
+const interestShot = (text: string, color: string) =>
+  `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23${color}'/%3E%3Ctext x='100' y='124' font-size='72' font-family='sans-serif' fill='%23ffffff' text-anchor='middle'%3E${encodeURIComponent(text)}%3C/text%3E%3C/svg%3E`
+
+/**
  * 简历内容 mock（中文）。
  *
  * 来源：`my-resume/public/lifeiyu-mock-zh.md` 的结构化版本。
@@ -48,8 +56,60 @@ export const resumeContentMockZh: ResumeContent = {
       { label: '技术博客', url: 'https://example.com/blog', icon: 'ri:article-line' },
     ],
     interests: [
-      { label: '羽毛球', icon: 'ri:ping-pong-line' },
-      { label: '摄影', icon: 'ri:camera-line' },
+      {
+        label: '羽毛球',
+        icon: 'ri:ping-pong-line',
+        description: '每周两场，快乐挥拍',
+        images: [
+          { url: interestShot('球', '2f9e63'), title: '球场', href: 'https://example.com/badminton/court' },
+          { url: interestShot('拍', '15803d'), title: '球拍', href: 'https://example.com/badminton/racket' },
+        ],
+      },
+      {
+        label: '摄影',
+        icon: 'ri:camera-line',
+        description: '扫街与旅行记录',
+        images: [
+          { url: interestShot('街', '1578d0'), title: '扫街', href: 'https://example.com/photo/street' },
+          { url: interestShot('旅', '1d4ed8'), title: '在路上', href: 'https://example.com/photo/travel' },
+        ],
+      },
+      {
+        label: '写作',
+        icon: 'ri:quill-pen-line',
+        description: '技术笔记与复盘随笔',
+        images: [
+          { url: interestShot('文', 'b45309'), title: '技术笔记', href: 'https://example.com/blog/tech' },
+          { url: interestShot('记', '92400e'), title: '复盘', href: 'https://example.com/blog/review' },
+        ],
+      },
+      {
+        label: '跑步',
+        icon: 'ri:run-line',
+        description: '每周 15 公里',
+        images: [
+          { url: interestShot('跑', '7c3aed'), title: '夜跑', href: 'https://example.com/run/night' },
+          { url: interestShot('道', '5b21b6'), title: '路线', href: 'https://example.com/run/route' },
+        ],
+      },
+      {
+        label: '咖啡',
+        icon: 'ri:cup-line',
+        description: '手冲入门中',
+        images: [
+          { url: interestShot('咖', '0f766e'), title: '手冲', href: 'https://example.com/coffee/pour-over' },
+          { url: interestShot('豆', '115e59'), title: '豆子', href: 'https://example.com/coffee/beans' },
+        ],
+      },
+      {
+        label: '旅行',
+        icon: 'ri:plane-line',
+        description: '一年两次长途',
+        images: [
+          { url: interestShot('行', 'be123c'), title: '在路上', href: 'https://example.com/travel/on-the-road' },
+          { url: interestShot('山', '9f1239'), title: '山野', href: 'https://example.com/travel/mountain' },
+        ],
+      },
     ],
     // ── 以下由 pro 风格使用（可选字段）──
     availability: '可接受新机会',

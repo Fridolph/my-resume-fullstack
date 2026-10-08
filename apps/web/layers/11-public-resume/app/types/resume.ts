@@ -94,10 +94,22 @@ export interface ResumeProfileLink {
   icon?: string
 }
 
+/** 兴趣图集里的一张图（pro 点击兴趣 → 全屏 gallery 浏览用） */
+export interface ResumeInterestImage {
+  url: string
+  /** 点击这张卡片后跳转的外链 */
+  href?: string
+  title?: string
+}
+
 /** 兴趣项（`icon` 同 `ResumeProfileLink`） */
 export interface ResumeProfileInterest {
   label: string
   icon?: string
+  /** 一句话说明：hover tooltip 用 */
+  description?: string
+  /** 该兴趣的图集：pro 点击后在 `MyFullScreenGallery` 里浏览，点击卡片跳 `href` */
+  images?: ResumeInterestImage[]
 }
 
 /** pro 风格的数字块（如「5 年经验」「30+ 组件」）：值直接给展示文案，避免前端算 */
@@ -113,7 +125,9 @@ export interface ResumeProfileGalleryItem {
   alt?: string
 }
 
-/** 能力雷达的一个维度（0~100；用 SVG 手绘，不引入图表库） */
+/** 能力维度的评分（0~100；用 SVG 手绘，不引入图表库）
+ *
+ * 归属 `skills` 区：那里以 tabs 切换「词云 / 图表」两种展示（hero 不消费它）。 */
 export interface ResumeProfileRadarItem {
   label: string
   value: number
