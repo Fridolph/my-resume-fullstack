@@ -121,15 +121,16 @@ const gridClass = computed(() => {
   const hasRail = showsSlot('rail')
   const wide = sideWidth === 'wide'
 
+  // 三栏：左右两栏固定 300px（原来按 1fr/4fr 比例，宽屏下左右太窄），中间吃掉剩余
   if (mode === 'threeColumn') {
     if (hasSide && hasRail) {
-      return 'lg:grid-cols-[1fr_4fr_1fr]'
+      return 'lg:grid-cols-[300px_minmax(0,1fr)_300px]'
     }
     if (hasSide) {
-      return 'lg:grid-cols-[1fr_4fr]'
+      return 'lg:grid-cols-[300px_minmax(0,1fr)]'
     }
     if (hasRail) {
-      return 'lg:grid-cols-[4fr_1fr]'
+      return 'lg:grid-cols-[minmax(0,1fr)_300px]'
     }
     return 'lg:grid-cols-1'
   }
@@ -293,7 +294,7 @@ watch(
     :data-dragging="dragging ? 'true' : undefined"
     :style="{ background: 'var(--resume-page)' }"
   >
-    <ResumeBackgroundLayer :background="config.background" :dark="config.theme.dark" />
+    <ResumeBackgroundLayer :background="config.background" :dark="config.theme.mode === 'dark'" />
 
     <div class="content-max relative grid grid-cols-1 gap-6 px-4 sm:px-6" :class="gridClass">
       <template v-for="slot in SLOT_ORDER" :key="slot">

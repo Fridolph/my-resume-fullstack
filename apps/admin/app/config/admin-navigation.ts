@@ -54,6 +54,7 @@ export const adminNavigation: AdminNavigationItem[] = [
       { label: "Resume layout editor", to: "/demos/layout-editor" },
       { label: "Resume options tabs", to: "/demos/options-tabs" },
       { label: "Resume compare modal", to: "/demos/compare-modal" },
+      { label: "Overlay (shared)", to: "/demos/overlay" },
     ],
   },
 ];

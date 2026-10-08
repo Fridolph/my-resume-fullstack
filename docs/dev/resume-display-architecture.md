@@ -70,9 +70,12 @@ export interface ResumeSectionsConfig {
 - 注册表里每个区块增加 `defaultSlot`；配置的 `slot` 覆盖它。
 - 默认：`profile → side`、`evaluations → rail`、其余 `→ main`。
 
-### 3.3 主题（设计稿原案，**未被采用**）
+### 3.3 主题：明暗 × 配色（**2026-10-08 修订为已采用**）
 
-> **已确认结果（2026-10-07）**：保持**合并式预设** —— 一套预设自带明暗与配色（`resumeThemePresets` 里每项带 `dark` 标志），**不做** `mode × preset` 拆分。下面拆维度是当时的备选方案，保留以便追溯，不要照它实现。
+> **决策变更**：2026-10-07 曾定「保持合并式预设、不做 `mode × preset` 拆分」；实际用下来发现
+> 「深色科技」把明暗与配色压成一维、且无法表达「蓝色 + 深色」这类组合。
+> **2026-10-08 改为采用下面的正交模型**（每套预设自带 light / dark 两组色值 + 独立的 `mode`），
+> 实现与迁移见 [resume-styles.md](./resume-styles.md) §10。下面这段原案即现在的方向。
 
 ```ts
 export type ResumeColorMode = 'light' | 'dark'
@@ -94,7 +97,7 @@ export interface ResumeThemeConfig {          // 生效值 = mode + preset（允
 }
 ```
 
-> 原案理由（**未采用**）：拆开后 `mode`（light / dark）× `preset`（简约白 / 绿色清新 / 蓝色商务 / 青色科技）= 8 种组合，UI 是两个独立按钮组，而不是 4 个混在一起的预设。
+> 采用理由：拆开后 `mode`（light / dark）× `preset`（简约白 / 绿色清新 / 蓝色商务 / 青色科技）= 8 种组合，UI 是两个独立按钮组，而不是 4 个混在一起的预设。
 
 ### 3.4 背景
 

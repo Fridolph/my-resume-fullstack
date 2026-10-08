@@ -174,18 +174,53 @@ export interface ResumeDisplayOptions {
   showAchievements: boolean
 }
 
-/** 主题配置：最终下发为 CSS 变量（--resume-primary 等） */
-export interface ResumeThemeConfig {
-  id: string
-  label: string
+/** 明暗模式：与「配色预设」正交 —— 同一套预设自带 light / dark 两组色值 */
+export type ResumeColorMode = 'light' | 'dark'
+
+/** 一套明暗模式下的全部颜色（调色盘按组展示 / 编辑） */
+export interface ResumeThemePalette {
   /** 主色 */
   primary: string
   /** 渐变起止（头像 / 强调块） */
   gradientFrom: string
   gradientTo: string
-  /** 是否为深色主题（决定纸面与文字色） */
-  dark: boolean
+  /** 纸面 / 卡片底色 */
+  surface: string
+  /** 正文色 */
+  text: string
+  /** 次要文字色 */
+  muted: string
+  /** 边框色 */
+  border: string
+  /** 标签底色 */
+  chipBg: string
+  /** 标签文字色 */
+  chipText: string
 }
+
+/**
+ * 主题预设：一套配色自带 **light / dark 两组**色值。
+ *
+ * 颜色全部显式存值（不派生），因为「自定义」要求两组都能逐项编辑。
+ */
+export interface ResumeThemePreset {
+  id: string
+  label: string
+  light: ResumeThemePalette
+  dark: ResumeThemePalette
+}
+
+/**
+ * 生效的主题配置 = 一套配色 + 当前明暗。
+ *
+ * `mode` 决定用哪一组色值，也决定页面底色渐变与背景遮罩的明暗。
+ */
+export interface ResumeThemeConfig extends ResumeThemePreset {
+  mode: ResumeColorMode
+}
+
+/** 调色盘可编辑的颜色字段（即 palette 的键） */
+export type ResumeThemeColorKey = keyof ResumeThemePalette
 
 /** 展示布局配置（admin 生成、web 只读渲染） */
 export type ResumeBackgroundType = 'plain' | 'texture' | 'image'

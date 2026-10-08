@@ -1,14 +1,22 @@
 import type {
   ResumeBackgroundType,
+  ResumeColorMode,
   ResumeDisplayConfig,
   ResumeDropTarget,
   ResumeLayoutMode,
   ResumeSectionKey,
   ResumeSplitSide,
   ResumeStyleId,
+  ResumeThemeColorKey,
   ResumeThemeConfig,
+  ResumeThemePalette,
+  ResumeThemePreset,
 } from '#layers/public-resume/app/types/resume'
-import { resumeDisplayMock } from '#layers/public-resume/app/mock/resume-display'
+import {
+  RESUME_CUSTOM_THEME,
+  resumeDisplayMock,
+  resumeThemePresets,
+} from '#layers/public-resume/app/mock/resume-display'
 
 const STORAGE_KEY = 'my-resume.display-config'
 
@@ -21,6 +29,79 @@ export type ResumeSaveState = 'idle' | 'pending' | 'saved'
 /** 深拷贝一份默认配置：避免多个请求 / 多次挂载共享同一个对象 */
 function createDefaultConfig(): ResumeDisplayConfig {
   return structuredClone(resumeDisplayMock)
+}
+
+/** 调色盘的字段顺序（迁移旧结构时按它取平铺在顶层的旧值） */
+const THEME_COLOR_KEYS: ResumeThemeColorKey[] = [
+  'primary',
+  'gradientFrom',
+  'gradientTo',
+  'surface',
+  'text',
+  'muted',
+  'border',
+  'chipBg',
+  'chipText',
+]
+
+function isPalette(value: unknown): value is ResumeThemePalette {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+  const source = value as Record<string, unknown>
+
+  return THEME_COLOR_KEYS.every((key) => typeof source[key] === 'string')
+}
+
+/** 旧结构里颜色平铺在 theme 顶层，这里按字段取出来并补全缺项 */
+function paletteFromFlat(
+  source: Record<string, unknown>,
+  fallback: ResumeThemePalette,
+): ResumeThemePalette {
+  const palette = { ...fallback }
+  for (const key of THEME_COLOR_KEYS) {
+    const value = source[key]
+    if (typeof value === 'string' && value) {
+      palette[key] = value
+    }
+  }
+
+  return palette
+}
+
+/**
+ * 旧版本地配置的主题迁移。
+ *
+ * 主题模型改过三轮：① 颜色由 `dark` 派生 → ② 9 个颜色平铺在 theme 顶层 →
+ * ③ 现在「一套配色 = light + dark 两组」+ 独立 `mode`。
+ *
+ * 因此读到的旧配置可能缺分组、或 id 已不存在（如删掉的 `business`）。
+ * 策略：认得出 id 就用该预设补底；认不出回退首个预设；
+ * 旧结构里平铺的那批色值落到 `mode` 指向的那一组，尽量保住用户当时的观感。
+ */
+function normalizeTheme(theme: unknown): ResumeThemeConfig {
+  const source = (theme && typeof theme === 'object' ? theme : {}) as Record<string, unknown>
+  const preset = resumeThemePresets.find((item) => item.id === source.id)
+  const base = preset ?? resumeThemePresets[0]!
+
+  const id = typeof source.id === 'string' && source.id ? source.id : base.id
+  const label = typeof source.label === 'string' && source.label ? source.label : base.label
+  const mode: ResumeColorMode
+    = source.mode === 'dark' || (source.mode === undefined && source.dark === true) ? 'dark' : 'light'
+  const hasFlat = THEME_COLOR_KEYS.some((key) => typeof source[key] === 'string')
+
+  const light = isPalette(source.light)
+    ? { ...base.light, ...source.light }
+    : hasFlat && mode === 'light'
+      ? paletteFromFlat(source, base.light)
+      : base.light
+  const dark = isPalette(source.dark)
+    ? { ...base.dark, ...source.dark }
+    : hasFlat && mode === 'dark'
+      ? paletteFromFlat(source, base.dark)
+      : base.dark
+
+  return { id, label, mode, light, dark }
 }
 
 /**
@@ -110,8 +191,36 @@ export function useResumeDisplay() {
   }
 
   // ── 主题 / 背景 ───────────────────────────────────────
-  function applyTheme(preset: ResumeThemeConfig) {
-    config.value.theme = { ...preset }
+  /** 切预设：保留当前明暗 —— 「绿色 + 深色」本身是合理组合 */
+  function applyTheme(preset: ResumeThemePreset) {
+    config.value.theme = { ...structuredClone(preset), mode: config.value.theme.mode }
+  }
+
+  /**
+   * 切到「自定义」：把当前配色复制一份再换 id。
+   *
+   * 这样从任意预设出发都能接着微调，而不是从空白开始；
+   * 切回预设时自定义的那份值不再保留（用户预期是"看预设长什么样"）。
+   */
+  function applyCustomTheme() {
+    config.value.theme = { ...config.value.theme, ...RESUME_CUSTOM_THEME }
+  }
+
+  /** 切换明暗（与配色预设正交） */
+  function setMode(mode: ResumeColorMode) {
+    config.value.theme = { ...config.value.theme, mode }
+  }
+
+  /**
+   * 改**某一明暗组**里的单个颜色（面板仅在自定义主题下开放编辑）。
+   *
+   * 调色盘把 light / dark 两组平铺展示，所以要显式传组：改的是被点的那一组。
+   */
+  function setThemeField(mode: ResumeColorMode, key: ResumeThemeColorKey, value: string) {
+    config.value.theme = {
+      ...config.value.theme,
+      [mode]: { ...config.value.theme[mode], [key]: value },
+    }
   }
   function setBackgroundType(type: ResumeBackgroundType) {
     config.value.background.type = type
@@ -238,7 +347,10 @@ export function useResumeDisplay() {
     }
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
-      config.value = JSON.parse(raw) as ResumeDisplayConfig
+      const parsed = JSON.parse(raw) as ResumeDisplayConfig
+      // 旧配置可能缺主题字段，补全后再使用（见 normalizeTheme）
+      parsed.theme = normalizeTheme(parsed.theme)
+      config.value = parsed
     }
     // 恢复数据本身不算"待保存的改动"
     saveState.value = 'idle'
@@ -260,6 +372,9 @@ export function useResumeDisplay() {
     // 品牌 / 主题 / 背景
     setBrand,
     applyTheme,
+    setMode,
+    applyCustomTheme,
+    setThemeField,
     setBackgroundType,
     setTexture,
     setBackgroundImage,
