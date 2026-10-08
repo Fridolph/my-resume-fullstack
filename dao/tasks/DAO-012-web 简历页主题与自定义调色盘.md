@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`self-tested`
+- 状态：`done`
 - Owner：`昇哥定范围（三栏 300px、「蓝色简约」沿用 #1578d0、自定义开放到底色/文字/边框等）`
 - 创建日期：`2026-10-08`
 - 关联：`Issue #18`、`DAO-010`（样式统一，引入了 `content-max` 与域公共类）、`DAO-011`（编辑交互，改了同一批组件）、`docs/dev/resume-styles.md` §11、`docs/dev/resume-display-architecture.md`
@@ -18,6 +18,7 @@
 | `in-progress -> self-tested` | 数据层 + 面板 + 三栏全部落地；typecheck / oxlint / SSR（三栏栅格、调色盘 9 项、无「蓝色商务」）通过 | 归枢记录 | 2026-10-08 |
 | `self-tested -> in-progress`（模型升级） | Owner 追加要求：明暗做成独立维度、每套预设自带 light/dark 两组色值（**推翻 `DAO-007` 的合并式决定**） | Owner 确认 | 2026-10-08 |
 | 升级完成 `-> self-tested` | 预设 × 明暗双向落地；typecheck / oxlint / SSR（深色组生效、两组平铺）通过 | 归枢记录 | 2026-10-08 |
+| `self-tested -> done` | 实现已合入 `dev`（随 `7b436c6` 一并进入：该提交含主题模型 / 三栏 300px / 调色盘代码，`git diff feat/18 origin/dev -- apps/web/layers/11-public-resume` 为空可证）；Owner 2026-10-08 要求完成后立即收口 | Owner 确认 | 2026-10-08 |
 
 ## Grill：开工前对齐
 
@@ -79,3 +80,9 @@
 - Dao Commit：`不适用`
 - 沉淀候选：`候选观察` —— 「主题可自定义」的正解是把颜色**从派生改为显式字段 + 迁移旧数据**，而不是在渲染层加 `?? fallback`；另外「框架官网的 theme 编辑器通常是 docs 实现，不是可复用组件」这条在 React 版（shadcn）同样可能遇到，值得对照。
 - 收口备注：① 与 `DAO-011`（编辑交互）改了同一批组件，合并顺序需注意 `ResumeSettingsPanel` / `useResumeDisplay` 冲突；② **决策反转已同步文档**（`architecture` §3.3 改为「已采用」，`resume-styles` §10.2 记反转原因），避免两处说法打架；③ 主题模型现在改过三轮，`normalizeTheme` 是后续任何结构再变时的必改点。
+
+## 收口记录（2026-10-08）
+
+- 状态 `-> done`：实现已合入 `dev`（随 `7b436c6` 一并进入：该提交含主题模型 / 三栏 300px / 调色盘代码，`git diff feat/18 origin/dev -- apps/web/layers/11-public-resume` 为空可证）。
+- 依据：Owner 于 2026-10-08 要求「任务完成后立即检查并收口 Issue 与任务卡，避免积累」，据此判 `done`。
+- 卡内如实标注的未验证边界（浏览器目视、端到端交互）**不阻塞收口**，另行统一安排。

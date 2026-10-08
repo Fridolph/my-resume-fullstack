@@ -110,3 +110,37 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
 ```
 
 状态是对“任务是否能进入下一门”的判断，不是工时百分比。每次迁移都需要在任务卡留下最少一条依据。
+
+## 完成后立即收口（避免积累）
+
+任务到达 `done` 时**当场**做完三件事，不要攒到"以后一起收"：
+
+1. **任务卡**：状态改为 `done`，状态轨迹追加一行（依据写清"交付随哪个提交 / PR 合入"），并补「收口记录」。
+2. **Issue**：回填改动摘要与验证结果后**关闭**。若实现内容已随别的提交进了主线（并行分支常见），
+   直接关闭并在评论里写明"已随 `<sha>` 合入 `dev`"，**不要再合并一个重复 PR**。
+3. **指针**：把该卡从 `dao/CURRENT.md` 移出（只留 `in-progress` / `planned` / `self-tested` / `review-ready`）。
+
+判 `done` 的三个条件：
+
+- 交付已进入 `dev`（或本卡声明的集成分支），且能指出**具体提交 / PR**；
+- 验证证据写在「执行与验证」表里（机器验 + 意图验至少各一条）；
+- 未验证边界**已如实记录** —— 它们不阻塞收口，但不能消失。
+
+> 与 `blocked` 的区别：收口是"做完了"，`blocked` 是"做不下去"。
+> 「等 Owner 看一眼」不构成不收口的理由 —— 写进「确认门与续跑」即可，卡该 `done` 就 `done`。
+
+**反例（2026-10-08 实测）**：一度出现 6 张卡停在 `review-ready`、3 个 PR 挂在远端；
+其中 2 个 PR 的内容**早已随别的提交进了 dev**（再合并就会造出重复改动）。收口前先跑一遍盘点：
+
+```bash
+# 各任务卡状态一览
+for f in dao/tasks/DAO-*.md; do
+  printf "%-52s %s\n" "$(basename "$f" .md | cut -c1-50)" "$(grep -m1 '^- 状态：' "$f" | sed 's/- 状态：//')"
+done
+
+# 未合入主线的分支（判断远端 PR 还需要不需要合）
+git fetch -q origin && git log --oneline origin/dev..origin/<branch>
+
+# 内容是否其实已在 dev（为空 = 不需要再合）
+git diff --stat <branch> origin/dev -- apps docs dao
+```
