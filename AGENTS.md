@@ -66,6 +66,7 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
 - TypeScript 保持严格类型；前端使用 Vue Composition API 与 `<script setup lang="ts">`；NestJS 按 module、controller、service 与 common 边界组织。
 - 测试文件优先放在对应模块的 `__tests__/` 目录，验证真实行为，不提交只为凑覆盖率的模板测试。
 - UI 改动必须验证桌面端与移动端关键路径；后端改动必须验证对应接口及异常路径。
+- **UI 与交互未经 Owner 实看确认，不得提交**：机器验证（typecheck / lint / 结构断言 / 截图度量）只证明"没坏"，不证明"对"。凡涉及视觉、布局、动效、交互手感的改动，先把改动留在工作区并说明"看哪里、看什么"，待 Owner 确认后再提交；Owner 未确认前不要用 squash / 合并把改动带进 `dev`。
 - 提交前至少执行 `pnpm format:check`、`pnpm lint`、`pnpm typecheck`、`pnpm test` 和受影响范围的构建；若项目尚无测试，说明缺口而不是伪造测试。
 
 ## 5. Skills：使用、安装与边界
