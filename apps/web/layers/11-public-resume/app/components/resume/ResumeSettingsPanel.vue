@@ -43,12 +43,12 @@ function isHidden(key: ResumeSectionKey) {
 </script>
 
 <template>
-  <div class="space-y-6" :style="{ color: 'var(--resume-text, #0f172a)' }">
+  <div class="resume-text space-y-6">
     <div class="grid gap-4 lg:grid-cols-3">
       <!-- 布局 -->
       <section class="space-y-2">
-        <p class="text-xs font-medium" :style="{ color: 'var(--resume-muted, #64748b)' }">布局</p>
-        <div class="flex flex-wrap gap-2">
+        <p class="resume-label">布局</p>
+        <div class="resume-btn-group">
           <UButton
             v-for="item in layoutModes"
             :key="item.value"
@@ -96,8 +96,8 @@ function isHidden(key: ResumeSectionKey) {
 
       <!-- 主题（配色） -->
       <section class="space-y-2">
-        <p class="text-xs font-medium" :style="{ color: 'var(--resume-muted, #64748b)' }">主题</p>
-        <div class="flex flex-wrap gap-2">
+        <p class="resume-label">主题</p>
+        <div class="resume-btn-group">
           <UButton
             v-for="preset in resumeThemePresets"
             :key="preset.id"
@@ -112,8 +112,8 @@ function isHidden(key: ResumeSectionKey) {
 
       <!-- 风格（区块长什么样） -->
       <section class="space-y-2">
-        <p class="text-xs font-medium" :style="{ color: 'var(--resume-muted, #64748b)' }">风格</p>
-        <div class="flex flex-wrap gap-2">
+        <p class="resume-label">风格</p>
+        <div class="resume-btn-group">
           <UButton
             v-for="preset in resumeStylePresets"
             :key="preset.id"
@@ -125,15 +125,15 @@ function isHidden(key: ResumeSectionKey) {
             @click="setStyle(preset.id)"
           />
         </div>
-        <p class="text-xs" :style="{ color: 'var(--resume-muted, #64748b)' }">
+        <p class="resume-muted text-xs">
           只管区块的样子，不改变颜色与顺序
         </p>
       </section>
 
       <!-- 背景 -->
       <section class="space-y-2">
-        <p class="text-xs font-medium" :style="{ color: 'var(--resume-muted, #64748b)' }">背景</p>
-        <div class="flex flex-wrap gap-2">
+        <p class="resume-label">背景</p>
+        <div class="resume-btn-group">
           <UButton
             v-for="preset in resumeBackgroundPresets"
             :key="preset.id"
@@ -160,7 +160,7 @@ function isHidden(key: ResumeSectionKey) {
             @update:model-value="setBackgroundImage({ url: String($event) })"
           />
           <div class="flex items-center gap-3">
-            <span class="w-14 shrink-0 text-xs" :style="{ color: 'var(--resume-muted, #64748b)' }">遮罩</span>
+            <span class="resume-muted w-14 shrink-0 text-xs">遮罩</span>
             <USlider
               class="flex-1"
               :min="0"
@@ -171,7 +171,7 @@ function isHidden(key: ResumeSectionKey) {
             />
           </div>
           <div class="flex items-center gap-3">
-            <span class="w-14 shrink-0 text-xs" :style="{ color: 'var(--resume-muted, #64748b)' }">模糊</span>
+            <span class="resume-muted w-14 shrink-0 text-xs">模糊</span>
             <USlider
               class="flex-1"
               :min="0"
@@ -187,10 +187,10 @@ function isHidden(key: ResumeSectionKey) {
 
     <!-- 区块编排 -->
     <section class="space-y-2">
-      <p class="text-xs font-medium" :style="{ color: 'var(--resume-muted, #64748b)' }">
+      <p class="resume-label">
         区块显隐（顺序与归属见配置的 order / slot；拖拽排序在下一阶段接入）
       </p>
-      <div class="flex flex-wrap gap-2">
+      <div class="resume-btn-group">
         <UButton
           v-for="definition in resumeSectionDefinitions"
           :key="definition.key"

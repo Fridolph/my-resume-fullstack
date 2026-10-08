@@ -12,7 +12,7 @@ const plannedParts = [
 </script>
 
 <template>
-  <main class="mx-auto w-full max-w-6xl space-y-8 px-6 py-10">
+  <main class="content-max space-y-8 px-6 py-10">
     <section>
       <UBadge color="primary" variant="subtle">layers/12-ai-talk</UBadge>
       <h1 class="mt-3 text-3xl font-bold tracking-tight text-highlighted sm:text-4xl">AI 对话</h1>

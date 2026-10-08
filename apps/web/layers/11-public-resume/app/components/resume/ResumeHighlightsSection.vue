@@ -15,8 +15,8 @@ defineProps<ResumeSectionProps>()
           :style="{ background: 'var(--resume-primary)' }"
         />
         <p>
-          <span class="font-medium" :style="{ color: 'var(--resume-text)' }">{{ item.title }}</span>
-          <span :style="{ color: 'var(--resume-muted)' }">：{{ item.description }}</span>
+          <span class="resume-text font-medium">{{ item.title }}</span>
+          <span class="resume-muted">：{{ item.description }}</span>
         </p>
       </li>
     </ul>

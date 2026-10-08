@@ -22,11 +22,11 @@ withDefaults(
   <div
     class="sticky top-0 z-20 border-b backdrop-blur"
     :style="{
-      borderColor: 'var(--resume-border, #e2e8f0)',
-      background: 'color-mix(in srgb, var(--resume-surface, #fff) 88%, transparent)',
+      borderColor: 'var(--resume-border)',
+      background: 'color-mix(in srgb, var(--resume-surface) 88%, transparent)',
     }"
   >
-    <div class="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
+    <div class="content-max flex items-center gap-4 px-4 py-3 sm:px-6">
       <NuxtLink to="/resume" class="flex min-w-0 items-center gap-3" :aria-label="brand.title">
         <span
           class="grid size-9 shrink-0 place-items-center rounded-xl text-sm font-semibold text-white"
@@ -45,15 +45,13 @@ withDefaults(
 
         <span class="min-w-0">
           <span
-            class="block truncate text-sm font-medium"
-            :style="{ color: 'var(--resume-text, #0f172a)' }"
+            class="resume-text block truncate text-sm font-medium"
           >
             {{ brand.title }}
           </span>
           <span
             v-if="brand.description"
-            class="block truncate text-xs"
-            :style="{ color: 'var(--resume-muted, #64748b)' }"
+            class="resume-muted block truncate text-xs"
           >
             {{ brand.description }}
           </span>
@@ -62,9 +60,8 @@ withDefaults(
 
       <p
         aria-live="polite"
-        class="hidden min-w-0 flex-1 truncate text-center text-sm font-medium transition-opacity duration-200 sm:block"
+        class="resume-accent hidden min-w-0 flex-1 truncate text-center text-sm font-medium transition-opacity duration-200 sm:block"
         :class="activeSectionTitle ? 'opacity-100' : 'opacity-0'"
-        :style="{ color: 'var(--resume-primary, #1578d0)' }"
       >
         {{ activeSectionTitle }}
       </p>

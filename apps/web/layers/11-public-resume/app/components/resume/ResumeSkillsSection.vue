@@ -9,7 +9,7 @@ defineProps<ResumeSectionProps>()
 <template>
   <ResumeSectionCard :section="section" :variant="variant">
     <div v-for="group in content.skills" :key="group.group" class="space-y-2">
-      <p class="text-xs font-medium" :style="{ color: 'var(--resume-muted)' }">{{ group.group }}</p>
+      <p class="resume-label">{{ group.group }}</p>
       <div class="flex flex-wrap gap-1.5">
         <span
           v-for="skill in group.items"

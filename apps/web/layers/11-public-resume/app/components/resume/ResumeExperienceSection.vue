@@ -9,19 +9,19 @@ defineProps<ResumeSectionProps>()
 <template>
   <ResumeSectionCard :section="section" :variant="variant">
     <article v-for="item in content.experience" :key="item.company" class="flex flex-col gap-1 sm:flex-row sm:gap-4">
-      <p class="w-32 shrink-0 text-xs" :style="{ color: 'var(--resume-muted)' }">{{ item.period }}</p>
+      <p class="resume-muted w-32 shrink-0 text-xs">{{ item.period }}</p>
       <div class="min-w-0 space-y-2">
         <header>
-          <p class="font-medium" :style="{ color: 'var(--resume-text)' }">{{ item.company }}</p>
-          <p class="text-xs" :style="{ color: 'var(--resume-muted)' }">
+          <p class="resume-text font-medium">{{ item.company }}</p>
+          <p class="resume-muted text-xs">
             {{ item.role }}<template v-if="item.domain"> · {{ item.domain }}</template>
           </p>
         </header>
 
-        <p v-if="item.overview" :style="{ color: 'var(--resume-muted)' }">{{ item.overview }}</p>
+        <p v-if="item.overview"class="resume-muted">{{ item.overview }}</p>
 
         <ul v-if="options.showAchievements && item.achievements?.length" class="list-inside list-disc space-y-1">
-          <li v-for="line in item.achievements" :key="line" :style="{ color: 'var(--resume-muted)' }">
+          <li v-for="line in item.achievements" :key="line"class="resume-muted">
             {{ line }}
           </li>
         </ul>

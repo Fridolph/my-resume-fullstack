@@ -9,12 +9,12 @@ defineProps<ResumeSectionProps>()
 <template>
   <ResumeSectionCard :section="section" :variant="variant">
     <div v-for="item in content.education" :key="item.school" class="flex flex-col gap-1 sm:flex-row sm:gap-4">
-      <p class="w-32 shrink-0 text-xs" :style="{ color: 'var(--resume-muted)' }">{{ item.period }}</p>
+      <p class="resume-muted w-32 shrink-0 text-xs">{{ item.period }}</p>
       <div class="min-w-0">
-        <p class="font-medium" :style="{ color: 'var(--resume-text)' }">
-          {{ item.school }}<span :style="{ color: 'var(--resume-muted)' }"> · {{ item.degree }}</span>
+        <p class="resume-text font-medium">
+          {{ item.school }}<span class="resume-muted"> · {{ item.degree }}</span>
         </p>
-        <p v-if="item.major" class="text-xs" :style="{ color: 'var(--resume-muted)' }">{{ item.major }}</p>
+        <p v-if="item.major" class="resume-muted text-xs">{{ item.major }}</p>
       </div>
     </div>
   </ResumeSectionCard>

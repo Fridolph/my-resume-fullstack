@@ -16,11 +16,13 @@ import ResumeColumn from './ResumeColumn.vue'
 /**
  * 正文容器：布局与拖拽的唯一实现处。
  *
- * - 注入主题与**风格** CSS 变量 + 背景层
- * - 把区块按「配置顺序 + 栏位归属」分到三栏；三种布局共用同一份 order / slot
+ * - 把区块按「配置顺序 + 栏位归属」分到各栏；三种布局共用同一份 order / slot
  * - 把 `style.id` 作为 `variant` 往下传（结构差异用），并输出 `data-resume-style` 供样式选择
  * - `editable` 时启用跨栏拖拽（sortablejs，仅客户端），拖拽结果交给 useResumeDisplay
  * - `lg` 以下一律单列（移动端优先），DOM 顺序为 side → main → rail
+ *
+ * 注意：主题 / 风格 CSS 变量**不在这里注入** —— 它们由页面注入到 `<body>`，
+ * 好让 teleport 到 body 的抽屉与弹窗也能跟随主题（见 pages/resume/index.vue）。
  */
 const props = defineProps<{
   content: ResumeContent
@@ -72,11 +74,15 @@ const columns = computed(() => {
 /**
  * 栅格类必须是**字面量**：Tailwind 扫描源码里的静态字符串，
  * 拼接出来的类名不会生成样式。
+ *
+ * split 的两档宽度对齐旧站（旧站固定 `lg:320px / xl:360px`）：
+ * `compact` ≈ 旧站观感，`wide` 再各宽一档。
  */
 const gridClass = computed(() => {
   const { mode, splitSide, sideWidth } = props.config.layout
   const hasSide = columns.value.side.length > 0
   const hasRail = columns.value.rail.length > 0
+  const wide = sideWidth === 'wide'
 
   if (mode === 'threeColumn') {
     if (hasSide && hasRail) {
@@ -92,80 +98,34 @@ const gridClass = computed(() => {
   }
 
   if (mode === 'split' && hasSide) {
-    const wide = sideWidth === 'wide'
     if (splitSide === 'right') {
-      return wide ? 'lg:grid-cols-[minmax(0,1fr)_360px]' : 'lg:grid-cols-[minmax(0,1fr)_280px]'
+      return wide
+        ? 'lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px]'
+        : 'lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px]'
     }
-    return wide ? 'lg:grid-cols-[360px_minmax(0,1fr)]' : 'lg:grid-cols-[280px_minmax(0,1fr)]'
+    return wide
+      ? 'lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[420px_minmax(0,1fr)]'
+      : 'lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]'
   }
 
   return 'lg:grid-cols-1'
 })
 
-/** 信息栏 + 三栏模式下跟随滚动；主内容列不跟随 */
+/** 信息栏与右栏跟随滚动；主内容列不跟随，但通栏时要限宽 */
 function columnClass(slot: ResumeSlotKey) {
-  const sticky = props.config.layout.stickySide && slot !== 'main'
+  const classes: string[] = []
 
-  return sticky ? 'lg:sticky lg:top-20 lg:self-start' : ''
+  if (props.config.layout.stickySide && slot !== 'main') {
+    classes.push('lg:sticky lg:top-20 lg:self-start')
+  }
+
+  // 通栏模式：正文单独限宽并居中 —— 1920 容器下不限制的话单行会接近 1800px，难读
+  if (props.config.layout.mode === 'single' && slot === 'main') {
+    classes.push('lg:mx-auto lg:max-w-4xl')
+  }
+
+  return classes.join(' ')
 }
-
-/** 主题 → CSS 变量：区块组件只消费变量，不关心明暗 */
-const themeVars = computed(() => {
-  const { theme } = props.config
-
-  return {
-    '--resume-primary': theme.primary,
-    '--resume-gradient-from': theme.gradientFrom,
-    '--resume-gradient-to': theme.gradientTo,
-    '--resume-page': theme.dark ? 'rgb(3 7 18)' : 'rgb(248 250 252)',
-    '--resume-surface': theme.dark ? 'rgb(17 24 39)' : 'rgb(255 255 255)',
-    '--resume-border': theme.dark ? 'rgb(31 41 55)' : 'rgb(226 232 240)',
-    '--resume-text': theme.dark ? 'rgb(229 231 235)' : 'rgb(15 23 42)',
-    '--resume-muted': theme.dark ? 'rgb(148 163 184)' : 'rgb(100 116 139)',
-    '--resume-chip-bg': theme.dark ? 'rgb(31 41 55)' : 'rgb(241 245 249)',
-    '--resume-chip-text': theme.dark ? 'rgb(226 232 240)' : 'rgb(51 65 85)',
-  }
-})
-
-/**
- * 风格 → CSS 变量（与主题变量**同层**下发，将来容器瘦身也不用另找注入点）。
- *
- * 只放「视觉参数」（圆角 / 内边距 / 表面 / 阴影 / 标题字级）；
- * 结构差异（hero 呈现、外壳标题结构）由 `variant` prop 决定。
- *
- * ⚠️ 取值必须从 `--resume-*` 派生（`color-mix`），**禁止写死品牌色** ——
- * 否则换主题时风格会残留本色，破坏「风格 × 主题」正交（见 docs/dev/resume-styles.md §7）。
- */
-const styleVars = computed(() => {
-  const { theme } = props.config
-
-  if (props.config.style.id !== 'standard') {
-    return {
-      '--resume-card-radius': '1rem',
-      '--resume-card-padding': '1.25rem',
-      '--resume-card-bg': 'var(--resume-surface)',
-      '--resume-card-shadow': 'none',
-      '--resume-card-shadow-hover': 'none',
-      '--resume-title-size': '0.875rem',
-    }
-  }
-
-  const deep = theme.dark ? 'var(--resume-chip-bg)' : 'var(--resume-chip-bg)'
-
-  return {
-    '--resume-card-radius': '1.5rem',
-    '--resume-card-padding': '1.5rem',
-    // 卡片表面：两处主色光斑 + 表面色渐变，全部由主题变量派生
-    '--resume-card-bg': [
-      'radial-gradient(circle at top left, color-mix(in srgb, var(--resume-primary) 10%, transparent), transparent 34%)',
-      'radial-gradient(circle at bottom right, color-mix(in srgb, var(--resume-primary) 6%, transparent), transparent 28%)',
-      `linear-gradient(180deg, color-mix(in srgb, var(--resume-surface) 88%, transparent), color-mix(in srgb, ${deep} 60%, var(--resume-surface)))`,
-    ].join(', '),
-    '--resume-card-shadow': '0 16px 40px color-mix(in srgb, var(--resume-text) 7%, transparent)',
-    '--resume-card-shadow-hover': '0 20px 44px color-mix(in srgb, var(--resume-primary) 18%, transparent)',
-    '--resume-title-size': '1.5rem',
-  }
-})
 
 // ── 拖拽（仅客户端、仅编辑态）──────────────────────────
 let instances: Sortable[] = []
@@ -262,14 +222,11 @@ watch(
     ref="containerRef"
     class="relative min-h-screen py-8 sm:py-10"
     :data-resume-style="config.style.id"
-    :style="{ ...themeVars, ...styleVars, background: 'var(--resume-page)' }"
+    :style="{ background: 'var(--resume-page)' }"
   >
     <ResumeBackgroundLayer :background="config.background" :dark="config.theme.dark" />
 
-    <div
-      class="relative mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 px-4 sm:px-6"
-      :class="gridClass"
-    >
+    <div class="content-max relative grid grid-cols-1 gap-6 px-4 sm:px-6" :class="gridClass">
       <div v-if="columns.side.length" :class="columnClass('side')">
         <ResumeColumn
           slot-key="side"

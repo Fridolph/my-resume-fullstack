@@ -1,10 +1,66 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/*
+ * 基础样式约定（详见 docs/dev/css-conventions.md）
+ * 1) 移动优先；内容区最大宽度 1920px（Header 保持全宽，内容区 max-w-1920）
+ * 2) 间距：页面级留白统一用 content-pad，不再手写 p-4 sm:p-6 之类散值
+ * 3) 单个 class 超过 12 个类时，抽离为 BEM 命名 + @apply
+ *
+ * 业务域样式不放这里：简历展示域在 layers/11-public-resume/app/assets/css/resume.css。
+ */
+
+@theme {
+  /* 内容区最大宽度：>1920px（2k/4k）统一按 1920px 处理 */
+  --container-1920: 1920px;
+}
+
 :root {
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
+html {
+  /* 锚点跳转平滑滚动 */
+  scroll-behavior: smooth;
+}
+
 body {
   @apply bg-default text-default;
+}
+
+/* 隐藏 Edge 密码框的「显示密码」眼睛图标 */
+::-ms-reveal {
+  display: none;
+}
+
+/* 可交互元素统一 pointer 手型（Nuxt UI 部分按钮默认不带） */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* 统一页面内容区留白：移动 / 桌面 8px，大屏 16~24px */
+@utility content-pad {
+  @apply p-2 md:p-4 2xl:p-6;
+}
+
+/* 内容区封顶 1920 并居中 */
+@utility content-max {
+  @apply mx-auto w-full max-w-1920;
+}
+
+/* 隐藏滚动条，但允许滚动 */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.box-shadow-none {
+  box-shadow: none !important;
 }

@@ -10,8 +10,8 @@ defineProps<ResumeSectionProps>()
   <ResumeSectionCard :section="section" :variant="variant">
     <ul class="space-y-2">
       <li v-for="line in content.evaluations" :key="line" class="flex gap-2">
-        <UIcon name="i-lucide-check" class="mt-1 size-4 shrink-0" :style="{ color: 'var(--resume-primary)' }" />
-        <span :style="{ color: 'var(--resume-muted)' }">{{ line }}</span>
+        <UIcon name="i-lucide-check" class="resume-accent mt-1 size-4 shrink-0" />
+        <span class="resume-muted">{{ line }}</span>
       </li>
     </ul>
     <p

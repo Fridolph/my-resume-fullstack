@@ -10,14 +10,14 @@ defineProps<ResumeSectionProps>()
   <ResumeSectionCard :section="section" :variant="variant">
     <article v-for="item in content.projects" :key="item.name" class="space-y-2">
       <header class="flex flex-wrap items-baseline justify-between gap-2">
-        <p class="font-medium" :style="{ color: 'var(--resume-text)' }">
+        <p class="resume-text font-medium">
           {{ item.name }}
-          <span class="text-xs font-normal" :style="{ color: 'var(--resume-muted)' }">· {{ item.role }}</span>
+          <span class="resume-muted text-xs font-normal">· {{ item.role }}</span>
         </p>
-        <p class="text-xs" :style="{ color: 'var(--resume-muted)' }">{{ item.period }}</p>
+        <p class="resume-muted text-xs">{{ item.period }}</p>
       </header>
 
-      <p v-if="item.overview" :style="{ color: 'var(--resume-muted)' }">{{ item.overview }}</p>
+      <p v-if="item.overview"class="resume-muted">{{ item.overview }}</p>
 
       <div v-if="item.features?.length" class="flex flex-wrap gap-1.5">
         <span
@@ -31,11 +31,11 @@ defineProps<ResumeSectionProps>()
       </div>
 
       <ul v-if="options.showAchievements && item.highlights?.length" class="list-inside list-disc space-y-1">
-        <li v-for="line in item.highlights" :key="line" :style="{ color: 'var(--resume-muted)' }">{{ line }}</li>
+        <li v-for="line in item.highlights" :key="line"class="resume-muted">{{ line }}</li>
       </ul>
 
       <div v-if="options.showTechStack && item.tech?.length" class="flex flex-wrap gap-1.5">
-        <span class="text-xs" :style="{ color: 'var(--resume-muted)' }">技术栈：</span>
+        <span class="resume-muted text-xs">技术栈：</span>
         <span
           v-for="tech in item.tech"
           :key="tech"

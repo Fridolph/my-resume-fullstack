@@ -78,7 +78,7 @@ function moveItem(segment: ResumeFieldGroupSchema, index: number, delta: number)
       <p
         v-if="segment.label"
         class="border-b pb-2 text-sm font-semibold"
-        :style="{ borderColor: 'var(--resume-border, #e2e8f0)' }"
+        :style="{ borderColor: 'var(--resume-border)' }"
       >
         {{ segment.label }}
       </p>

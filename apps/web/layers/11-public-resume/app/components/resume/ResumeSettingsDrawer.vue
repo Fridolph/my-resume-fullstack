@@ -17,8 +17,7 @@ const { isDirty, saveLocal, reset } = useResumeDisplay()
     v-model:open="open"
     direction="right"
     title="展示设置"
-    description="布局 / 主题 / 背景 / 区块显隐"
-    :ui="{ content: 'w-full sm:max-w-md' }"
+    description="布局 / 主题 / 风格 / 背景 / 区块显隐"
   >
     <template #body>
       <ResumeSettingsPanel />

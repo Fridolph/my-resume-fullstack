@@ -39,17 +39,7 @@ const visibleContact = computed(() =>
 </script>
 
 <template>
-  <section
-    class="r-hero border"
-    :data-style="variant"
-    :style="{
-      background: 'var(--resume-card-bg)',
-      borderColor: 'var(--resume-border)',
-      borderRadius: 'var(--resume-card-radius)',
-      padding: 'var(--resume-card-padding)',
-      boxShadow: 'var(--resume-card-shadow)',
-    }"
-  >
+  <section class="resume-card" :data-style="variant">
     <!-- minimal：保持原排版 -->
     <template v-if="!isStandard">
       <div class="flex items-center gap-4">
@@ -62,24 +52,24 @@ const visibleContact = computed(() =>
           {{ avatarText }}
         </span>
         <div class="min-w-0">
-          <h1 class="truncate text-lg font-semibold tracking-tight" :style="{ color: 'var(--resume-text)' }">
+          <h1 class="resume-text truncate text-lg font-semibold tracking-tight">
             {{ profile.name }}
           </h1>
-          <p class="mt-0.5 text-sm" :style="{ color: 'var(--resume-primary)' }">
+          <p class="resume-accent mt-0.5 text-sm">
             {{ profile.headline }}
           </p>
         </div>
       </div>
 
-      <p class="mt-4 text-sm leading-6" :style="{ color: 'var(--resume-muted)' }">
+      <p class="resume-muted mt-4 text-sm leading-6">
         {{ profile.summary }}
       </p>
 
       <dl class="mt-4 space-y-2 border-t pt-4 text-sm" :style="{ borderColor: 'var(--resume-border)' }">
         <div v-for="item in visibleContact" :key="item.key" class="flex items-start gap-2">
-          <UIcon :name="item.icon" class="mt-0.5 size-4 shrink-0" :style="{ color: 'var(--resume-primary)' }" />
+          <UIcon :name="item.icon" class="resume-accent mt-0.5 size-4 shrink-0" />
           <dt class="sr-only">{{ item.label }}</dt>
-          <dd class="min-w-0 break-all" :style="{ color: 'var(--resume-muted)' }">{{ item.value }}</dd>
+          <dd class="resume-muted min-w-0 break-all">{{ item.value }}</dd>
         </div>
       </dl>
     </template>
@@ -128,10 +118,10 @@ const visibleContact = computed(() =>
         </p>
 
         <div class="space-y-1">
-          <h1 class="text-2xl font-semibold tracking-tight" :style="{ color: 'var(--resume-text)' }">
+          <h1 class="resume-text text-2xl font-semibold tracking-tight">
             {{ profile.name }}
           </h1>
-          <p class="text-sm font-semibold" :style="{ color: 'var(--resume-muted)' }">
+          <p class="resume-muted text-sm font-semibold">
             {{ profile.headline }}
           </p>
         </div>
@@ -140,30 +130,30 @@ const visibleContact = computed(() =>
           class="w-full rounded-2xl border p-4 text-start text-sm leading-6"
           :style="{ borderColor: 'var(--resume-border)', color: 'var(--resume-text)' }"
         >
-          <span class="eyebrow">Intro</span>
+          <span class="resume-eyebrow">Intro</span>
           {{ profile.summary }}
         </p>
       </div>
 
       <!-- 联系方式：条目卡 -->
       <div class="mt-5 grid gap-2 rounded-2xl border p-4" :style="{ borderColor: 'var(--resume-border)' }">
-        <span class="eyebrow">Contact</span>
+        <span class="resume-eyebrow">Contact</span>
         <div
           v-for="item in visibleContact"
           :key="item.key"
           class="contact-item flex items-start gap-3 rounded-xl border px-3 py-2"
           :style="{ borderColor: 'var(--resume-border)' }"
         >
-          <UIcon :name="item.icon" class="mt-0.5 size-4 shrink-0" :style="{ color: 'var(--resume-primary)' }" />
+          <UIcon :name="item.icon" class="resume-accent mt-0.5 size-4 shrink-0" />
           <span class="sr-only">{{ item.label }}</span>
-          <span class="min-w-0 break-all text-sm" :style="{ color: 'var(--resume-muted)' }">{{ item.value }}</span>
+          <span class="resume-muted min-w-0 break-all text-sm">{{ item.value }}</span>
         </div>
       </div>
 
       <!-- 个人链接 -->
       <div v-if="profile.links.length" class="mt-4 grid gap-2">
-        <span class="eyebrow">Links</span>
-        <div class="flex flex-wrap gap-2">
+        <span class="resume-eyebrow">Links</span>
+        <div class="resume-btn-group">
           <a
             v-for="link in profile.links"
             :key="link.url"
@@ -173,7 +163,7 @@ const visibleContact = computed(() =>
             class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors hover:border-current"
             :style="{ borderColor: 'var(--resume-border)', color: 'var(--resume-text)' }"
           >
-            <UIcon :name="link.icon || 'i-lucide-external-link'" class="size-4" :style="{ color: 'var(--resume-primary)' }" />
+            <UIcon :name="link.icon || 'i-lucide-external-link'" class="resume-accent size-4" />
             {{ link.label }}
           </a>
         </div>
@@ -181,15 +171,15 @@ const visibleContact = computed(() =>
 
       <!-- 兴趣 -->
       <div v-if="profile.interests.length" class="mt-4 grid gap-2">
-        <span class="eyebrow">Interests</span>
-        <div class="flex flex-wrap gap-2">
+        <span class="resume-eyebrow">Interests</span>
+        <div class="resume-btn-group">
           <span
             v-for="interest in profile.interests"
             :key="interest.label"
             class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
             :style="{ borderColor: 'var(--resume-border)', color: 'var(--resume-muted)' }"
           >
-            <UIcon v-if="interest.icon" :name="interest.icon" class="size-4" :style="{ color: 'var(--resume-primary)' }" />
+            <UIcon v-if="interest.icon" :name="interest.icon" class="resume-accent size-4" />
             {{ interest.label }}
           </span>
         </div>
@@ -199,30 +189,6 @@ const visibleContact = computed(() =>
 </template>
 
 <style scoped>
-.eyebrow {
-  display: block;
-  margin-bottom: 0.375rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--resume-muted);
-}
-
-.r-hero {
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.24s ease,
-    border-color 0.2s ease;
-}
-
-@media (hover: hover) {
-  .r-hero[data-style='standard']:hover {
-    border-color: color-mix(in srgb, var(--resume-primary) 40%, transparent);
-    box-shadow: var(--resume-card-shadow-hover);
-  }
-}
-
 /* ── 头像翻牌（3D 无法用变量表达，回到 CSS）────────── */
 .flip {
   perspective: 1000px;
@@ -308,7 +274,6 @@ const visibleContact = computed(() =>
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .r-hero,
   .flip-inner,
   .gradient-copy,
   .contact-item {
