@@ -294,7 +294,7 @@ watch(
     :data-dragging="dragging ? 'true' : undefined"
     :style="{ background: 'var(--resume-page)' }"
   >
-    <ResumeBackgroundLayer :background="config.background" :dark="config.theme.dark" />
+    <ResumeBackgroundLayer :background="config.background" :dark="config.theme.mode === 'dark'" />
 
     <div class="content-max relative grid grid-cols-1 gap-6 px-4 sm:px-6" :class="gridClass">
       <template v-for="slot in SLOT_ORDER" :key="slot">

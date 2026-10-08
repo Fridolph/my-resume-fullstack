@@ -126,26 +126,29 @@ const saveLabel = computed(() => {
 const resumeVars = computed(() => {
   const { theme, style } = config.value
   const standard = style.id === 'standard'
+  /** 当前明暗对应的那组色值 */
+  const palette = theme[theme.mode]
+  const isDark = theme.mode === 'dark'
 
   return {
     // ── 主题（颜色）──
-    '--resume-primary': theme.primary,
-    '--resume-gradient-from': theme.gradientFrom,
-    '--resume-gradient-to': theme.gradientTo,
+    '--resume-primary': palette.primary,
+    '--resume-gradient-from': palette.gradientFrom,
+    '--resume-gradient-to': palette.gradientTo,
     // 页面底色：旧站式渐变（颜色由 primary 派生，随主题变化）
     '--resume-page': [
       'radial-gradient(circle at top, color-mix(in srgb, var(--resume-primary) 14%, transparent), transparent 24%)',
-      theme.dark
+      isDark
         ? 'linear-gradient(180deg, #020617 0%, #0f172a 100%)'
         : 'linear-gradient(180deg, color-mix(in srgb, var(--resume-primary) 3%, #f7f9fe) 0%, color-mix(in srgb, var(--resume-primary) 6%, #eef3fb) 100%)',
     ].join(', '),
-    // 这些颜色是主题的显式字段（「自定义」主题可逐项编辑），不再由 dark 派生
-    '--resume-surface': theme.surface,
-    '--resume-border': theme.border,
-    '--resume-text': theme.text,
-    '--resume-muted': theme.muted,
-    '--resume-chip-bg': theme.chipBg,
-    '--resume-chip-text': theme.chipText,
+    // 这些颜色取自「当前明暗那一组」（自定义主题可逐项编辑）
+    '--resume-surface': palette.surface,
+    '--resume-border': palette.border,
+    '--resume-text': palette.text,
+    '--resume-muted': palette.muted,
+    '--resume-chip-bg': palette.chipBg,
+    '--resume-chip-text': palette.chipText,
 
     // ── 风格（外观参数）──
     '--resume-card-radius': standard ? '1.5rem' : '1rem',
