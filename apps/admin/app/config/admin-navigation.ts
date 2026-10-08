@@ -28,6 +28,7 @@ export const adminNavigation: AdminNavigationItem[] = [
     icon: 'i-lucide-component',
     children: [
       { label: 'Overlay / Modal (shared)', to: '/comps/overlay' },
+      { label: 'Full screen gallery (shared)', to: '/comps/full-screen-modal' },
       { label: 'Loaders', to: '/comps/loaders' },
       { label: 'Tour', to: '/comps/tour' },
       { label: 'Tour spotlight', to: '/comps/tour-light' },
@@ -54,6 +55,7 @@ export const adminNavigation: AdminNavigationItem[] = [
       { label: 'Resume layout editor', to: '/demos/layout-editor' },
       { label: 'Resume options tabs', to: '/demos/options-tabs' },
       { label: 'Resume compare modal', to: '/demos/compare-modal' },
+      { label: 'Hobby gallery', to: '/demos/hobby-modal' },
     ],
   },
 ]
