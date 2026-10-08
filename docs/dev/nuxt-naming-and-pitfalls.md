@@ -95,3 +95,39 @@ curl -s http://localhost:4020/<path> | grep -o -i 'Failed to resolve component\|
 - `typecheck` 无 error。
 - SSR HTML 里能找到预期的 `<input>` / 标题 / `admin-sidebar` 等关键节点。
 - 无 `Failed to resolve component` / `NUXT_E*` / `missing template` 告警。
+
+## 5. 批量改模板后必须跑 SSR（typecheck 抓不到模板破损）
+
+**教训**：用脚本批量替换 `.vue` 模板（例如把 `:style="{ color: 'var(--x)' }"` 换成语义类、把相对 import 换成别名）时，`typecheck` 可能**通过**，但模板已经编译不过。
+
+真实例子（2026-10-08，web 简历页样式统一）：批量插入 `class="resume-muted"` 时，脚本的正则把前导空格一起吃掉了，产出 `<spanclass="resume-muted">`：
+
+```
+Vite Error: .../ResumeEducationSection.vue — Invalid end tag.
+```
+
+`pnpm --filter @template/web typecheck` 全程通过，只有起 dev server 抓页时才以 500 暴露。同类破损还有：删掉 style 时连带删掉属性间空格、标签属性被截断。
+
+**规范**：
+
+1. 批量替换后用脚本自检一遍「标签名与属性相连」这类破损：
+
+   ```bash
+   grep -rn --include='*.vue' -E '<[a-zA-Z]+(class|style|:|@)=' apps/web | grep -v node_modules
+   ```
+
+2. **必须**起 dev server 抓一次真实 SSR（不能只看 typecheck）：
+
+   ```bash
+   cd apps/web && pnpm exec nuxt dev --port 4023
+   curl -s -o /dev/null -w "%{http_code}\n" http://localhost:4023/resume   # 期望 200，不是 500
+   curl -s http://localhost:4023/resume | grep -o 'Failed to resolve component\|NUXT_E[0-9]*\|Invalid end tag'
+   ```
+
+3. 500 响应在 dev 下会返回 JSON，直接读 `message` 字段即可定位是哪个文件：
+
+   ```bash
+   curl -s http://localhost:4023/resume | head -c 400
+   ```
+
+4. 大面积替换后，把「脚本 dry-run 输出」与「替换处数」一并记录下来（本次：语义类 33 处 + 按钮组 7 处 + fallback 10 处），便于复核是否漏改。
