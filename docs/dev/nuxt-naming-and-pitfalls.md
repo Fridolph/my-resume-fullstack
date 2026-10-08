@@ -165,3 +165,60 @@ RolldownError: Error parsing JavaScript expression: Unexpected token, expected "
    ```bash
    grep -rn --include='*.vue' -E '@[a-zA-Z:._-]+="[^"]*;' apps | grep -v node_modules
    ```
+
+## 7. `<component :is>` 拼条件标签 + `UTooltip` 包裹 → 事件处理器静默不执行（2026-10-08）
+
+**现场**：兴趣标签需要"可点时是 `<button>`、不可点时是 `<span>`"，写成
+
+```vue
+<UTooltip v-for="item in items" :key="item.id" :text="item.description">
+  <component :is="clickable(item) ? 'button' : 'span'" @click="open(item)">
+    …
+  </component>
+</UTooltip>
+```
+
+**症状**：渲染完全正常（`tagName`、`class`、`aria-label` 都对），点击**没有任何反应、控制台零报错**。
+用 CDP 查这个元素的事件监听器，`click` **在**（`DOMDebugger.getEventListeners` 能看到）：
+
+```js
+const { result } = await client.send('Runtime.evaluate', {
+  expression: 'document.querySelector(".hero-hobby.is-interactive")',
+})
+const { listeners } = await client.send('DOMDebugger.getEventListeners', { objectId: result.objectId })
+// → click, focus, pointermove, pointerleave, pointerdown, blur
+```
+
+但处理函数就是不跑（在里面加 `console.log` 也没有输出）—— 是 `UTooltip`（reka-ui 的 `as-child`）
+转发子节点时，和动态组件 vnode 的事件处理器没合到一起。
+
+**规范**：
+
+1. 需要「条件标签 + 事件」时，写成**两个显式的 `v-if` / `v-else` 元素**，不要用 `<component :is>` 拼标签：
+
+   ```vue
+   <UTooltip …>
+     <button v-if="clickable(item)" type="button" @click="open(item)">…</button>
+     <span v-else>…</span>
+   </UTooltip>
+   ```
+
+2. 同理适用于其它 `as-child` 型包装（`UTooltip` / `UPopover` / `BDropdown` 之类）：
+   里面的子元素**别用动态组件**。
+3. 这类问题 `typecheck` / `oxlint` / SSR 抓取**全都抓不到** —— 必须真浏览器点一次
+   （与 §5、§6 同一条教训：模板层的坑只有运行/编译期才现形）。
+
+**排查手法（下次直接用）**：先 hook 目标行为确认「处理器没跑」而不是「状态没生效」：
+
+```js
+await ctx.addInitScript(() => {
+  window.__calls = 0
+  const show = HTMLDialogElement.prototype.showModal
+  HTMLDialogElement.prototype.showModal = function (...a) {
+    window.__calls += 1
+    return show.apply(this, a)
+  }
+})
+```
+
+计数为 0 + 元素上有监听器 → 问题在「绑定/合并」层，而不是你的业务逻辑。
