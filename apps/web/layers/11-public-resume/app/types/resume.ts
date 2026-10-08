@@ -29,6 +29,14 @@ export type ResumeSlotKey = 'side' | 'main' | 'rail'
 /** split 模式下固定栏的位置 */
 export type ResumeSplitSide = 'left' | 'right'
 
+/**
+ * 拖拽落点：三个栏位之一，或「未使用模块」托盘。
+ *
+ * - 落到栏位：写 `sections.slot`（归属）并取消隐藏
+ * - 落到托盘：加入 `sections.hidden`（不改 order，便于拖回原位）
+ */
+export type ResumeDropTarget = ResumeSlotKey | 'tray'
+
 /** 布局配置：模式与其开关（与 `sections` 分离，切布局不丢区块编排） */
 export interface ResumeLayoutConfig {
   mode: ResumeLayoutMode

@@ -119,6 +119,102 @@
     gap: 0.5rem;
   }
 
+  /* ── 编辑态：工具按钮（上移 / 下移 / 编辑 / 拖拽 / 隐藏） ── */
+  .resume-tool-btn {
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid var(--resume-border);
+    border-radius: 0.375rem;
+    padding: 0.25rem;
+    background: var(--resume-surface);
+    color: var(--resume-muted);
+    transition:
+      border-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  @media (hover: hover) {
+    .resume-tool-btn:hover:not(:disabled) {
+      border-color: color-mix(in srgb, var(--resume-primary) 50%, transparent);
+      color: var(--resume-primary);
+    }
+  }
+
+  .resume-tool-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .resume-tool-btn[data-drag-handle] {
+    cursor: grab;
+  }
+
+  .resume-tool-btn[data-drag-handle]:active {
+    cursor: grabbing;
+  }
+
+  /* ── 拖拽进行中：给所有可落区域描边，空落点显形 ── */
+  [data-dragging='true'] .resume-drop-zone,
+  [data-dragging='true'] .resume-tray {
+    outline: 1px dashed color-mix(in srgb, var(--resume-primary) 45%, transparent);
+    outline-offset: 6px;
+    border-radius: 0.75rem;
+  }
+
+  [data-dragging='true'] .resume-empty-slot {
+    opacity: 1;
+    border-color: color-mix(in srgb, var(--resume-primary) 45%, transparent);
+  }
+
+  /* ── 空落点（空栏 / 空托盘） ── */
+  .resume-empty-slot {
+    display: grid;
+    place-items: center;
+    min-height: 9rem;
+    border: 1px dashed var(--resume-border);
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--resume-muted);
+    opacity: 0.6;
+    transition:
+      opacity 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  /* ── 未使用模块托盘 ── */
+  .resume-tray {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    background: color-mix(in srgb, var(--resume-surface) 65%, transparent);
+  }
+
+  .resume-tray-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--resume-border);
+    border-radius: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--resume-surface);
+    color: var(--resume-text);
+    font-size: 0.75rem;
+  }
+
+  /* ── sortablejs 的拖拽态 ── */
+  .resume-drag-ghost {
+    opacity: 0.4;
+  }
+
+  .resume-drag-chosen {
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--resume-primary) 18%, transparent);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .resume-card {
       transition: none;

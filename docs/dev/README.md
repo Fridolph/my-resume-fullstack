@@ -14,6 +14,7 @@
 | [workflow.md](./workflow.md) | 开发流程：分支模型、Issue 驱动、提交规范、质量门与发布 |
 | [resume-display-architecture.md](./resume-display-architecture.md) | 简历展示页架构：布局模式、主题/背景模型、组件拆分与编辑模式分期 |
 | [resume-styles.md](./resume-styles.md) | 简历风格维度（`minimal` / `standard`）：token / variant / 整页模板三层落点、GS 模板切换机制参考与避坑 |
+| [resume-edit-interactions.md](./resume-edit-interactions.md) | 简历编辑交互约定：拖拽落点算法、未使用模块托盘、自动保存策略与避坑 |
 
 ## 快速验证命令
 

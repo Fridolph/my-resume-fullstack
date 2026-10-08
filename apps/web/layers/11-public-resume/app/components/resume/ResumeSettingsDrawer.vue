@@ -5,11 +5,22 @@ import ResumeSettingsPanel from './ResumeSettingsPanel.vue'
 /**
  * 展示设置抽屉。
  *
- * 原先设置面板以内联方式塞在页面头部下方，开合会推挤正文；改由右侧 Drawer 承载后，
- * 头部高度恒定。设置本体仍是 `ResumeSettingsPanel`（纯内容组件），这里只管外壳与页脚动作。
+ * 设置本体仍是 `ResumeSettingsPanel`（纯内容组件），这里只管外壳与页脚。
+ * 改动**自动保存**（见 useResumeDisplay 的持久化段），所以页脚不再有「保存」按钮，
+ * 只显示保存状态 + 「重置」，避免"自动保存了还要再点一次"的歧义。
  */
 const open = defineModel<boolean>('open', { default: false })
-const { isDirty, saveLocal, reset } = useResumeDisplay()
+const { saveState, savedAt, reset } = useResumeDisplay()
+
+const statusText = computed(() => {
+  if (saveState.value === 'pending') {
+    return '保存中…'
+  }
+  if (saveState.value === 'saved' && savedAt.value) {
+    return '已自动保存'
+  }
+  return '改动会自动保存'
+})
 </script>
 
 <template>
@@ -25,13 +36,8 @@ const { isDirty, saveLocal, reset } = useResumeDisplay()
 
     <template #footer>
       <div class="flex w-full items-center justify-between gap-2">
-        <span class="text-xs text-muted">
-          {{ isDirty ? '有未保存的改动' : '所有改动已保存' }}
-        </span>
-        <div class="flex gap-2">
-          <UButton color="neutral" variant="ghost" label="重置" @click="reset" />
-          <UButton icon="i-lucide-save" label="保存" @click="saveLocal" />
-        </div>
+        <span class="resume-muted text-xs">{{ statusText }}</span>
+        <UButton color="neutral" variant="ghost" label="重置" @click="reset" />
       </div>
     </template>
   </UDrawer>

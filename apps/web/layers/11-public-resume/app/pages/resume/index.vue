@@ -16,6 +16,9 @@ import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
  *
  * 头部（品牌 + 滚动模块名 + 操作）· 正文容器 · 两个抽屉（设置 / 内容编辑）。
  * 操作块本身都在组件里：登录入口自带弹窗，设置自带抽屉，页面只负责开关状态。
+ *
+ * 保存策略：布局配置与内容都是**自动保存**（编辑态下防抖落盘，见两个 composable），
+ * 页面只显示"保存中 / 已自动保存 · 刚刚"，并保留一个「重置」。
  */
 definePageMeta({
   title: '公开简历',
@@ -25,9 +28,9 @@ const {
   config,
   settingsOpen,
   editable,
-  isDirty: displayDirty,
+  saveState: displaySaveState,
+  savedAt: displaySavedAt,
   toggleSection,
-  saveLocal: saveDisplay,
   reset: resetDisplay,
   setEditable,
   loadLocal: loadDisplay,
@@ -35,8 +38,8 @@ const {
 
 const {
   content,
-  dirty: contentDirty,
-  saveLocal: saveContent,
+  saveState: contentSaveState,
+  savedAt: contentSavedAt,
   loadLocal: loadContent,
   reset: resetContent,
 } = useResumeContent()
@@ -46,8 +49,6 @@ const { activeKey } = useResumeActiveSection()
 
 const editorOpen = ref(false)
 const editingKey = ref<ResumeSectionKey | null>(null)
-
-const hasChanges = computed(() => displayDirty.value || contentDirty.value)
 
 /** 品牌：优先用配置，未配置回退预设（姓名首字 / 姓名 / 定位） */
 const brand = computed(() => ({
@@ -64,6 +65,56 @@ const brand = computed(() => ({
 const activeSectionTitle = computed(() =>
   activeKey.value ? getSectionDefinition(activeKey.value)?.label ?? '' : '',
 )
+
+/**
+ * 保存状态提示。
+ *
+ * `now` 只在客户端起步（SSR 期间保持 null），避免"刚刚 / 12 秒前"这类相对时间
+ * 在服务端与客户端算出不同结果而水合不一致。
+ */
+const now = ref<number | null>(null)
+let clock: ReturnType<typeof setInterval> | null = null
+
+onMounted(() => {
+  now.value = Date.now()
+  clock = setInterval(() => {
+    now.value = Date.now()
+  }, 15_000)
+})
+
+onBeforeUnmount(() => {
+  if (clock) {
+    clearInterval(clock)
+  }
+})
+
+function relativeTime(at: number) {
+  const seconds = Math.max(0, Math.round(((now.value ?? at) - at) / 1000))
+  if (seconds < 5) {
+    return '刚刚'
+  }
+  if (seconds < 60) {
+    return `${seconds} 秒前`
+  }
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) {
+    return `${minutes} 分钟前`
+  }
+  return new Date(at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+}
+
+const saveLabel = computed(() => {
+  if (displaySaveState.value === 'pending' || contentSaveState.value === 'pending') {
+    return '保存中…'
+  }
+
+  const at = Math.max(displaySavedAt.value ?? 0, contentSavedAt.value ?? 0)
+  if (!at || !now.value) {
+    return '改动会自动保存'
+  }
+
+  return `已自动保存 · ${relativeTime(at)}`
+})
 
 /**
  * 主题（颜色）+ 风格（外观参数）→ CSS 变量，注入到 `<body>`。
@@ -143,11 +194,6 @@ function openEditor(key: ResumeSectionKey) {
   editorOpen.value = true
 }
 
-function saveAll() {
-  saveDisplay()
-  saveContent()
-}
-
 function resetAll() {
   resetDisplay()
   resetContent()
@@ -159,8 +205,7 @@ function resetAll() {
     <ResumePageHeader :brand="brand" :active-section-title="activeSectionTitle">
       <template #actions>
         <template v-if="isAdmin">
-          <UButton v-if="hasChanges" size="xs" color="warning" variant="subtle" label="未保存" />
-          <UButton size="xs" icon="i-lucide-save" label="保存" @click="saveAll" />
+          <span class="resume-muted hidden text-xs sm:inline">{{ saveLabel }}</span>
           <UButton size="xs" color="neutral" variant="ghost" label="重置" @click="resetAll" />
         </template>
 

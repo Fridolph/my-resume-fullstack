@@ -1,0 +1,79 @@
+# 【DAO-011】web 简历页编辑交互：自由拖拽 + 模块托盘 + 自动保存
+
+> 任务卡是这一关键事件的唯一事实源。只写改变下一步判断的事实；不要复制聊天记录或原始终端输出。
+
+## 身份
+
+- 状态：`self-tested`
+- Owner：`昇哥确认范围（空栏可落 / 模块托盘 / 上移下移 / 布局与内容都自动保存）；归枢协作执行`
+- 创建日期：`2026-10-07`
+- 关联：`Issue #16`、`DAO-007`（B 期拖拽初版）、`DAO-008`（风格维度）、`DAO-010`（样式统一，语义类约定）、`docs/dev/resume-edit-interactions.md`（本轮新增）、`docs/dev/resume-display-architecture.md` §6
+
+## 状态轨迹
+
+| 迁移                      | 依据                                                                                     | 确认者     | 日期       |
+| ------------------------- | ---------------------------------------------------------------------------------------- | ---------- | ---------- |
+| `planned -> designed`     | 摸清 B 期拖拽的 4 个缺口（空栏 / 手动保存 / 隐藏模块 / DOM 依赖）与缺键盘替代，Owner 逐项选定范围 | Owner 确认 | 2026-10-07 |
+| `designed -> in-progress` | Issue #16 已建；分支 `feat/16-resume-edit-dnd` 从 dev（`dca8932`）开出                  | 归枢记录   | 2026-10-07 |
+| `in-progress -> self-tested` | 状态层 / 容器 / 托盘 / 两个抽屉完成；typecheck、oxlint 通过；真实浏览器跑通 A–G 七项（含**拖进空栏**、跨栏写 slot、刷新保留、三种布局栏位集合） | 归枢记录 | 2026-10-07 |
+
+## Grill：开工前对齐
+
+- 目标：把编辑态从「能拖但别扭」变成「自由拖拽 + 自动落盘」—— 空栏可落、跨栏/同栏自由排序、模块可在「栏位 ↔ 未使用模块托盘」之间双向拖拽、每块提供上移/下移替代入口、布局与内容都自动保存。
+- 边界：只改 `apps/web/layers/11-public-resume`（composables / components / pages / assets）与 `docs/dev`；不改区块组件契约（模块仍不感知编辑态）、不改 admin、不接后端。
+- 不做：不接后端接口（仍是 localStorage，但持久化收敛为单一 `persist()` 便于替换）；不做多选拖拽、撤销/重做、拖拽动画编排；不新增依赖（沿用 `sortablejs`）。
+- 涉及文件 / 模块：`types/resume.ts`（`ResumeDropTarget`）、`composables/useResumeDisplay.ts`（`applyDrop` / `moveWithin` / 自动保存）、`composables/useResumeContent.ts`（自动保存）、`components/resume/ResumePageContainer.vue`、`ResumeColumn.vue`、新增 `ResumeSectionTray.vue`、`pages/resume/index.vue`、`ResumeSettingsDrawer.vue`、`ResumeSectionEditorDrawer.vue`、`assets/css/resume.css`。
+- 风险与未知：① sortablejs 直接改 DOM 与 Vue 重排的竞态（本轮改为数据算落点来规避）；② 自动保存若在初始 `loadLocal` 时误触发，会"用默认值覆盖已保存数据"—— 已用 `editable` gate + 加载后复位状态规避；③ 三种布局下「拖到哪栏」的语义需说清（拖拽即定义 `slot`）。
+- 验收：见 `Issue #16`（空栏可落 / 自动保存后刷新保留 / 托盘双向 / 上移下移 / 三种布局一致 / 非编辑态无痕迹 / typecheck + oxlint + SSR）。
+- 第一刀：状态层先行（`ResumeDropTarget` + `applyDrop` + `moveWithin` + 自动保存），再做容器与托盘。
+- 过门判断：`可开工`。
+
+## 设计与决策
+
+| 决策 | 理由 / 证据 | 确认者 | 日期 |
+| ---- | ----------- | ------ | ---- |
+| **编辑态下空栏也渲染落点**（非编辑态仍 `v-if` 塌陷） | 旧实现空栏 DOM 不存在 → sortablejs 没有目标容器，"把一栏清空就再也拖不回去"；额外收益：栏容器常驻 → sortable 实例不再需要随顺序变化重建 | Owner 确认 | 2026-10-07 |
+| **落点用渲染数据算**（`目标容器去掉自身后的数组[newIndex]`），不读 `item.nextElementSibling` | 旧实现里 sortablejs 已经改过 DOM、Vue 随后又要按新 order 重排，属于"两个人改同一块 DOM"；用数据算则同栏/跨栏是同一套算法且与 DOM 无关 | 归枢记录 | 2026-10-07 |
+| **托盘与三栏共用同一 sortable group**，落点统一为 `applyDrop({ key, to: ResumeSlotKey \| 'tray', anchorKey })` | 一个入口覆盖"栏 ↔ 栏""栏 ↔ 托盘"四种组合；`to === 'tray'` 时只写 `hidden`、**不动 order**，拖回来还在原位置附近 | Owner 确认 | 2026-10-07 |
+| **上移 / 下移 = 栏内相邻交换**（只交换这两项在全局 order 中的位置） | 分栏是「order + slot」派生的，栏内相邻 ≠ order 相邻；交换两项位置最简且不影响其它模块。由调用方传入该栏渲染顺序，store 不重复实现分栏逻辑 | Owner 确认 | 2026-10-07 |
+| **`forceFallback: true`**（不用 HTML5 drag-and-drop） | HTML5 DnD 无法被自动化鼠标事件驱动，且**触屏不支持**；fallback 模式下鼠标 / 触屏 / 自动化行为一致（admin 的拖拽本来就是这么配的，本轮踩到同一个坑） | 归枢记录 | 2026-10-07 |
+| 空栏占位 `min-height: 9rem` + `emptyInsertThreshold: 24` | 实测发现：空栏只剩一个占位框时几乎拖不中（sortablejs 默认阈值很小）；放宽空容器判定范围并加高占位框后，自动化下稳定复现「拖进空栏」 | 归枢记录 | 2026-10-07 |
+| **布局与内容都自动保存**：`watch(deep)` + 600ms 防抖；**仅编辑态**才写；退出编辑态前 `flushSave()` 兜底 | 只读访客不该写 localStorage；`loadLocal()` 也会触发 watch，必须 gate，否则会用默认值覆盖已保存数据；"刚拖完就退出登录"不能丢 | Owner 确认 | 2026-10-07 |
+| 自动保存后**移除手动「保存」按钮**，只在头部 / 抽屉显示状态（保存中… / 已自动保存 · 刚刚） | 两套入口会让人误以为"不点就不保存"；状态提示比按钮更贴合自动保存的事实 | Owner 确认 | 2026-10-07 |
+| `persist()` 作为唯一写盘点 | 将来换 `PUT /resume/display-config` 只改一个函数（自动保存、兜底 flush 都复用它） | 归枢记录 | 2026-10-07 |
+| 拖到哪一栏 = 定义该模块的 `slot`（语义显式化） | `split` 只显示 side+main（rail 并入 main），所以"拖进 main"后切到三栏就在中栏 —— 这是"拖拽即定义归属"的自然结果，写进文档避免误解 | 归枢记录 | 2026-10-07 |
+
+## 确认门与续跑
+
+- 当前确认门：`已确认，已进入续跑`
+- 需要确认：五件事 —— ① 自动保存范围；② 是否本轮做「未使用模块托盘」；③ 是否加上移/下移替代入口；④ 拖拽语义（拖到哪栏 = 定义 slot）是否接受；⑤ 是否移除手动保存按钮。
+- 已确认事实：Owner 选定 **① 布局 + 内容都自动保存**（显示状态、保留重置）；**② 本轮就做模块托盘**；**③ 加上移/下移按钮**；④⑤ 随方案一并落地（拖拽语义写入文档，手动保存按钮退场）。
+
+## 执行与验证
+
+| 类型   | 命令 / 样本 / 链接 | 结果 | 仍未验证的边界 |
+| ------ | ------------------ | ---- | -------------- |
+| 机器验 | `pnpm --filter @template/web typecheck`；`oxlint apps/web` | 通过；oxlint 0 warning / 0 error（43 files） | `format:check` 仍是既有缺口（DAO-006） |
+| 结构验 | 状态层：`applyDrop` 取代 B 期的 `applyDragResult`；新增 `ResumeDropTarget` / `moveWithin` / `setHidden` / `persist` / `flushSave`；容器承担空栏渲染 + 托盘挂载 + 数据化落点 | 通过；`ResumeColumn` 仍是**唯一**注入编辑能力的地方，7 个区块组件一行未改 | — |
+| 意图验 | 真实浏览器（playwright 1.58 + 本机 chromium 缓存）跑 A–G | **A** 未登录：handles=0 / 无托盘 / 无空栏占位；**B** 编辑态：7 组工具条、slots=[side, main, tray]；**C** 上移后自动落盘（order 变化 + localStorage 已写）；**D** 托盘：隐藏后 tray=[education] 且 hidden 已落盘，恢复后回栏；**E** 跨栏拖拽 main→side：`slot.highlights = side`；**F** 刷新后完全保留；**G1** 空栏显示「拖到此处」；**G2** 把模块**拖进空栏**成功（side=[experience]）；**G3** 布局栏位集合 single=[main] / split=[side,main] / threeColumn=[side,main,rail]；全程 0 console error | 空栏可落需拖到占位框上部才稳定（已用 `emptyInsertThreshold` + 加高占位缓解；极端窄屏未逐屏实测） |
+| 意图验 | 拖拽过程信号（诊断用） | `dragging` 属性 / `chosen` / `ghost` / `.sortable-fallback` 均出现，`evt.to` 正确判定为 side；落点用数据算（不再依赖 DOM 兄弟节点） | — |
+| 逻辑验 | 落点与顺序计算（同栏 / 跨栏 / 落末尾 / 托盘往返 / 上移、下移） | 通过（A–G 中的 C/D/E/G2 即覆盖这几条路径；`applyDrop` 的锚点算法在同栏与跨栏下行为一致） | 未做「同栏内拖到中间 / 拖到末尾」的逐位置穷举 |
+
+## 交接
+
+- 已完成：类型与状态层（落点语义、栏内交换、自动保存与唯一写盘点）；实测修掉两个拖拽坑（`forceFallback`、空栏判定阈值）；容器（空栏落点、数据化落点、拖拽态、托盘挂载）；`ResumeColumn`（上移/下移/编辑/拖拽/隐藏工具条、空栏占位）；新增 `ResumeSectionTray`；页面与两个抽屉的保存状态 UI；`resume.css` 新增编辑态语义类。
+- 当前状态：`self-tested`（编码与验证完成，待提交）
+- 阻塞：无。
+- 下一步第一刀：提交（功能 + 文档 + 卡）并合回 dev，回填 Issue #16。
+- 文档锚点：`Issue #16`、`docs/dev/resume-edit-interactions.md`
+- 集成锚点：`待 feat/16-* -> dev`
+
+## 收口与沉淀
+
+- `dao-review` 结论：`未执行`
+- 最终验证证据：`待补`
+- Git / PR：`待补`
+- 常规提交：`待补`
+- Dao Commit：`不适用`
+- 沉淀候选：`候选观察` —— 「拖拽落点必须从渲染数据算，不要从被 sortablejs 改过的 DOM 算」这条对任何"库直接操作 DOM + 框架受控重渲染"的组合都成立（React + react-dnd 同理）；本项目在 sortablejs + Vue 上验证到。
+- 收口备注：本卡验证「编辑交互能否在不改区块组件契约的前提下做深」—— `ResumeColumn` 仍是唯一注入编辑能力的地方，7 个区块组件一行未改。
