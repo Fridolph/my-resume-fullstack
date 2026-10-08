@@ -18,7 +18,7 @@ async function handleSubmit(credentials: LoginCredentials) {
   statusMessage.value = "";
 
   // 模拟一次登录请求耗时，让 loading 态可见。
-  await new Promise(resolve => setTimeout(resolve, 600));
+  await new Promise((resolve) => setTimeout(resolve, 600));
 
   toast.add({
     title: "Signed in (demo)",

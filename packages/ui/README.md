@@ -8,10 +8,10 @@ web 与 admin 都要用的 **Vue / Nuxt UI 组件**放这里。它是一个 **Nu
 
 ## 与 packages/common 的分工
 
-| 包 | 放什么 | 形态 | 消费方式 |
-| --- | --- | --- | --- |
-| `packages/common` | 框架无关的**纯 TS**：类型、常量、纯函数 | 需要 `tsc` 构建（`dist/`） | `import { … } from '@template/common'` |
-| `packages/ui` | **Vue / Nuxt UI 组件**（依赖 `@nuxt/ui`、Vue 运行时） | Nuxt layer，不构建 | 自动导入（组件名即文件名） |
+| 包                | 放什么                                                | 形态                       | 消费方式                               |
+| ----------------- | ----------------------------------------------------- | -------------------------- | -------------------------------------- |
+| `packages/common` | 框架无关的**纯 TS**：类型、常量、纯函数               | 需要 `tsc` 构建（`dist/`） | `import { … } from '@template/common'` |
+| `packages/ui`     | **Vue / Nuxt UI 组件**（依赖 `@nuxt/ui`、Vue 运行时） | Nuxt layer，不构建         | 自动导入（组件名即文件名）             |
 
 判断标准：**能不能脱离 Vue 编译运行**。能 → `common`；不能（含模板 / 依赖 UI 库）→ `ui`。
 
@@ -21,9 +21,9 @@ web 与 admin 都要用的 **Vue / Nuxt UI 组件**放这里。它是一个 **Nu
 
 ```ts
 export default defineNuxtConfig({
-  extends: ['../../packages/ui'],
+  extends: ["../../packages/ui"],
   // …
-})
+});
 ```
 
 ⚠️ 还需要让 Tailwind 扫到这个目录（Tailwind v4 默认**不扫** app 目录之外的源码），
@@ -82,14 +82,14 @@ export default defineNuxtConfig({
 
 ### 共有 API
 
-| 类别 | 内容 |
-| --- | --- |
-| `v-model:open` | 打开状态（也支持 `useOverlay` 那样默认打开） |
-| props | `title` / `description` / `size` / `dismissible` / `footerText` / `showActions` / `confirmText` / `cancelText` / `loading` / `closeOnConfirm` / `ui` |
-| `AppDrawer` 专属 | `direction`（`top` / `right` / `bottom` / `left`） |
-| `AppModal` 专属 | `breakpoint`、`mobileDirection` |
-| slots | `trigger` / 默认（body）/ `header` / `title` / `description` / `actions` / `close` / `footer` |
-| emits | `confirm`、`cancel`、`close(confirmed?)` |
+| 类别             | 内容                                                                                                                                                 |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `v-model:open`   | 打开状态（也支持 `useOverlay` 那样默认打开）                                                                                                         |
+| props            | `title` / `description` / `size` / `dismissible` / `footerText` / `showActions` / `confirmText` / `cancelText` / `loading` / `closeOnConfirm` / `ui` |
+| `AppDrawer` 专属 | `direction`（`top` / `right` / `bottom` / `left`）                                                                                                   |
+| `AppModal` 专属  | `breakpoint`、`mobileDirection`                                                                                                                      |
+| slots            | `trigger` / 默认（body）/ `header` / `title` / `description` / `actions` / `close` / `footer`                                                        |
+| emits            | `confirm`、`cancel`、`close(confirmed?)`                                                                                                             |
 
 约定：
 

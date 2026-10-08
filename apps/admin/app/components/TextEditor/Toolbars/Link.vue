@@ -1,51 +1,51 @@
 <script setup lang="ts">
-import type { Editor } from '@tiptap/vue-3'
-import { useDebounceFn } from '@vueuse/core'
+import type { Editor } from "@tiptap/vue-3";
+import { useDebounceFn } from "@vueuse/core";
 
 const props = defineProps<{
-  editor: Editor
-  disabled?: boolean
-}>()
+  editor: Editor;
+  disabled?: boolean;
+}>();
 
-const linkUrl = shallowRef('')
-const active = computed(() => props.editor.isActive('link'))
+const linkUrl = shallowRef("");
+const active = computed(() => props.editor.isActive("link"));
 const toolDisabled = computed(() => {
   if (!props.editor.isEditable) {
-    return true
+    return true;
   }
-  const { selection } = props.editor.state
-  return selection.empty && !props.editor.isActive('link')
-})
-const open = shallowRef(false)
+  const { selection } = props.editor.state;
+  return selection.empty && !props.editor.isActive("link");
+});
+const open = shallowRef(false);
 
 function setLink() {
-  const value = linkUrl.value.trim()
-  if (value === '') {
-    return
+  const value = linkUrl.value.trim();
+  if (value === "") {
+    return;
   }
 
-  let href = value
-  const httpRegex = /^https?:\/\//i
+  let href = value;
+  const httpRegex = /^https?:\/\//i;
   if (!httpRegex.test(href)) {
-    href = href.replace(/^\/+/, '')
-    href = `https://${href}`
+    href = href.replace(/^\/+/, "");
+    href = `https://${href}`;
   }
-  props.editor.chain().setLink({ href }).focus().run()
-  linkUrl.value = ''
-  open.value = false
+  props.editor.chain().setLink({ href }).focus().run();
+  linkUrl.value = "";
+  open.value = false;
 }
 
 function handleKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Enter') {
-    setLink()
+  if (e.key === "Enter") {
+    setLink();
   }
 }
 
 const handleDelete = useDebounceFn(() => {
-  props.editor.chain().unsetLink().focus().run()
-  linkUrl.value = ''
-  open.value = false
-}, 200)
+  props.editor.chain().unsetLink().focus().run();
+  linkUrl.value = "";
+  open.value = false;
+}, 200);
 </script>
 
 <template>
@@ -77,12 +77,7 @@ const handleDelete = useDebounceFn(() => {
         placeholder="Paste a link..."
         @keydown="handleKeyDown"
       />
-      <UButton
-        size="sm"
-        class="mx-1"
-        :disabled="linkUrl === ''"
-        @click="setLink"
-      >
+      <UButton size="sm" class="mx-1" :disabled="linkUrl === ''" @click="setLink">
         Confirm
       </UButton>
       <UButton

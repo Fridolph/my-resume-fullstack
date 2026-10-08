@@ -18,21 +18,21 @@ layers/00-shared  ←  feature layers（11~20）  ←  app/
 
 `apps/admin`：
 
-| 目录 | name | 形态 | 内容 |
-|---|---|---|---|
-| `layers/11-resume` | `resume` | 完整 layer | `app/pages/resume/*`（简历编辑域：草稿 / 布局 / 主题 / 版本） |
-| `layers/11-projects` | `projects` | 模板遗留 demo | `app/pages/projects/*`（项目域示例页，my-resume 暂未使用，去留待定） |
-| `layers/12-teams` | `teams` | 模板遗留 demo | `app/pages/team/*`（团队域示例页，同上） |
-| `layers/13-settings` | `settings` | 完整 layer | `app/config/settings-navigation.ts` + `app/pages/settings*`（二级侧栏 + 子页） |
-| `layers/20-comps` | `comps` | 参考层 | `app/pages/comps/*`（组件库 demo 页，路由 `/comps/*`） |
-| `layers/00-shared` | `base-config` | 共享层 | **待建**（见 §3） |
+| 目录                 | name          | 形态          | 内容                                                                           |
+| -------------------- | ------------- | ------------- | ------------------------------------------------------------------------------ |
+| `layers/11-resume`   | `resume`      | 完整 layer    | `app/pages/resume/*`（简历编辑域：草稿 / 布局 / 主题 / 版本）                  |
+| `layers/11-projects` | `projects`    | 模板遗留 demo | `app/pages/projects/*`（项目域示例页，my-resume 暂未使用，去留待定）           |
+| `layers/12-teams`    | `teams`       | 模板遗留 demo | `app/pages/team/*`（团队域示例页，同上）                                       |
+| `layers/13-settings` | `settings`    | 完整 layer    | `app/config/settings-navigation.ts` + `app/pages/settings*`（二级侧栏 + 子页） |
+| `layers/20-comps`    | `comps`       | 参考层        | `app/pages/comps/*`（组件库 demo 页，路由 `/comps/*`）                         |
+| `layers/00-shared`   | `base-config` | 共享层        | **待建**（见 §3）                                                              |
 
 `apps/web`：
 
-| 目录 | name | 形态 | 内容 |
-|---|---|---|---|
+| 目录                      | name            | 形态       | 内容                                                                                                          |
+| ------------------------- | --------------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
 | `layers/11-public-resume` | `public-resume` | 完整 layer | 公开简历展示域：内容 / 布局 / 风格 / 编辑（`types`、`config`、`mock`、`components/resume/*`、`pages/resume`） |
-| `layers/12-ai-talk` | `ai-talk` | 骨架 layer | 访客 AI 对话域（`app/pages/ai-talk`，当前为骨架页） |
+| `layers/12-ai-talk`       | `ai-talk`       | 骨架 layer | 访客 AI 对话域（`app/pages/ai-talk`，当前为骨架页）                                                           |
 
 `apps/admin/app/` 保留：`app.vue`、`layouts/`、`config/admin-navigation.ts`（主侧栏导航，跨域编排）、`components/`（公共/基础组件）、`utils/`、`types/`、`pages/`（dashboard、login、help、release-notes）。
 
@@ -48,7 +48,7 @@ layers/00-shared  ←  feature layers（11~20）  ←  app/
 1. `mkdir layers/<NN>-<name>/app/pages/...`，写入页面。
 2. 建 `layers/<NN>-<name>/nuxt.config.ts`：
    ```ts
-   export default defineNuxtConfig({ $meta: { name: '<name>' } })
+   export default defineNuxtConfig({ $meta: { name: "<name>" } });
    ```
 3. admin：在 `app/config/admin-navigation.ts` 的主导航里补对应 `children`/路由。
 4. `pnpm --filter @template/<app> typecheck` + dev server SSR 验证。
@@ -63,10 +63,10 @@ layers/00-shared  ←  feature layers（11~20）  ←  app/
 
 别名由 Nuxt 生成，**不需要手写配置**（`.nuxt/tsconfig.json` 的 `paths` 里可见）：
 
-| 写法 | 指向 | 用途 |
-|---|---|---|
-| `~/x` / `@/x` | 该应用的 `srcDir`，即 `apps/<app>/app` | app 层内部引用 |
-| `~~/x` / `@@/x` | 该应用根目录 `apps/<app>` | 极少用到 |
+| 写法                   | 指向                                                                              | 用途                 |
+| ---------------------- | --------------------------------------------------------------------------------- | -------------------- |
+| `~/x` / `@/x`          | 该应用的 `srcDir`，即 `apps/<app>/app`                                            | app 层内部引用       |
+| `~~/x` / `@@/x`        | 该应用根目录 `apps/<app>`                                                         | 极少用到             |
 | `#layers/<name>/app/x` | 某个 layer 的 `app/` 目录（`<name>` = 该 layer `nuxt.config.ts` 的 `$meta.name`） | **layer 内引用自身** |
 
 约定：

@@ -6,12 +6,12 @@
 
 Nuxt 把**布局文件名转成 kebab-case** 作为布局名。
 
-| 文件名 | 布局名（`definePageMeta` 里用） | 是否正确 |
-|---|---|---|
-| `has-sidebar.vue` | `"has-sidebar"` | ✅ |
-| `hasSidebar.vue` | 类型检查报错：`Did you mean '"has-sidebar"'` | ❌ |
-| `empty.vue` | `"empty"` | ✅ |
-| `demo.vue` | `"demo"` | ✅ |
+| 文件名            | 布局名（`definePageMeta` 里用）              | 是否正确 |
+| ----------------- | -------------------------------------------- | -------- |
+| `has-sidebar.vue` | `"has-sidebar"`                              | ✅       |
+| `hasSidebar.vue`  | 类型检查报错：`Did you mean '"has-sidebar"'` | ❌       |
+| `empty.vue`       | `"empty"`                                    | ✅       |
+| `demo.vue`        | `"demo"`                                     | ✅       |
 
 **规范**：布局文件一律用 kebab-case 命名（如 `has-sidebar.vue`、`project-detail.vue`），页面里 `layout: "has-sidebar"`。
 
@@ -23,14 +23,14 @@ Nuxt 把**布局文件名转成 kebab-case** 作为布局名。
 
 真实例子（对照 `.nuxt/types/components.d.ts`）：
 
-| 文件路径 | 自动组件名 | 说明 |
-|---|---|---|
-| `components/admin/AdminHeader.vue` | `AdminHeader` | 文件名已以 `Admin` 开头 → 去重 |
-| `components/admin/AdminSidebar.vue` | `AdminSidebar` | 同上 |
-| `components/admin/UserMenu.vue` | `AdminUserMenu` | 文件名不以 `Admin` 开头 → 加前缀 |
-| `components/auth/AuthSplitLayout.vue` | `AuthSplitLayout` | 文件名已以 `Auth` 开头 → 去重 |
-| `components/auth/LoginForm.vue` | `AuthLoginForm` | 文件名不以 `Auth` 开头 → 加前缀 |
-| `components/auth/AdminLoginForm.vue` | `AuthAdminLoginForm` | 前缀 + 文件名拼接 |
+| 文件路径                              | 自动组件名           | 说明                             |
+| ------------------------------------- | -------------------- | -------------------------------- |
+| `components/admin/AdminHeader.vue`    | `AdminHeader`        | 文件名已以 `Admin` 开头 → 去重   |
+| `components/admin/AdminSidebar.vue`   | `AdminSidebar`       | 同上                             |
+| `components/admin/UserMenu.vue`       | `AdminUserMenu`      | 文件名不以 `Admin` 开头 → 加前缀 |
+| `components/auth/AuthSplitLayout.vue` | `AuthSplitLayout`    | 文件名已以 `Auth` 开头 → 去重    |
+| `components/auth/LoginForm.vue`       | `AuthLoginForm`      | 文件名不以 `Auth` 开头 → 加前缀  |
+| `components/auth/AdminLoginForm.vue`  | `AuthAdminLoginForm` | 前缀 + 文件名拼接                |
 
 ### 踩坑现场
 
@@ -92,6 +92,7 @@ curl -s http://localhost:4020/<path> | grep -o -i 'Failed to resolve component\|
 ```
 
 判断标准：
+
 - `typecheck` 无 error。
 - SSR HTML 里能找到预期的 `<input>` / 标题 / `admin-sidebar` 等关键节点。
 - 无 `Failed to resolve component` / `NUXT_E*` / `missing template` 告警。

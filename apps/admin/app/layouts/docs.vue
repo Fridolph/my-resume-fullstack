@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/**
+ /**
  * docs —— 文档/说明类页面通用布局
  * 结构：顶部 sticky 返回条 + 居中可滚动内容区。
  * 配合页面里的锚点（`#section`）做页内跳转（全局 scroll-behavior: smooth）。

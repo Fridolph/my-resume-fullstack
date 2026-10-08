@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { MaybeElement } from '@vueuse/core'
-import type { MaybeRefOrGetter } from 'vue'
-import { unrefElement } from '@vueuse/core'
+import type { MaybeElement } from "@vueuse/core";
+import type { MaybeRefOrGetter } from "vue";
+import { unrefElement } from "@vueuse/core";
 
 /**
  * 声明式 TourSpotlight + TourSpotlightStep 演示：
@@ -12,156 +12,156 @@ import { unrefElement } from '@vueuse/core'
  */
 /** 显式标注 expose，避免 useTemplateRef 与模板 ref 循环推断出 any */
 interface TourSpotlightExposed {
-  open: MaybeRefOrGetter<boolean>
-  index: MaybeRefOrGetter<number>
-  start: (index?: number) => void
-  finish: () => void
-  goToStep: (index: number) => void | Promise<void>
-  updateHole: () => void | Promise<void>
-  clearHighlight: () => void
+  open: MaybeRefOrGetter<boolean>;
+  index: MaybeRefOrGetter<number>;
+  start: (index?: number) => void;
+  finish: () => void;
+  goToStep: (index: number) => void | Promise<void>;
+  updateHole: () => void | Promise<void>;
+  clearHighlight: () => void;
 }
 
 definePageMeta({
-  layout: 'has-sidebar',
-  title: 'Tour spotlight',
-})
+  layout: "has-sidebar",
+  title: "Tour spotlight",
+});
 
-const startBtnRef = useTemplateRef('startBtn')
-const tourRef = useTemplateRef<TourSpotlightExposed>('tour')
-const menuOpen = ref(false)
-const slideOpen = ref(false)
-const nameInput = ref<string | undefined>()
-const suggestOpen = ref(false)
+const startBtnRef = useTemplateRef("startBtn");
+const tourRef = useTemplateRef<TourSpotlightExposed>("tour");
+const menuOpen = ref(false);
+const slideOpen = ref(false);
+const nameInput = ref<string | undefined>();
+const suggestOpen = ref(false);
 
-const nameSuggestions = ['张三', '李四', '王五', '赵六', '陈七']
+const nameSuggestions = ["张三", "李四", "王五", "赵六", "陈七"];
 
-const menuReference = computed(() =>
-  unrefElement(startBtnRef as MaybeRefOrGetter<MaybeElement>) ?? undefined,
-)
+const menuReference = computed(
+  () => unrefElement(startBtnRef as MaybeRefOrGetter<MaybeElement>) ?? undefined,
+);
 
 /** template ref 上的 expose ref 会被自动解包，统一用 unref */
-const tourIndex = computed(() => unref(tourRef.value?.index) ?? 0)
-const tourOpen = computed(() => !!unref(tourRef.value?.open))
+const tourIndex = computed(() => unref(tourRef.value?.index) ?? 0);
+const tourOpen = computed(() => !!unref(tourRef.value?.open));
 
-const hasName = computed(() => !!String(nameInput.value ?? '').trim())
+const hasName = computed(() => !!String(nameInput.value ?? "").trim());
 
 const filteredSuggestions = computed(() => {
-  const q = String(nameInput.value ?? '').trim()
-  return nameSuggestions.filter(s => !q || s.includes(q))
-})
+  const q = String(nameInput.value ?? "").trim();
+  return nameSuggestions.filter((s) => !q || s.includes(q));
+});
 
 const coachActionLabel = computed(() => {
   if (tourIndex.value === 2) {
-    return hasName.value ? '下一步' : '请先选择或输入'
+    return hasName.value ? "下一步" : "请先选择或输入";
   }
   if (tourIndex.value === 4) {
-    return '完成'
+    return "完成";
   }
-  return '下一步'
-})
+  return "下一步";
+});
 
-const coachActionDisabled = computed(() => tourIndex.value === 2 && !hasName.value)
+const coachActionDisabled = computed(() => tourIndex.value === 2 && !hasName.value);
 
 async function onStartClick() {
   if (tourOpen.value && tourIndex.value === 0) {
-    menuOpen.value = true
-    await nextTick()
-    await new Promise(resolve => setTimeout(resolve, 50))
-    await tourRef.value?.goToStep(1)
-    return
+    menuOpen.value = true;
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    await tourRef.value?.goToStep(1);
+    return;
   }
 
   if (!tourOpen.value) {
-    menuOpen.value = !menuOpen.value
+    menuOpen.value = !menuOpen.value;
   }
 }
 
 async function onMenuItemClick() {
-  menuOpen.value = false
-  slideOpen.value = true
+  menuOpen.value = false;
+  slideOpen.value = true;
 
   if (tourOpen.value && tourIndex.value === 1) {
-    await nextTick()
-    await new Promise(resolve => setTimeout(resolve, 50))
-    await tourRef.value?.goToStep(2)
+    await nextTick();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    await tourRef.value?.goToStep(2);
   }
 }
 
 async function onCoachAction() {
   if (tourIndex.value === 2) {
     if (!hasName.value) {
-      return
+      return;
     }
-    suggestOpen.value = false
-    await tourRef.value?.goToStep(3)
-    return
+    suggestOpen.value = false;
+    await tourRef.value?.goToStep(3);
+    return;
   }
 
   if (tourIndex.value === 3) {
-    await tourRef.value?.goToStep(4)
-    return
+    await tourRef.value?.goToStep(4);
+    return;
   }
 
   if (tourIndex.value === 4) {
-    tourRef.value?.finish()
-    tourRef.value?.clearHighlight()
+    tourRef.value?.finish();
+    tourRef.value?.clearHighlight();
   }
 }
 
 async function onCustomFooterPrev() {
-  await tourRef.value?.goToStep(2)
+  await tourRef.value?.goToStep(2);
 }
 
 async function onCustomFooterSkip() {
-  await tourRef.value?.goToStep(4)
+  await tourRef.value?.goToStep(4);
 }
 
 /** 点选建议项：写入姓名并更新挖洞（建议层会随之收起） */
 async function onNameSelect(value: string) {
-  nameInput.value = value
-  suggestOpen.value = false
+  nameInput.value = value;
+  suggestOpen.value = false;
   if (tourOpen.value && tourIndex.value === 2) {
-    await nextTick()
-    await tourRef.value?.updateHole()
+    await nextTick();
+    await tourRef.value?.updateHole();
   }
 }
 
 function onNameInput() {
-  suggestOpen.value = true
+  suggestOpen.value = true;
 }
 
 // 延迟关闭，让建议项的 mousedown 先于 blur 触发
 function onNameBlur() {
   setTimeout(() => {
-    suggestOpen.value = false
-  }, 150)
+    suggestOpen.value = false;
+  }, 150);
 }
 
 function restartTour() {
-  nameInput.value = undefined
-  suggestOpen.value = false
-  menuOpen.value = false
-  slideOpen.value = false
+  nameInput.value = undefined;
+  suggestOpen.value = false;
+  menuOpen.value = false;
+  slideOpen.value = false;
   nextTick(async () => {
-    tourRef.value?.start(0)
-    await tourRef.value?.updateHole()
-  })
+    tourRef.value?.start(0);
+    await tourRef.value?.updateHole();
+  });
 }
 
 if (import.meta.client) {
   watch(menuOpen, async (open) => {
     if (open && tourOpen.value && tourIndex.value === 1) {
-      await nextTick()
-      await tourRef.value?.updateHole()
+      await nextTick();
+      await tourRef.value?.updateHole();
     }
-  })
+  });
 
   watch(slideOpen, async (open) => {
     if (open && tourOpen.value && tourIndex.value === 2) {
-      await nextTick()
-      await tourRef.value?.updateHole()
+      await nextTick();
+      await tourRef.value?.updateHole();
     }
-  })
+  });
 }
 </script>
 
@@ -178,12 +178,7 @@ if (import.meta.client) {
     <div class="spotlight-demo">
       <UButton label="重新开始引导" variant="outline" size="sm" @click="restartTour" />
 
-      <UButton
-        id="spotlight-start-btn"
-        ref="startBtn"
-        label="开始使用"
-        @click="onStartClick"
-      />
+      <UButton id="spotlight-start-btn" ref="startBtn" label="开始使用" @click="onStartClick" />
 
       <UPopover
         :open="menuOpen"
@@ -193,9 +188,7 @@ if (import.meta.client) {
       >
         <template #content>
           <div id="spotlight-menu" class="spotlight-menu">
-            <p class="spotlight-menu-hint">
-              选择一项操作
-            </p>
+            <p class="spotlight-menu-hint">选择一项操作</p>
             <button type="button" class="spotlight-menu-item" @click="onMenuItemClick">
               填写资料
             </button>
@@ -248,16 +241,8 @@ if (import.meta.client) {
 
     <template #footer>
       <div class="flex justify-end gap-2 w-full">
-        <UButton
-          variant="ghost"
-          label="取消"
-          @click="slideOpen = false"
-        />
-        <UButton
-          label="下一步"
-          :disabled="!hasName || tourIndex !== 2"
-          @click="onCoachAction"
-        />
+        <UButton variant="ghost" label="取消" @click="slideOpen = false" />
+        <UButton label="下一步" :disabled="!hasName || tourIndex !== 2" @click="onCoachAction" />
       </div>
     </template>
   </USlideover>
@@ -275,12 +260,8 @@ if (import.meta.client) {
     @action="onCoachAction"
   >
     <TourSpotlightStep target="#spotlight-start-btn" :step="1" side="bottom" require-action>
-      <p class="gs-tour-coach-title">
-        创建入口
-      </p>
-      <p class="gs-tour-coach-text">
-        点击这个按钮，打开操作菜单。
-      </p>
+      <p class="gs-tour-coach-title">创建入口</p>
+      <p class="gs-tour-coach-text">点击这个按钮，打开操作菜单。</p>
     </TourSpotlightStep>
 
     <TourSpotlightStep
@@ -290,12 +271,8 @@ if (import.meta.client) {
       require-action
       fallback-target=".spotlight-menu"
     >
-      <p class="gs-tour-coach-title">
-        操作菜单
-      </p>
-      <p class="gs-tour-coach-text">
-        点击「填写资料」，打开侧边栏。
-      </p>
+      <p class="gs-tour-coach-title">操作菜单</p>
+      <p class="gs-tour-coach-text">点击「填写资料」，打开侧边栏。</p>
     </TourSpotlightStep>
 
     <TourSpotlightStep
@@ -304,55 +281,31 @@ if (import.meta.client) {
       side="left"
       :include-targets="['.spotlight-name-suggestions']"
     >
-      <p class="gs-tour-coach-title">
-        填写信息
-      </p>
-      <p class="gs-tour-coach-text">
-        输入姓名会出现建议；点击某一项即可进入下一步。
-      </p>
+      <p class="gs-tour-coach-title">填写信息</p>
+      <p class="gs-tour-coach-text">输入姓名会出现建议；点击某一项即可进入下一步。</p>
     </TourSpotlightStep>
 
     <TourSpotlightStep :step="4">
-      <p class="gs-tour-coach-title">
-        自定义底部示例
-      </p>
+      <p class="gs-tour-coach-title">自定义底部示例</p>
       <p class="gs-tour-coach-text">
         本步在 TourSpotlightStep 上用 #footer 自定义底部：上一步 / 跳过 / 继续。
       </p>
 
       <template #footer="{ stepLabel, action }">
         <div class="spotlight-custom-footer">
-          <UButton
-            size="xs"
-            variant="ghost"
-            label="上一步"
-            @click="onCustomFooterPrev"
-          />
+          <UButton size="xs" variant="ghost" label="上一步" @click="onCustomFooterPrev" />
           <span class="gs-tour-coach-step">{{ stepLabel }} · 自定义</span>
           <div class="spotlight-custom-footer-actions">
-            <UButton
-              size="xs"
-              variant="soft"
-              label="跳过"
-              @click="onCustomFooterSkip"
-            />
-            <UButton
-              size="xs"
-              label="继续"
-              @click="action"
-            />
+            <UButton size="xs" variant="soft" label="跳过" @click="onCustomFooterSkip" />
+            <UButton size="xs" label="继续" @click="action" />
           </div>
         </div>
       </template>
     </TourSpotlightStep>
 
     <TourSpotlightStep :step="5">
-      <p class="gs-tour-coach-title">
-        引导完成
-      </p>
-      <p class="gs-tour-coach-text">
-        你已经了解了基本流程。点击完成结束引导，侧边栏会保持打开。
-      </p>
+      <p class="gs-tour-coach-title">引导完成</p>
+      <p class="gs-tour-coach-text">你已经了解了基本流程。点击完成结束引导，侧边栏会保持打开。</p>
     </TourSpotlightStep>
   </TourSpotlight>
 </template>

@@ -4,9 +4,17 @@ definePageMeta({
 });
 
 const plannedParts = [
-  { label: "对话界面", description: "消息列表、输入区与流式渲染", icon: "i-lucide-messages-square" },
+  {
+    label: "对话界面",
+    description: "消息列表、输入区与流式渲染",
+    icon: "i-lucide-messages-square",
+  },
   { label: "会话切换", description: "多会话列表与历史加载", icon: "i-lucide-history" },
-  { label: "访客线索", description: "访客身份与联系方式线索（写入后端）", icon: "i-lucide-user-plus" },
+  {
+    label: "访客线索",
+    description: "访客身份与联系方式线索（写入后端）",
+    icon: "i-lucide-user-plus",
+  },
   { label: "配额与限流提示", description: "试用码 / 轮次限制的访客侧反馈", icon: "i-lucide-gauge" },
 ];
 </script>
@@ -24,7 +32,9 @@ const plannedParts = [
     <section class="grid gap-4 sm:grid-cols-2">
       <UCard v-for="item in plannedParts" :key="item.label">
         <div class="flex gap-3">
-          <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+          <span
+            class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"
+          >
             <UIcon :name="item.icon" class="size-5" />
           </span>
           <div>

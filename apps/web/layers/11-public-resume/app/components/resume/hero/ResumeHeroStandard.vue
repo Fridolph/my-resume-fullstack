@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ResumeHeroProps } from '#layers/public-resume/app/types/resume'
-import { useResumeProfileView } from '#layers/public-resume/app/composables/useResumeProfileView'
+import type { ResumeHeroProps } from "#layers/public-resume/app/types/resume";
+import { useResumeProfileView } from "#layers/public-resume/app/composables/useResumeProfileView";
 
 /**
  * hero · 标准：向旧站对齐 —— 翻牌头像、标语渐变文字、INTRO 卡、条目式联系方式、链接与兴趣标签。
@@ -8,8 +8,9 @@ import { useResumeProfileView } from '#layers/public-resume/app/composables/useR
  * ⚠️ 翻牌只是视觉：旧站那头像是指向 `/ai-talk` 的 AI 对话入口，属 `12-ai-talk` 域，
  * 本仓不接跳转（feature layer 之间不得互相 import）。
  */
-const props = defineProps<ResumeHeroProps>()
-const { profile, avatarText, hasAvatarImage, slogans, visibleContact } = useResumeProfileView(props)
+const props = defineProps<ResumeHeroProps>();
+const { profile, avatarText, hasAvatarImage, slogans, visibleContact } =
+  useResumeProfileView(props);
 </script>
 
 <template>
@@ -73,7 +74,10 @@ const { profile, avatarText, hasAvatarImage, slogans, visibleContact } = useResu
   </div>
 
   <!-- 联系方式：条目卡 -->
-  <div class="mt-5 grid gap-2 rounded-2xl border p-4" :style="{ borderColor: 'var(--resume-border)' }">
+  <div
+    class="mt-5 grid gap-2 rounded-2xl border p-4"
+    :style="{ borderColor: 'var(--resume-border)' }"
+  >
     <span class="resume-eyebrow">Contact</span>
     <div
       v-for="item in visibleContact"

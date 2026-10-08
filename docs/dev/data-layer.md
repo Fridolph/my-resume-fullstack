@@ -33,8 +33,8 @@
 集中在 `app/lib/query-keys.ts`，结构为 `[scope, ...segments]`：
 
 ```ts
-queryKeys.resume.draft()          // ['resume', 'draft']
-queryKeys.resume.published('zh')  // ['resume', 'published', 'zh']
+queryKeys.resume.draft(); // ['resume', 'draft']
+queryKeys.resume.published("zh"); // ['resume', 'published', 'zh']
 ```
 
 - `scope` 与业务域同名；域内细分放 segments，便于按前缀批量失效。
@@ -43,8 +43,8 @@ queryKeys.resume.published('zh')  // ['resume', 'published', 'zh']
 ## 4. 失效与重取
 
 ```ts
-const queryCache = useQueryCache()
-queryCache.invalidateQueries({ key: queryKeys.resume.draft() })
+const queryCache = useQueryCache();
+queryCache.invalidateQueries({ key: queryKeys.resume.draft() });
 ```
 
 - mutation 成功后由 **mutation 自己** 声明要失效的 key（写在 mutation 的 `onSuccess` 里），
@@ -66,12 +66,12 @@ queryCache.invalidateQueries({ key: queryKeys.resume.draft() })
 
 ## 6. 现状与迁移
 
-| 状态       | 内容                                                                                                                   |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------- |
-| 已接入     | `@pinia/nuxt` + `@pinia/colada-nuxt`；`$request` 契约对齐 `packages/common`；示例见 `useHealthQuery.ts`                |
+| 状态       | 内容                                                                                                                                                                                           |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 已接入     | `@pinia/nuxt` + `@pinia/colada-nuxt`；`$request` 契约对齐 `packages/common`；示例见 `useHealthQuery.ts`                                                                                        |
 | 已完成迁移 | 上传链路：`apis/files.ts`（原生 XHR + 进度 + abort）、`useFileUploader`（colada mutation）、`useUploadFile`（遗留包装）；**`plugins/alova.ts` 与 `alova` / `@alova/adapter-xhr` 依赖均已移除** |
-| 已验证     | SSR 首屏取数、失效重取（`/` 页面 Infrastructure check 卡片）；上传页 SSR（`/comps/upload`）                              |
-| 未验证     | 真实上传端到端（需要后端 `/masterData/file/multipleUpload`）；进度回调与取消的浏览器实际表现                             |
+| 已验证     | SSR 首屏取数、失效重取（`/` 页面 Infrastructure check 卡片）；上传页 SSR（`/comps/upload`）                                                                                                    |
+| 未验证     | 真实上传端到端（需要后端 `/masterData/file/multipleUpload`）；进度回调与取消的浏览器实际表现                                                                                                   |
 
 ## 7. 已知边界
 

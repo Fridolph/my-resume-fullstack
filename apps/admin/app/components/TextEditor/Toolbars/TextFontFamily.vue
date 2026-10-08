@@ -1,37 +1,32 @@
 <script setup lang="ts">
-import type { Editor } from '@tiptap/vue-3'
-import { TextFontFamily } from '~/components/TextEditor/contants'
+import type { Editor } from "@tiptap/vue-3";
+import { TextFontFamily } from "~/components/TextEditor/contants";
 
 const props = defineProps<{
-  editor: Editor
-  disabled?: boolean
-}>()
+  editor: Editor;
+  disabled?: boolean;
+}>();
 
-const textFontFamilys: string[] = [TextFontFamily.ROBOTO, TextFontFamily.POPPINS]
+const textFontFamilys: string[] = [TextFontFamily.ROBOTO, TextFontFamily.POPPINS];
 
-const modelValue = defineModel<string>({ default: TextFontFamily.ROBOTO })
+const modelValue = defineModel<string>({ default: TextFontFamily.ROBOTO });
 
 function handleChange() {
   nextTick(() => {
     switch (modelValue.value) {
       case TextFontFamily.ROBOTO:
-        props.editor.chain().focus().setFontFamily(TextFontFamily.ROBOTO).run()
-        break
+        props.editor.chain().focus().setFontFamily(TextFontFamily.ROBOTO).run();
+        break;
       case TextFontFamily.POPPINS:
-        props.editor.chain().focus().setFontFamily(TextFontFamily.POPPINS).run()
-        break
+        props.editor.chain().focus().setFontFamily(TextFontFamily.POPPINS).run();
+        break;
     }
-  })
+  });
 }
 </script>
 
 <template>
-  <UTooltip
-    text="Font"
-    :content="{ side: 'top' }"
-    :delay-duration="0"
-    :disabled="disabled"
-  >
+  <UTooltip text="Font" :content="{ side: 'top' }" :delay-duration="0" :disabled="disabled">
     <USelect
       v-model="modelValue"
       :disabled="disabled"

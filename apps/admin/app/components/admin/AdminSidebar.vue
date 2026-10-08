@@ -25,10 +25,7 @@ const collapsed = defineModel<boolean>("collapsed", { default: false });
     :collapsed-size="4.5"
     :ui="{
       root: 'bg-default',
-      header: [
-        'group px-4 py-5',
-        collapsed ? 'justify-center' : 'justify-between',
-      ],
+      header: ['group px-4 py-5', collapsed ? 'justify-center' : 'justify-between'],
       body: 'px-2 py-3',
       footer: 'border-t border-default',
     }"

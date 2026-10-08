@@ -1,37 +1,32 @@
 <script setup lang="ts">
-import type { Editor } from '@tiptap/vue-3'
-import { TextAlign } from '~/components/TextEditor/contants'
+import type { Editor } from "@tiptap/vue-3";
+import { TextAlign } from "~/components/TextEditor/contants";
 
 const props = defineProps<{
-  editor: Editor
-  disabled?: boolean
-}>()
+  editor: Editor;
+  disabled?: boolean;
+}>();
 
 const alignLabels: Record<string, string> = {
-  [TextAlign.LEFT]: 'Align left',
-  [TextAlign.CENTER]: 'Align center',
-  [TextAlign.RIGHT]: 'Align right',
-  [TextAlign.JUSTIFY]: 'Justify',
-}
+  [TextAlign.LEFT]: "Align left",
+  [TextAlign.CENTER]: "Align center",
+  [TextAlign.RIGHT]: "Align right",
+  [TextAlign.JUSTIFY]: "Justify",
+};
 
-const textAligns: string[] = [TextAlign.LEFT, TextAlign.CENTER, TextAlign.RIGHT, TextAlign.JUSTIFY]
+const textAligns: string[] = [TextAlign.LEFT, TextAlign.CENTER, TextAlign.RIGHT, TextAlign.JUSTIFY];
 
-const modelValue = defineModel<string>({ default: TextAlign.LEFT })
-const open = shallowRef(false)
+const modelValue = defineModel<string>({ default: TextAlign.LEFT });
+const open = shallowRef(false);
 function handleSelectAlign(align: string) {
-  open.value = false
-  props.editor.chain().setTextAlign(align).focus().run()
+  open.value = false;
+  props.editor.chain().setTextAlign(align).focus().run();
 }
 </script>
 
 <template>
   <UPopover v-model:open="open" :ui="{ content: 'p-0.5' }">
-    <UTooltip
-      text="Align"
-      :content="{ side: 'top' }"
-      :delay-duration="0"
-      :disabled="disabled"
-    >
+    <UTooltip text="Align" :content="{ side: 'top' }" :delay-duration="0" :disabled="disabled">
       <UButton
         :icon="`i-lucide-align-${modelValue}`"
         color="neutral"

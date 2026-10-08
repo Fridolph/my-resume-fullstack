@@ -13,10 +13,10 @@
 
 每次迁移只写“为什么能过这一门”的最少依据，不写流水日志。
 
-| 迁移                        | 依据                                                                                                         | 确认者     | 日期       |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------- | ---------- |
-| `planned -> designed`       | Owner 已确认项目转型为 my-resume 的 Nuxt 实现场、数据层用 `@pinia/colada` 替换 alova、第一刀先立基础设施骨架 | Owner 确认 | 2026-10-07 |
-| `designed -> in-progress`   | Owner 已确认三项选型（领域模型按 rs 蓝图重设计、Prisma、Redis 承担会话/限流/队列），编码前确认门已完成       | Owner 确认 | 2026-10-07 |
+| 迁移                      | 依据                                                                                                         | 确认者     | 日期       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------- | ---------- |
+| `planned -> designed`     | Owner 已确认项目转型为 my-resume 的 Nuxt 实现场、数据层用 `@pinia/colada` 替换 alova、第一刀先立基础设施骨架 | Owner 确认 | 2026-10-07 |
+| `designed -> in-progress` | Owner 已确认三项选型（领域模型按 rs 蓝图重设计、Prisma、Redis 承担会话/限流/队列），编码前确认门已完成       | Owner 确认 | 2026-10-07 |
 
 ## Grill：开工前对齐
 
@@ -38,8 +38,8 @@
 | 本仓转型为 my-resume 的 Nuxt 实现场，模板能力退为底座          | Owner 选择；与 `my-resume/docs/rs` 的 rs-web / rs-admin / rs-api 三端蓝图同向，只替换宿主仓与前端框架  | Owner 确认 | 2026-10-07 |
 | 数据层统一用 `@pinia/colada`，移除 alova                       | Owner 选择；避免同仓两套请求心智。上传这类需要进度 / 取消的场景，用 colada mutation 包一层原生 XHR     | Owner 确认 | 2026-10-07 |
 | 第一刀先立基础设施骨架，不直接进业务模块                       | Owner 选择；与 rs 蓝图“先立骨架、再填业务”和模板既有 layers 约定一致                                   | Owner 确认 | 2026-10-07 |
-| 领域模型按 rs 蓝图重设计：去字段级 locale、简历多份 draft      | Owner 选择；字段级 `LocalizedText` 在旧项目已被判定为痛点，语言与定制上移到 draft 行更干净              | Owner 确认 | 2026-10-07 |
-| 后端 ORM 用 Prisma（含迁移）                                   | Owner 选择；schema 与迁移体验最顺。代价：pgvector 与复杂 SQL 需 raw query，届时单独封装                 | Owner 确认 | 2026-10-07 |
+| 领域模型按 rs 蓝图重设计：去字段级 locale、简历多份 draft      | Owner 选择；字段级 `LocalizedText` 在旧项目已被判定为痛点，语言与定制上移到 draft 行更干净             | Owner 确认 | 2026-10-07 |
+| 后端 ORM 用 Prisma（含迁移）                                   | Owner 选择；schema 与迁移体验最顺。代价：pgvector 与复杂 SQL 需 raw query，届时单独封装                | Owner 确认 | 2026-10-07 |
 | Redis 承担会话/token 黑名单、限流与异步队列，本轮不做缓存      | Owner 选择；三项都是已识别的真实需求。缓存留到确有性能证据时再引入，避免无依据地加一层                 | Owner 确认 | 2026-10-07 |
 | 业务域按 rs 蓝图拆分 layer，`20-comps` 保留为组件库索引        | 依赖方向 `00-shared ← feature layers ← app/`；组件 demo 与业务域职责不同，混在一层会互相拖累           | 归枢起草   | 2026-10-07 |
 | web 端保持 rs 蓝图口径：纯展示 + 访客 AI 对话                  | rs 蓝图明确 rs-web 不做概览等冗余功能；旧 web 的 profile / review-resume 是否纳入留待 web 模块任务卡定 | 归枢起草   | 2026-10-07 |
@@ -65,11 +65,11 @@ layers/
 
 ### 已确认选型（2026-10-07）
 
-| 项             | 确认结果                                                              | 对骨架的影响                                                                 |
-| -------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| 领域模型保真度 | 按 rs 蓝图重设计：去字段级 locale，简历多份 draft（≤ 20）             | Prisma schema 按 `resume`（主）+ `resume_draft`（多份、带 locale/用途）设计   |
-| 后端 ORM       | Prisma（`prisma migrate`）                                            | `src/database` 落 Prisma client 封装；pgvector 相关能力留到 RAG 任务卡再定    |
-| Redis 用途     | 会话与 token 黑名单/刷新、限流、异步队列（本轮不做缓存）              | `src/redis` 按三类用途分封装；队列先只落接口与状态存储，不引入重型任务框架    |
+| 项             | 确认结果                                                  | 对骨架的影响                                                                |
+| -------------- | --------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 领域模型保真度 | 按 rs 蓝图重设计：去字段级 locale，简历多份 draft（≤ 20） | Prisma schema 按 `resume`（主）+ `resume_draft`（多份、带 locale/用途）设计 |
+| 后端 ORM       | Prisma（`prisma migrate`）                                | `src/database` 落 Prisma client 封装；pgvector 相关能力留到 RAG 任务卡再定  |
+| Redis 用途     | 会话与 token 黑名单/刷新、限流、异步队列（本轮不做缓存）  | `src/redis` 按三类用途分封装；队列先只落接口与状态存储，不引入重型任务框架  |
 
 **数据层（替换 alova）**：
 
@@ -107,15 +107,15 @@ Owner 用最小回答确认后，Agent 必须先将确认事实写回本区，�
 
 只保留可复查摘要；原始日志、截图与长输出请链接到外部位置。
 
-| 类型     | 命令 / 样本 / 链接                                                                                                | 结果                                                                          | 仍未验证的边界                                                       |
-| -------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| 机器验   | `pnpm --filter @template/admin typecheck`；根 `oxlint .`                                                          | 通过；oxlint 0 warning / 0 error，typecheck 无 error                          | 全仓 `format:check` 见“已知缺口”                                     |
-| 结构验   | `layers/11-resume` 被 Nuxt 自动发现；导航 `/resume` 生效；依赖方向未越界                                          | 通过；`/resume` 200 并渲染域入口内容                                          | 简历域的真实业务页面尚未落地                                         |
-| 意图验   | admin dev `:4020` SSR：`/` 渲染 `api online · uptime …`，`/resume` 200；web dev `:4021` SSR：`/` 渲染 `API 心跳：已连接`，`/resume` `/ai-talk` 均 200 | 通过；admin 与 web 的 colada 都在 SSR 阶段真实取到后端数据，无 `Failed to resolve component` / `NUXT_E*` | “失效重取”按钮的客户端行为为人工观察，未自动化 |
-| 已知缺口 | `pnpm exec oxfmt --check .`                                                                                       | **在本次改动之前**就对 121 个既有文件报不合格（与本次改动无关）               | 需 Owner 决定统一重排，还是锁定 oxfmt 版本                           |
-| 机器验   | `pnpm --filter @template/admin typecheck`；`oxlint apps/admin`                                                                                    | 通过；oxlint 0 warning / 0 error（136 files）                                 | 全仓 `format:check` 见“已知缺口”（DAO-006）                          |
-| 结构验   | 去 alova：删除 `plugins/alova.ts`；`apis/files.ts` 改原生 XHR（进度 + `AbortSignal` + 统一解包）；`useFileUploader` 改 colada `useMutation`；`nuxt.d.ts` 去 `$alova`；`package.json` / lockfile 移除 `alova`、`@alova/adapter-xhr` | 通过；业务代码 `grep alova` 残留 **0**；上传不再依赖模板遗留库                                  | —                                                                    |
-| 意图验   | admin dev `:4047` SSR 抓 `/comps/upload`（`useFileUploader` 上传页）与 `/demos/plugins`                                                            | 均 **200**；无 `Failed to resolve component` / `NUXT_E*`；demos 文案已改为「原生 XHR + colada mutation」 | **真实上传端到端未验**（需后端 `/masterData/file/multipleUpload`）；进度回调与取消的浏览器表现未验 |
+| 类型     | 命令 / 样本 / 链接                                                                                                                                                                                                                 | 结果                                                                                                     | 仍未验证的边界                                                                                     |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 机器验   | `pnpm --filter @template/admin typecheck`；根 `oxlint .`                                                                                                                                                                           | 通过；oxlint 0 warning / 0 error，typecheck 无 error                                                     | 全仓 `format:check` 见“已知缺口”                                                                   |
+| 结构验   | `layers/11-resume` 被 Nuxt 自动发现；导航 `/resume` 生效；依赖方向未越界                                                                                                                                                           | 通过；`/resume` 200 并渲染域入口内容                                                                     | 简历域的真实业务页面尚未落地                                                                       |
+| 意图验   | admin dev `:4020` SSR：`/` 渲染 `api online · uptime …`，`/resume` 200；web dev `:4021` SSR：`/` 渲染 `API 心跳：已连接`，`/resume` `/ai-talk` 均 200                                                                              | 通过；admin 与 web 的 colada 都在 SSR 阶段真实取到后端数据，无 `Failed to resolve component` / `NUXT_E*` | “失效重取”按钮的客户端行为为人工观察，未自动化                                                     |
+| 已知缺口 | `pnpm exec oxfmt --check .`                                                                                                                                                                                                        | **在本次改动之前**就对 121 个既有文件报不合格（与本次改动无关）                                          | 需 Owner 决定统一重排，还是锁定 oxfmt 版本                                                         |
+| 机器验   | `pnpm --filter @template/admin typecheck`；`oxlint apps/admin`                                                                                                                                                                     | 通过；oxlint 0 warning / 0 error（136 files）                                                            | 全仓 `format:check` 见“已知缺口”（DAO-006）                                                        |
+| 结构验   | 去 alova：删除 `plugins/alova.ts`；`apis/files.ts` 改原生 XHR（进度 + `AbortSignal` + 统一解包）；`useFileUploader` 改 colada `useMutation`；`nuxt.d.ts` 去 `$alova`；`package.json` / lockfile 移除 `alova`、`@alova/adapter-xhr` | 通过；业务代码 `grep alova` 残留 **0**；上传不再依赖模板遗留库                                           | —                                                                                                  |
+| 意图验   | admin dev `:4047` SSR 抓 `/comps/upload`（`useFileUploader` 上传页）与 `/demos/plugins`                                                                                                                                            | 均 **200**；无 `Failed to resolve component` / `NUXT_E*`；demos 文案已改为「原生 XHR + colada mutation」 | **真实上传端到端未验**（需后端 `/masterData/file/multipleUpload`）；进度回调与取消的浏览器表现未验 |
 
 ## 交接
 

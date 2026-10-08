@@ -1,5 +1,5 @@
 export interface UploadedFile {
-  fileName: string
-  originalFilePath: string
-  thumbnailFilePath?: string | null
+  fileName: string;
+  originalFilePath: string;
+  thumbnailFilePath?: string | null;
 }

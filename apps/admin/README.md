@@ -47,13 +47,13 @@ apps/admin/
 
 ## 布局
 
-| 布局 | 用法 | 场景 |
-|---|---|---|
-| `has-sidebar` | `definePageMeta({ layout: "has-sidebar", title: "..." })` | 后台管理页（可折叠侧栏 + Sticky Header + 可滚动内容） |
-| `empty` | `definePageMeta({ layout: "empty" })` | 无边框，页面完全自控 |
-| `demo` | `definePageMeta({ layout: "demo" })` | 组件/交互演示页 |
-| `docs` | `definePageMeta({ layout: "docs" })` | 帮助/说明/版本记录（顶部返回条 + 锚点跳转） |
-| `pdf` | `definePageMeta({ layout: "pdf" })` | PDF 预览/打印（A4 纸张 + 浮动「Back / Config / Print」） |
+| 布局          | 用法                                                      | 场景                                                     |
+| ------------- | --------------------------------------------------------- | -------------------------------------------------------- |
+| `has-sidebar` | `definePageMeta({ layout: "has-sidebar", title: "..." })` | 后台管理页（可折叠侧栏 + Sticky Header + 可滚动内容）    |
+| `empty`       | `definePageMeta({ layout: "empty" })`                     | 无边框，页面完全自控                                     |
+| `demo`        | `definePageMeta({ layout: "demo" })`                      | 组件/交互演示页                                          |
+| `docs`        | `definePageMeta({ layout: "docs" })`                      | 帮助/说明/版本记录（顶部返回条 + 锚点跳转）              |
+| `pdf`         | `definePageMeta({ layout: "pdf" })`                       | PDF 预览/打印（A4 纸张 + 浮动「Back / Config / Print」） |
 
 登录页用 `layout: false`（`AuthSplitLayout` 自带全屏容器）。
 

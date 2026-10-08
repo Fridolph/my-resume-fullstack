@@ -8,11 +8,11 @@
 
 展示页现在有两个正交维度，但**"区块长什么样"只有一种**：
 
-| 维度 | 现状 | 落点 |
-| --- | --- | --- |
-| 编排 | `sections.order` / `slot` / `hidden`（拖拽排序、跨栏、显隐） | `ResumePageContainer` → `ResumeColumn` |
-| 配色 | `theme`（合并式预设：明暗 + 主色 + 渐变） | `--resume-*` CSS 变量 |
-| **风格（缺）** | 无 —— `ResumeSectionCard` 只有一种卡片外壳，`ResumeHeroCard` 只有缩略名方块 | —— |
+| 维度           | 现状                                                                        | 落点                                   |
+| -------------- | --------------------------------------------------------------------------- | -------------------------------------- |
+| 编排           | `sections.order` / `slot` / `hidden`（拖拽排序、跨栏、显隐）                | `ResumePageContainer` → `ResumeColumn` |
+| 配色           | `theme`（合并式预设：明暗 + 主色 + 渐变）                                   | `--resume-*` CSS 变量                  |
+| **风格（缺）** | 无 —— `ResumeSectionCard` 只有一种卡片外壳，`ResumeHeroCard` 只有缩略名方块 | ——                                     |
 
 后果：拖拽只改顺序、主题只改颜色，同一份内容无法呈现不同"视觉气质"。本设计新增**风格维度**，与上面两个维度正交。
 
@@ -35,18 +35,18 @@ GS 的 proposal 有**两个正交维度**，值得学的是"拆法"，不是它�
 
 ## 3. 已确认决策
 
-| 决策 | 理由 / 证据 | 确认者 |
-| --- | --- | --- |
-| 风格是独立维度，命名 `style`（类型 `ResumeStyleId`） | 与 `theme`（颜色）、`layout`（编排）语义分得最开；`template` 一词已被 Nuxt layer、admin demo、GS 占用 | Owner |
-| 本轮只实现 `minimal` \| `standard` 两档 | `ResumeStyleId` 会进后端公开快照，提前塞未实现的枚举值会让前后端校验对不上 | Owner |
-| 实现手段：**风格 token（CSS 变量）为主，`variant` prop 只用于结构差异** | 视觉参数（圆角 / 阴影 / 渐变 / hover / 字级）走变量则 7 个区块组件零改动，与既有主题机制同构；只有 DOM 结构不同的地方（hero 呈现、外壳标题结构）才用 `variant` | Owner |
-| `standard` 向旧站 hero 贴合（含新增字段） | Owner 选择最大还原范围：头像翻牌、slogans、links、interests 都要有 | Owner |
-| 翻牌头像**只做视觉**，不接跳转 | 旧站头像是指向 `/ai-talk` 的 AI 对话入口，属 `12-ai-talk` 域；feature layer 之间不得互相 import（`layers.md`），跨域能力上提须另立卡 | Owner |
-| 图标沿用旧站 iconify 名，新增 `@iconify-json/ri` | 旧站内容里是 `ri:link-m` 这类名字，改写成 lucide 名会失去与旧站的可对照性；Nuxt Icon 按需 bundle，体积可控 | Owner |
-| 编辑侧扩展 schema 支持**多段** | `profile` 需要"基础信息（fields）+ 链接（list）+ 兴趣（list）"，而现有 `ResumeSectionEditorSchema` 只能有一个 `mode` | Owner |
-| `contact` 结构与 key 不动，只改外观 | 加 `website` 会牵动 `ResumeContactItem`、mock 与编辑 schema，与本轮"风格维度"目标无关 | Owner |
-| `publishedAt` 不进 `ResumeContent` | 它是快照级元信息（`ResumeSnapshot` 的时间戳），属 C 期后端发布快照的职责；塞进内容模型会让"内容"与"发布"混层 | 归枢起草 |
-| 默认 `style.id = minimal` | 保证"默认观感不变"，切换风格是显式动作 | 归枢起草 |
+| 决策                                                                    | 理由 / 证据                                                                                                                                                    | 确认者   |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 风格是独立维度，命名 `style`（类型 `ResumeStyleId`）                    | 与 `theme`（颜色）、`layout`（编排）语义分得最开；`template` 一词已被 Nuxt layer、admin demo、GS 占用                                                          | Owner    |
+| 本轮只实现 `minimal` \| `standard` 两档                                 | `ResumeStyleId` 会进后端公开快照，提前塞未实现的枚举值会让前后端校验对不上                                                                                     | Owner    |
+| 实现手段：**风格 token（CSS 变量）为主，`variant` prop 只用于结构差异** | 视觉参数（圆角 / 阴影 / 渐变 / hover / 字级）走变量则 7 个区块组件零改动，与既有主题机制同构；只有 DOM 结构不同的地方（hero 呈现、外壳标题结构）才用 `variant` | Owner    |
+| `standard` 向旧站 hero 贴合（含新增字段）                               | Owner 选择最大还原范围：头像翻牌、slogans、links、interests 都要有                                                                                             | Owner    |
+| 翻牌头像**只做视觉**，不接跳转                                          | 旧站头像是指向 `/ai-talk` 的 AI 对话入口，属 `12-ai-talk` 域；feature layer 之间不得互相 import（`layers.md`），跨域能力上提须另立卡                           | Owner    |
+| 图标沿用旧站 iconify 名，新增 `@iconify-json/ri`                        | 旧站内容里是 `ri:link-m` 这类名字，改写成 lucide 名会失去与旧站的可对照性；Nuxt Icon 按需 bundle，体积可控                                                     | Owner    |
+| 编辑侧扩展 schema 支持**多段**                                          | `profile` 需要"基础信息（fields）+ 链接（list）+ 兴趣（list）"，而现有 `ResumeSectionEditorSchema` 只能有一个 `mode`                                           | Owner    |
+| `contact` 结构与 key 不动，只改外观                                     | 加 `website` 会牵动 `ResumeContactItem`、mock 与编辑 schema，与本轮"风格维度"目标无关                                                                          | Owner    |
+| `publishedAt` 不进 `ResumeContent`                                      | 它是快照级元信息（`ResumeSnapshot` 的时间戳），属 C 期后端发布快照的职责；塞进内容模型会让"内容"与"发布"混层                                                   | 归枢起草 |
+| 默认 `style.id = minimal`                                               | 保证"默认观感不变"，切换风格是显式动作                                                                                                                         | 归枢起草 |
 
 ## 4. 契约设计
 
@@ -54,20 +54,20 @@ GS 的 proposal 有**两个正交维度**，值得学的是"拆法"，不是它�
 
 ```ts
 /** 预设风格：决定区块「长什么样」，与 theme（颜色）、layout（编排）正交 */
-export type ResumeStyleId = 'minimal' | 'standard'   // cool 在 P2 实现时再加
+export type ResumeStyleId = "minimal" | "standard"; // cool 在 P2 实现时再加
 
 export interface ResumeStyleConfig {
-  id: ResumeStyleId
+  id: ResumeStyleId;
 }
 
 export interface ResumeDisplayConfig {
-  layout: ResumeLayoutConfig
-  sections: ResumeSectionsConfig
-  options: ResumeDisplayOptions
-  theme: ResumeThemeConfig
-  background: ResumeBackgroundConfig
-  brand: ResumeBrandConfig
-  style: ResumeStyleConfig      // 本轮新增
+  layout: ResumeLayoutConfig;
+  sections: ResumeSectionsConfig;
+  options: ResumeDisplayOptions;
+  theme: ResumeThemeConfig;
+  background: ResumeBackgroundConfig;
+  brand: ResumeBrandConfig;
+  style: ResumeStyleConfig; // 本轮新增
 }
 ```
 
@@ -75,7 +75,7 @@ export interface ResumeDisplayConfig {
 
 ```ts
 function setStyle(id: ResumeStyleId) {
-  config.value.style.id = id
+  config.value.style.id = id;
 }
 ```
 
@@ -85,13 +85,13 @@ function setStyle(id: ResumeStyleId) {
 interface ResumeProfile {
   // …既有 name / headline / summary / avatarText / contact
   hero: {
-    frontImageUrl: string     // standard 头像正面图
-    backImageUrl: string      // 翻牌背面图
-    linkUrl: string           // 旧站指向 /ai-talk，本轮只存不跳转
-    slogans: string[]         // 旧站 slice(0, 2)，我们最多渲染 2 条
-  }
-  links: { label: string, url: string, icon?: string }[]
-  interests: { label: string, icon?: string }[]
+    frontImageUrl: string; // standard 头像正面图
+    backImageUrl: string; // 翻牌背面图
+    linkUrl: string; // 旧站指向 /ai-talk，本轮只存不跳转
+    slogans: string[]; // 旧站 slice(0, 2)，我们最多渲染 2 条
+  };
+  links: { label: string; url: string; icon?: string }[];
+  interests: { label: string; icon?: string }[];
 }
 ```
 
@@ -103,11 +103,11 @@ interface ResumeProfile {
 
 ```ts
 export interface ResumeSectionProps {
-  section: { key: ResumeSectionKey, label: string, icon: string }
-  content: ResumeContent
-  options: ResumeDisplayOptions
-  theme: ResumeThemeConfig
-  variant: ResumeStyleId        // 本轮新增
+  section: { key: ResumeSectionKey; label: string; icon: string };
+  content: ResumeContent;
+  options: ResumeDisplayOptions;
+  theme: ResumeThemeConfig;
+  variant: ResumeStyleId; // 本轮新增
 }
 ```
 
@@ -126,25 +126,27 @@ ResumePageContainer  :variant="config.style.id"
 
 ```ts
 export interface ResumeFieldGroupSchema {
-  mode: 'fields' | 'list'
-  label: string                                  // 段标题，抽屉里显示
-  listPath?: string
-  titleKey?: string
-  blank?: Record<string, unknown>
-  fields: ResumeFieldSchema[]
+  mode: "fields" | "list";
+  label: string; // 段标题，抽屉里显示
+  listPath?: string;
+  titleKey?: string;
+  blank?: Record<string, unknown>;
+  fields: ResumeFieldSchema[];
 }
 
-export interface ResumeSectionEditorSchema { segments: ResumeFieldGroupSchema[] }
+export interface ResumeSectionEditorSchema {
+  segments: ResumeFieldGroupSchema[];
+}
 ```
 
 现有 7 个区块的 schema 各收编为一段，`profile` 分四段：
 
-| 段 | mode | 内容 |
-| --- | --- | --- |
-| 基础信息 | fields | `profile.name` / `headline` / `avatarText` / `summary` |
-| 主视觉 | fields | `profile.hero.frontImageUrl` / `backImageUrl` / `linkUrl` / `slogans`（`tags`） |
-| 个人链接 | list（`profile.links`） | `label` / `url` / `icon` |
-| 兴趣 | list（`profile.interests`） | `label` / `icon` |
+| 段       | mode                        | 内容                                                                            |
+| -------- | --------------------------- | ------------------------------------------------------------------------------- |
+| 基础信息 | fields                      | `profile.name` / `headline` / `avatarText` / `summary`                          |
+| 主视觉   | fields                      | `profile.hero.frontImageUrl` / `backImageUrl` / `linkUrl` / `slogans`（`tags`） |
+| 个人链接 | list（`profile.links`）     | `label` / `url` / `icon`                                                        |
+| 兴趣     | list（`profile.interests`） | `label` / `icon`                                                                |
 
 顺带修两个现有限制：
 
@@ -153,43 +155,47 @@ export interface ResumeSectionEditorSchema { segments: ResumeFieldGroupSchema[] 
 
 ## 5. 三层落点（按成本递增，本轮只做前两层）
 
-| 层 | 承载什么 | 手段 | 代价 |
-| --- | --- | --- | --- |
-| **L1 风格 token** | 卡片圆角 / 边框 / 底 / 阴影、hover 位移、间距节奏、标题字级 | CSS 变量（`--resume-card-*` 一类），由注入层与主题变量**同层下发** | 7 个区块组件零改动 |
-| **L2 组件变体** | 结构差异：hero「文本方块 vs 翻牌头像」、外壳「icon + h2 vs eyebrow + title + description」 | `variant` prop（`ResumeHeroCard` / `ResumeSectionCard` 内分支） | 只动 2 个组件 + 7 处一行透传 |
-| **L3 整页模板** | 页面骨架差异（cool：背景动画、视差、入场 stagger） | `templateMap` 路由 + 独立模板组件 | 重；且受 §2 末的编排约束 |
+| 层                | 承载什么                                                                                   | 手段                                                               | 代价                         |
+| ----------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ | ---------------------------- |
+| **L1 风格 token** | 卡片圆角 / 边框 / 底 / 阴影、hover 位移、间距节奏、标题字级                                | CSS 变量（`--resume-card-*` 一类），由注入层与主题变量**同层下发** | 7 个区块组件零改动           |
+| **L2 组件变体**   | 结构差异：hero「文本方块 vs 翻牌头像」、外壳「icon + h2 vs eyebrow + title + description」 | `variant` prop（`ResumeHeroCard` / `ResumeSectionCard` 内分支）    | 只动 2 个组件 + 7 处一行透传 |
+| **L3 整页模板**   | 页面骨架差异（cool：背景动画、视差、入场 stagger）                                         | `templateMap` 路由 + 独立模板组件                                  | 重；且受 §2 末的编排约束     |
 
 风格变量与主题变量的**注入点必须相同**（现在是 `ResumePageContainer` 的 `themeVars` computed）。将来 cool 若把容器瘦身成路由，注入层要能整体上移，不要一个变量在容器里、另一个在别处。
 
 ### 实现落点（P1 实际落地）
 
-| 文件 | 职责 |
-| --- | --- |
-| `ResumePageContainer.vue` | `styleVars` computed + `data-resume-style` 属性 —— 风格变量**唯一注入点**（与 `themeVars` 同层） |
-| `ResumeSectionCard.vue` | 消费 `--resume-card-*`；`variant` 决定标题结构；scoped 样式承载 hover / transition / reduced-motion |
-| `ResumeHeroCard.vue` | 同上；scoped 样式另承载 3D 翻牌、渐变文字、徽标 |
-| `ResumeColumn.vue` | 只透传 `variant`，不做判断 |
-| 7 个 `*Section.vue` | 各一行 `:variant="variant"` 传给 `ResumeSectionCard`（L2 透传的实际代价） |
+| 文件                      | 职责                                                                                                |
+| ------------------------- | --------------------------------------------------------------------------------------------------- |
+| `ResumePageContainer.vue` | `styleVars` computed + `data-resume-style` 属性 —— 风格变量**唯一注入点**（与 `themeVars` 同层）    |
+| `ResumeSectionCard.vue`   | 消费 `--resume-card-*`；`variant` 决定标题结构；scoped 样式承载 hover / transition / reduced-motion |
+| `ResumeHeroCard.vue`      | 同上；scoped 样式另承载 3D 翻牌、渐变文字、徽标                                                     |
+| `ResumeColumn.vue`        | 只透传 `variant`，不做判断                                                                          |
+| 7 个 `*Section.vue`       | 各一行 `:variant="variant"` 传给 `ResumeSectionCard`（L2 透传的实际代价）                           |
 
 > 伪类（`:hover`）与 3D 变换**无法用 CSS 变量表达**，所以 hover / 翻牌 / `prefers-reduced-motion` 落在组件 scoped 样式里；但**颜色仍然全部取自 `--resume-*`**，所以风格与主题不会打架。本轮没有新增独立 CSS 文件。
 
 ## 6. `standard` 贴合清单
 
-| 部位 | 目标（对照旧站） | 手段 |
-| --- | --- | --- |
-| hero 头像 | 圆形头像 + 翻牌（`rotateY 180deg`，0.85s）+ hover 光晕 | L2 variant 分支 + L1 token；**不接跳转**，"talk with me" 徽标保留为纯装饰 |
-| hero 文案 | slogans 渐变文字（最多 2 条）、姓名 / 定位层级 | L1 token |
-| hero 联系区 | 旧站是"icon + 值"的条目卡（`r-contact-item`） | L1 token 改外观；**结构与 key 不动**（不加 `website`） |
-| hero 附加块 | links（icon 链接胶囊）、interests（图标 + 标签）、INTRO 卡 | L2 结构新增（本轮新字段）+ L1 token |
-| 区块外壳 | eyebrow（大写小字）+ title（2xl）+ description 的三段式标题，卡片带渐变底与阴影 | L2（标题结构不同）+ L1（底色 / 阴影 / 圆角） |
-| 图标 | `link.icon` / `interest.icon` 为 iconify 名（如 `ri:link-m`）；空值兜底 external-link 图标 | 新增 `@iconify-json/ri`；`<UIcon>` 渲染 |
-| 动效 | hover 位移、渐变位移、光晕 | 全部以 `@media (hover: hover)` 守卫，并补 `prefers-reduced-motion` 降级（旧站没做） |
+| 部位        | 目标（对照旧站）                                                                           | 手段                                                                                |
+| ----------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| hero 头像   | 圆形头像 + 翻牌（`rotateY 180deg`，0.85s）+ hover 光晕                                     | L2 variant 分支 + L1 token；**不接跳转**，"talk with me" 徽标保留为纯装饰           |
+| hero 文案   | slogans 渐变文字（最多 2 条）、姓名 / 定位层级                                             | L1 token                                                                            |
+| hero 联系区 | 旧站是"icon + 值"的条目卡（`r-contact-item`）                                              | L1 token 改外观；**结构与 key 不动**（不加 `website`）                              |
+| hero 附加块 | links（icon 链接胶囊）、interests（图标 + 标签）、INTRO 卡                                 | L2 结构新增（本轮新字段）+ L1 token                                                 |
+| 区块外壳    | eyebrow（大写小字）+ title（2xl）+ description 的三段式标题，卡片带渐变底与阴影            | L2（标题结构不同）+ L1（底色 / 阴影 / 圆角）                                        |
+| 图标        | `link.icon` / `interest.icon` 为 iconify 名（如 `ri:link-m`）；空值兜底 external-link 图标 | 新增 `@iconify-json/ri`；`<UIcon>` 渲染                                             |
+| 动效        | hover 位移、渐变位移、光晕                                                                 | 全部以 `@media (hover: hover)` 守卫，并补 `prefers-reduced-motion` 降级（旧站没做） |
 
 ## 7. 硬约束与避坑
 
 1. **`standard` 的 CSS 不得出现硬编码品牌色。** 旧站 `hero.css` / `published-resume-section-card.css` 里满是 `rgba(96,165,250,.1)`、`#2563eb` 这类写死的蓝；照抄会让"风格 × 主题"打架（切到「绿色清新」「深色科技」，卡片底仍是蓝的）。必须映射成派生色：
    ```css
-   background: radial-gradient(circle at top left, color-mix(in srgb, var(--resume-primary) 10%, transparent), transparent 34%);
+   background: radial-gradient(
+     circle at top left,
+     color-mix(in srgb, var(--resume-primary) 10%, transparent),
+     transparent 34%
+   );
    ```
    验收项：**4 套主题 × 2 种风格全组合切一遍，无残留本色。**
 2. **风格 ≠ 配色**：`style` 管"组件样子"，`theme` 管"颜色"。别把 `standard` 实现成"换一套 theme"。
@@ -202,11 +208,11 @@ export interface ResumeSectionEditorSchema { segments: ResumeFieldGroupSchema[] 
 
 ## 8. 分阶段落地
 
-| 阶段 | 内容 | 本轮 |
-| --- | --- | --- |
-| P1 | `style.id` 类型 + mock + `setStyle`；风格 token 注入；`ResumeHeroCard` / `ResumeSectionCard` 的 `minimal` / `standard` 变体；`profile.hero` / `links` / `interests` 落内容模型与编辑 schema；设置面板加「风格」按钮组 | ✅ |
-| P2 | `cool`：先做组件级动效 variant，评估是否需要整页模板组件（那时才动 L3） | 后续 |
-| P3 | admin 侧风格选择与 web 渲染打通（`style.id` 纳入公开快照） | 与 admin 契约统一时一起做 |
+| 阶段 | 内容                                                                                                                                                                                                                  | 本轮                      |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| P1   | `style.id` 类型 + mock + `setStyle`；风格 token 注入；`ResumeHeroCard` / `ResumeSectionCard` 的 `minimal` / `standard` 变体；`profile.hero` / `links` / `interests` 落内容模型与编辑 schema；设置面板加「风格」按钮组 | ✅                        |
+| P2   | `cool`：先做组件级动效 variant，评估是否需要整页模板组件（那时才动 L3）                                                                                                                                               | 后续                      |
+| P3   | admin 侧风格选择与 web 渲染打通（`style.id` 纳入公开快照）                                                                                                                                                            | 与 admin 契约统一时一起做 |
 
 ## 9. 验收清单
 
@@ -240,22 +246,29 @@ split 的两档（`320/360`，wide `380/420`）与 single 的 `max-w-4xl` 限宽
 现在的模型（正交两维）：
 
 ```ts
-export type ResumeColorMode = 'light' | 'dark'
+export type ResumeColorMode = "light" | "dark";
 
 export interface ResumeThemePalette {
-  primary, gradientFrom, gradientTo,
-  surface, text, muted, border, chipBg, chipText
+  primary;
+  gradientFrom;
+  gradientTo;
+  surface;
+  text;
+  muted;
+  border;
+  chipBg;
+  chipText;
 }
 
 export interface ResumeThemePreset {
-  id: string
-  label: string
-  light: ResumeThemePalette     // 每套预设自带两组色值
-  dark: ResumeThemePalette
+  id: string;
+  label: string;
+  light: ResumeThemePalette; // 每套预设自带两组色值
+  dark: ResumeThemePalette;
 }
 
 export interface ResumeThemeConfig extends ResumeThemePreset {
-  mode: ResumeColorMode         // 当前生效的明暗
+  mode: ResumeColorMode; // 当前生效的明暗
 }
 ```
 
@@ -306,11 +319,11 @@ export interface ResumeThemeConfig extends ResumeThemePreset {
 
 ### 11.1 定位与分期
 
-| 档 | 定位 | 状态 |
-| --- | --- | --- |
-| `minimal` | 极简：文本方块 + 列表 | ✅ |
-| `standard` | 标准：翻牌头像 + 分块 + eyebrow（对齐旧站） | ✅ |
-| `pro` | 精致：画廊 / 数字块 / 能力雷达 / 求职状态，版式更讲究 | ✅ 排版部分；动效分期 |
+| 档         | 定位                                                  | 状态                  |
+| ---------- | ----------------------------------------------------- | --------------------- |
+| `minimal`  | 极简：文本方块 + 列表                                 | ✅                    |
+| `standard` | 标准：翻牌头像 + 分块 + eyebrow（对齐旧站）           | ✅                    |
+| `pro`      | 精致：画廊 / 数字块 / 能力雷达 / 求职状态，版式更讲究 | ✅ 排版部分；动效分期 |
 
 动效（入场 stagger、滚动视差、hover 特效）留到下一期 —— 独立文件已经为它留好位置。
 
@@ -327,12 +340,12 @@ components/resume/
 
 **为什么 hero 拆、而 `ResumeSectionCard` 不拆**：
 
-| | hero | ResumeSectionCard |
-| --- | --- | --- |
-| 使用处 | 全站 **1 处** | 被 **7 个区块**复用 |
-| 差异性质 | **结构差异大**（画廊/雷达 vs 文本块） | 仅标题结构（色条 vs icon） |
-| 拆分代价 | 无同步成本 | 抽变体要同步 7 处 |
-| 结论 | **拆**（薄壳 + 三实现） | **不拆**（外壳共用 + 结构分支） |
+|          | hero                                  | ResumeSectionCard               |
+| -------- | ------------------------------------- | ------------------------------- |
+| 使用处   | 全站 **1 处**                         | 被 **7 个区块**复用             |
+| 差异性质 | **结构差异大**（画廊/雷达 vs 文本块） | 仅标题结构（色条 vs icon）      |
+| 拆分代价 | 无同步成本                            | 抽变体要同步 7 处               |
+| 结论     | **拆**（薄壳 + 三实现）               | **不拆**（外壳共用 + 结构分支） |
 
 判据（下次同类选择按这四条走）：① 使用处数量 ② 共享比例 ③ 差异是"参数"还是"结构" ④ 独立演进速度。
 
@@ -343,10 +356,10 @@ components/resume/
 ```ts
 interface ResumeProfile {
   // …既有 name / headline / summary / avatarText / hero / contact / links / interests
-  availability?: string                     // 求职状态徽标文案，留空则不展示
-  stats?: ResumeProfileStat[]               // { label, value, hint? } 数字块
-  gallery?: ResumeProfileGalleryItem[]      // { url, alt? } 形象画廊（本轮只建模 + 展示 URL）
-  radar?: ResumeProfileRadarItem[]          // { label, value: 0~100 } 能力雷达
+  availability?: string; // 求职状态徽标文案，留空则不展示
+  stats?: ResumeProfileStat[]; // { label, value, hint? } 数字块
+  gallery?: ResumeProfileGalleryItem[]; // { url, alt? } 形象画廊（本轮只建模 + 展示 URL）
+  radar?: ResumeProfileRadarItem[]; // { label, value: 0~100 } 能力雷达
 }
 ```
 
@@ -375,12 +388,12 @@ hero 默认落在 `side` 栏（300px），所以 pro 的版式**刻意不用视�
 
 ### 12.1 三手段分层（不是三选一，而是按成本从低到高）
 
-| 手段 | 表达什么差异 | 成本 | 何时用 |
-| --- | --- | --- | --- |
-| **① CSS token**（`--resume-*` + `.resume-*` 语义类） | 可参数化的一切：圆角 / 内边距 / 阴影 / 表面 / hover / 字级 / 间距节奏 | **0**（组件不改） | **默认**。新增风格先问「这差异能不能变成变量」，能就别碰组件 |
-| **② 同一组件内的 `variant` 数据映射** | 局部 DOM 差异（标题行组成、某块的装饰） | 1 处 | 差异 < 模板 30%，或该组件被多处复用 |
-| **③ 拆文件：薄壳 + 一风格一文件** | 整块结构差异（hero 的画廊/雷达、experience 的时间线） | N 文件 + 共享数据抽 composable | 满足 12.2 判据任两条 |
-| **③′ 抽「零件」子组件** | 中间态：骨架相同、个别零件不同 | 中 | 同一零件在**多处**复用（见 12.4） |
+| 手段                                                 | 表达什么差异                                                          | 成本                           | 何时用                                                       |
+| ---------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------ |
+| **① CSS token**（`--resume-*` + `.resume-*` 语义类） | 可参数化的一切：圆角 / 内边距 / 阴影 / 表面 / hover / 字级 / 间距节奏 | **0**（组件不改）              | **默认**。新增风格先问「这差异能不能变成变量」，能就别碰组件 |
+| **② 同一组件内的 `variant` 数据映射**                | 局部 DOM 差异（标题行组成、某块的装饰）                               | 1 处                           | 差异 < 模板 30%，或该组件被多处复用                          |
+| **③ 拆文件：薄壳 + 一风格一文件**                    | 整块结构差异（hero 的画廊/雷达、experience 的时间线）                 | N 文件 + 共享数据抽 composable | 满足 12.2 判据任两条                                         |
+| **③′ 抽「零件」子组件**                              | 中间态：骨架相同、个别零件不同                                        | 中                             | 同一零件在**多处**复用（见 12.4）                            |
 
 ### 12.2 判据：拆 or 不拆
 
@@ -393,11 +406,11 @@ hero 默认落在 `side` 栏（300px），所以 pro 的版式**刻意不用视�
 
 对照组（方向相反、各有依据）：
 
-| | `ResumeHeroCard` | `ResumeSectionCard` |
-| --- | --- | --- |
-| 使用处 | 1 处 | 被 7 个区块复用 |
-| 差异 | 整块结构（画廊 / 雷达 vs 文本块） | 仅标题结构 |
-| 结论 | **拆**（薄壳 + `hero/` 三档） | **不拆**（外壳共用 + 数据映射） |
+|        | `ResumeHeroCard`                  | `ResumeSectionCard`             |
+| ------ | --------------------------------- | ------------------------------- |
+| 使用处 | 1 处                              | 被 7 个区块复用                 |
+| 差异   | 整块结构（画廊 / 雷达 vs 文本块） | 仅标题结构                      |
+| 结论   | **拆**（薄壳 + `hero/` 三档）     | **不拆**（外壳共用 + 数据映射） |
 
 ### 12.3 目录与命名约定
 
@@ -417,11 +430,11 @@ components/resume/
 
 ### 12.4 样式归属：零件放哪
 
-| 类型 | 放哪 | 例 |
-| --- | --- | --- |
+| 类型                         | 放哪                                           | 例                                                                                             |
+| ---------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | **跨区块复用的「风格语言」** | `app/assets/css/resume.css` 的 `.resume-pro-*` | `.resume-pro-block` / `-row` / `-chip` / `-stats`（原在 `ResumeHeroPro` 的 scoped 里，已上提） |
-| **该区块独有的零件** | 组件内 `<style scoped>` | `experience` 的时间线、`skills` 的组头细线 |
-| **三档共用的派生数据** | composable | `useResumeProfileView`（hero 三档共用） |
+| **该区块独有的零件**         | 组件内 `<style scoped>`                        | `experience` 的时间线、`skills` 的组头细线                                                     |
+| **三档共用的派生数据**       | composable                                     | `useResumeProfileView`（hero 三档共用）                                                        |
 
 判断标准只有一条：**是不是第二个地方也要用**。不是 → 留 scoped，等真复用再抽。
 
@@ -429,11 +442,11 @@ components/resume/
 
 拆文件不能拆成复制粘贴。三档的语言分工：
 
-| 档 | 语言 |
-| --- | --- |
-| `minimal` | 克制：文本流、一行连接（`a · b · c`）、无装饰 |
-| `standard` | 结构：时间列 + 层级标题 + 标签墙（对齐旧站） |
-| `pro` | 讲究：时间线 / 组头层级 / 圆角零件 / 数字块 —— 靠层级与留白，不堆装饰 |
+| 档         | 语言                                                                  |
+| ---------- | --------------------------------------------------------------------- |
+| `minimal`  | 克制：文本流、一行连接（`a · b · c`）、无装饰                         |
+| `standard` | 结构：时间列 + 层级标题 + 标签墙（对齐旧站）                          |
+| `pro`      | 讲究：时间线 / 组头层级 / 圆角零件 / 数字块 —— 靠层级与留白，不堆装饰 |
 
 ### 12.6 止损线
 

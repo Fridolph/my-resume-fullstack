@@ -2,8 +2,8 @@
   "name": "@template/ui",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "description": "跨 app 共享的 Vue / Nuxt UI 组件（Nuxt layer 形式，源码级共享、零构建、零运行时依赖）",
+  "type": "module",
   "scripts": {
     "typecheck": "echo \"layer 由宿主 app 的 typecheck 覆盖（apps/web、apps/admin）\"",
     "lint": "echo \"layer 的 lint 由根 oxlint 覆盖\""

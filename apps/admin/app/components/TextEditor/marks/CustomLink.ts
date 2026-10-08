@@ -1,4 +1,4 @@
-import { Link } from '@tiptap/extension-link'
+import { Link } from "@tiptap/extension-link";
 
 export default Link.extend({
   addAttributes() {
@@ -6,13 +6,11 @@ export default Link.extend({
       ...this.parent?.(),
       style: {
         default: null,
-        parseHTML: element => element.getAttribute('style'),
+        parseHTML: (element) => element.getAttribute("style"),
         renderHTML: (attributes) => {
-          return attributes.style
-            ? { style: attributes.style }
-            : {}
+          return attributes.style ? { style: attributes.style } : {};
         },
       },
-    }
+    };
   },
-})
+});

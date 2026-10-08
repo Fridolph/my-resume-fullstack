@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { moveArrayElement, useSortable } from '@vueuse/integrations/useSortable'
+import { moveArrayElement, useSortable } from "@vueuse/integrations/useSortable";
 
 /**
  * 拖拽事件类型。
@@ -8,8 +8,8 @@ import { moveArrayElement, useSortable } from '@vueuse/integrations/useSortable'
  * app 没有声明 `@types/sortablejs`，直接 import 会报 TS7016；
  * 走 vueuse 的声明则能解析到提升目录里的类型。
  */
-type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>
-import type { ResumeSection } from '~/composables/useResumeLayout'
+type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>;
+import type { ResumeSection } from "~/composables/useResumeLayout";
 
 /**
  * ResumeLayoutPanel —— 模块排序 + 显隐 + 配置入口的面板（参考 greensketch PageLayoutPanel）。
@@ -20,81 +20,84 @@ import type { ResumeSection } from '~/composables/useResumeLayout'
  * - `isDirty` 时显示 Save / Reset
  */
 const props = defineProps<{
-  sections: ResumeSection[]
-  getSwitch: (key?: string) => number
-  isDirty: boolean
-  width: number
-}>()
+  sections: ResumeSection[];
+  getSwitch: (key?: string) => number;
+  isDirty: boolean;
+  width: number;
+}>();
 
-const order = defineModel<string[]>('order', { required: true })
+const order = defineModel<string[]>("order", { required: true });
 
 const emit = defineEmits<{
-  save: []
-  reset: []
-  toggle: [key: string]
-  action: [key: string]
-  'scroll-to': [id: string]
-}>()
+  save: [];
+  reset: [];
+  toggle: [key: string];
+  action: [key: string];
+  "scroll-to": [id: string];
+}>();
 
-const listRef = useTemplateRef<HTMLElement>('list')
+const listRef = useTemplateRef<HTMLElement>("list");
 
 /** 第一个模块（locked）固定在位置 0，不能被拖走，其它模块也不能插到它前面 */
-const firstModuleId = computed(() => props.sections[0]?.id)
+const firstModuleId = computed(() => props.sections[0]?.id);
 
 function ensureFirstLocked() {
-  const first = firstModuleId.value
-  if (!first) return
-  const isLocked = props.sections.find(s => s.id === first)?.locked
-  if (!isLocked) return
-  const idx = order.value.indexOf(first)
+  const first = firstModuleId.value;
+  if (!first) return;
+  const isLocked = props.sections.find((s) => s.id === first)?.locked;
+  if (!isLocked) return;
+  const idx = order.value.indexOf(first);
   if (idx > 0) {
-    order.value.splice(idx, 1)
-    order.value.unshift(first)
+    order.value.splice(idx, 1);
+    order.value.unshift(first);
   }
 }
 
 const { start } = useSortable(listRef, order, {
   watchElement: true,
-  handle: '.layout-drag-handle',
+  handle: ".layout-drag-handle",
   animation: 150,
-  ghostClass: 'layout-sort-ghost',
-  chosenClass: 'layout-sort-chosen',
+  ghostClass: "layout-sort-ghost",
+  chosenClass: "layout-sort-chosen",
   forceFallback: true,
   fallbackOnBody: true,
   fallbackTolerance: 3,
-  filter: 'input, textarea, select, option',
+  filter: "input, textarea, select, option",
   onUpdate: (e: SortableEvent) => {
-    moveArrayElement(order, e.oldIndex ?? 0, e.newIndex ?? 0, e)
-    ensureFirstLocked()
+    moveArrayElement(order, e.oldIndex ?? 0, e.newIndex ?? 0, e);
+    ensureFirstLocked();
   },
-} as any)
+} as any);
 
 onMounted(async () => {
-  await nextTick()
-  start()
-})
+  await nextTick();
+  start();
+});
 
 const sectionMap = computed<Record<string, ResumeSection>>(() =>
-  props.sections.reduce((acc, s) => {
-    acc[s.id] = s
-    return acc
-  }, {} as Record<string, ResumeSection>),
-)
+  props.sections.reduce(
+    (acc, s) => {
+      acc[s.id] = s;
+      return acc;
+    },
+    {} as Record<string, ResumeSection>,
+  ),
+);
 
 function moduleVisible(id: string) {
-  const s = sectionMap.value[id]
-  return s?.switchKey ? !!props.getSwitch(s.switchKey) : true
+  const s = sectionMap.value[id];
+  return s?.switchKey ? !!props.getSwitch(s.switchKey) : true;
 }
 
 function toggleModule(id: string) {
-  const s = sectionMap.value[id]
-  if (!s?.switchKey) return
-  emit('toggle', s.switchKey)
+  const s = sectionMap.value[id];
+  if (!s?.switchKey) return;
+  emit("toggle", s.switchKey);
 }
 
 function onScrollTo(id: string) {
-  if (!moduleVisible(id)) return
-  emit('scroll-to', id)
+  if (!moduleVisible(id)) return;
+  emit("scroll-to", id);
 }
 </script>
 
@@ -171,7 +174,14 @@ function onScrollTo(id: string) {
         v-if="isDirty"
         class="flex shrink-0 items-center gap-2 border-t border-default bg-default px-4 py-3"
       >
-        <UButton label="取消" color="neutral" variant="outline" size="sm" class="flex-1" @click="emit('reset')" />
+        <UButton
+          label="取消"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          class="flex-1"
+          @click="emit('reset')"
+        />
         <UButton label="保存" size="sm" class="flex-1" @click="emit('save')" />
       </div>
     </div>

@@ -11,12 +11,12 @@
 
 ## 状态轨迹
 
-| 迁移                      | 依据                                                                                     | 确认者     | 日期       |
-| ------------------------- | ---------------------------------------------------------------------------------------- | ---------- | ---------- |
-| `planned -> designed`     | 用 `.nuxt/tsconfig.json` 核实 `~`/`@` 均指向 `app/`（非 layer）、`#layers/<name>` 已由 Nuxt 自动生成；实测自定义 alias 亦可行，`@` 无法按 layer 解析的原因已确认 | 归枢记录 | 2026-10-07 |
-| `designed -> in-progress` | Owner 选定方案 B（不引入自定义别名）+ 范围 web&admin；`feat/13` 先本地 squash 合入 dev（`bdcf584`），再从 dev 开 `feat/14-layers-alias` | Owner 确认 | 2026-10-07 |
-| `in-progress -> self-tested` | 64 处替换完成（web 57 / admin 7），两端 typecheck、oxlint、SSR 抓页全部通过 | 归枢记录 | 2026-10-07 |
-| `self-tested -> review-ready` | 交接包齐全；三个提交（fix / refactor / docs）本地 squash 合入 dev（`0496c4e`），未推远端 | 归枢记录 | 2026-10-07 |
+| 迁移                          | 依据                                                                                                                                                             | 确认者     | 日期       |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| `planned -> designed`         | 用 `.nuxt/tsconfig.json` 核实 `~`/`@` 均指向 `app/`（非 layer）、`#layers/<name>` 已由 Nuxt 自动生成；实测自定义 alias 亦可行，`@` 无法按 layer 解析的原因已确认 | 归枢记录   | 2026-10-07 |
+| `designed -> in-progress`     | Owner 选定方案 B（不引入自定义别名）+ 范围 web&admin；`feat/13` 先本地 squash 合入 dev（`bdcf584`），再从 dev 开 `feat/14-layers-alias`                          | Owner 确认 | 2026-10-07 |
+| `in-progress -> self-tested`  | 64 处替换完成（web 57 / admin 7），两端 typecheck、oxlint、SSR 抓页全部通过                                                                                      | 归枢记录   | 2026-10-07 |
+| `self-tested -> review-ready` | 交接包齐全；三个提交（fix / refactor / docs）本地 squash 合入 dev（`0496c4e`），未推远端                                                                         | 归枢记录   | 2026-10-07 |
 
 ## Grill：开工前对齐
 
@@ -31,13 +31,13 @@
 
 ## 设计与决策
 
-| 决策                                                     | 理由 / 证据                                                                             | 确认者   | 日期       |
-| -------------------------------------------------------- | --------------------------------------------------------------------------------------- | -------- | ---------- |
-| 用 `#layers/<name>/app/...` 而非自定义短别名              | Nuxt 4.5 已自动生成该别名（两端 `.nuxt/tsconfig.json` 均可见），零配置、官方机制、不新增约定 | Owner 确认 | 2026-10-07 |
-| **`@` 不做「layer 内指向 layer 自身」**                   | 别名是全局扁平的 `名字 → 目录` 表（Vite 与 `vue-tsc` 共用 tsconfig `paths`），无「按导入文件位置解析」能力；要那样做需自造 Vite 插件 + TS 类型映射，代价远大于收益 | 归枢记录 | 2026-10-07 |
-| 文档补「layer 别名不得用于跨层引用」                      | 改别名前，跨层引用写起来别扭（等于有一层隐性保护）；别名全局可见后需靠约定自觉           | 归枢记录 | 2026-10-07 |
-| admin 的 3 处 sortable 回调改用类型推导，不装 `@types/sortablejs` | 见下：本机 pnpm store 冲突导致 `pnpm add` 不可用；且 TS 的 `@types` 查找不进 `.pnpm/node_modules`，app 直接 `import ... from 'sortablejs'` 必报 TS7016 | 归枢记录 | 2026-10-07 |
-| 先本地 squash 合入 `feat/13` 再开新分支                    | 本次要改的 57 处正好落在 `feat/13` 已改过的文件里；先集成可避免冲突                       | Owner 确认 | 2026-10-07 |
+| 决策                                                              | 理由 / 证据                                                                                                                                                        | 确认者     | 日期       |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | ---------- |
+| 用 `#layers/<name>/app/...` 而非自定义短别名                      | Nuxt 4.5 已自动生成该别名（两端 `.nuxt/tsconfig.json` 均可见），零配置、官方机制、不新增约定                                                                       | Owner 确认 | 2026-10-07 |
+| **`@` 不做「layer 内指向 layer 自身」**                           | 别名是全局扁平的 `名字 → 目录` 表（Vite 与 `vue-tsc` 共用 tsconfig `paths`），无「按导入文件位置解析」能力；要那样做需自造 Vite 插件 + TS 类型映射，代价远大于收益 | 归枢记录   | 2026-10-07 |
+| 文档补「layer 别名不得用于跨层引用」                              | 改别名前，跨层引用写起来别扭（等于有一层隐性保护）；别名全局可见后需靠约定自觉                                                                                     | 归枢记录   | 2026-10-07 |
+| admin 的 3 处 sortable 回调改用类型推导，不装 `@types/sortablejs` | 见下：本机 pnpm store 冲突导致 `pnpm add` 不可用；且 TS 的 `@types` 查找不进 `.pnpm/node_modules`，app 直接 `import ... from 'sortablejs'` 必报 TS7016             | 归枢记录   | 2026-10-07 |
+| 先本地 squash 合入 `feat/13` 再开新分支                           | 本次要改的 57 处正好落在 `feat/13` 已改过的文件里；先集成可避免冲突                                                                                                | Owner 确认 | 2026-10-07 |
 
 ### 过程中发现的既有回归（已一并修）
 
@@ -47,14 +47,14 @@
 
 ## 执行与验证
 
-| 类型   | 命令 / 样本 / 链接 | 结果 | 仍未验证的边界 |
-| ------ | ------------------ | ---- | -------------- |
-| 机器验 | `pnpm --filter @template/web typecheck`；`pnpm --filter @template/admin typecheck` | 均通过（admin 首次曾因上述回归报 3 个错，修正后通过） | 全仓 `format:check` 仍是既有缺口（DAO-006） |
-| 机器验 | `oxlint apps/web`（42 files）、`oxlint apps/admin`（136 files） | 0 warning / 0 error | — |
-| 结构验 | 全仓业务代码 grep `from '../` | 0 处残留；替代为 `#layers/public-resume/app/...`（57 处）与 `~/components/TextEditor/...`（7 处）；同目录 `./x` 保留 | — |
-| 结构验 | 两端 `.nuxt/tsconfig.json` 的别名 | web：`#layers/public-resume`、`#layers/ai-talk`；admin：`#layers/{resume,projects,teams,settings,comps}`；`~`/`@` 仍指向各自 `app/` | 未验证「层名改动」后的重生成（下次改 `$meta.name` 时留意） |
-| 意图验 | dev server（web `:4023`）：`/resume` | 200；`data-resume-style="minimal"`、区块标题齐全、无 `Failed to resolve component` / `NUXT_E*`；`/ai-talk` 200 | — |
-| 意图验 | dev server（admin `:4047`）：`/release-notes`（TextEditor 所在页）、`/resume`、`/projects`、`/settings` | 200 / 200 / 200 / 302→`/settings/company`；无解析类报错 | `/comps` 本身为 404（该 layer 只有子页，无 index），非本次改动导致 |
+| 类型   | 命令 / 样本 / 链接                                                                                      | 结果                                                                                                                                | 仍未验证的边界                                                     |
+| ------ | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 机器验 | `pnpm --filter @template/web typecheck`；`pnpm --filter @template/admin typecheck`                      | 均通过（admin 首次曾因上述回归报 3 个错，修正后通过）                                                                               | 全仓 `format:check` 仍是既有缺口（DAO-006）                        |
+| 机器验 | `oxlint apps/web`（42 files）、`oxlint apps/admin`（136 files）                                         | 0 warning / 0 error                                                                                                                 | —                                                                  |
+| 结构验 | 全仓业务代码 grep `from '../`                                                                           | 0 处残留；替代为 `#layers/public-resume/app/...`（57 处）与 `~/components/TextEditor/...`（7 处）；同目录 `./x` 保留                | —                                                                  |
+| 结构验 | 两端 `.nuxt/tsconfig.json` 的别名                                                                       | web：`#layers/public-resume`、`#layers/ai-talk`；admin：`#layers/{resume,projects,teams,settings,comps}`；`~`/`@` 仍指向各自 `app/` | 未验证「层名改动」后的重生成（下次改 `$meta.name` 时留意）         |
+| 意图验 | dev server（web `:4023`）：`/resume`                                                                    | 200；`data-resume-style="minimal"`、区块标题齐全、无 `Failed to resolve component` / `NUXT_E*`；`/ai-talk` 200                      | —                                                                  |
+| 意图验 | dev server（admin `:4047`）：`/release-notes`（TextEditor 所在页）、`/resume`、`/projects`、`/settings` | 200 / 200 / 200 / 302→`/settings/company`；无解析类报错                                                                             | `/comps` 本身为 404（该 layer 只有子页，无 index），非本次改动导致 |
 
 ## 交接
 

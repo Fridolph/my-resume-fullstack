@@ -39,8 +39,8 @@ const sections = [
       <section id="overview" class="scroll-mt-24">
         <h2 class="text-xl font-semibold text-highlighted">Overview</h2>
         <p class="mt-2 text-sm leading-6 text-muted">
-          This admin workspace is the control center for managing projects, team, and settings.
-          It is built on Nuxt 4 + Nuxt UI and serves as a reusable starting point for admin
+          This admin workspace is the control center for managing projects, team, and settings. It
+          is built on Nuxt 4 + Nuxt UI and serves as a reusable starting point for admin
           applications.
         </p>
       </section>
@@ -64,15 +64,24 @@ const sections = [
       <section id="modules" class="scroll-mt-24">
         <h2 class="text-xl font-semibold text-highlighted">Key modules</h2>
         <div class="mt-3 grid gap-3 sm:grid-cols-2">
-          <ULink to="/projects" class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated">
+          <ULink
+            to="/projects"
+            class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated"
+          >
             <p class="text-sm font-medium text-highlighted">Projects</p>
             <p class="mt-1 text-xs text-muted">Manage projects and their status.</p>
           </ULink>
-          <ULink to="/team/members" class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated">
+          <ULink
+            to="/team/members"
+            class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated"
+          >
             <p class="text-sm font-medium text-highlighted">Team</p>
             <p class="mt-1 text-xs text-muted">Members and roles &amp; access.</p>
           </ULink>
-          <ULink to="/settings" class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated">
+          <ULink
+            to="/settings"
+            class="rounded-xl border border-default p-4 transition-colors hover:bg-elevated"
+          >
             <p class="text-sm font-medium text-highlighted">Settings</p>
             <p class="mt-1 text-xs text-muted">Company profile and configuration.</p>
           </ULink>
@@ -91,7 +100,11 @@ const sections = [
         <h2 class="text-xl font-semibold text-highlighted">Resources</h2>
         <ul class="mt-3 space-y-2 text-sm">
           <li>
-            <ULink href="https://nuxt.com/docs" target="_blank" class="text-primary hover:underline">
+            <ULink
+              href="https://nuxt.com/docs"
+              target="_blank"
+              class="text-primary hover:underline"
+            >
               Nuxt documentation
             </ULink>
           </li>

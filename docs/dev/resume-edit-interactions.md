@@ -5,11 +5,11 @@
 
 ## 1. 三个概念
 
-| 概念 | 含义 | 数据落点 |
-| --- | --- | --- |
-| **栏位 slot** | 模块属于 `side` / `main` / `rail` 哪一栏 | `config.sections.slot` |
-| **顺序 order** | 全局阅读顺序（跨栏也是一条线） | `config.sections.order` |
-| **托盘 tray** | 未使用的模块（不在页面上渲染） | `config.sections.hidden` |
+| 概念           | 含义                                     | 数据落点                 |
+| -------------- | ---------------------------------------- | ------------------------ |
+| **栏位 slot**  | 模块属于 `side` / `main` / `rail` 哪一栏 | `config.sections.slot`   |
+| **顺序 order** | 全局阅读顺序（跨栏也是一条线）           | `config.sections.order`  |
+| **托盘 tray**  | 未使用的模块（不在页面上渲染）           | `config.sections.hidden` |
 
 分栏是**派生**出来的：先按 `order` 遍历，再用 `slot`（或注册表默认栏位）归位，最后按 `layout.mode` 做合并（`single` 全并入 main，`split` 把 rail 并入 main）。所以**同一栏内相邻 ≠ `order` 相邻**。
 
@@ -41,11 +41,11 @@
 
 存储键：
 
-| 键 | 内容 |
-| --- | --- |
+| 键                         | 内容                                                       |
+| -------------------------- | ---------------------------------------------------------- |
 | `my-resume.display-config` | 展示配置（布局 / 编排 / 选项 / 主题 / 背景 / 风格 / 品牌） |
-| `my-resume.resume-content` | 简历内容 |
-| `my-resume.admin` | 管理员会话（mock 登录，**不是鉴权**） |
+| `my-resume.resume-content` | 简历内容                                                   |
+| `my-resume.admin`          | 管理员会话（mock 登录，**不是鉴权**）                      |
 
 ## 4. 谁注入编辑能力
 

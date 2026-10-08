@@ -83,7 +83,9 @@ const releases: Release[] = [
         >
           <div class="flex items-baseline gap-3">
             <span class="text-lg font-semibold text-highlighted">v{{ release.version }}</span>
-            <span class="text-xs text-dimmed">{{ release.unreleased ? "Unreleased" : release.date }}</span>
+            <span class="text-xs text-dimmed">{{
+              release.unreleased ? "Unreleased" : release.date
+            }}</span>
           </div>
           <p class="mt-1 text-sm font-medium text-highlighted">{{ release.title }}</p>
           <ul class="mt-3 space-y-1.5 text-sm text-muted">
@@ -105,8 +107,8 @@ const releases: Release[] = [
       <section id="dev-notes" class="scroll-mt-24">
         <h2 class="text-xl font-semibold text-highlighted">Dev notes</h2>
         <p class="mt-2 text-sm leading-6 text-muted">
-          Development notes and learnings are collected here — for example, the Nuxt naming
-          pitfalls recorded in <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">docs/dev</code>.
+          Development notes and learnings are collected here — for example, the Nuxt naming pitfalls
+          recorded in <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">docs/dev</code>.
         </p>
       </section>
 

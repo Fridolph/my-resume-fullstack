@@ -4,17 +4,17 @@
 
 ## 文档索引
 
-| 文档 | 内容 |
-|---|---|
-| [nuxt-naming-and-pitfalls.md](./nuxt-naming-and-pitfalls.md) | Nuxt 布局/组件命名规则、三个高频坑、统一验证流程 |
-| [admin-ui-patterns.md](./admin-ui-patterns.md) | admin 布局、导航、二级侧栏、用户下拉、占位页的统一模板 |
-| [css-conventions.md](./css-conventions.md) | CSS/Tailwind 基础约定：响应式封顶 1920、间距、BEM、content-pad |
-| [layers.md](./layers.md) | Nuxt Layers 分层约定：依赖方向、layer 划分、公共组件 vs 共享层、路径别名与 import 约定 |
-| [data-layer.md](./data-layer.md) | 数据层约定：`$request` 请求层、Pinia Colada 缓存层、query key 与失效策略 |
-| [workflow.md](./workflow.md) | 开发流程：分支模型、Issue 驱动、提交规范、质量门与发布 |
-| [resume-display-architecture.md](./resume-display-architecture.md) | 简历展示页架构：布局模式、主题/背景模型、组件拆分与编辑模式分期 |
-| [resume-styles.md](./resume-styles.md) | 简历风格维度（`minimal` / `standard`）：token / variant / 整页模板三层落点、GS 模板切换机制参考与避坑 |
-| [resume-edit-interactions.md](./resume-edit-interactions.md) | 简历编辑交互约定：拖拽落点算法、未使用模块托盘、自动保存策略与避坑 |
+| 文档                                                               | 内容                                                                                                  |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| [nuxt-naming-and-pitfalls.md](./nuxt-naming-and-pitfalls.md)       | Nuxt 布局/组件命名规则、三个高频坑、统一验证流程                                                      |
+| [admin-ui-patterns.md](./admin-ui-patterns.md)                     | admin 布局、导航、二级侧栏、用户下拉、占位页的统一模板                                                |
+| [css-conventions.md](./css-conventions.md)                         | CSS/Tailwind 基础约定：响应式封顶 1920、间距、BEM、content-pad                                        |
+| [layers.md](./layers.md)                                           | Nuxt Layers 分层约定：依赖方向、layer 划分、公共组件 vs 共享层、路径别名与 import 约定                |
+| [data-layer.md](./data-layer.md)                                   | 数据层约定：`$request` 请求层、Pinia Colada 缓存层、query key 与失效策略                              |
+| [workflow.md](./workflow.md)                                       | 开发流程：分支模型、Issue 驱动、提交规范、质量门与发布                                                |
+| [resume-display-architecture.md](./resume-display-architecture.md) | 简历展示页架构：布局模式、主题/背景模型、组件拆分与编辑模式分期                                       |
+| [resume-styles.md](./resume-styles.md)                             | 简历风格维度（`minimal` / `standard`）：token / variant / 整页模板三层落点、GS 模板切换机制参考与避坑 |
+| [resume-edit-interactions.md](./resume-edit-interactions.md)       | 简历编辑交互约定：拖拽落点算法、未使用模块托盘、自动保存策略与避坑                                    |
 
 ## 快速验证命令
 

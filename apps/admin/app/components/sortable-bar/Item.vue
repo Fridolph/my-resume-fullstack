@@ -4,20 +4,23 @@
  * 结构：拖拽把手 + 序号徽标 + 名称 + 可选状态 badge + `#actions` 插槽。
  * 颜色走 `--sb-*` CSS 变量（由 SortableBar 按 theme 注入，可继承）。
  */
-withDefaults(defineProps<{
-  item: Record<string, any>
-  index?: number
-  active?: boolean
-  theme?: 'dark' | 'light'
-  showHandle?: boolean
-}>(), {
-  index: 0,
-  active: false,
-  theme: 'dark',
-  showHandle: true,
-})
+withDefaults(
+  defineProps<{
+    item: Record<string, any>;
+    index?: number;
+    active?: boolean;
+    theme?: "dark" | "light";
+    showHandle?: boolean;
+  }>(),
+  {
+    index: 0,
+    active: false,
+    theme: "dark",
+    showHandle: true,
+  },
+);
 
-const emit = defineEmits<{ select: [] }>()
+const emit = defineEmits<{ select: [] }>();
 </script>
 
 <template>
@@ -61,7 +64,9 @@ const emit = defineEmits<{ select: [] }>()
   background: var(--sb-bg, #18191b);
   color: var(--sb-fg-muted, rgb(255 255 255 / 0.64));
   border-color: var(--sb-border, rgb(255 255 255 / 0.1));
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .sortable-bar-item:hover {

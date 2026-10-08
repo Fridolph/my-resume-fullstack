@@ -16,7 +16,7 @@
 
 ```css
 @theme {
-  --container-1920: 1920px;   /* 生成 max-w-1920 工具类 */
+  --container-1920: 1920px; /* 生成 max-w-1920 工具类 */
 }
 
 /* 内容区封顶 1920 并居中：mx-auto w-full max-w-1920 */
@@ -27,9 +27,9 @@
 
 用法：
 
-| 场景 | 写法 |
-|---|---|
-| 内容区（含页头与正文容器） | `class="content-max"` |
+| 场景                               | 写法                                                 |
+| ---------------------------------- | ---------------------------------------------------- |
+| 内容区（含页头与正文容器）         | `class="content-max"`                                |
 | admin 的 `layouts/has-sidebar.vue` | 同 `content-max`（原写 `mx-auto w-full max-w-1920`） |
 
 > web 侧现状：简历展示页的页头、正文容器与 `12-ai-talk` 页均已用 `content-max`；`max-w-6xl` 不再出现。
@@ -37,11 +37,11 @@
 
 ## 2. 间距约定
 
-| 场景 | 取值 |
-|---|---|
-| 移动端（默认） | `p-1`~`p-2`（4~8px），视情况 |
+| 场景                 | 取值                                          |
+| -------------------- | --------------------------------------------- |
+| 移动端（默认）       | `p-1`~`p-2`（4~8px），视情况                  |
 | 桌面 / 便携（md~lg） | 内边距 `p-2`（8px），外边距最大 `m-4`（16px） |
-| 大屏（xl 及以上） | 内/外边距 `p-4`~`p-6`（16~24px） |
+| 大屏（xl 及以上）    | 内/外边距 `p-4`~`p-6`（16~24px）              |
 
 统一页面留白工具类（`main.css` 的 `@utility`，**admin 侧已用**）：
 
@@ -83,10 +83,10 @@
   // apps/web/app.config.ts
   export default defineAppConfig({
     ui: {
-      colors: { primary: 'indigo', neutral: 'slate' },
-      drawer: { slots: { content: 'w-full sm:max-w-md' } },
+      colors: { primary: "indigo", neutral: "slate" },
+      drawer: { slots: { content: "w-full sm:max-w-md" } },
     },
-  })
+  });
   ```
 
   > 只收敛「所有实例都该一致」的覆写；实例特例（如编辑抽屉要 `max-w-3xl`、登录弹窗要默认宽度）留在组件上。
@@ -94,23 +94,23 @@
 - **让 Nuxt UI 组件跟随业务主题**：Nuxt UI 的语义色由 CSS 变量驱动，可在业务容器/页面注入处覆盖：
 
   ```css
-  --ui-primary: var(--resume-primary);   /* 按钮 / 徽标 / 滑块跟随业务主色 */
-  --ui-radius: 0.75rem;                  /* 与业务卡片圆角呼应 */
+  --ui-primary: var(--resume-primary); /* 按钮 / 徽标 / 滑块跟随业务主色 */
+  --ui-radius: 0.75rem; /* 与业务卡片圆角呼应 */
   ```
 
   ⚠️ 覆盖点若挂在**内容容器**上，teleport 到 `body` 的弹窗 / 抽屉拿不到 —— 必须注入到 `<body>`，见 §7。
 
 ## 5. 常见落点速查
 
-| 需求 | 写法 |
-|---|---|
-| 内容区封顶 1920 | `class="content-max"` |
-| 页面内容区留白 | `class="content-pad"`（admin）/ `px-4 sm:px-6`（展示页对齐旧站） |
-| Header | 保持全宽，不加 max-w |
-| 主标题 | `text-xl font-semibold tracking-tight text-highlighted` |
-| 次要说明文字 | `text-sm leading-6 text-muted` |
-| 次级 / 弱化文字 | `text-xs text-dimmed` |
-| 业务域文字色 | `.resume-text` / `.resume-muted` / `.resume-accent`（见 §7） |
+| 需求            | 写法                                                             |
+| --------------- | ---------------------------------------------------------------- |
+| 内容区封顶 1920 | `class="content-max"`                                            |
+| 页面内容区留白  | `class="content-pad"`（admin）/ `px-4 sm:px-6`（展示页对齐旧站） |
+| Header          | 保持全宽，不加 max-w                                             |
+| 主标题          | `text-xl font-semibold tracking-tight text-highlighted`          |
+| 次要说明文字    | `text-sm leading-6 text-muted`                                   |
+| 次级 / 弱化文字 | `text-xs text-dimmed`                                            |
+| 业务域文字色    | `.resume-text` / `.resume-muted` / `.resume-accent`（见 §7）     |
 
 ## 6. 动效与打印
 
@@ -120,10 +120,10 @@
 
 ## 7. 样式分层：通用 vs 业务域
 
-| 层 | 放什么 | 落点 |
-|---|---|---|
-| app 通用 | 容器宽度 / 页面留白 / 光标 / 滚动条 / 打印 | `apps/<app>/app/assets/css/main.css` |
-| 业务域 | 域内复用的语义类、域变量默认值 | `<app>/layers/<NN>-<域>/app/assets/css/<域>.css`，在该 layer 的 `nuxt.config.ts` 用 `css: [...]` 注册 |
+| 层       | 放什么                                     | 落点                                                                                                  |
+| -------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| app 通用 | 容器宽度 / 页面留白 / 光标 / 滚动条 / 打印 | `apps/<app>/app/assets/css/main.css`                                                                  |
+| 业务域   | 域内复用的语义类、域变量默认值             | `<app>/layers/<NN>-<域>/app/assets/css/<域>.css`，在该 layer 的 `nuxt.config.ts` 用 `css: [...]` 注册 |
 
 ### 业务域语义类的做法（以简历展示域为例）
 
@@ -132,15 +132,15 @@
 1. **变量默认值集中声明**（`--resume-*`、`--resume-card-*`），组件里因此不必再写 `var(--x, fallback)` 兜底。
 2. **语义类**，跨组件复用：
 
-   | 类 | 用途 |
-   |---|---|
-   | `.resume-card` | 卡片外壳（边框 / 圆角 / 内边距 / 表面 / 阴影 / hover 动效） |
-   | `.resume-text` / `.resume-muted` / `.resume-accent` | 正文 / 次要 / 强调文字色 |
-   | `.resume-title` | 区块标题字号（由风格变量决定） |
-   | `.resume-eyebrow` | 大写小字分组标题（与旧站 `.web-eyebrow` 一致） |
-   | `.resume-label` | 设置面板字段标签 |
-   | `.resume-chip` | 标签胶囊 |
-   | `.resume-btn-group` | 按钮 / 徽标组（`flex flex-wrap gap-2`） |
+   | 类                                                  | 用途                                                        |
+   | --------------------------------------------------- | ----------------------------------------------------------- |
+   | `.resume-card`                                      | 卡片外壳（边框 / 圆角 / 内边距 / 表面 / 阴影 / hover 动效） |
+   | `.resume-text` / `.resume-muted` / `.resume-accent` | 正文 / 次要 / 强调文字色                                    |
+   | `.resume-title`                                     | 区块标题字号（由风格变量决定）                              |
+   | `.resume-eyebrow`                                   | 大写小字分组标题（与旧站 `.web-eyebrow` 一致）              |
+   | `.resume-label`                                     | 设置面板字段标签                                            |
+   | `.resume-chip`                                      | 标签胶囊                                                    |
+   | `.resume-btn-group`                                 | 按钮 / 徽标组（`flex flex-wrap gap-2`）                     |
 
    收益：组件里 30+ 处 `:style="{ color: 'var(--resume-…)' }"` 与重复的按钮组类被替换成语义类；Tailwind 类回到「布局与灵活调整」。
 
@@ -151,9 +151,13 @@
 ```ts
 useHead({
   bodyAttrs: {
-    style: computed(() => Object.entries(resumeVars.value).map(([k, v]) => `${k}:${v}`).join(';')),
+    style: computed(() =>
+      Object.entries(resumeVars.value)
+        .map(([k, v]) => `${k}:${v}`)
+        .join(";"),
+    ),
   },
-})
+});
 ```
 
 原因：`UModal` / `UDrawer` 等是 **teleport 到 `body`** 的，挂在内层容器上的 CSS 变量它们解析不到，控件颜色 / 圆角就不会跟随主题。

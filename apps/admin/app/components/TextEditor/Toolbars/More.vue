@@ -1,61 +1,56 @@
 <script setup lang="ts">
-import type { Editor } from '@tiptap/vue-3'
-import { useDebounceFn } from '@vueuse/core'
-import { emojis } from '~/components/TextEditor/contants'
+import type { Editor } from "@tiptap/vue-3";
+import { useDebounceFn } from "@vueuse/core";
+import { emojis } from "~/components/TextEditor/contants";
 
 const props = defineProps<{
-  editor: Editor
-  disabled?: boolean
-}>()
+  editor: Editor;
+  disabled?: boolean;
+}>();
 
-const open = shallowRef(false)
-const openEmoji = shallowRef(false)
+const open = shallowRef(false);
+const openEmoji = shallowRef(false);
 function handleSelectEmoji(emoji: string) {
-  updateDismissible()
-  props.editor.chain().setEmoji(emoji).focus().run()
+  updateDismissible();
+  props.editor.chain().setEmoji(emoji).focus().run();
 }
 
 const handleToggleQuote = useDebounceFn(() => {
-  updateDismissible()
-  props.editor.chain().toggleBlockquote().focus().run()
-}, 200)
+  updateDismissible();
+  props.editor.chain().toggleBlockquote().focus().run();
+}, 200);
 
 const handleClearFormatting = useDebounceFn(() => {
-  props.editor.commands.unsetAllMarks()
-}, 200)
+  props.editor.commands.unsetAllMarks();
+}, 200);
 
-const undoDisabled = computed(() => !props.editor.can().undo())
-const redoDisabled = computed(() => !props.editor.can().redo())
+const undoDisabled = computed(() => !props.editor.can().undo());
+const redoDisabled = computed(() => !props.editor.can().redo());
 const handleUndo = useDebounceFn(() => {
-  updateDismissible()
-  props.editor.chain().undo().focus().run()
-}, 200)
+  updateDismissible();
+  props.editor.chain().undo().focus().run();
+}, 200);
 const handleRedo = useDebounceFn(() => {
-  updateDismissible()
-  props.editor.chain().redo().focus().run()
-}, 200)
+  updateDismissible();
+  props.editor.chain().redo().focus().run();
+}, 200);
 const handleToggleCodeBlock = useDebounceFn(() => {
-  updateDismissible()
-  props.editor.chain().toggleCodeBlock().focus().run()
-}, 200)
+  updateDismissible();
+  props.editor.chain().toggleCodeBlock().focus().run();
+}, 200);
 
-const dismissible = shallowRef(true)
+const dismissible = shallowRef(true);
 function updateDismissible() {
-  dismissible.value = false
+  dismissible.value = false;
   setTimeout(() => {
-    dismissible.value = true
-  }, 200)
+    dismissible.value = true;
+  }, 200);
 }
 </script>
 
 <template>
   <UPopover v-model:open="open" :dismissible="dismissible" :ui="{ content: 'p-0.5' }">
-    <UTooltip
-      text="More"
-      :content="{ side: 'top' }"
-      :delay-duration="0"
-      :disabled="disabled"
-    >
+    <UTooltip text="More" :content="{ side: 'top' }" :delay-duration="0" :disabled="disabled">
       <UButton
         icon="i-lucide-ellipsis-vertical"
         color="neutral"
@@ -67,11 +62,7 @@ function updateDismissible() {
       />
     </UTooltip>
     <template #content>
-      <UPopover
-        v-model:open="openEmoji"
-        :dismissible="dismissible"
-        :ui="{ content: 'p-0.5' }"
-      >
+      <UPopover v-model:open="openEmoji" :dismissible="dismissible" :ui="{ content: 'p-0.5' }">
         <UTooltip
           text="Emoji"
           :content="{ side: 'top' }"

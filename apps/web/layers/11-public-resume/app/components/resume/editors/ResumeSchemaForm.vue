@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ResumeFieldGroupSchema } from '#layers/public-resume/app/config/resume-editor-schemas'
-import ResumeFieldInput from './ResumeFieldInput.vue'
+import type { ResumeFieldGroupSchema } from "#layers/public-resume/app/config/resume-editor-schemas";
+import ResumeFieldInput from "./ResumeFieldInput.vue";
 
 /**
  * 通用字段表单（schema 驱动，支持多段）。
@@ -13,62 +13,65 @@ import ResumeFieldInput from './ResumeFieldInput.vue'
  */
 const props = defineProps<{
   /** 编辑的根对象（这里是 `ResumeContent`） */
-  root?: Record<string, unknown>
-  segments: ResumeFieldGroupSchema[]
-}>()
+  root?: Record<string, unknown>;
+  segments: ResumeFieldGroupSchema[];
+}>();
 
-const emit = defineEmits<{ change: [] }>()
+const emit = defineEmits<{ change: [] }>();
 
 function readPath(path: string, base?: unknown): unknown {
-  const start = base ?? props.root
+  const start = base ?? props.root;
 
-  return path.split('.').reduce<unknown>((acc, key) => {
-    return acc && typeof acc === 'object' ? (acc as Record<string, unknown>)[key] : undefined
-  }, start)
+  return path.split(".").reduce<unknown>((acc, key) => {
+    return acc && typeof acc === "object" ? (acc as Record<string, unknown>)[key] : undefined;
+  }, start);
 }
 
 function writePath(path: string, value: unknown) {
-  const keys = path.split('.')
-  const last = keys.pop() as string
-  const target = keys.reduce<Record<string, unknown>>((acc, key) => {
-    return acc[key] as Record<string, unknown>
-  }, props.root as Record<string, unknown>)
+  const keys = path.split(".");
+  const last = keys.pop() as string;
+  const target = keys.reduce<Record<string, unknown>>(
+    (acc, key) => {
+      return acc[key] as Record<string, unknown>;
+    },
+    props.root as Record<string, unknown>,
+  );
 
-  target[last] = value
-  emit('change')
+  target[last] = value;
+  emit("change");
 }
 
 /** 段内的数组（`list` 模式）：路径可含点号，如 `profile.links` */
 function itemsOf(segment: ResumeFieldGroupSchema): Record<string, unknown>[] | undefined {
   if (!segment.listPath) {
-    return undefined
+    return undefined;
   }
 
-  return readPath(segment.listPath) as Record<string, unknown>[] | undefined
+  return readPath(segment.listPath) as Record<string, unknown>[] | undefined;
 }
 
 function addItem(segment: ResumeFieldGroupSchema) {
-  itemsOf(segment)?.push(structuredClone(segment.blank ?? {}))
-  emit('change')
+  itemsOf(segment)?.push(structuredClone(segment.blank ?? {}));
+  emit("change");
 }
 
 function removeItem(segment: ResumeFieldGroupSchema, index: number) {
-  itemsOf(segment)?.splice(index, 1)
-  emit('change')
+  itemsOf(segment)?.splice(index, 1);
+  emit("change");
 }
 
 function moveItem(segment: ResumeFieldGroupSchema, index: number, delta: number) {
-  const list = itemsOf(segment)
-  const target = index + delta
+  const list = itemsOf(segment);
+  const target = index + delta;
   if (!list || target < 0 || target >= list.length) {
-    return
+    return;
   }
 
-  const [item] = list.splice(index, 1)
+  const [item] = list.splice(index, 1);
   if (item) {
-    list.splice(target, 0, item)
+    list.splice(target, 0, item);
   }
-  emit('change')
+  emit("change");
 }
 </script>
 
@@ -108,7 +111,11 @@ function moveItem(segment: ResumeFieldGroupSchema, index: number, delta: number)
         >
           <div class="flex items-center justify-between gap-2">
             <p class="truncate text-sm font-medium">
-              {{ segment.titleKey ? String(item[segment.titleKey] ?? `第 ${index + 1} 项`) : `第 ${index + 1} 项` }}
+              {{
+                segment.titleKey
+                  ? String(item[segment.titleKey] ?? `第 ${index + 1} 项`)
+                  : `第 ${index + 1} 项`
+              }}
             </p>
             <div class="flex shrink-0 items-center gap-1">
               <UButton
@@ -150,7 +157,10 @@ function moveItem(segment: ResumeFieldGroupSchema, index: number, delta: number)
               <ResumeFieldInput
                 :field="field"
                 :value="item[field.key ?? '']"
-                @update:value="item[field.key ?? ''] = $event; emit('change')"
+                @update:value="
+                  item[field.key ?? ''] = $event;
+                  emit('change');
+                "
               />
             </UFormField>
           </div>

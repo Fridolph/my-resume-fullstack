@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeSectionBodyProps } from '#layers/public-resume/app/types/resume'
+import type { ResumeSectionBodyProps } from "#layers/public-resume/app/types/resume";
 
 /**
  * 专业技能 · 精致。
@@ -9,7 +9,7 @@ import type { ResumeSectionBodyProps } from '#layers/public-resume/app/types/res
  *
  * （能力雷达是 hero 的零件，本轮不往 skills 搬；真复用时再上提，见 DAO-015 的约定。）
  */
-defineProps<ResumeSectionBodyProps>()
+defineProps<ResumeSectionBodyProps>();
 </script>
 
 <template>

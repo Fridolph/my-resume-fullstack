@@ -1,29 +1,31 @@
 <script setup lang="ts">
-import type { ResumeSectionChild } from '~/composables/useResumeLayout'
+import type { ResumeSectionChild } from "~/composables/useResumeLayout";
 
 /**
  * ResumeLayoutChildItem —— 布局面板里的子模块行（可递归嵌套）。
  * 参考 greensketch proposal/layout/PageLayoutChildItem。
  */
 const props = defineProps<{
-  child: ResumeSectionChild
+  child: ResumeSectionChild;
   /** 1 = 模块的直接子项；每嵌套一层 +1 */
-  depth: number
-  getSwitch: (key?: string) => number
-}>()
+  depth: number;
+  getSwitch: (key?: string) => number;
+}>();
 
 const emit = defineEmits<{
-  toggle: [key: string]
-  action: [key: string]
-}>()
+  toggle: [key: string];
+  action: [key: string];
+}>();
 
-const paddingLeft = computed(() => `${props.depth + 1}rem`)
+const paddingLeft = computed(() => `${props.depth + 1}rem`);
 
-const visible = computed(() => props.child.switchKey ? !!props.getSwitch(props.child.switchKey) : true)
+const visible = computed(() =>
+  props.child.switchKey ? !!props.getSwitch(props.child.switchKey) : true,
+);
 
 function toggleSwitch(key?: string) {
-  if (!key) return
-  emit('toggle', key)
+  if (!key) return;
+  emit("toggle", key);
 }
 </script>
 

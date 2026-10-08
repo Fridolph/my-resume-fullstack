@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import type { ResumeLayoutMode, ResumeSectionKey } from '#layers/public-resume/app/types/resume'
-import { resumeSectionDefinitions } from '#layers/public-resume/app/config/resume-sections'
-import type { ResumeColorMode, ResumeThemeColorKey } from '#layers/public-resume/app/types/resume'
+import type { ResumeLayoutMode, ResumeSectionKey } from "#layers/public-resume/app/types/resume";
+import { resumeSectionDefinitions } from "#layers/public-resume/app/config/resume-sections";
+import type { ResumeColorMode, ResumeThemeColorKey } from "#layers/public-resume/app/types/resume";
 import {
   RESUME_CUSTOM_THEME,
   resumeBackgroundPresets,
   resumeStylePresets,
   resumeThemeFields,
   resumeThemePresets,
-} from '#layers/public-resume/app/mock/resume-display'
-import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
+} from "#layers/public-resume/app/mock/resume-display";
+import { useResumeDisplay } from "#layers/public-resume/app/composables/useResumeDisplay";
 
 /**
  * 展示设置面板：布局 / 主题 / 风格 / 背景 / 区块显隐。
@@ -35,30 +35,30 @@ const {
   setBackgroundType,
   setBackgroundImage,
   toggleSection,
-} = useResumeDisplay()
+} = useResumeDisplay();
 
-const layoutModes: { value: ResumeLayoutMode, label: string, icon: string }[] = [
-  { value: 'single', label: '通栏', icon: 'i-lucide-rows-3' },
-  { value: 'split', label: '左右', icon: 'i-lucide-columns-2' },
-  { value: 'threeColumn', label: '三栏', icon: 'i-lucide-columns-3' },
-]
+const layoutModes: { value: ResumeLayoutMode; label: string; icon: string }[] = [
+  { value: "single", label: "通栏", icon: "i-lucide-rows-3" },
+  { value: "split", label: "左右", icon: "i-lucide-columns-2" },
+  { value: "threeColumn", label: "三栏", icon: "i-lucide-columns-3" },
+];
 
 function isHidden(key: ResumeSectionKey) {
-  return config.value.sections.hidden.includes(key)
+  return config.value.sections.hidden.includes(key);
 }
 
 /** 当前是否「自定义」主题 —— 只有它开放逐项编辑 */
-const isCustomTheme = computed(() => config.value.theme.id === RESUME_CUSTOM_THEME.id)
+const isCustomTheme = computed(() => config.value.theme.id === RESUME_CUSTOM_THEME.id);
 
 /** 调色盘把 light / dark 两组平铺展示（顺序即展示顺序） */
-const themeGroups: { mode: ResumeColorMode, label: string }[] = [
-  { mode: 'light', label: '浅色' },
-  { mode: 'dark', label: '深色' },
-]
+const themeGroups: { mode: ResumeColorMode; label: string }[] = [
+  { mode: "light", label: "浅色" },
+  { mode: "dark", label: "深色" },
+];
 
 /** 读某一明暗组里的某个颜色 */
 function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
-  return config.value.theme[mode][key]
+  return config.value.theme[mode][key];
 }
 </script>
 
@@ -165,7 +165,10 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
             >
               <span
                 class="size-4 shrink-0 rounded border"
-                :style="{ background: themeValue(group.mode, field.key), borderColor: 'var(--resume-border)' }"
+                :style="{
+                  background: themeValue(group.mode, field.key),
+                  borderColor: 'var(--resume-border)',
+                }"
               />
               <span class="resume-muted w-14 shrink-0 text-xs">{{ field.label }}</span>
 
@@ -193,7 +196,9 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
                   </template>
                 </UPopover>
               </template>
-              <code v-else class="resume-muted min-w-0 truncate text-xs">{{ themeValue(group.mode, field.key) }}</code>
+              <code v-else class="resume-muted min-w-0 truncate text-xs">{{
+                themeValue(group.mode, field.key)
+              }}</code>
             </div>
           </div>
 
@@ -218,9 +223,7 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
             @click="setStyle(preset.id)"
           />
         </div>
-        <p class="resume-muted text-xs">
-          只管区块的样子，不改变颜色与顺序
-        </p>
+        <p class="resume-muted text-xs">只管区块的样子，不改变颜色与顺序</p>
       </section>
 
       <!-- 背景 -->
@@ -232,8 +235,16 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
             :key="preset.id"
             size="xs"
             :label="preset.label"
-            :color="config.background.textureId === preset.id && config.background.type !== 'image' ? 'primary' : 'neutral'"
-            :variant="config.background.textureId === preset.id && config.background.type !== 'image' ? 'solid' : 'outline'"
+            :color="
+              config.background.textureId === preset.id && config.background.type !== 'image'
+                ? 'primary'
+                : 'neutral'
+            "
+            :variant="
+              config.background.textureId === preset.id && config.background.type !== 'image'
+                ? 'solid'
+                : 'outline'
+            "
             @click="setTexture(preset.id)"
           />
           <UButton

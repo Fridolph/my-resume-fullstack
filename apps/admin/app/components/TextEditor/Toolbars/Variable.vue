@@ -1,27 +1,35 @@
 <script setup lang="ts">
-import type { Editor } from '@tiptap/vue-3'
-import { useDebounceFn } from '@vueuse/core'
+import type { Editor } from "@tiptap/vue-3";
+import { useDebounceFn } from "@vueuse/core";
 
 const props = defineProps<{
-  editor: Editor
-  disabled?: boolean
-  variables: IMention[]
-}>()
+  editor: Editor;
+  disabled?: boolean;
+  variables: IMention[];
+}>();
 
-const variableFilterText = shallowRef('')
+const variableFilterText = shallowRef("");
 const variableFilter = computed(() => {
   return props.variables.filter((item) => {
-    return variableFilterText.value === '' || (item.placeholder.includes(variableFilterText.value) || item.desc.includes(variableFilterText.value))
-  })
-})
+    return (
+      variableFilterText.value === "" ||
+      item.placeholder.includes(variableFilterText.value) ||
+      item.desc.includes(variableFilterText.value)
+    );
+  });
+});
 
-const open = shallowRef(false)
+const open = shallowRef(false);
 const handleVariableSelect = useDebounceFn((variable: IMention) => {
-  variableFilterText.value = ''
-  props.editor.chain().insertMention({
-    id: variable.placeholder,
-  }).focus().run()
-}, 200)
+  variableFilterText.value = "";
+  props.editor
+    .chain()
+    .insertMention({
+      id: variable.placeholder,
+    })
+    .focus()
+    .run();
+}, 200);
 </script>
 
 <template>
@@ -59,7 +67,10 @@ const handleVariableSelect = useDebounceFn((variable: IMention) => {
             class="cursor-pointer rounded p-2 text-xs hover:bg-[#1578d01a]"
             @click="handleVariableSelect(variable)"
           >
-            <span class="mb-1 inline-block rounded border border-[#9CA3AF] bg-[#F5F5F7] px-1 py-0.5 text-[#1C2128] box-decoration-clone">{{ variable.placeholder }}</span>
+            <span
+              class="mb-1 inline-block rounded border border-[#9CA3AF] bg-[#F5F5F7] px-1 py-0.5 text-[#1C2128] box-decoration-clone"
+              >{{ variable.placeholder }}</span
+            >
             <span class="block text-[#9CA3AF]">{{ variable.desc }}</span>
           </li>
         </ul>

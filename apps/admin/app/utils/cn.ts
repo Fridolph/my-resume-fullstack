@@ -1,4 +1,4 @@
-export type ClassInput = string | null | undefined | false
+export type ClassInput = string | null | undefined | false;
 
 /**
  * 极简 class 合并：过滤空值后拼接。
@@ -6,5 +6,5 @@ export type ClassInput = string | null | undefined | false
  * 需要更完整的 tailwind-merge 语义时，可升级为 `clsx` + `tailwind-merge`。
  */
 export function cn(...inputs: ClassInput[]): string {
-  return inputs.filter(Boolean).join(' ')
+  return inputs.filter(Boolean).join(" ");
 }

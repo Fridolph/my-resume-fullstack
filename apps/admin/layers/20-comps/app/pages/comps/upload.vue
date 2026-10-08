@@ -1,74 +1,79 @@
 <script setup lang="ts">
-import type { FormSubmitEvent } from '@nuxt/ui'
-import type { Ref } from 'vue'
-import type { UploadedFile } from '~/types/file'
-import * as z from 'zod'
-import { uploadFiles } from '~/apis/files'
-import { FileUploadError, useFileUploader } from '~/composables/useFileUploader'
-import { imageDimensionRule, isAcceptedType, validateFiles } from '~/utils/fileValidation'
-import { isAbortError } from '~/utils/request'
+import type { FormSubmitEvent } from "@nuxt/ui";
+import type { Ref } from "vue";
+import type { UploadedFile } from "~/types/file";
+import * as z from "zod";
+import { uploadFiles } from "~/apis/files";
+import { FileUploadError, useFileUploader } from "~/composables/useFileUploader";
+import { imageDimensionRule, isAcceptedType, validateFiles } from "~/utils/fileValidation";
+import { isAbortError } from "~/utils/request";
 
 definePageMeta({
-  layout: 'has-sidebar',
-  title: 'Upload',
-})
+  layout: "has-sidebar",
+  title: "Upload",
+});
 
-const toast = useToast()
+const toast = useToast();
 
-const MAX_IMAGE_SIZE = 2 * 1024 * 1024
-const IMAGE_ACCEPT = ['image/jpeg', 'image/png', 'image/webp', '.jpg', '.jpeg', '.png', '.webp']
-const PDF_ACCEPT = ['application/pdf', '.pdf']
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
+const IMAGE_ACCEPT = ["image/jpeg", "image/png", "image/webp", ".jpg", ".jpeg", ".png", ".webp"];
+const PDF_ACCEPT = ["application/pdf", ".pdf"];
 
 function summarize(list: readonly UploadedFile[] | UploadedFile[]) {
   if (!list.length) {
-    return 'none'
+    return "none";
   }
-  return list.map(item => item.fileName).join(', ')
+  return list.map((item) => item.fileName).join(", ");
 }
 
 function usePreviewUrl(source: Ref<File | File[] | null | undefined>) {
-  const url = ref<string>()
+  const url = ref<string>();
 
-  watch(source, (value) => {
-    if (url.value) {
-      URL.revokeObjectURL(url.value)
-    }
-    const file = Array.isArray(value) ? value[0] : value
-    url.value = file instanceof File ? URL.createObjectURL(file) : undefined
-  }, { immediate: true })
+  watch(
+    source,
+    (value) => {
+      if (url.value) {
+        URL.revokeObjectURL(url.value);
+      }
+      const file = Array.isArray(value) ? value[0] : value;
+      url.value = file instanceof File ? URL.createObjectURL(file) : undefined;
+    },
+    { immediate: true },
+  );
 
   onBeforeUnmount(() => {
     if (url.value) {
-      URL.revokeObjectURL(url.value)
+      URL.revokeObjectURL(url.value);
     }
-  })
+  });
 
-  return url
+  return url;
 }
 
 function notifyUploadError(err: unknown) {
   if (isAbortError(err)) {
-    return
+    return;
   }
-  const rawMsg = err instanceof FileUploadError
-    ? err.issue.messageKey
-    : (err as { data?: { msg?: string }, message?: string })?.data?.msg
-      || (err as { message?: string })?.message
+  const rawMsg =
+    err instanceof FileUploadError
+      ? err.issue.messageKey
+      : (err as { data?: { msg?: string }; message?: string })?.data?.msg ||
+        (err as { message?: string })?.message;
   toast.add({
-    title: 'Upload failed',
-    description: typeof rawMsg === 'string' ? rawMsg : undefined,
-    color: 'error',
-  })
+    title: "Upload failed",
+    description: typeof rawMsg === "string" ? rawMsg : undefined,
+    color: "error",
+  });
 }
 
 function runUpload(task: Promise<unknown>) {
-  return task.catch(() => {})
+  return task.catch(() => {});
 }
 
 // --- UploadFiles：编排上传，列表由使用方呈现 ---
-const demoFiles = ref<UploadedFile[]>([])
-const demoFilesCustom = ref<UploadedFile[]>([])
-const DEMO_FILES_MAX = 4
+const demoFiles = ref<UploadedFile[]>([]);
+const demoFilesCustom = ref<UploadedFile[]>([]);
+const DEMO_FILES_MAX = 4;
 
 // --- 1. 选中即上传 ---
 const {
@@ -85,7 +90,7 @@ const {
   autoUpload: true,
   multiple: true,
   onError: notifyUploadError,
-})
+});
 
 // --- 2. 先选后传（PDF + 插槽） ---
 const {
@@ -102,7 +107,7 @@ const {
   contentType: 2,
   multiple: true,
   onError: notifyUploadError,
-})
+});
 
 // --- 3. 自定义插槽头像 ---
 const {
@@ -115,8 +120,8 @@ const {
   maxFileSize: MAX_IMAGE_SIZE,
   contentType: 1,
   onError: notifyUploadError,
-})
-const avatarPreview = usePreviewUrl(avatarFile)
+});
+const avatarPreview = usePreviewUrl(avatarFile);
 
 // --- 4. 图片尺寸校验 ---
 const {
@@ -136,119 +141,118 @@ const {
   contentType: 1,
   autoUpload: true,
   onError: notifyUploadError,
-})
+});
 
 // --- 5. 独立调用 uploadFiles ---
-const rawFile = shallowRef<File | null>(null)
-const rawUploading = ref(false)
-const rawPercent = ref(0)
-const rawResult = ref<UploadedFile[]>([])
-let rawController: AbortController | null = null
+const rawFile = shallowRef<File | null>(null);
+const rawUploading = ref(false);
+const rawPercent = ref(0);
+const rawResult = ref<UploadedFile[]>([]);
+let rawController: AbortController | null = null;
 
 async function uploadRaw() {
   if (!rawFile.value) {
-    toast.add({ title: 'Please select a file first', color: 'warning' })
-    return
+    toast.add({ title: "Please select a file first", color: "warning" });
+    return;
   }
 
-  rawController?.abort()
-  rawController = new AbortController()
-  rawUploading.value = true
-  rawPercent.value = 0
+  rawController?.abort();
+  rawController = new AbortController();
+  rawUploading.value = true;
+  rawPercent.value = 0;
 
   try {
     rawResult.value = await uploadFiles(rawFile.value, {
       contentType: 1,
       signal: rawController.signal,
       onProgress: ({ percent }) => {
-        rawPercent.value = percent
+        rawPercent.value = percent;
       },
-    })
-    toast.add({ title: 'Uploaded', description: summarize(rawResult.value), color: 'success' })
-  }
-  catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      return
+    });
+    toast.add({ title: "Uploaded", description: summarize(rawResult.value), color: "success" });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return;
     }
-    toast.add({ title: 'Upload failed', color: 'error' })
-  }
-  finally {
-    rawUploading.value = false
-    rawController = null
+    toast.add({ title: "Upload failed", color: "error" });
+  } finally {
+    rawUploading.value = false;
+    rawController = null;
   }
 }
 
 function abortRaw() {
-  rawController?.abort()
+  rawController?.abort();
 }
 
 // --- 6. 表单校验 ---
-const isFile = (value: unknown): value is File => value instanceof File
+const isFile = (value: unknown): value is File => value instanceof File;
 
 const formSchema = z.object({
-  title: z.string().trim().min(1, 'Title is required'),
+  title: z.string().trim().min(1, "Title is required"),
   avatar: z
-    .custom<File>(isFile, { error: 'Avatar is required' })
-    .refine(file => file.size <= MAX_IMAGE_SIZE, { error: 'Avatar must be under 2MB' })
-    .refine(file => isAcceptedType(file, IMAGE_ACCEPT), { error: 'Only JPG / PNG / WebP' })
-    .refine(async (file) => {
-      const issue = await validateFiles([file], [
-        imageDimensionRule({ minWidth: 200, minHeight: 200 }),
-      ])
-      return issue == null
-    }, { error: 'Avatar must be at least 200×200' }),
+    .custom<File>(isFile, { error: "Avatar is required" })
+    .refine((file) => file.size <= MAX_IMAGE_SIZE, { error: "Avatar must be under 2MB" })
+    .refine((file) => isAcceptedType(file, IMAGE_ACCEPT), { error: "Only JPG / PNG / WebP" })
+    .refine(
+      async (file) => {
+        const issue = await validateFiles(
+          [file],
+          [imageDimensionRule({ minWidth: 200, minHeight: 200 })],
+        );
+        return issue == null;
+      },
+      { error: "Avatar must be at least 200×200" },
+    ),
   documents: z
     .array(z.custom<File>(isFile))
-    .max(3, 'At most 3 PDFs')
-    .refine(
-      files => files.every(file => isAcceptedType(file, PDF_ACCEPT)),
-      { error: 'Attachments must be PDF' },
-    ),
-})
+    .max(3, "At most 3 PDFs")
+    .refine((files) => files.every((file) => isAcceptedType(file, PDF_ACCEPT)), {
+      error: "Attachments must be PDF",
+    }),
+});
 
-type FormSchema = z.output<typeof formSchema>
+type FormSchema = z.output<typeof formSchema>;
 
 const formState = reactive<Partial<FormSchema>>({
-  title: '',
+  title: "",
   avatar: undefined,
   documents: [],
-})
+});
 
 const formAvatar = computed({
   get: () => formState.avatar ?? null,
   set: (value: File | null | undefined) => {
-    formState.avatar = value ?? undefined
+    formState.avatar = value ?? undefined;
   },
-})
+});
 
 const formDocuments = computed({
   get: () => formState.documents ?? [],
   set: (value: File[] | null | undefined) => {
-    formState.documents = value ?? []
+    formState.documents = value ?? [];
   },
-})
+});
 
-const formSubmitting = ref(false)
-const formUploaded = ref<UploadedFile[]>([])
-const formPreview = usePreviewUrl(formAvatar)
+const formSubmitting = ref(false);
+const formUploaded = ref<UploadedFile[]>([]);
+const formPreview = usePreviewUrl(formAvatar);
 
 async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
-  formSubmitting.value = true
-  formUploaded.value = []
+  formSubmitting.value = true;
+  formUploaded.value = [];
   try {
-    const filesToUpload = [event.data.avatar, ...event.data.documents]
-    formUploaded.value = await uploadFiles(filesToUpload, { contentType: 1 })
+    const filesToUpload = [event.data.avatar, ...event.data.documents];
+    formUploaded.value = await uploadFiles(filesToUpload, { contentType: 1 });
     toast.add({
-      title: 'Form submitted',
+      title: "Form submitted",
       description: summarize(formUploaded.value),
-      color: 'success',
-    })
-  }
-  catch {
-    toast.add({ title: 'Form file upload failed', color: 'error' })
-  }
-  finally {
-    formSubmitting.value = false
+      color: "success",
+    });
+  } catch {
+    toast.add({ title: "Form file upload failed", color: "error" });
+  } finally {
+    formSubmitting.value = false;
   }
 }
 </script>
@@ -260,8 +264,11 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
         useFileUploader × UFileUpload
       </h1>
       <p class="text-sm text-muted">
-        演示 UploadFiles（薄封装）、自动上传、手动上传、插槽定制、尺寸校验、独立 API，以及 UForm + Zod。
-        实际上传会请求 <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">/masterData/file/multipleUpload</code>，模板未接入后端时会失败。
+        演示 UploadFiles（薄封装）、自动上传、手动上传、插槽定制、尺寸校验、独立 API，以及 UForm +
+        Zod。 实际上传会请求
+        <code class="rounded bg-elevated px-1.5 py-0.5 text-xs"
+          >/masterData/file/multipleUpload</code
+        >，模板未接入后端时会失败。
       </p>
     </div>
 
@@ -276,9 +283,7 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            UploadFiles：默认入口 + 外部列表
-          </p>
+          <p class="font-semibold">UploadFiles：默认入口 + 外部列表</p>
           <p class="text-sm text-muted">
             multiple 多选追加；受 maxCount 剩余名额限制；上传中可取消
           </p>
@@ -295,7 +300,7 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
             :src="file.thumbnailFilePath || file.originalFilePath"
             :alt="file.fileName"
             class="size-full object-contain"
-          >
+          />
           <UButton
             icon="i-lucide-x"
             color="neutral"
@@ -329,9 +334,7 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            UploadFiles：default slot 完全自定义
-          </p>
+          <p class="font-semibold">UploadFiles：default slot 完全自定义</p>
           <p class="text-sm text-muted">
             用 open / removeAt / canAddMore / uploading 自己拼 UI（示例为 PDF 列表）
           </p>
@@ -348,7 +351,10 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
       >
         <template #default="{ files, canAddMore, uploading, progress, open, abort, removeAt }">
           <div class="space-y-3">
-            <ul v-if="files.length" class="divide-y divide-default rounded-lg border border-default">
+            <ul
+              v-if="files.length"
+              class="divide-y divide-default rounded-lg border border-default"
+            >
               <li
                 v-for="(file, index) in files"
                 :key="`${file.originalFilePath}-${index}`"
@@ -387,11 +393,7 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
                 label="Cancel"
                 @click="abort()"
               />
-              <UProgress
-                v-if="uploading"
-                :model-value="progress.percent"
-                class="w-40"
-              />
+              <UProgress v-if="uploading" :model-value="progress.percent" class="w-40" />
               <p v-else-if="!canAddMore" class="text-xs text-muted">
                 Reached the limit of {{ DEMO_FILES_MAX }}
               </p>
@@ -407,12 +409,8 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            1. 选中即上传
-          </p>
-          <p class="text-sm text-muted">
-            autoUpload，图片多选，可看进度并中途取消
-          </p>
+          <p class="font-semibold">1. 选中即上传</p>
+          <p class="text-sm text-muted">autoUpload，图片多选，可看进度并中途取消</p>
         </div>
       </template>
 
@@ -431,26 +429,18 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
           <div v-if="autoUploading" class="mt-3 flex items-center gap-3">
             <UProgress :model-value="autoProgress.percent" class="flex-1" />
             <span class="w-10 text-xs tabular-nums text-muted">{{ autoProgress.percent }}%</span>
-            <UButton size="xs" color="neutral" variant="ghost" @click="abortAuto()">
-              取消
-            </UButton>
+            <UButton size="xs" color="neutral" variant="ghost" @click="abortAuto()"> 取消 </UButton>
           </div>
         </template>
       </UFileUpload>
-      <p class="mt-3 text-xs text-muted">
-        服务端文件：{{ summarize(autoUploaded) }}
-      </p>
+      <p class="mt-3 text-xs text-muted">服务端文件：{{ summarize(autoUploaded) }}</p>
     </UCard>
 
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            2. 先选后传
-          </p>
-          <p class="text-sm text-muted">
-            PDF，用 files-bottom / actions 插槽手动触发上传
-          </p>
+          <p class="font-semibold">2. 先选后传</p>
+          <p class="text-sm text-muted">PDF，用 files-bottom / actions 插槽手动触发上传</p>
         </div>
       </template>
 
@@ -500,20 +490,14 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
           <UProgress v-if="pdfUploading" :model-value="pdfProgress.percent" class="mt-2" />
         </template>
       </UFileUpload>
-      <p class="mt-3 text-xs text-muted">
-        服务端文件：{{ summarize(pdfUploaded) }}
-      </p>
+      <p class="mt-3 text-xs text-muted">服务端文件：{{ summarize(pdfUploaded) }}</p>
     </UCard>
 
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            3. 自定义插槽
-          </p>
-          <p class="text-sm text-muted">
-            使用默认插槽的 open / removeFile，做成头像选择
-          </p>
+          <p class="font-semibold">3. 自定义插槽</p>
+          <p class="text-sm text-muted">使用默认插槽的 open / removeFile，做成头像选择</p>
         </div>
       </template>
 
@@ -527,8 +511,18 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
           <UAvatar size="xl" :src="avatarPreview" icon="i-lucide-user" />
           <div class="space-y-2">
             <div class="flex flex-wrap gap-2">
-              <UButton color="neutral" variant="outline" :label="avatarFile ? '更换图片' : '选择图片'" @click="open()" />
-              <UButton :loading="avatarUploading" :disabled="!avatarFile" label="上传" @click="runUpload(uploadAvatar())" />
+              <UButton
+                color="neutral"
+                variant="outline"
+                :label="avatarFile ? '更换图片' : '选择图片'"
+                @click="open()"
+              />
+              <UButton
+                :loading="avatarUploading"
+                :disabled="!avatarFile"
+                label="上传"
+                @click="runUpload(uploadAvatar())"
+              />
               <UButton
                 v-if="avatarFile"
                 color="error"
@@ -543,20 +537,14 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
           </div>
         </div>
       </UFileUpload>
-      <p class="mt-3 text-xs text-muted">
-        服务端文件：{{ summarize(avatarUploaded) }}
-      </p>
+      <p class="mt-3 text-xs text-muted">服务端文件：{{ summarize(avatarUploaded) }}</p>
     </UCard>
 
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            4. 图片尺寸校验
-          </p>
-          <p class="text-sm text-muted">
-            imageDimensionRule：宽高需在 200×200 到 4096×4096 之间
-          </p>
+          <p class="font-semibold">4. 图片尺寸校验</p>
+          <p class="text-sm text-muted">imageDimensionRule：宽高需在 200×200 到 4096×4096 之间</p>
         </div>
       </template>
 
@@ -572,18 +560,14 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
       <p v-if="sizedIssue" class="mt-3 text-xs text-error">
         {{ sizedIssue.messageKey }}（{{ sizedIssue.code }}）
       </p>
-      <p class="mt-3 text-xs text-muted">
-        服务端文件：{{ summarize(sizedUploaded) }}
-      </p>
+      <p class="mt-3 text-xs text-muted">服务端文件：{{ summarize(sizedUploaded) }}</p>
       <pre>{{ sizedFiles }}</pre>
     </UCard>
 
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            5. 独立调用 uploadFiles
-          </p>
+          <p class="font-semibold">5. 独立调用 uploadFiles</p>
           <p class="text-sm text-muted">
             不经过 useFileUploader 编排，直接请求（仍支持进度和取消）
           </p>
@@ -591,29 +575,26 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
       </template>
 
       <div class="space-y-3">
-        <UFileUpload
-          v-model="rawFile"
-          accept="image/*"
-          variant="button"
-          :preview="true"
-        />
+        <UFileUpload v-model="rawFile" accept="image/*" variant="button" :preview="true" />
         <div class="flex flex-wrap gap-2">
           <UButton :loading="rawUploading" label="直接上传" @click="uploadRaw" />
-          <UButton color="neutral" variant="ghost" :disabled="!rawUploading" label="取消" @click="abortRaw" />
+          <UButton
+            color="neutral"
+            variant="ghost"
+            :disabled="!rawUploading"
+            label="取消"
+            @click="abortRaw"
+          />
         </div>
         <UProgress v-if="rawUploading" :model-value="rawPercent" />
-        <p class="text-xs text-muted">
-          服务端文件：{{ summarize(rawResult) }}
-        </p>
+        <p class="text-xs text-muted">服务端文件：{{ summarize(rawResult) }}</p>
       </div>
     </UCard>
 
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            6. 表单校验
-          </p>
+          <p class="font-semibold">6. 表单校验</p>
           <p class="text-sm text-muted">
             UForm + Zod：标题必填，头像必选且校验类型 / 体积 / 尺寸，附件可选 PDF
           </p>
@@ -639,7 +620,12 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
           >
             <div class="flex items-center gap-3">
               <UAvatar size="lg" :src="formPreview" icon="i-lucide-image" />
-              <UButton color="neutral" variant="outline" :label="formAvatar ? '更换' : '上传头像'" @click="open()" />
+              <UButton
+                color="neutral"
+                variant="outline"
+                :label="formAvatar ? '更换' : '上传头像'"
+                @click="open()"
+              />
               <UButton
                 v-if="formAvatar"
                 color="error"
@@ -666,15 +652,11 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
         </UFormField>
 
         <div class="flex gap-2">
-          <UButton type="submit" :loading="formSubmitting">
-            提交并上传
-          </UButton>
+          <UButton type="submit" :loading="formSubmitting"> 提交并上传 </UButton>
         </div>
       </UForm>
 
-      <p class="mt-3 text-xs text-muted">
-        服务端文件：{{ summarize(formUploaded) }}
-      </p>
+      <p class="mt-3 text-xs text-muted">服务端文件：{{ summarize(formUploaded) }}</p>
     </UCard>
   </div>
 </template>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { ComponentPublicInstance } from 'vue'
-import { useEventListener, useMounted } from '@vueuse/core'
-import { moveArrayElement, useSortable } from '@vueuse/integrations/useSortable'
+import type { ComponentPublicInstance } from "vue";
+import { useEventListener, useMounted } from "@vueuse/core";
+import { moveArrayElement, useSortable } from "@vueuse/integrations/useSortable";
 
 /**
  * 拖拽事件类型。
@@ -10,9 +10,9 @@ import { moveArrayElement, useSortable } from '@vueuse/integrations/useSortable'
  * app 没有声明 `@types/sortablejs`，直接 import 会报 TS7016；
  * 走 vueuse 的声明则能解析到提升目录里的类型。
  */
-type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>
+type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>;
 
-type ScrollAreaExposed = ComponentPublicInstance & { $el: HTMLElement }
+type ScrollAreaExposed = ComponentPublicInstance & { $el: HTMLElement };
 
 /**
  * SortableBar —— 横向可拖拽排序的选项条（参考 greensketch design/OptionBar，解耦业务）。
@@ -21,184 +21,179 @@ type ScrollAreaExposed = ComponentPublicInstance & { $el: HTMLElement }
  * - 交互：拖拽排序（本地即时生效）、点击选中（`activeId`）
  * - 主题：`theme` 为 `dark`（默认）/ `light`，通过 `--sb-*` CSS 变量切换，可外部接 `useColorMode` 随系统
  */
-const props = withDefaults(defineProps<{
-  /** dark（默认）/ light；可接 useColorMode 随系统主题 */
-  theme?: 'dark' | 'light'
-  /** 左右滚动按钮每次滚动的像素 */
-  scrollStep?: number
-  /** 每一项的估算宽度（用于点击时滚动定位） */
-  itemWidth?: number
-}>(), {
-  theme: 'dark',
-  scrollStep: 200,
-  itemWidth: 100,
-})
+const props = withDefaults(
+  defineProps<{
+    /** dark（默认）/ light；可接 useColorMode 随系统主题 */
+    theme?: "dark" | "light";
+    /** 左右滚动按钮每次滚动的像素 */
+    scrollStep?: number;
+    /** 每一项的估算宽度（用于点击时滚动定位） */
+    itemWidth?: number;
+  }>(),
+  {
+    theme: "dark",
+    scrollStep: 200,
+    itemWidth: 100,
+  },
+);
 
-const items = defineModel<Record<string, any>[]>('modelValue', { required: true })
-const activeId = defineModel<string | number | null>('activeId', { default: null })
+const items = defineModel<Record<string, any>[]>("modelValue", { required: true });
+const activeId = defineModel<string | number | null>("activeId", { default: null });
 
-const emit = defineEmits<{ 'item-click': [item: Record<string, any>, index: number] }>()
+const emit = defineEmits<{ "item-click": [item: Record<string, any>, index: number] }>();
 
-const isMounted = useMounted()
-const scrollAreaRef = useTemplateRef<ScrollAreaExposed>('scrollAreaRef')
-const showScrollButtons = ref(false)
-const isScrolledToStart = ref(true)
-const isScrolledToEnd = ref(false)
+const isMounted = useMounted();
+const scrollAreaRef = useTemplateRef<ScrollAreaExposed>("scrollAreaRef");
+const showScrollButtons = ref(false);
+const isScrolledToStart = ref(true);
+const isScrolledToEnd = ref(false);
 
 function getScrollEl(): HTMLElement | undefined {
-  const el = scrollAreaRef.value?.$el
-  return el instanceof HTMLElement ? el : undefined
+  const el = scrollAreaRef.value?.$el;
+  return el instanceof HTMLElement ? el : undefined;
 }
 
 function scrollToItem(index: number) {
-  getScrollEl()?.scrollTo({ top: 0, left: index * props.itemWidth, behavior: 'smooth' })
+  getScrollEl()?.scrollTo({ top: 0, left: index * props.itemWidth, behavior: "smooth" });
 }
 
 function getViewportEl(): HTMLElement | undefined {
-  const root = getScrollEl()
+  const root = getScrollEl();
   if (!root) {
-    return undefined
+    return undefined;
   }
-  const viewport = root.querySelector('[data-slot="viewport"]')
-  return viewport instanceof HTMLElement ? viewport : undefined
+  const viewport = root.querySelector('[data-slot="viewport"]');
+  return viewport instanceof HTMLElement ? viewport : undefined;
 }
 
 function checkScrollPosition() {
-  const el = getScrollEl()
+  const el = getScrollEl();
   if (!el) {
-    return
+    return;
   }
-  const { scrollLeft, scrollWidth, clientWidth } = el
-  isScrolledToStart.value = scrollLeft <= 0
-  isScrolledToEnd.value = scrollLeft >= scrollWidth - clientWidth - 1
+  const { scrollLeft, scrollWidth, clientWidth } = el;
+  isScrolledToStart.value = scrollLeft <= 0;
+  isScrolledToEnd.value = scrollLeft >= scrollWidth - clientWidth - 1;
 }
 
 function checkIfScrollButtonsNeeded() {
-  const el = getScrollEl()
+  const el = getScrollEl();
   if (!el) {
-    return
+    return;
   }
-  showScrollButtons.value = el.scrollWidth > el.clientWidth + 1
+  showScrollButtons.value = el.scrollWidth > el.clientWidth + 1;
 }
 
 function updateScrollState() {
-  checkIfScrollButtonsNeeded()
-  checkScrollPosition()
+  checkIfScrollButtonsNeeded();
+  checkScrollPosition();
 }
 
 function scrollTabsLeft() {
-  getScrollEl()?.scrollBy({ left: -props.scrollStep, behavior: 'smooth' })
+  getScrollEl()?.scrollBy({ left: -props.scrollStep, behavior: "smooth" });
 }
 
 function scrollTabsRight() {
-  getScrollEl()?.scrollBy({ left: props.scrollStep, behavior: 'smooth' })
+  getScrollEl()?.scrollBy({ left: props.scrollStep, behavior: "smooth" });
 }
 
-let removeScrollListener: (() => void) | undefined
-let resizeObserver: ResizeObserver | undefined
+let removeScrollListener: (() => void) | undefined;
+let resizeObserver: ResizeObserver | undefined;
 
-const { start, stop } = useSortable(
-  () => getViewportEl() ?? null,
-  items,
-  {
-    watchElement: false,
-    handle: '.option-drag-handle',
-    direction: 'horizontal',
-    animation: 220,
-    easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
-    ghostClass: 'option-sort-ghost',
-    chosenClass: 'option-sort-chosen',
-    dragClass: 'option-sort-drag',
-    fallbackClass: 'option-sort-fallback',
-    forceFallback: true,
-    fallbackOnBody: true,
-    fallbackTolerance: 0,
-    emptyInsertThreshold: 24,
-    scroll: true,
-    bubbleScroll: true,
-    filter: 'input, textarea, select, option',
-    onStart: () => {
-      if (import.meta.client) {
-        document.body.classList.add('option-sort-active')
-      }
-    },
-    onEnd: () => {
-      if (import.meta.client) {
-        document.body.classList.remove('option-sort-active')
-      }
-    },
-    onUpdate: (e: SortableEvent) => {
-      moveArrayElement(items, e.oldIndex ?? 0, e.newIndex ?? 0, e)
-      nextTick(updateScrollState)
-    },
-  } as any,
-)
+const { start, stop } = useSortable(() => getViewportEl() ?? null, items, {
+  watchElement: false,
+  handle: ".option-drag-handle",
+  direction: "horizontal",
+  animation: 220,
+  easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+  ghostClass: "option-sort-ghost",
+  chosenClass: "option-sort-chosen",
+  dragClass: "option-sort-drag",
+  fallbackClass: "option-sort-fallback",
+  forceFallback: true,
+  fallbackOnBody: true,
+  fallbackTolerance: 0,
+  emptyInsertThreshold: 24,
+  scroll: true,
+  bubbleScroll: true,
+  filter: "input, textarea, select, option",
+  onStart: () => {
+    if (import.meta.client) {
+      document.body.classList.add("option-sort-active");
+    }
+  },
+  onEnd: () => {
+    if (import.meta.client) {
+      document.body.classList.remove("option-sort-active");
+    }
+  },
+  onUpdate: (e: SortableEvent) => {
+    moveArrayElement(items, e.oldIndex ?? 0, e.newIndex ?? 0, e);
+    nextTick(updateScrollState);
+  },
+} as any);
 
 async function restartSortable() {
-  stop()
-  await nextTick()
-  await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
-  start()
+  stop();
+  await nextTick();
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  start();
 }
 
 watch(
   [isMounted, () => items.value.length],
   async ([mounted, count]) => {
     if (!mounted) {
-      stop()
-      return
+      stop();
+      return;
     }
     if (count > 0) {
-      await restartSortable()
-      await nextTick()
-      updateScrollState()
-    }
-    else {
-      stop()
+      await restartSortable();
+      await nextTick();
+      updateScrollState();
+    } else {
+      stop();
     }
   },
   { immediate: true },
-)
+);
 
 onMounted(async () => {
-  await nextTick()
-  const el = getScrollEl()
+  await nextTick();
+  const el = getScrollEl();
   if (!el) {
-    return
+    return;
   }
 
-  el.addEventListener('scroll', checkScrollPosition, { passive: true })
-  removeScrollListener = () => el.removeEventListener('scroll', checkScrollPosition)
+  el.addEventListener("scroll", checkScrollPosition, { passive: true });
+  removeScrollListener = () => el.removeEventListener("scroll", checkScrollPosition);
 
-  resizeObserver = new ResizeObserver(updateScrollState)
-  resizeObserver.observe(el)
-  const viewport = getViewportEl()
+  resizeObserver = new ResizeObserver(updateScrollState);
+  resizeObserver.observe(el);
+  const viewport = getViewportEl();
   if (viewport) {
-    resizeObserver.observe(viewport)
+    resizeObserver.observe(viewport);
   }
-  updateScrollState()
-})
+  updateScrollState();
+});
 
 onUnmounted(() => {
-  removeScrollListener?.()
-  resizeObserver?.disconnect()
-  stop()
-})
+  removeScrollListener?.();
+  resizeObserver?.disconnect();
+  stop();
+});
 
-useEventListener('resize', updateScrollState)
+useEventListener("resize", updateScrollState);
 
 function handleItemClick(item: Record<string, any>, index: number) {
-  activeId.value = item.id
-  emit('item-click', item, index)
-  scrollToItem(index)
+  activeId.value = item.id;
+  emit("item-click", item, index);
+  scrollToItem(index);
 }
 </script>
 
 <template>
-  <div
-    class="sortable-bar flex h-12 items-center"
-    :data-theme="theme"
-  >
+  <div class="sortable-bar flex h-12 items-center" :data-theme="theme">
     <div
       v-if="showScrollButtons"
       class="flex h-full shrink-0 items-center justify-center border-r border-[var(--sb-border)] px-1"

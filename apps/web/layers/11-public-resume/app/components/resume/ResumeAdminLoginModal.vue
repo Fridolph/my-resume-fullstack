@@ -1,28 +1,28 @@
 <script setup lang="ts">
-import { useResumeAdmin } from '#layers/public-resume/app/composables/useResumeAdmin'
+import { useResumeAdmin } from "#layers/public-resume/app/composables/useResumeAdmin";
 
 /**
  * 管理员登录弹窗（**本地 mock**）。
  *
  * 弹窗自己声明清楚"这不是鉴权"，避免后来者误以为这里提供了保护。
  */
-const open = defineModel<boolean>('open', { default: false })
-const { signIn, mockHint } = useResumeAdmin()
+const open = defineModel<boolean>("open", { default: false });
+const { signIn, mockHint } = useResumeAdmin();
 
-const form = reactive({ username: '', password: '' })
-const errorMessage = ref('')
+const form = reactive({ username: "", password: "" });
+const errorMessage = ref("");
 
 function submit() {
-  const result = signIn({ username: form.username, password: form.password })
+  const result = signIn({ username: form.username, password: form.password });
 
   if (!result.ok) {
-    errorMessage.value = result.message
-    return
+    errorMessage.value = result.message;
+    return;
   }
 
-  errorMessage.value = ''
-  form.password = ''
-  open.value = false
+  errorMessage.value = "";
+  form.password = "";
+  open.value = false;
 }
 </script>
 

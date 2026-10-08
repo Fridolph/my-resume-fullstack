@@ -1,47 +1,50 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: 'has-sidebar',
-  title: 'Modal',
-})
+  layout: "has-sidebar",
+  title: "Modal",
+});
 
-const toast = useToast()
+const toast = useToast();
 
 // —— Confirm 弹窗 ——
-const confirmOpen = ref(false)
+const confirmOpen = ref(false);
 function handleConfirmDelete() {
   toast.add({
-    title: 'Deleted',
-    description: 'Project removed (demo).',
-    color: 'success',
-  })
+    title: "Deleted",
+    description: "Project removed (demo).",
+    color: "success",
+  });
 }
 
 // —— 删除确认（倒计时防误删）——
-const deleteConfirmOpen = ref(false)
+const deleteConfirmOpen = ref(false);
 function handleDeleteConfirm() {
   toast.add({
-    title: 'Deleted',
-    description: 'Design removed (demo).',
-    color: 'success',
-  })
+    title: "Deleted",
+    description: "Design removed (demo).",
+    color: "success",
+  });
 }
 
 // —— 响应式对话框 ——
-const responsiveOpen = ref(false)
+const responsiveOpen = ref(false);
 
 // —— 无权限提示 ——
-const forbiddenOpen = ref(false)
+const forbiddenOpen = ref(false);
 </script>
 
 <template>
   <div class="content-pad">
     <h1 class="text-xl font-semibold tracking-tight text-highlighted">Modal</h1>
     <p class="mt-2 text-sm leading-6 text-muted">
-      对话框封装：标准确认弹窗 <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">ModalConfirm</code>、
-      删除确认（倒计时防误删）<code class="rounded bg-elevated px-1.5 py-0.5 text-xs">ModalDeleteConfirm</code>、
-      响应式对话框
-      <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">ModalResponsive</code>（桌面 Modal / 移动 Drawer）、
-      无权限提示 <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">ModalForbidden</code>。
+      对话框封装：标准确认弹窗
+      <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">ModalConfirm</code>、
+      删除确认（倒计时防误删）<code class="rounded bg-elevated px-1.5 py-0.5 text-xs"
+        >ModalDeleteConfirm</code
+      >、 响应式对话框
+      <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">ModalResponsive</code>（桌面 Modal /
+      移动 Drawer）、 无权限提示
+      <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">ModalForbidden</code>。
     </p>
 
     <div class="mt-6 space-y-10">
@@ -63,8 +66,9 @@ const forbiddenOpen = ref(false)
         <h2 class="text-lg font-semibold text-highlighted">Delete confirm (cooldown)</h2>
         <p class="mt-1 text-sm text-muted">
           删除确认弹窗，确认按钮带 N 秒倒计时防误点（
-          <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">cooldown</code>，默认 3，0 关闭）；
-          倒计时期间文案显示 <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">Delete (n)</code>。
+          <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">cooldown</code>，默认 3，0
+          关闭）； 倒计时期间文案显示
+          <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">Delete (n)</code>。
         </p>
         <UButton
           class="mt-3"
@@ -109,7 +113,9 @@ const forbiddenOpen = ref(false)
 
       <section>
         <h2 class="text-lg font-semibold text-highlighted">Forbidden / notice dialog</h2>
-        <p class="mt-1 text-sm text-muted">居中 icon + 提示文案，可点遮罩关闭，适合无权限/受限提示。</p>
+        <p class="mt-1 text-sm text-muted">
+          居中 icon + 提示文案，可点遮罩关闭，适合无权限/受限提示。
+        </p>
         <UButton class="mt-3" label="Open forbidden" @click="forbiddenOpen = true" />
 
         <ModalForbidden

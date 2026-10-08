@@ -1,40 +1,40 @@
-import { mergeAttributes, Node } from '@tiptap/vue-3'
+import { mergeAttributes, Node } from "@tiptap/vue-3";
 
-declare module '@tiptap/core' {
+declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     title: {
-      setTitle: () => ReturnType
-    }
+      setTitle: () => ReturnType;
+    };
   }
 }
 
 export default Node.create({
-  name: 'title',
-  content: 'inline*',
+  name: "title",
+  content: "inline*",
 
-  group: 'block',
+  group: "block",
 
   defining: true,
   addAttributes() {
-    return {}
+    return {};
   },
   parseHTML() {
     return [
       {
-        tag: 'div',
+        tag: "div",
       },
-    ]
+    ];
   },
   renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { class: 'heading-0' }), 0]
+    return ["div", mergeAttributes(HTMLAttributes, { class: "heading-0" }), 0];
   },
   addCommands(): Partial<any> {
     return {
       setTitle:
         (attributes?: Record<string, any>) =>
-          ({ commands }: any) => {
-            return commands.setNode(this.name, attributes)
-          },
-    }
+        ({ commands }: any) => {
+          return commands.setNode(this.name, attributes);
+        },
+    };
   },
-})
+});

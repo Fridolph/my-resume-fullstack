@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeSectionBodyProps } from '#layers/public-resume/app/types/resume'
+import type { ResumeSectionBodyProps } from "#layers/public-resume/app/types/resume";
 
 /**
  * 工作经历 · 标准（对齐旧站）。
@@ -7,7 +7,7 @@ import type { ResumeSectionBodyProps } from '#layers/public-resume/app/types/res
  * 左列时间 + 右侧层级内容（公司 / 职位 · 行业 / 概述 / 成果 / 技术栈），
  * 技术栈用统一的 `.resume-chip` 语义类（不再逐处写 inline 颜色）。
  */
-defineProps<ResumeSectionBodyProps>()
+defineProps<ResumeSectionBodyProps>();
 </script>
 
 <template>
@@ -36,7 +36,9 @@ defineProps<ResumeSectionBodyProps>()
       </ul>
 
       <div v-if="options.showTechStack && item.tech?.length" class="flex flex-wrap gap-1.5 pt-1">
-        <span v-for="tech in item.tech" :key="tech" class="resume-chip px-2 py-0.5">{{ tech }}</span>
+        <span v-for="tech in item.tech" :key="tech" class="resume-chip px-2 py-0.5">{{
+          tech
+        }}</span>
       </div>
     </div>
   </div>

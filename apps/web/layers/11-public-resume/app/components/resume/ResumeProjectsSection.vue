@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { ResumeSectionProps } from '#layers/public-resume/app/types/resume'
-import ResumeSectionCard from './ResumeSectionCard.vue'
+import type { ResumeSectionProps } from "#layers/public-resume/app/types/resume";
+import ResumeSectionCard from "./ResumeSectionCard.vue";
 
 /** 项目经历：概览 / 核心功能 / 亮点难点 / 技术栈 */
-defineProps<ResumeSectionProps>()
+defineProps<ResumeSectionProps>();
 </script>
 
 <template>
@@ -17,7 +17,7 @@ defineProps<ResumeSectionProps>()
         <p class="resume-muted text-xs">{{ item.period }}</p>
       </header>
 
-      <p v-if="item.overview"class="resume-muted">{{ item.overview }}</p>
+      <p v-if="item.overview" class="resume-muted">{{ item.overview }}</p>
 
       <div v-if="item.features?.length" class="flex flex-wrap gap-1.5">
         <span
@@ -30,8 +30,11 @@ defineProps<ResumeSectionProps>()
         </span>
       </div>
 
-      <ul v-if="options.showAchievements && item.highlights?.length" class="list-inside list-disc space-y-1">
-        <li v-for="line in item.highlights" :key="line"class="resume-muted">{{ line }}</li>
+      <ul
+        v-if="options.showAchievements && item.highlights?.length"
+        class="list-inside list-disc space-y-1"
+      >
+        <li v-for="line in item.highlights" :key="line" class="resume-muted">{{ line }}</li>
       </ul>
 
       <div v-if="options.showTechStack && item.tech?.length" class="flex flex-wrap gap-1.5">

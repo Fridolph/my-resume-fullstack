@@ -58,9 +58,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
   >
     <UButton
       :avatar="
-        user.avatar
-          ? { src: user.avatar, alt: user.name }
-          : { text: user.initials, alt: user.name }
+        user.avatar ? { src: user.avatar, alt: user.name } : { text: user.initials, alt: user.name }
       "
       color="neutral"
       variant="ghost"

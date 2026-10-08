@@ -1,24 +1,22 @@
 <script setup lang="ts">
-import type { NodeViewProps } from '@tiptap/vue-3'
-import { NodeViewWrapper } from '@tiptap/vue-3'
+import type { NodeViewProps } from "@tiptap/vue-3";
+import { NodeViewWrapper } from "@tiptap/vue-3";
 
-const props = defineProps<NodeViewProps>()
-const content = shallowRef('')
+const props = defineProps<NodeViewProps>();
+const content = shallowRef("");
 function handleOpen() {
-  const data = (props.editor.extensionStorage as any).mention.variables.find((item: IMention) => item.placeholder === props.node.attrs.id)
+  const data = (props.editor.extensionStorage as any).mention.variables.find(
+    (item: IMention) => item.placeholder === props.node.attrs.id,
+  );
   if (!data) {
-    return
+    return;
   }
-  content.value = data.desc
-  const pos = props.getPos()
-  if (typeof pos === 'number') {
-    const afterPosition = pos + props.node.nodeSize - 1
-    props.editor
-      .chain()
-      .focus()
-      .setTextSelection(afterPosition)
-      .run()
-    return true
+  content.value = data.desc;
+  const pos = props.getPos();
+  if (typeof pos === "number") {
+    const afterPosition = pos + props.node.nodeSize - 1;
+    props.editor.chain().focus().setTextSelection(afterPosition).run();
+    return true;
   }
 }
 </script>

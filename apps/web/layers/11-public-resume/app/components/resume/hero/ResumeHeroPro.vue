@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ResumeHeroProps } from '#layers/public-resume/app/types/resume'
-import { useResumeProfileView } from '#layers/public-resume/app/composables/useResumeProfileView'
+import type { ResumeHeroProps } from "#layers/public-resume/app/types/resume";
+import { useResumeProfileView } from "#layers/public-resume/app/composables/useResumeProfileView";
 
 /**
  * hero · 精致：画廊 + 数字块 + 能力雷达 + 求职状态，版式更讲究。
@@ -9,32 +9,32 @@ import { useResumeProfileView } from '#layers/public-resume/app/composables/useR
  * 雷达用 SVG 手绘（三角函数算顶点），不引入图表库。
  * 排版按"窄栏也能读"设计：单列 / 两列为主，不用视口断点（栏宽 ≠ 视口宽）。
  */
-const props = defineProps<ResumeHeroProps>()
-const { profile, avatarText, slogans, visibleContact } = useResumeProfileView(props)
+const props = defineProps<ResumeHeroProps>();
+const { profile, avatarText, slogans, visibleContact } = useResumeProfileView(props);
 
-const gallery = computed(() => profile.value.gallery ?? [])
-const stats = computed(() => profile.value.stats ?? [])
-const availability = computed(() => profile.value.availability ?? '')
+const gallery = computed(() => profile.value.gallery ?? []);
+const stats = computed(() => profile.value.stats ?? []);
+const availability = computed(() => profile.value.availability ?? "");
 
 // ── 雷达几何 ────────────────────────────────────────────
-const RADAR_SIZE = 120
-const RADAR_CENTER = RADAR_SIZE / 2
-const RADAR_RADIUS = RADAR_SIZE / 2 - 14
+const RADAR_SIZE = 120;
+const RADAR_CENTER = RADAR_SIZE / 2;
+const RADAR_RADIUS = RADAR_SIZE / 2 - 14;
 
 /** 至少 3 个维度才构成多边形，否则不画 */
 const radarAxes = computed(() => {
-  const items = profile.value.radar ?? []
-  const count = items.length
+  const items = profile.value.radar ?? [];
+  const count = items.length;
 
   if (count < 3) {
-    return []
+    return [];
   }
 
-  const step = (Math.PI * 2) / count
+  const step = (Math.PI * 2) / count;
 
   return items.map((item, index) => {
-    const angle = step * index - Math.PI / 2
-    const ratio = Math.max(0, Math.min(100, item.value)) / 100
+    const angle = step * index - Math.PI / 2;
+    const ratio = Math.max(0, Math.min(100, item.value)) / 100;
 
     return {
       label: item.label,
@@ -43,35 +43,35 @@ const radarAxes = computed(() => {
       y: RADAR_CENTER + RADAR_RADIUS * Math.sin(angle),
       px: RADAR_CENTER + RADAR_RADIUS * ratio * Math.cos(angle),
       py: RADAR_CENTER + RADAR_RADIUS * ratio * Math.sin(angle),
-    }
-  })
-})
+    };
+  });
+});
 
 /** 雷达底图：按比例缩放的闭合多边形 */
 function gridPolygon(ratio: number) {
-  const count = radarAxes.value.length
+  const count = radarAxes.value.length;
   if (!count) {
-    return ''
+    return "";
   }
 
-  const step = (Math.PI * 2) / count
+  const step = (Math.PI * 2) / count;
 
   return Array.from({ length: count }, (_, index) => {
-    const angle = step * index - Math.PI / 2
-    const x = (RADAR_CENTER + RADAR_RADIUS * ratio * Math.cos(angle)).toFixed(1)
-    const y = (RADAR_CENTER + RADAR_RADIUS * ratio * Math.sin(angle)).toFixed(1)
+    const angle = step * index - Math.PI / 2;
+    const x = (RADAR_CENTER + RADAR_RADIUS * ratio * Math.cos(angle)).toFixed(1);
+    const y = (RADAR_CENTER + RADAR_RADIUS * ratio * Math.sin(angle)).toFixed(1);
 
-    return `${x},${y}`
-  }).join(' ')
+    return `${x},${y}`;
+  }).join(" ");
 }
 
 const radarArea = computed(() =>
-  radarAxes.value.map((axis) => `${axis.px.toFixed(1)},${axis.py.toFixed(1)}`).join(' '),
-)
+  radarAxes.value.map((axis) => `${axis.px.toFixed(1)},${axis.py.toFixed(1)}`).join(" "),
+);
 
 const radarLabelText = computed(() =>
-  radarAxes.value.map((axis) => `${axis.label} ${axis.value}`).join('，'),
-)
+  radarAxes.value.map((axis) => `${axis.label} ${axis.value}`).join("，"),
+);
 </script>
 
 <template>
@@ -129,11 +129,7 @@ const radarLabelText = computed(() =>
   </dl>
 
   <!-- 标语 -->
-  <p
-    v-for="line in slogans"
-    :key="line"
-    class="gradient-copy mt-3 text-sm font-semibold leading-6"
-  >
+  <p v-for="line in slogans" :key="line" class="gradient-copy mt-3 text-sm font-semibold leading-6">
     {{ line }}
   </p>
 

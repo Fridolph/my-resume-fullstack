@@ -27,7 +27,11 @@
 
   /* 页面底色：旧站（my-resume）式渐变，颜色由 primary / surface 派生，随主题变化 */
   --resume-page:
-    radial-gradient(circle at top, color-mix(in srgb, var(--resume-primary) 14%, transparent), transparent 24%),
+    radial-gradient(
+      circle at top,
+      color-mix(in srgb, var(--resume-primary) 14%, transparent),
+      transparent 24%
+    ),
     linear-gradient(
       180deg,
       color-mix(in srgb, var(--resume-primary) 3%, #f7f9fe) 0%,
@@ -72,7 +76,7 @@
 
   /* hover 动效只给 standard，且只在真有 hover 能力的设备上启用 */
   @media (hover: hover) {
-    .resume-card[data-style='standard']:hover {
+    .resume-card[data-style="standard"]:hover {
       transform: translateY(-2px);
       border-color: color-mix(in srgb, var(--resume-primary) 45%, transparent);
       box-shadow: var(--resume-card-shadow-hover);
@@ -219,14 +223,14 @@
   }
 
   /* ── 拖拽进行中：给所有可落区域描边，空落点显形 ── */
-  [data-dragging='true'] .resume-drop-zone,
-  [data-dragging='true'] .resume-tray {
+  [data-dragging="true"] .resume-drop-zone,
+  [data-dragging="true"] .resume-tray {
     outline: 1px dashed color-mix(in srgb, var(--resume-primary) 45%, transparent);
     outline-offset: 6px;
     border-radius: 0.75rem;
   }
 
-  [data-dragging='true'] .resume-empty-slot {
+  [data-dragging="true"] .resume-empty-slot {
     opacity: 1;
     border-color: color-mix(in srgb, var(--resume-primary) 45%, transparent);
   }
@@ -285,7 +289,7 @@
       transition: none;
     }
 
-    .resume-card[data-style='standard']:hover {
+    .resume-card[data-style="standard"]:hover {
       transform: none;
     }
   }

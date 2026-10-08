@@ -1,75 +1,74 @@
-import type { UploadedFile } from '~/types/file'
+import type { UploadedFile } from "~/types/file";
 
 /** 上传进度；`percent` 为 0–100 的整数 */
 export interface FileUploadProgress {
-  loaded: number
-  total: number
-  percent: number
+  loaded: number;
+  total: number;
+  percent: number;
 }
 
 /** 独立请求 `uploadFiles` 的选项 */
 export interface UploadFilesOptions {
   /** 接口 query contentType，默认 1 */
-  contentType?: number
+  contentType?: number;
   /** 传入后可在中途 `abort()` 取消本次请求 */
-  signal?: AbortSignal
+  signal?: AbortSignal;
   /** 上传进度回调 */
-  onProgress?: (progress: FileUploadProgress) => void
+  onProgress?: (progress: FileUploadProgress) => void;
 }
 
 /** 上传响应的宽松形状：后端 upload 接口尚未定稿，只做最小假设（对齐 packages/common 字段名） */
 interface UploadResponsePayload {
-  success?: boolean
-  message?: string
-  data?: unknown
+  success?: boolean;
+  message?: string;
+  data?: unknown;
 }
 
 /** 与历史 FileApi 默认值对齐 */
-const DEFAULT_CONTENT_TYPE = 1
+const DEFAULT_CONTENT_TYPE = 1;
 /** 批量上传接口路径 */
-const UPLOAD_PATH = '/masterData/file/multipleUpload'
+const UPLOAD_PATH = "/masterData/file/multipleUpload";
 
 export function toFileUploadProgress(loaded: number, total: number): FileUploadProgress {
-  const safeTotal = total > 0 ? total : 0
-  const percent = safeTotal > 0 ? Math.min(100, Math.round((loaded / safeTotal) * 100)) : 0
-  return { loaded, total: safeTotal, percent }
+  const safeTotal = total > 0 ? total : 0;
+  const percent = safeTotal > 0 ? Math.min(100, Math.round((loaded / safeTotal) * 100)) : 0;
+  return { loaded, total: safeTotal, percent };
 }
 
 /** 把 File / File[] 收成接口要求的 FormData（字段名 `files`）；已是 FormData 则原样返回 */
 export function toUploadFormData(input: FormData | File | File[]): FormData {
   if (input instanceof FormData) {
-    return input
+    return input;
   }
 
-  const formData = new FormData()
-  const list = Array.isArray(input) ? input : [input]
+  const formData = new FormData();
+  const list = Array.isArray(input) ? input : [input];
   list.forEach((file) => {
-    formData.append('files', file)
-  })
-  return formData
+    formData.append("files", file);
+  });
+  return formData;
 }
 
 function uploadUrl(contentType: number): string {
-  const apiBase = String(useRuntimeConfig().public.apiBase || '').replace(/\/$/, '')
-  return `${apiBase}${UPLOAD_PATH}?contentType=${encodeURIComponent(String(contentType))}`
+  const apiBase = String(useRuntimeConfig().public.apiBase || "").replace(/\/$/, "");
+  return `${apiBase}${UPLOAD_PATH}?contentType=${encodeURIComponent(String(contentType))}`;
 }
 
 /** 按 `{ success, data, message }`（packages/common）解包；字符串响应先 JSON.parse */
 function unwrapUploadResponse(responseText: string, status: number): UploadedFile[] {
-  let payload: UploadResponsePayload
+  let payload: UploadResponsePayload;
   try {
-    payload = JSON.parse(responseText || '{}') as UploadResponsePayload
-  }
-  catch {
-    throw new Error('Upload failed')
+    payload = JSON.parse(responseText || "{}") as UploadResponsePayload;
+  } catch {
+    throw new Error("Upload failed");
   }
 
-  const httpOk = status >= 200 && status < 300
+  const httpOk = status >= 200 && status < 300;
   if (httpOk && payload.success === true) {
-    return Array.isArray(payload.data) ? (payload.data as UploadedFile[]) : []
+    return Array.isArray(payload.data) ? (payload.data as UploadedFile[]) : [];
   }
 
-  throw new Error(payload.message || 'Request failed')
+  throw new Error(payload.message || "Request failed");
 }
 
 /**
@@ -85,60 +84,62 @@ export function uploadFiles(
   input: FormData | File | File[],
   options: UploadFilesOptions = {},
 ): Promise<UploadedFile[]> {
-  const { contentType = DEFAULT_CONTENT_TYPE, signal, onProgress } = options
+  const { contentType = DEFAULT_CONTENT_TYPE, signal, onProgress } = options;
 
   return new Promise<UploadedFile[]>((resolve, reject) => {
     if (signal?.aborted) {
-      reject(new DOMException('The operation was aborted.', 'AbortError'))
-      return
+      reject(new DOMException("The operation was aborted.", "AbortError"));
+      return;
     }
 
-    const xhr = new XMLHttpRequest()
-    let handleAbort = () => {}
-    const cleanup = () => signal?.removeEventListener('abort', handleAbort)
+    const xhr = new XMLHttpRequest();
+    let handleAbort = () => {};
+    const cleanup = () => signal?.removeEventListener("abort", handleAbort);
 
-    handleAbort = () => xhr.abort()
-    signal?.addEventListener('abort', handleAbort, { once: true })
+    handleAbort = () => xhr.abort();
+    signal?.addEventListener("abort", handleAbort, { once: true });
 
-    xhr.upload.addEventListener('progress', (event) => {
+    xhr.upload.addEventListener("progress", (event) => {
       if (event.lengthComputable) {
-        onProgress?.(toFileUploadProgress(event.loaded, event.total))
+        onProgress?.(toFileUploadProgress(event.loaded, event.total));
       }
-    })
+    });
 
-    xhr.addEventListener('abort', () => {
-      cleanup()
-      reject(new DOMException('The operation was aborted.', 'AbortError'))
-    })
+    xhr.addEventListener("abort", () => {
+      cleanup();
+      reject(new DOMException("The operation was aborted.", "AbortError"));
+    });
 
-    xhr.addEventListener('error', () => {
-      cleanup()
-      reject(new Error('Upload failed'))
-    })
+    xhr.addEventListener("error", () => {
+      cleanup();
+      reject(new Error("Upload failed"));
+    });
 
-    xhr.addEventListener('load', () => {
-      cleanup()
+    xhr.addEventListener("load", () => {
+      cleanup();
       try {
-        resolve(unwrapUploadResponse(xhr.responseText, xhr.status))
+        resolve(unwrapUploadResponse(xhr.responseText, xhr.status));
+      } catch (err) {
+        reject(err);
       }
-      catch (err) {
-        reject(err)
-      }
-    })
+    });
 
-    xhr.open('POST', uploadUrl(contentType), true)
-    xhr.send(toUploadFormData(input))
-  })
+    xhr.open("POST", uploadUrl(contentType), true);
+    xhr.send(toUploadFormData(input));
+  });
 }
 
 /**
  * 兼容旧调用（`useUploadFile` 等仍在使用）。
  * 新代码请直接用 `uploadFiles`，或在组件里用 `useFileUploader`（带校验与进度状态）。
  */
-export function uploadFile(body: FormData, contentType = { contentType: 1 }): Promise<UploadedFile[]> {
-  return uploadFiles(body, { contentType: contentType.contentType })
+export function uploadFile(
+  body: FormData,
+  contentType = { contentType: 1 },
+): Promise<UploadedFile[]> {
+  return uploadFiles(body, { contentType: contentType.contentType });
 }
 
 export const FileApi = {
   uploadFile,
-}
+};

@@ -3,15 +3,18 @@
  * ModalForbidden —— 无权限 / 受限提示弹窗（参考 greensketch modal/Forbidden.vue）
  * 结构：居中 icon + 提示文案，可点击遮罩关闭（dismissible）。
  */
-withDefaults(defineProps<{
-  message?: string
-  icon?: string
-}>(), {
-  message: 'You do not have permission to perform this action.',
-  icon: 'i-lucide-lock',
-})
+withDefaults(
+  defineProps<{
+    message?: string;
+    icon?: string;
+  }>(),
+  {
+    message: "You do not have permission to perform this action.",
+    icon: "i-lucide-lock",
+  },
+);
 
-const open = defineModel<boolean>('open', { default: true })
+const open = defineModel<boolean>("open", { default: true });
 </script>
 
 <template>

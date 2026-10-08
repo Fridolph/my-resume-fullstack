@@ -44,16 +44,16 @@ composables/useResumeDisplay.ts     唯一配置状态 + 动作（SSR 安全）
 ### 3.1 布局
 
 ```ts
-export type ResumeLayoutMode = 'single' | 'split' | 'threeColumn'
-export type ResumeSlotKey = 'side' | 'main' | 'rail'
-export type ResumeSplitSide = 'left' | 'right'
+export type ResumeLayoutMode = "single" | "split" | "threeColumn";
+export type ResumeSlotKey = "side" | "main" | "rail";
+export type ResumeSplitSide = "left" | "right";
 
 export interface ResumeLayoutConfig {
-  mode: ResumeLayoutMode
-  splitSide: ResumeSplitSide        // split 模式下固定栏在哪一侧
-  stickySide: boolean
-  sideWidth: 'compact' | 'wide'     // 280px / 360px
-  gap: 'comfortable' | 'compact'
+  mode: ResumeLayoutMode;
+  splitSide: ResumeSplitSide; // split 模式下固定栏在哪一侧
+  stickySide: boolean;
+  sideWidth: "compact" | "wide"; // 280px / 360px
+  gap: "comfortable" | "compact";
 }
 ```
 
@@ -61,9 +61,9 @@ export interface ResumeLayoutConfig {
 
 ```ts
 export interface ResumeSectionsConfig {
-  order: ResumeSectionKey[]                                // 全局阅读顺序：拖拽排序改这里
-  slot: Partial<Record<ResumeSectionKey, ResumeSlotKey>>   // 覆盖默认归属：跨栏拖拽改这里
-  hidden: ResumeSectionKey[]
+  order: ResumeSectionKey[]; // 全局阅读顺序：拖拽排序改这里
+  slot: Partial<Record<ResumeSectionKey, ResumeSlotKey>>; // 覆盖默认归属：跨栏拖拽改这里
+  hidden: ResumeSectionKey[];
 }
 ```
 
@@ -78,22 +78,24 @@ export interface ResumeSectionsConfig {
 > 实现与迁移见 [resume-styles.md](./resume-styles.md) §10。下面这段原案即现在的方向。
 
 ```ts
-export type ResumeColorMode = 'light' | 'dark'
+export type ResumeColorMode = "light" | "dark";
 
-export interface ResumeThemePreset {          // 只管配色
-  id: string
-  label: string
-  primary: string
-  gradientFrom: string
-  gradientTo: string
+export interface ResumeThemePreset {
+  // 只管配色
+  id: string;
+  label: string;
+  primary: string;
+  gradientFrom: string;
+  gradientTo: string;
 }
 
-export interface ResumeThemeConfig {          // 生效值 = mode + preset（允许微调）
-  mode: ResumeColorMode
-  presetId: string
-  primary: string
-  gradientFrom: string
-  gradientTo: string
+export interface ResumeThemeConfig {
+  // 生效值 = mode + preset（允许微调）
+  mode: ResumeColorMode;
+  presetId: string;
+  primary: string;
+  gradientFrom: string;
+  gradientTo: string;
 }
 ```
 
@@ -102,17 +104,17 @@ export interface ResumeThemeConfig {          // 生效值 = mode + preset（允
 ### 3.4 背景
 
 ```ts
-export type ResumeBackgroundType = 'plain' | 'texture' | 'image'
+export type ResumeBackgroundType = "plain" | "texture" | "image";
 
 export interface ResumeBackgroundConfig {
-  type: ResumeBackgroundType
-  textureId?: string        // plain / texture 使用
+  type: ResumeBackgroundType;
+  textureId?: string; // plain / texture 使用
   image?: {
-    url: string
-    fit: 'cover' | 'contain'
-    overlay: number         // 0~100，压暗/压亮遮罩强度，保证卡片可读
-    blur: number            // 0~20px
-  }
+    url: string;
+    fit: "cover" | "contain";
+    overlay: number; // 0~100，压暗/压亮遮罩强度，保证卡片可读
+    blur: number; // 0~20px
+  };
 }
 ```
 
@@ -122,11 +124,11 @@ export interface ResumeBackgroundConfig {
 
 ## 4. 三种布局的网格与响应式
 
-| mode           | `lg` 及以上                                            | `lg` 以下            | slot 映射                            |
-| -------------- | ------------------------------------------------------ | -------------------- | ------------------------------------ |
-| `single`       | `grid-cols-1`                                          | 同                   | side / main / rail 全部并入单列      |
-| `split`        | `[280px_minmax(0,1fr)]`（wide 360px），`splitSide` 决定固定栏在左/右 | 单列，固定栏在前     | rail 并入 main                       |
-| `threeColumn`  | `[1fr_4fr_1fr]`（= 1/6 : 2/3 : 1/6）                   | 单列                 | side→左栏、main→中栏、rail→右栏       |
+| mode          | `lg` 及以上                                                          | `lg` 以下        | slot 映射                       |
+| ------------- | -------------------------------------------------------------------- | ---------------- | ------------------------------- |
+| `single`      | `grid-cols-1`                                                        | 同               | side / main / rail 全部并入单列 |
+| `split`       | `[280px_minmax(0,1fr)]`（wide 360px），`splitSide` 决定固定栏在左/右 | 单列，固定栏在前 | rail 并入 main                  |
+| `threeColumn` | `[1fr_4fr_1fr]`（= 1/6 : 2/3 : 1/6）                                 | 单列             | side→左栏、main→中栏、rail→右栏 |
 
 - 移动端一律单列，顺序按 `order`；`profile` 的 `defaultOrder` 最小，天然排在最前。
 - 三种模式共用同一份 `order` 与 `slot`，切模式不丢配置。
@@ -144,11 +146,11 @@ export interface ResumeBackgroundConfig {
 
 你设想的是「管理员登录后直接在页面里配：模块可拖拽、确认后保存入库」。建议分三期：
 
-| 阶段 | 内容 | 状态 |
-| --- | --- | --- |
-| A | 只读渲染 + 设置面板；契约预留 `editable` | ✅ 已交付（PR #6） |
-| B | 管理员登录 → 编辑模式：跨栏拖拽排序、显隐、主题 / 背景、保存到本地 | ✅ 已交付（PR #8，登录为**本地 mock**） |
-| C | 保存接后端（`PUT /resume/display-config`），公开快照携带该配置 | 待做 |
+| 阶段 | 内容                                                               | 状态                                    |
+| ---- | ------------------------------------------------------------------ | --------------------------------------- |
+| A    | 只读渲染 + 设置面板；契约预留 `editable`                           | ✅ 已交付（PR #6）                      |
+| B    | 管理员登录 → 编辑模式：跨栏拖拽排序、显隐、主题 / 背景、保存到本地 | ✅ 已交付（PR #8，登录为**本地 mock**） |
+| C    | 保存接后端（`PUT /resume/display-config`），公开快照携带该配置     | 待做                                    |
 
 ### B 期实现要点（2026-10-07）
 

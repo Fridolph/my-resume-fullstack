@@ -1,13 +1,13 @@
-import type { PdfExportPayload } from '~/types/pdf'
-import { requestPdfExport } from '~/apis/pdf'
+import type { PdfExportPayload } from "~/types/pdf";
+import { requestPdfExport } from "~/apis/pdf";
 
-export type PdfExportStatus = 'idle' | 'pending' | 'success' | 'error'
+export type PdfExportStatus = "idle" | "pending" | "success" | "error";
 
 export interface UsePdfExportOptions {
   /** 导出成功回调；不传则默认跳转 fileUrl 下载 */
-  onSuccess?: (fileUrl: string) => void
+  onSuccess?: (fileUrl: string) => void;
   /** 导出失败回调（如弹 toast） */
-  onError?: (error: unknown) => void
+  onError?: (error: unknown) => void;
 }
 
 /**
@@ -28,45 +28,43 @@ export interface UsePdfExportOptions {
  * printPdf()
  */
 export function usePdfExport(options: UsePdfExportOptions = {}) {
-  const status = ref<PdfExportStatus>('idle')
-  const fileUrl = ref<string | null>(null)
-  const error = ref<unknown>(null)
-  const isPending = computed(() => status.value === 'pending')
+  const status = ref<PdfExportStatus>("idle");
+  const fileUrl = ref<string | null>(null);
+  const error = ref<unknown>(null);
+  const isPending = computed(() => status.value === "pending");
 
   /** 请求后端生成并下载 PDF；失败时置为 error 状态并回调 onError */
   async function exportPdf(payload: PdfExportPayload): Promise<string | null> {
-    status.value = 'pending'
-    error.value = null
+    status.value = "pending";
+    error.value = null;
 
     try {
-      const url = await requestPdfExport(payload)
-      fileUrl.value = url
-      status.value = 'success'
+      const url = await requestPdfExport(payload);
+      fileUrl.value = url;
+      status.value = "success";
 
       if (options.onSuccess) {
-        options.onSuccess(url)
-      }
-      else if (url) {
+        options.onSuccess(url);
+      } else if (url) {
         // 后端返回对象存储地址，直接跳转触发浏览器下载
-        await navigateTo(url, { external: true })
+        await navigateTo(url, { external: true });
       }
 
-      return url
-    }
-    catch (e) {
-      error.value = e
-      status.value = 'error'
-      options.onError?.(e)
-      return null
+      return url;
+    } catch (e) {
+      error.value = e;
+      status.value = "error";
+      options.onError?.(e);
+      return null;
     }
   }
 
   /** 前端降级：浏览器打印（另存为 PDF） */
   function printPdf() {
     if (import.meta.client) {
-      window.print()
+      window.print();
     }
   }
 
-  return { status, isPending, fileUrl, error, exportPdf, printPdf }
+  return { status, isPending, fileUrl, error, exportPdf, printPdf };
 }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { PdfAlign, PdfCoverConfig, PdfTextVertical } from '~/types/pdf'
+import type { PdfAlign, PdfCoverConfig, PdfTextVertical } from "~/types/pdf";
 
 /**
  * PdfCoverSheet —— 配置驱动的封面页。
@@ -12,41 +12,48 @@ import type { PdfAlign, PdfCoverConfig, PdfTextVertical } from '~/types/pdf'
  * 是否渲染封面由父级判断（`v-if="config.enabled"`），本组件只负责版式。
  */
 const props = defineProps<{
-  config: PdfCoverConfig
-}>()
+  config: PdfCoverConfig;
+}>();
 
-const alignTokens: Record<PdfAlign, { text: string, items: string }> = {
-  left: { text: 'text-left', items: 'items-start' },
-  center: { text: 'text-center', items: 'items-center' },
-  right: { text: 'text-right', items: 'items-end' },
-}
+const alignTokens: Record<PdfAlign, { text: string; items: string }> = {
+  left: { text: "text-left", items: "items-start" },
+  center: { text: "text-center", items: "items-center" },
+  right: { text: "text-right", items: "items-end" },
+};
 
 const justifyTokens: Record<PdfTextVertical, string> = {
-  top: 'justify-start',
-  center: 'justify-center',
-  bottom: 'justify-end',
-}
+  top: "justify-start",
+  center: "justify-center",
+  bottom: "justify-end",
+};
 
-const align = computed(() => alignTokens[props.config.align ?? 'left'])
-const justify = computed(() => justifyTokens[props.config.vertical ?? 'top'])
+const align = computed(() => alignTokens[props.config.align ?? "left"]);
+const justify = computed(() => justifyTokens[props.config.vertical ?? "top"]);
 
-const imageMode = computed(() => props.config.imageMode ?? 'none')
-const hasImage = computed(() => !!props.config.image && imageMode.value !== 'none')
+const imageMode = computed(() => props.config.imageMode ?? "none");
+const hasImage = computed(() => !!props.config.image && imageMode.value !== "none");
 
 const gradientStyle = computed(() => ({
-  background: `linear-gradient(132deg, ${props.config.gradientFrom ?? '#00e944'} 0%, ${props.config.gradientTo ?? '#06f'} 101.41%)`,
-}))
+  background: `linear-gradient(132deg, ${props.config.gradientFrom ?? "#00e944"} 0%, ${props.config.gradientTo ?? "#06f"} 101.41%)`,
+}));
 </script>
 
 <template>
   <!-- 整页背景图：文字叠在图上，自动加暗色遮罩保证可读性 -->
-  <PdfPage v-if="hasImage && imageMode === 'background'" page-type="cover" class="relative overflow-hidden">
-    <img :src="config.image" alt="" class="absolute inset-0 size-full object-cover">
+  <PdfPage
+    v-if="hasImage && imageMode === 'background'"
+    page-type="cover"
+    class="relative overflow-hidden"
+  >
+    <img :src="config.image" alt="" class="absolute inset-0 size-full object-cover" />
     <div class="absolute inset-0 bg-black/50" />
 
     <div class="relative flex h-full flex-col p-[10.58333mm]" :class="justify">
       <div class="flex flex-col" :class="[align.text, align.items]">
-        <p v-if="config.eyebrow" class="text-xs font-medium uppercase tracking-[0.2em] text-white/80">
+        <p
+          v-if="config.eyebrow"
+          class="text-xs font-medium uppercase tracking-[0.2em] text-white/80"
+        >
           {{ config.eyebrow }}
         </p>
         <h1 v-if="config.title" class="mt-3 text-4xl font-bold tracking-tight text-white">
@@ -81,10 +88,13 @@ const gradientStyle = computed(() => ({
           :src="config.image"
           alt=""
           class="max-h-48 w-full rounded-lg object-cover"
-        >
+        />
 
         <div class="flex flex-col" :class="[align.text, align.items, hasImage ? 'mt-8' : '']">
-          <p v-if="config.eyebrow" class="text-xs font-medium uppercase tracking-[0.2em] text-gray-400">
+          <p
+            v-if="config.eyebrow"
+            class="text-xs font-medium uppercase tracking-[0.2em] text-gray-400"
+          >
             {{ config.eyebrow }}
           </p>
           <h1 v-if="config.title" class="mt-2 text-4xl font-bold tracking-tight text-gray-900">
@@ -98,7 +108,10 @@ const gradientStyle = computed(() => ({
     </template>
 
     <template #bottom>
-      <div class="flex h-full flex-col justify-end p-[10.58333mm]" :class="[align.text, align.items]">
+      <div
+        class="flex h-full flex-col justify-end p-[10.58333mm]"
+        :class="[align.text, align.items]"
+      >
         <p v-if="config.footerTitle" class="text-2xl font-semibold">
           {{ config.footerTitle }}
         </p>

@@ -4,12 +4,12 @@
 
 ## 1. 布局
 
-| 布局 | 文件 | 用途 |
-|---|---|---|
+| 布局          | 文件                      | 用途                                                    |
+| ------------- | ------------------------- | ------------------------------------------------------- |
 | `has-sidebar` | `layouts/has-sidebar.vue` | 后台管理页：左侧可折叠侧栏 + Sticky Header + 可滚动内容 |
-| `empty` | `layouts/empty.vue` | 无边框，页面完全自控 |
-| `demo` | `layouts/demo.vue` | 组件/交互演示页（顶部 Demo 条 + 居中容器） |
-| `docs` | `layouts/docs.vue` | 帮助/说明/版本记录类页面（顶部返回条 + 锚点跳转） |
+| `empty`       | `layouts/empty.vue`       | 无边框，页面完全自控                                    |
+| `demo`        | `layouts/demo.vue`        | 组件/交互演示页（顶部 Demo 条 + 居中容器）              |
+| `docs`        | `layouts/docs.vue`        | 帮助/说明/版本记录类页面（顶部返回条 + 锚点跳转）       |
 
 登录页用 `layout: false`（`AuthSplitLayout` 自带全屏容器）。
 
@@ -39,7 +39,8 @@ export const adminNavigation: AdminNavigationItem[] = [
     label: "Projects",
     icon: "i-lucide-folder-kanban",
     defaultOpen: true,
-    children: [                       // 二级菜单
+    children: [
+      // 二级菜单
       { label: "All projects", to: "/projects" },
       { label: "Recently viewed", to: "/projects/recent" },
     ],
@@ -56,7 +57,7 @@ export const adminNavigation: AdminNavigationItem[] = [
 
 ```ts
 export const settingsNavigation: SettingsNavigationItem[] = [
-  { type: "label", label: "Organization" },           // 分组标题
+  { type: "label", label: "Organization" }, // 分组标题
   { label: "Company profile", icon: "i-lucide-building-2", to: "/settings/company" },
 ];
 ```
@@ -98,8 +99,7 @@ pages/
 ```ts
 definePageMeta({
   middleware(to) {
-    if (!to.redirectedFrom)
-      return navigateTo("/settings/company", { replace: true });
+    if (!to.redirectedFrom) return navigateTo("/settings/company", { replace: true });
   },
 });
 ```
@@ -125,6 +125,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
 ```
 
 要点：
+
 - `DropdownMenuItem[][]`：**外层数组的每个内层数组 = 一组**（组间自动分隔线）。
 - `type: "label"` + `slot: "user"` → 用 `<template #user-label>` 自定义该 label 的内容。
 - 触发区是 `UButton`，用 `:avatar="{ text: initials }"` 显示头像，`:square="collapsed"` 处理折叠态。
@@ -176,6 +177,7 @@ definePageMeta({
 判断口径：**这一页在解释「一个组件怎么用」还是「一组组件怎么协作」**。单一组件即使变体很多，也归 `comps`。
 
 当前已落地：
+
 - 弹窗：`ModalConfirm`（确认）、`ModalDeleteConfirm`（删除确认 + 倒计时防误删）、`ModalResponsive`（响应式 Modal/Drawer）、`ModalForbidden`（无权限提示）。
 - 加载：`LoadersColorSpin`（区域加载，放 `relative` 容器内居中；`size` 控制直径）；骨架屏后续 `LoadersSkeleton`。
 - 引导：`TourSpotlight` / `TourSpotlightStep`（Spotlight 挖洞引导）+ `useSpotlightTour` composable（`/comps/tour`、`/comps/tour-light`）。
@@ -186,15 +188,15 @@ definePageMeta({
 
 每个组件 demo 落地后打勾（✅ = 已验证可渲染，🚧 = 进行中）：
 
-| 组件 | Demo 页 | 状态 |
-|---|---|---|
-| `ModalConfirm` / `ModalDeleteConfirm` / `ModalResponsive` / `ModalForbidden` | `/comps/modal` | ✅ |
-| `LoadersColorSpin` | `/comps/loaders` | ✅ |
-| `TourSpotlight` / `TourSpotlightStep` | `/comps/tour`、`/comps/tour-light` | ✅ |
-| `PermissionWrapper` | `/comps/permission-wrapper` | ✅ |
-| `PdfPage` / `PdfCover` / `PdfCoverSheet` / `PdfDocVnode` | `/demos/pdf-review` | ✅ |
-| `AppDrawer` / `AppModal`（`packages/ui` 共享 layer） | `/comps/overlay` | ✅ |
-| `TextEditor` | `/comps/text-editor` | 🚧 进行中 |
+| 组件                                                                         | Demo 页                            | 状态      |
+| ---------------------------------------------------------------------------- | ---------------------------------- | --------- |
+| `ModalConfirm` / `ModalDeleteConfirm` / `ModalResponsive` / `ModalForbidden` | `/comps/modal`                     | ✅        |
+| `LoadersColorSpin`                                                           | `/comps/loaders`                   | ✅        |
+| `TourSpotlight` / `TourSpotlightStep`                                        | `/comps/tour`、`/comps/tour-light` | ✅        |
+| `PermissionWrapper`                                                          | `/comps/permission-wrapper`        | ✅        |
+| `PdfPage` / `PdfCover` / `PdfCoverSheet` / `PdfDocVnode`                     | `/demos/pdf-review`                | ✅        |
+| `AppDrawer` / `AppModal`（`packages/ui` 共享 layer）                         | `/comps/overlay`                   | ✅        |
+| `TextEditor`                                                                 | `/comps/text-editor`               | 🚧 进行中 |
 
 **新增一个 comp demo 的三步核对**：
 
@@ -207,8 +209,10 @@ definePageMeta({
 涉及用户等待 / 接口交互的按钮，统一用 `UButton` 的 loading 态：
 
 ```vue
-<UButton label="保存" :loading="saving" @click="save" />   <!-- 手动控制 -->
-<UButton label="提交" loading-auto @click="asyncSubmit" />  <!-- 返回 Promise 自动管理 -->
+<UButton label="保存" :loading="saving" @click="save" />
+<!-- 手动控制 -->
+<UButton label="提交" loading-auto @click="asyncSubmit" />
+<!-- 返回 Promise 自动管理 -->
 ```
 
 - 手动：`:loading="ref"`，在异步逻辑里置 true/false。

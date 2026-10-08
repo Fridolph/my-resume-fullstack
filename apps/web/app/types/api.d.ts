@@ -5,4 +5,4 @@
  * 请求层（`plugins/httpRequest.ts`）负责把 `data` 解包出来，
  * 业务代码与 colada query 函数只见到 `data`，不直接处理这层包装。
  */
-export type { ApiErrorBody, ApiResponse } from '@template/common'
+export type { ApiErrorBody, ApiResponse } from "@template/common";

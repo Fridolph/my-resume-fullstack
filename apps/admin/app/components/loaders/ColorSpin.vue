@@ -4,11 +4,14 @@
  * 用法：放在 `relative` 容器内居中显示，`size` 控制直径（默认 64px）。
  * 适合整块区域加载 / 全屏遮罩加载；内容级骨架屏后续用 LoadersSkeleton。
  */
-withDefaults(defineProps<{
-  size?: number
-}>(), {
-  size: 64,
-})
+withDefaults(
+  defineProps<{
+    size?: number;
+  }>(),
+  {
+    size: 64,
+  },
+);
 </script>
 
 <template>

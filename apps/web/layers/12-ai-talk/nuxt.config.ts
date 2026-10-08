@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
   $meta: {
-    name: 'ai-talk',
+    name: "ai-talk",
   },
-})
+});

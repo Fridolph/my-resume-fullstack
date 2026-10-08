@@ -53,14 +53,17 @@ const entries = [
         <UBadge color="primary" variant="subtle">my-resume · Nuxt 4 实现场</UBadge>
         <h1 class="text-4xl font-bold tracking-tight text-highlighted sm:text-6xl">个人简历站</h1>
         <p class="max-w-2xl text-lg text-muted">
-          Nuxt 4 + Nuxt UI + Pinia Colada 前端，NestJS + PostgreSQL + Redis 后端；功能按模块逐个落地。
+          Nuxt 4 + Nuxt UI + Pinia Colada 前端，NestJS + PostgreSQL + Redis
+          后端；功能按模块逐个落地。
         </p>
       </header>
 
       <section class="grid gap-4 sm:grid-cols-2">
         <UCard v-for="item in entries" :key="item.to">
           <NuxtLink :to="item.to" class="flex gap-3">
-            <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+            <span
+              class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"
+            >
               <UIcon :name="item.icon" class="size-5" />
             </span>
             <span class="min-w-0">

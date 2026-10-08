@@ -3,14 +3,19 @@
  * SortableBarBadge —— 序号徽标（参考 greensketch design/NumBadge，解耦业务）。
  * `active` 为绿（正常/可见），false 为灰。
  */
-const { label, showChip = false, active = true, tooltipText } = defineProps<{
-  label?: number | string
-  showChip?: boolean
-  active?: boolean
-  tooltipText?: string
-}>()
+const {
+  label,
+  showChip = false,
+  active = true,
+  tooltipText,
+} = defineProps<{
+  label?: number | string;
+  showChip?: boolean;
+  active?: boolean;
+  tooltipText?: string;
+}>();
 
-const badgeBgClass = computed(() => (active ? 'bg-[#3ec064]' : 'bg-[#9ca3af]'))
+const badgeBgClass = computed(() => (active ? "bg-[#3ec064]" : "bg-[#9ca3af]"));
 </script>
 
 <template>

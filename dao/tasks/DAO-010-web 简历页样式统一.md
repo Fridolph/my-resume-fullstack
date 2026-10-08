@@ -11,10 +11,10 @@
 
 ## 状态轨迹
 
-| 迁移                      | 依据                                                                                     | 确认者     | 日期       |
-| ------------------------- | ---------------------------------------------------------------------------------------- | ---------- | ---------- |
-| `planned -> in-progress`  | Owner 在 `feat/15-resume-style-unify` 上完成改动（18 文件 / +221 −217），过程中未建卡      | Owner 执行 | 2026-10-07 |
-| `in-progress -> review-ready` | 归枢补跑质量门（web typecheck、oxlint、SSR 抓页）全部通过，工作区改动已提交并合入 dev      | 归枢记录   | 2026-10-07 |
+| 迁移                          | 依据                                                                                  | 确认者     | 日期       |
+| ----------------------------- | ------------------------------------------------------------------------------------- | ---------- | ---------- |
+| `planned -> in-progress`      | Owner 在 `feat/15-resume-style-unify` 上完成改动（18 文件 / +221 −217），过程中未建卡 | Owner 执行 | 2026-10-07 |
+| `in-progress -> review-ready` | 归枢补跑质量门（web typecheck、oxlint、SSR 抓页）全部通过，工作区改动已提交并合入 dev | 归枢记录   | 2026-10-07 |
 
 ## Grill：开工前对齐（据 Issue #15 追记）
 
@@ -27,23 +27,23 @@
 
 ## 设计与决策
 
-| 决策 | 理由 / 证据 | 确认者 | 日期 |
-| ---- | ----------- | ------ | ---- |
-| 主题 / 风格变量注入 `<body>`，不再挂在内容容器上 | `UModal` / `UDrawer` teleport 到 body，挂在容器上的变量它们解析不到 → 控件颜色与圆角无法跟随简历主题 | Owner 执行 | 2026-10-07 |
-| 变量默认值集中到 `resume.css` 的 `:root`，组件不再写 `var(--x, fallback)` | 兜底值散落在组件里会让"变量到底有没有生效"难以判断；集中后 SSR 与运行时一致 | Owner 执行 | 2026-10-07 |
-| 重复的单位属性收敛成语义类（`.resume-card` / `.resume-eyebrow` / `.resume-chip` / `.resume-btn-group` / `.resume-label` / `.resume-title`），Tailwind 只管布局 | provider 一次、消费多处；`ResumeSectionCard` 与 `ResumeHeroCard` 的卡片外壳写法合一 | Owner 执行 | 2026-10-07 |
-| split 侧栏宽度对齐旧站（`lg:320px` / `xl:360px`，wide 档 380/420） | 旧站固定 `lg:320px / xl:360px`；`compact` 档即旧站观感 | Owner 执行 | 2026-10-07 |
-| Nuxt UI 覆写收敛到 `app.config.ts`（如 `drawer.slots.content`） | 该抽屉全站只有一处用法，组件里不必再写 `:ui` | Owner 执行 | 2026-10-07 |
+| 决策                                                                                                                                                           | 理由 / 证据                                                                                          | 确认者     | 日期       |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| 主题 / 风格变量注入 `<body>`，不再挂在内容容器上                                                                                                               | `UModal` / `UDrawer` teleport 到 body，挂在容器上的变量它们解析不到 → 控件颜色与圆角无法跟随简历主题 | Owner 执行 | 2026-10-07 |
+| 变量默认值集中到 `resume.css` 的 `:root`，组件不再写 `var(--x, fallback)`                                                                                      | 兜底值散落在组件里会让"变量到底有没有生效"难以判断；集中后 SSR 与运行时一致                          | Owner 执行 | 2026-10-07 |
+| 重复的单位属性收敛成语义类（`.resume-card` / `.resume-eyebrow` / `.resume-chip` / `.resume-btn-group` / `.resume-label` / `.resume-title`），Tailwind 只管布局 | provider 一次、消费多处；`ResumeSectionCard` 与 `ResumeHeroCard` 的卡片外壳写法合一                  | Owner 执行 | 2026-10-07 |
+| split 侧栏宽度对齐旧站（`lg:320px` / `xl:360px`，wide 档 380/420）                                                                                             | 旧站固定 `lg:320px / xl:360px`；`compact` 档即旧站观感                                               | Owner 执行 | 2026-10-07 |
+| Nuxt UI 覆写收敛到 `app.config.ts`（如 `drawer.slots.content`）                                                                                                | 该抽屉全站只有一处用法，组件里不必再写 `:ui`                                                         | Owner 执行 | 2026-10-07 |
 
 ## 执行与验证
 
-| 类型   | 命令 / 样本 / 链接 | 结果 | 仍未验证的边界 |
-| ------ | ------------------ | ---- | -------------- |
-| 机器验 | `pnpm --filter @template/web typecheck` | 通过 | `format:check` 仍是既有缺口（DAO-006） |
-| 机器验 | `oxlint apps/web`（42 files） | 0 warning / 0 error | — |
-| 结构验 | `nuxt.config.ts` 注册 `app/assets/css/resume.css`（131 行）；变量默认值集中在 `:root` | 通过；组件内 `var(..., fallback)` 已移除 | 未统计是否仍有残留 fallback（下次 lint/评审可加规则） |
-| 意图验 | dev server（`:4023`）抓 `/resume` | 200；`<body style="--resume-primary:#1578d0;…--resume-page:radial-gradient(…)"` → 变量确实注入 body；语义类出现（`resume-card` ×12、`resume-chip` ×136）；无告警 | **1920 / 1440 屏实际观感、深色主题、抽屉与弹窗跟随主题色，均未在浏览器目视** |
-| 意图验 | 同一次抓页的 `--resume-page` | 含 `radial-gradient` + `linear-gradient`，颜色由 `var(--resume-primary)` 与 `color-mix` 派生 → 随主题变化 | 深色档的渐变实际观感未看 |
+| 类型   | 命令 / 样本 / 链接                                                                    | 结果                                                                                                                                                             | 仍未验证的边界                                                               |
+| ------ | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 机器验 | `pnpm --filter @template/web typecheck`                                               | 通过                                                                                                                                                             | `format:check` 仍是既有缺口（DAO-006）                                       |
+| 机器验 | `oxlint apps/web`（42 files）                                                         | 0 warning / 0 error                                                                                                                                              | —                                                                            |
+| 结构验 | `nuxt.config.ts` 注册 `app/assets/css/resume.css`（131 行）；变量默认值集中在 `:root` | 通过；组件内 `var(..., fallback)` 已移除                                                                                                                         | 未统计是否仍有残留 fallback（下次 lint/评审可加规则）                        |
+| 意图验 | dev server（`:4023`）抓 `/resume`                                                     | 200；`<body style="--resume-primary:#1578d0;…--resume-page:radial-gradient(…)"` → 变量确实注入 body；语义类出现（`resume-card` ×12、`resume-chip` ×136）；无告警 | **1920 / 1440 屏实际观感、深色主题、抽屉与弹窗跟随主题色，均未在浏览器目视** |
+| 意图验 | 同一次抓页的 `--resume-page`                                                          | 含 `radial-gradient` + `linear-gradient`，颜色由 `var(--resume-primary)` 与 `color-mix` 派生 → 随主题变化                                                        | 深色档的渐变实际观感未看                                                     |
 
 ## 交接
 

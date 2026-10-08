@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { DropdownMenuItem } from '@nuxt/ui'
-import type { Editor } from '@tiptap/vue-3'
-import useEditor from './useEditor'
+import type { DropdownMenuItem } from "@nuxt/ui";
+import type { Editor } from "@tiptap/vue-3";
+import useEditor from "./useEditor";
 
 const props = defineProps({
   textContent: {
@@ -10,7 +10,7 @@ const props = defineProps({
   },
   placeholder: {
     type: String,
-    default: '',
+    default: "",
   },
   disabled: {
     type: Boolean,
@@ -28,145 +28,138 @@ const props = defineProps({
     type: Array<string>,
     default: () => [],
   },
-})
+});
 
-const {
-  controlType,
-  heading,
-  textAlign,
-  textFontFamily,
-  handlers,
-  extensions,
-  selectionUpdate,
-} = useEditor()
+const { controlType, heading, textAlign, textFontFamily, handlers, extensions, selectionUpdate } =
+  useEditor();
 
 const toolsConfig: DropdownMenuItem[][] = [
+  [{ slot: "heading" }, { slot: "text-font-family" }],
   [
-    { slot: 'heading' },
-    { slot: 'text-font-family' },
+    {
+      icon: "i-lucide-bold",
+      kind: "bold",
+      tooltip: { text: "Bold", content: { side: "top" }, delayDuration: 0 },
+    },
+    {
+      icon: "i-lucide-italic",
+      kind: "italic",
+      tooltip: { text: "Italic", content: { side: "top" }, delayDuration: 0 },
+    },
+    {
+      icon: "i-lucide-underline",
+      kind: "underline",
+      tooltip: { text: "Underline", content: { side: "top" }, delayDuration: 0 },
+    },
+    { slot: "font-color" },
+    { slot: "bg-color" },
   ],
   [
+    { slot: "text-align" },
     {
-      icon: 'i-lucide-bold',
-      kind: 'bold',
-      tooltip: { text: 'Bold', content: { side: 'top' }, delayDuration: 0 },
+      icon: "i-lucide-list-ordered",
+      kind: "orderList",
+      tooltip: { text: "Numbered list", content: { side: "top" }, delayDuration: 0 },
     },
     {
-      icon: 'i-lucide-italic',
-      kind: 'italic',
-      tooltip: { text: 'Italic', content: { side: 'top' }, delayDuration: 0 },
+      icon: "i-lucide-list",
+      kind: "bulletList",
+      tooltip: { text: "Bulleted list", content: { side: "top" }, delayDuration: 0 },
     },
     {
-      icon: 'i-lucide-underline',
-      kind: 'underline',
-      tooltip: { text: 'Underline', content: { side: 'top' }, delayDuration: 0 },
-    },
-    { slot: 'font-color' },
-    { slot: 'bg-color' },
-  ],
-  [
-    { slot: 'text-align' },
-    {
-      icon: 'i-lucide-list-ordered',
-      kind: 'orderList',
-      tooltip: { text: 'Numbered list', content: { side: 'top' }, delayDuration: 0 },
+      icon: "i-lucide-indent-increase",
+      kind: "increase",
+      tooltip: { text: "Increase indent", content: { side: "top" }, delayDuration: 0 },
     },
     {
-      icon: 'i-lucide-list',
-      kind: 'bulletList',
-      tooltip: { text: 'Bulleted list', content: { side: 'top' }, delayDuration: 0 },
-    },
-    {
-      icon: 'i-lucide-indent-increase',
-      kind: 'increase',
-      tooltip: { text: 'Increase indent', content: { side: 'top' }, delayDuration: 0 },
-    },
-    {
-      icon: 'i-lucide-indent-decrease',
-      kind: 'decrease',
-      tooltip: { text: 'Decrease indent', content: { side: 'top' }, delayDuration: 0 },
+      icon: "i-lucide-indent-decrease",
+      kind: "decrease",
+      tooltip: { text: "Decrease indent", content: { side: "top" }, delayDuration: 0 },
     },
   ],
   [
-    { slot: 'link' },
-    { slot: 'image' },
-    { slot: 'variable' },
+    { slot: "link" },
+    { slot: "image" },
+    { slot: "variable" },
     {
-      icon: 'i-lucide-minus',
-      kind: 'horizontal',
-      tooltip: { text: 'Insert horizontal line', content: { side: 'top' }, delayDuration: 0 },
+      icon: "i-lucide-minus",
+      kind: "horizontal",
+      tooltip: { text: "Insert horizontal line", content: { side: "top" }, delayDuration: 0 },
     },
-    { slot: 'more' },
-    { slot: 'operation' },
+    { slot: "more" },
+    { slot: "operation" },
   ],
-]
+];
 
 const cToolsConfig = computed(() => {
-  const list: DropdownMenuItem[][] = []
+  const list: DropdownMenuItem[][] = [];
   toolsConfig.forEach((item) => {
-    const list2: DropdownMenuItem[] = []
+    const list2: DropdownMenuItem[] = [];
     item.forEach((item2) => {
       if (!props.excludeToolBar.includes(item2.kind || item2.slot)) {
-        list2.push(item2)
+        list2.push(item2);
       }
-    })
+    });
     if (list2.length) {
-      list.push(list2)
+      list.push(list2);
     }
-  })
-  return list
-})
+  });
+  return list;
+});
 
-const editorRef = ref()
-const editorValue = defineModel<string>({ default: '' })
+const editorRef = ref();
+const editorValue = defineModel<string>({ default: "" });
 
-const uploading = shallowRef(false)
+const uploading = shallowRef(false);
 // UEditor 的 editor 是异步就绪的 ShallowRef，等它就绪后再注入 mention 变量
 watch(
   () => editorRef.value?.editor as Editor | undefined,
   (editor) => {
-    const mentionStorage = (editor?.extensionStorage as Record<string, any> | undefined)?.mention
+    const mentionStorage = (editor?.extensionStorage as Record<string, any> | undefined)?.mention;
     if (mentionStorage) {
-      mentionStorage.variables = props.variables
+      mentionStorage.variables = props.variables;
     }
   },
   { immediate: true },
-)
+);
 
-const sourceCode = shallowRef('')
+const sourceCode = shallowRef("");
 function handleControlTypeChange() {
-  const editor = editorRef.value?.editor as Editor | undefined
+  const editor = editorRef.value?.editor as Editor | undefined;
   if (!editor) {
-    return
+    return;
   }
-  if (controlType.value === 'view') {
+  if (controlType.value === "view") {
     editor.commands.setContent(sourceCode.value, {
       parseOptions: {
-        preserveWhitespace: 'full',
+        preserveWhitespace: "full",
       },
-    })
-  }
-  else {
-    const html = editor.getHTML()
+    });
+  } else {
+    const html = editor.getHTML();
     if (html) {
-      sourceCode.value = html
+      sourceCode.value = html;
     }
   }
 }
 
 function addVariable(variable: IMention) {
-  const editor = editorRef.value?.editor as Editor | undefined
+  const editor = editorRef.value?.editor as Editor | undefined;
   if (!editor) {
-    return
+    return;
   }
-  editor.chain().insertMention({
-    id: variable.placeholder,
-  }).focus().run()
+  editor
+    .chain()
+    .insertMention({
+      id: variable.placeholder,
+    })
+    .focus()
+    .run();
 }
 
 defineExpose({
   addVariable,
-})
+});
 </script>
 
 <template>
@@ -222,16 +215,10 @@ defineExpose({
           />
         </template>
         <template #font-color>
-          <TextEditorToolbarsTextColor
-            :editor="editor"
-            :disabled="controlType === 'code'"
-          />
+          <TextEditorToolbarsTextColor :editor="editor" :disabled="controlType === 'code'" />
         </template>
         <template #bg-color>
-          <TextEditorToolbarsBackgroundColor
-            :editor="editor"
-            :disabled="controlType === 'code'"
-          />
+          <TextEditorToolbarsBackgroundColor :editor="editor" :disabled="controlType === 'code'" />
         </template>
         <template #text-align>
           <TextEditorToolbarsTextAlign
@@ -241,10 +228,7 @@ defineExpose({
           />
         </template>
         <template #link>
-          <TextEditorToolbarsLink
-            :editor="editor"
-            :disabled="controlType === 'code'"
-          />
+          <TextEditorToolbarsLink :editor="editor" :disabled="controlType === 'code'" />
         </template>
         <template #image>
           <TextEditorToolbarsImage
@@ -261,10 +245,7 @@ defineExpose({
           />
         </template>
         <template #more>
-          <TextEditorToolbarsMore
-            :editor="editor"
-            :disabled="controlType === 'code'"
-          />
+          <TextEditorToolbarsMore :editor="editor" :disabled="controlType === 'code'" />
         </template>
         <template #operation>
           <TextEditorToolbarsOperation
@@ -302,7 +283,7 @@ defineExpose({
 @reference "tailwindcss";
 
 :deep(.tiptap) {
-  caret-color: #1578D0;
+  caret-color: #1578d0;
   @apply p-4;
   p {
     @apply my-0 text-sm font-normal;
@@ -360,7 +341,8 @@ defineExpose({
   ol {
     padding: 0 1rem;
     margin: 8px 1rem 8px 0.4rem;
-    ul, ol {
+    ul,
+    ol {
       margin: 0;
     }
   }
@@ -391,9 +373,9 @@ defineExpose({
   }
 
   pre {
-    background: #1C2128;
+    background: #1c2128;
     border-radius: 8px;
-    color: #FFF;
+    color: #fff;
     margin: 8px 0;
     padding: 16px;
 

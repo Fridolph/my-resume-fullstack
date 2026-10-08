@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
-import type { ResumeSectionProps, ResumeStyleId } from '#layers/public-resume/app/types/resume'
-import ResumeHeroMinimal from './hero/ResumeHeroMinimal.vue'
-import ResumeHeroPro from './hero/ResumeHeroPro.vue'
-import ResumeHeroStandard from './hero/ResumeHeroStandard.vue'
+import type { Component } from "vue";
+import type { ResumeSectionProps, ResumeStyleId } from "#layers/public-resume/app/types/resume";
+import ResumeHeroMinimal from "./hero/ResumeHeroMinimal.vue";
+import ResumeHeroPro from "./hero/ResumeHeroPro.vue";
+import ResumeHeroStandard from "./hero/ResumeHeroStandard.vue";
 
 /**
  * 基本信息卡片 —— **入口薄壳**。
@@ -20,24 +20,19 @@ import ResumeHeroStandard from './hero/ResumeHeroStandard.vue'
  * 对照：`ResumeSectionCard` 走的是相反策略（外壳共用 + 标题结构分支），
  * 因为它被 7 个区块复用，抽出变体会产生同步成本。
  */
-const props = defineProps<ResumeSectionProps>()
+const props = defineProps<ResumeSectionProps>();
 
 const heroVariants: Record<ResumeStyleId, Component> = {
   minimal: ResumeHeroMinimal,
   standard: ResumeHeroStandard,
   pro: ResumeHeroPro,
-}
+};
 
-const heroComponent = computed(() => heroVariants[props.variant])
+const heroComponent = computed(() => heroVariants[props.variant]);
 </script>
 
 <template>
   <section class="resume-card" :data-style="variant">
-    <component
-      :is="heroComponent"
-      :content="content"
-      :options="options"
-      :variant="variant"
-    />
+    <component :is="heroComponent" :content="content" :options="options" :variant="variant" />
   </section>
 </template>
