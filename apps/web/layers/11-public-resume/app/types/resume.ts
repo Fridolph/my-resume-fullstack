@@ -100,6 +100,28 @@ export interface ResumeProfileInterest {
   icon?: string
 }
 
+/** pro 风格的数字块（如「5 年经验」「30+ 组件」）：值直接给展示文案，避免前端算 */
+export interface ResumeProfileStat {
+  label: string
+  value: string
+  hint?: string
+}
+
+/** 形象画廊项（本轮只建模 + 展示 URL，上传后置） */
+export interface ResumeProfileGalleryItem {
+  url: string
+  alt?: string
+}
+
+/** 能力雷达的一个维度（0~100；用 SVG 手绘，不引入图表库） */
+export interface ResumeProfileRadarItem {
+  label: string
+  value: number
+}
+
+/** pro 风格的「求职状态」徽标文案（留空则不展示） */
+export type ResumeProfileAvailability = string
+
 export interface ResumeProfile {
   name: string
   /** 定位 / 方向，如「全栈开发 / 前端方向」 */
@@ -112,6 +134,14 @@ export interface ResumeProfile {
   contact: ResumeContactItem[]
   links: ResumeProfileLink[]
   interests: ResumeProfileInterest[]
+  /**
+   * 以下四项由 `pro` 风格引入，**全部可选**：
+   * 旧内容 / 旧 localStorage 里没有，组件侧按 `?? []` + `v-if` 容错。
+   */
+  stats?: ResumeProfileStat[]
+  gallery?: ResumeProfileGalleryItem[]
+  radar?: ResumeProfileRadarItem[]
+  availability?: ResumeProfileAvailability
 }
 
 export interface ResumeHighlight {
@@ -257,10 +287,13 @@ export interface ResumeBrandConfig {
 /**
  * 预设风格：决定区块「长什么样」，与 `theme`（颜色）、`layout`（编排）正交。
  *
- * 本轮只实现两档；`cool`（页面级动效 / 整页模板）在 P2 真正实现时再加，
- * 避免契约里出现「看似支持、选了却空白」的枚举值（该字段会进公开快照）。
+ * - `minimal`：极简（文本块 + 列表）
+ * - `standard`：标准（对齐旧站：翻牌头像 + 分块 + eyebrow）
+ * - `pro`：精致（画廊 / 数字块 / 能力雷达 / 求职状态；动效分期）
+ *
+ * 约定：只加**已经实现**的档位 —— 该字段会进公开快照，塞未实现的枚举会让前后端校验对不上。
  */
-export type ResumeStyleId = 'minimal' | 'standard'
+export type ResumeStyleId = 'minimal' | 'standard' | 'pro'
 
 export interface ResumeStyleConfig {
   id: ResumeStyleId
@@ -292,6 +325,17 @@ export interface ResumeDisplayConfig {
  * 纯视觉参数（圆角 / 阴影 / 渐变 / hover）走 `--resume-*` 风格 token，
  * 见 docs/dev/resume-styles.md §5。
  */
+/**
+ * hero 三档实现（`components/resume/hero/*`）的共用入参。
+ *
+ * 外层契约仍是 `ResumeSectionProps`；薄壳只把渲染需要的那几项透传下去。
+ */
+export interface ResumeHeroProps {
+  content: ResumeContent
+  options: ResumeDisplayOptions
+  variant: ResumeStyleId
+}
+
 export interface ResumeSectionProps {
   section: { key: ResumeSectionKey; label: string; icon: string }
   content: ResumeContent

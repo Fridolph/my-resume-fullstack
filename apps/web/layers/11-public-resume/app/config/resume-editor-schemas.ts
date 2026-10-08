@@ -11,7 +11,7 @@ import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
  * 单一 `mode` 表达不了。
  */
 
-export type ResumeFieldType = 'text' | 'textarea' | 'tags'
+export type ResumeFieldType = 'text' | 'textarea' | 'tags' | 'number'
 
 export interface ResumeFieldSchema {
   /** `fields` 模式：相对 ResumeContent 的路径，如 `profile.name` / `profile.hero.slogans` */
@@ -56,6 +56,12 @@ export const resumeEditorSchemas: Record<ResumeSectionKey, ResumeSectionEditorSc
           { path: 'profile.headline', label: '定位 / 方向', type: 'text' },
           { path: 'profile.avatarText', label: '头像文字', type: 'text', placeholder: '留空则取姓名首字' },
           { path: 'profile.summary', label: '个人概述', type: 'textarea', wide: true },
+          {
+            path: 'profile.availability',
+            label: '求职状态（精致风格展示）',
+            type: 'text',
+            placeholder: '如「可接受新机会」；留空则不展示',
+          },
         ],
       },
       {
@@ -76,6 +82,40 @@ export const resumeEditorSchemas: Record<ResumeSectionKey, ResumeSectionEditorSc
             placeholder: '本轮只存不跳转',
           },
           { path: 'profile.hero.slogans', label: '标语（最多展示 2 条）', type: 'tags', wide: true },
+        ],
+      },
+      {
+        mode: 'list',
+        label: '数据块（精致风格）',
+        listPath: 'profile.stats',
+        titleKey: 'label',
+        blank: { label: '新数据', value: '', hint: '' },
+        fields: [
+          { key: 'label', label: '名称', type: 'text' },
+          { key: 'value', label: '数值', type: 'text', placeholder: '如「5 年」「30+」' },
+          { key: 'hint', label: '补充说明', type: 'text', wide: true },
+        ],
+      },
+      {
+        mode: 'list',
+        label: '能力雷达（精致风格）',
+        listPath: 'profile.radar',
+        titleKey: 'label',
+        blank: { label: '新维度', value: 60 },
+        fields: [
+          { key: 'label', label: '维度', type: 'text' },
+          { key: 'value', label: '分值 0~100', type: 'number' },
+        ],
+      },
+      {
+        mode: 'list',
+        label: '形象画廊（精致风格）',
+        listPath: 'profile.gallery',
+        titleKey: 'alt',
+        blank: { url: '', alt: '' },
+        fields: [
+          { key: 'url', label: '图片地址', type: 'text', wide: true },
+          { key: 'alt', label: '替代文字', type: 'text' },
         ],
       },
       {

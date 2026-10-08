@@ -46,6 +46,25 @@ export const resumeContentMockZh: ResumeContent = {
       { label: '羽毛球', icon: 'ri:ping-pong-line' },
       { label: '摄影', icon: 'ri:camera-line' },
     ],
+    // ── 以下由 pro 风格使用（可选字段）──
+    availability: '可接受新机会',
+    stats: [
+      { label: '工作年限', value: '5 年', hint: '前端为主，兼顾服务端' },
+      { label: '沉淀组件', value: '30+', hint: '跨项目复用的业务组件' },
+      { label: '主导模块', value: '8 个', hint: '从 0 到 1 的页面与中后台' },
+    ],
+    gallery: [
+      { url: AVATAR_FRONT, alt: '证件照' },
+      { url: AVATAR_BACK, alt: '生活照' },
+    ],
+    radar: [
+      { label: '前端工程化', value: 90 },
+      { label: '组件化 / 设计系统', value: 85 },
+      { label: 'Node / BFF', value: 72 },
+      { label: '数据层与缓存', value: 68 },
+      { label: 'AI 应用工程', value: 60 },
+      { label: '协作与交付', value: 88 },
+    ],
   },
   highlights: [
     {

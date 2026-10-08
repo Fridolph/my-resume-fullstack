@@ -15,6 +15,7 @@ import type {
 export const resumeStylePresets: { id: ResumeStyleId, label: string, icon: string }[] = [
   { id: 'minimal', label: '极简', icon: 'i-lucide-minus' },
   { id: 'standard', label: '标准', icon: 'i-lucide-layout-panel-top' },
+  { id: 'pro', label: '精致', icon: 'i-lucide-sparkles' },
 ]
 
 /**
