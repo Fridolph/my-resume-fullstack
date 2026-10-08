@@ -1,7 +1,7 @@
 # 数据层约定（Pinia Colada + `$request`）
 
 > 定义 `apps/admin` / `apps/web` 的数据获取约定：请求层、缓存层与错误处理的边界。
-> 2026-10-07 起数据层统一用 `@pinia/colada`；模板遗留的 alova 上传实例正在被替换。
+> 2026-10-07 起数据层统一用 `@pinia/colada`；模板遗留的 **alova 上传实例已于 2026-10-08 完成迁移**（原生 XHR + colada mutation）。
 
 ## 1. 分层与职责
 
@@ -51,19 +51,27 @@ queryCache.invalidateQueries({ key: queryKeys.resume.draft() })
   不让每个调用方各自记得刷新。
 - 只有在确实要服务端最新值时才 `refresh()`，不用它替代失效策略。
 
-## 5. 上传 / 进度 / 取消（替换 alova 的落地方式）
+## 5. 上传 / 进度 / 取消（已落地：原生 XHR + colada mutation）
 
-- colada 基于 fetch，拿不到上传进度；
-- 需要进度 / 取消的上传用原生 `XMLHttpRequest` 包成 mutation 的 `mutationFn`；
-- 进度用 `ref<number>` 暴露，失败仍走统一 `ApiError`。
+- **为什么不用 `$request` / fetch**：colada 与 `$request` 都基于 fetch，**拿不到上传进度**、也无法取消一个已发出的请求体；
+  XHR 的 `upload.onprogress` + `abort()` 才能同时满足「进度条」与「取消」。
+- **分层**：
+  - `apis/files.ts` 的 `uploadFiles` —— 纯请求函数（原生 XHR、进度回调、`AbortSignal`、按 `{ success, data, message }` 解包、取消抛 `AbortError`）；
+  - `composables/useFileUploader.ts` —— colada `useMutation` 管状态（`uploading` / `progress` / `uploaded` / `error`），并保留校验与 `abort()`；
+  - `composables/useUploadFile.ts` —— 遗留薄包装（仍可用，新代码请用 `useFileUploader`）。
+- **约定**：
+  - 进度用 `FileUploadProgress`（`{ loaded, total, percent }`）暴露，不使用 `ref<number>` 这种丢信息的形状；
+  - 上传请求**不可复用**进行中的请求（否则进度 / 取消会对错文件）——`useFileUploader` 每次上传前先 `abort()` 上一次；
+  - 用户取消不算失败：`isAbortError` 统一识别（`utils/request.ts`）。
 
 ## 6. 现状与迁移
 
-| 状态   | 内容                                                                                                     |
-| ------ | -------------------------------------------------------------------------------------------------------- |
-| 已接入 | `@pinia/nuxt` + `@pinia/colada-nuxt`；`$request` 契约对齐 `packages/common`；示例见 `useHealthQuery.ts`  |
-| 待迁移 | `plugins/alova.ts`、`apis/files.ts`、`composables/useUploadFile.ts`、`composables/useFileUploader.ts`    |
-| 已验证 | SSR 首屏取数、失效重取（`/` 页面 Infrastructure check 卡片）                                             |
+| 状态       | 内容                                                                                                                   |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 已接入     | `@pinia/nuxt` + `@pinia/colada-nuxt`；`$request` 契约对齐 `packages/common`；示例见 `useHealthQuery.ts`                |
+| 已完成迁移 | 上传链路：`apis/files.ts`（原生 XHR + 进度 + abort）、`useFileUploader`（colada mutation）、`useUploadFile`（遗留包装）；**`plugins/alova.ts` 与 `alova` / `@alova/adapter-xhr` 依赖均已移除** |
+| 已验证     | SSR 首屏取数、失效重取（`/` 页面 Infrastructure check 卡片）；上传页 SSR（`/comps/upload`）                              |
+| 未验证     | 真实上传端到端（需要后端 `/masterData/file/multipleUpload`）；进度回调与取消的浏览器实际表现                             |
 
 ## 7. 已知边界
 
