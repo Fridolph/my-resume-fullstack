@@ -1,25 +1,30 @@
 <script setup lang="ts">
-import type { ResumeSectionProps } from '#layers/public-resume/app/types/resume'
+import type { Component } from 'vue'
+import type { ResumeSectionProps, ResumeStyleId } from '#layers/public-resume/app/types/resume'
 import ResumeSectionCard from './ResumeSectionCard.vue'
+import ResumeSkillsMinimal from './skills/ResumeSkillsMinimal.vue'
+import ResumeSkillsPro from './skills/ResumeSkillsPro.vue'
+import ResumeSkillsStandard from './skills/ResumeSkillsStandard.vue'
 
-/** 专业技能：按能力分组展示标签（可视化图表另立任务） */
-defineProps<ResumeSectionProps>()
+/**
+ * 专业技能 —— **入口薄壳**（与 `ResumeExperienceSection` 同构）。
+ *
+ * 外壳由 `ResumeSectionCard` 负责，内容按 `variant` 路由到 `skills/` 下的实现。
+ * 能力雷达是 hero 的零件，本轮不往 skills 搬（约定：真复用才上提）。
+ */
+const props = defineProps<ResumeSectionProps>()
+
+const BODY_VARIANTS: Record<ResumeStyleId, Component> = {
+  minimal: ResumeSkillsMinimal,
+  standard: ResumeSkillsStandard,
+  pro: ResumeSkillsPro,
+}
+
+const body = computed(() => BODY_VARIANTS[props.variant])
 </script>
 
 <template>
   <ResumeSectionCard :section="section" :variant="variant">
-    <div v-for="group in content.skills" :key="group.group" class="space-y-2">
-      <p class="resume-label">{{ group.group }}</p>
-      <div class="flex flex-wrap gap-1.5">
-        <span
-          v-for="skill in group.items"
-          :key="skill"
-          class="rounded px-2 py-1 text-xs"
-          :style="{ background: 'var(--resume-chip-bg)', color: 'var(--resume-chip-text)' }"
-        >
-          {{ skill }}
-        </span>
-      </div>
-    </div>
+    <component :is="body" :content="content" :options="options" :variant="variant" />
   </ResumeSectionCard>
 </template>

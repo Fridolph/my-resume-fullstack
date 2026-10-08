@@ -119,6 +119,71 @@
     gap: 0.5rem;
   }
 
+  /* ── pro（精致）通用零件 ────────────────────────────────
+   * 这些零件会在 hero 与多个区块的 pro 版里复用，所以放这里而不是组件 scoped：
+   * 组件 scoped 只留「该区块独有」的样式。（从 hero 上提，见 DAO-015）
+   */
+  .resume-pro-block {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .resume-pro-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    border: 1px solid var(--resume-border);
+    border-radius: calc(var(--resume-card-radius) * 0.5);
+    padding: 0.4rem 0.6rem;
+  }
+
+  .resume-pro-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid var(--resume-border);
+    border-radius: 9999px;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--resume-text);
+  }
+
+  /* 数字块：hero 的数字、项目的指标、经历的量级都能用 */
+  .resume-pro-stats {
+    display: grid;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--resume-border);
+  }
+
+  .resume-pro-stat {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 0 0.5rem;
+  }
+
+  .resume-pro-stat-label {
+    font-size: 0.7rem;
+    color: var(--resume-muted);
+  }
+
+  .resume-pro-stat-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--resume-primary);
+  }
+
+  .resume-pro-stat-hint {
+    grid-column: 2;
+    font-size: 0.7rem;
+    line-height: 1.4;
+    color: var(--resume-muted);
+  }
+
   /* ── 编辑态：工具按钮（上移 / 下移 / 编辑 / 拖拽 / 隐藏） ── */
   .resume-tool-btn {
     display: inline-grid;

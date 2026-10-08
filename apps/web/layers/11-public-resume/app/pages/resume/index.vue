@@ -9,7 +9,7 @@ import { useResumeActiveSection } from '#layers/public-resume/app/composables/us
 import { useResumeAdmin } from '#layers/public-resume/app/composables/useResumeAdmin'
 import { useResumeContent } from '#layers/public-resume/app/composables/useResumeContent'
 import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
-import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
+import type { ResumeSectionKey, ResumeStyleId } from '#layers/public-resume/app/types/resume'
 
 /**
  * 公开简历页 —— 只做编排。
@@ -123,9 +123,62 @@ const saveLabel = computed(() => {
  * 只挂在容器上的变量它们解析不到 —— 控件颜色与圆角就没法跟随简历主题。
  * 变量默认值集中在 `layers/11-public-resume/app/assets/css/resume.css`。
  */
+/**
+ * 三档「外观参数」（盒子层面）。
+ *
+ * 与主题（颜色）正交：这里只放圆角 / 内边距 / 字级 / 表面 / 阴影，颜色一律由 `--resume-*` 派生，
+ * 所以任何「风格 × 主题（预设 × 明暗）」组合都不会互相污染。
+ * 用映射表表达：**加一档风格 = 加一行**，不再堆 `standard ? … : …`。
+ */
+const CARD_STYLE: Record<ResumeStyleId, {
+  radius: string
+  padding: string
+  titleSize: string
+  bg: string
+  shadow: string
+  shadowHover: string
+  uiRadius: string
+}> = {
+  minimal: {
+    radius: '1rem',
+    padding: '1.25rem',
+    titleSize: '0.875rem',
+    bg: 'var(--resume-surface)',
+    shadow: 'none',
+    shadowHover: 'none',
+    uiRadius: '0.5rem',
+  },
+  standard: {
+    radius: '1.5rem',
+    padding: '1.5rem',
+    titleSize: '1.5rem',
+    bg: [
+      'radial-gradient(circle at top left, color-mix(in srgb, var(--resume-primary) 10%, transparent), transparent 34%)',
+      'radial-gradient(circle at bottom right, color-mix(in srgb, var(--resume-primary) 6%, transparent), transparent 28%)',
+      'linear-gradient(180deg, color-mix(in srgb, var(--resume-surface) 88%, transparent), color-mix(in srgb, var(--resume-chip-bg) 60%, var(--resume-surface)))',
+    ].join(', '),
+    shadow: '0 16px 40px color-mix(in srgb, var(--resume-text) 7%, transparent)',
+    shadowHover: '0 20px 44px color-mix(in srgb, var(--resume-primary) 18%, transparent)',
+    uiRadius: '0.75rem',
+  },
+  // 精致：更圆的角、更柔的阴影、单一低调光斑 —— 靠层级与留白，而不是堆装饰
+  pro: {
+    radius: '1.75rem',
+    padding: '1.5rem',
+    titleSize: '1.25rem',
+    bg: [
+      'radial-gradient(circle at top right, color-mix(in srgb, var(--resume-primary) 9%, transparent), transparent 40%)',
+      'linear-gradient(180deg, color-mix(in srgb, var(--resume-surface) 92%, transparent), color-mix(in srgb, var(--resume-chip-bg) 45%, var(--resume-surface)))',
+    ].join(', '),
+    shadow: '0 20px 50px color-mix(in srgb, var(--resume-text) 6%, transparent)',
+    shadowHover: '0 24px 56px color-mix(in srgb, var(--resume-primary) 16%, transparent)',
+    uiRadius: '0.875rem',
+  },
+}
+
 const resumeVars = computed(() => {
   const { theme, style } = config.value
-  const standard = style.id === 'standard'
+  const card = CARD_STYLE[style.id]!
   /** 当前明暗对应的那组色值 */
   const palette = theme[theme.mode]
   const isDark = theme.mode === 'dark'
@@ -151,26 +204,16 @@ const resumeVars = computed(() => {
     '--resume-chip-text': palette.chipText,
 
     // ── 风格（外观参数）──
-    '--resume-card-radius': standard ? '1.5rem' : '1rem',
-    '--resume-card-padding': standard ? '1.5rem' : '1.25rem',
-    '--resume-title-size': standard ? '1.5rem' : '0.875rem',
-    '--resume-card-bg': standard
-      ? [
-          'radial-gradient(circle at top left, color-mix(in srgb, var(--resume-primary) 10%, transparent), transparent 34%)',
-          'radial-gradient(circle at bottom right, color-mix(in srgb, var(--resume-primary) 6%, transparent), transparent 28%)',
-          'linear-gradient(180deg, color-mix(in srgb, var(--resume-surface) 88%, transparent), color-mix(in srgb, var(--resume-chip-bg) 60%, var(--resume-surface)))',
-        ].join(', ')
-      : 'var(--resume-surface)',
-    '--resume-card-shadow': standard
-      ? '0 16px 40px color-mix(in srgb, var(--resume-text) 7%, transparent)'
-      : 'none',
-    '--resume-card-shadow-hover': standard
-      ? '0 20px 44px color-mix(in srgb, var(--resume-primary) 18%, transparent)'
-      : 'none',
+    '--resume-card-radius': card.radius,
+    '--resume-card-padding': card.padding,
+    '--resume-title-size': card.titleSize,
+    '--resume-card-bg': card.bg,
+    '--resume-card-shadow': card.shadow,
+    '--resume-card-shadow-hover': card.shadowHover,
 
     // ── 让 Nuxt UI 组件（抽屉 / 弹窗 / 按钮 / 徽标）跟随简历主题 ──
     '--ui-primary': 'var(--resume-primary)',
-    '--ui-radius': standard ? '0.75rem' : '0.5rem',
+    '--ui-radius': card.uiRadius,
   }
 })
 

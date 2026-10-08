@@ -336,6 +336,19 @@ export interface ResumeHeroProps {
   variant: ResumeStyleId
 }
 
+/**
+ * 区块「内容实现」的共用入参（`components/resume/<section>/*`）。
+ *
+ * 外层契约仍是 `ResumeSectionProps`：薄壳保留外壳与标题，三档实现只管**内容部分**，
+ * 所以这里没有 `section` / `theme`（标题与外观由外壳统一消费）。
+ * 与 `ResumeHeroProps` 同构 —— hero 不用 `ResumeSectionCard`，故单独留名。
+ */
+export interface ResumeSectionBodyProps {
+  content: ResumeContent
+  options: ResumeDisplayOptions
+  variant: ResumeStyleId
+}
+
 export interface ResumeSectionProps {
   section: { key: ResumeSectionKey; label: string; icon: string }
   content: ResumeContent

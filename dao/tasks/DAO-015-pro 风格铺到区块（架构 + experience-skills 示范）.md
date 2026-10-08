@@ -1,0 +1,83 @@
+# 【DAO-015】pro 风格铺到区块：架构规则 + SectionCard 三态化 + experience/skills 示范
+
+> 任务卡是这一关键事件的唯一事实源。只写改变下一步判断的事实；不要复制聊天记录或原始终端输出。
+
+## 身份
+
+- 状态：`in-progress`
+- Owner：`昇哥定架构方向（全部区块都要 pro 版 / 一风格一文件 / 零件等真复用再抽）`
+- 创建日期：`2026-10-08`
+- 关联：`Issue #23`、`DAO-008`（风格维度初版）、`DAO-014`（hero 薄壳 + 三档，已合 dev）、`docs/dev/resume-styles.md`、`docs/dev/admin-ui-patterns.md`（comps/demos 分层，无关但同属"目录约定"）
+
+## 状态轨迹
+
+| 迁移                      | 依据                                                                                     | 确认者     | 日期       |
+| ------------------------- | ---------------------------------------------------------------------------------------- | ---------- | ---------- |
+| `planned -> designed`     | Owner 定下三项：**全部区块都要 pro 版**、**一风格一文件**、**零件等真复用再抽**；并确认先落架构规则 | Owner 确认 | 2026-10-08 |
+| `designed -> in-progress` | Issue #23 已建；分支 `feat/23-pro-sections` 从 dev（`07e7e9e`）开出                      | 归枢记录   | 2026-10-08 |
+
+## Grill：开工前对齐
+
+- 目标：① 把「多档风格怎么组织」写成可执行的架构规则；② `ResumeSectionCard` 从布尔判断改数据驱动三态；③ pro 的通用零件从 hero 上提到 `resume.css`；④ 外观参数（`CARD_STYLE`）三档映射；⑤ 用 `experience` / `skills` 落出「薄壳 + 一风格一文件」的示范。
+- 边界：只改 `apps/web/layers/11-public-resume/app/**` 与 `docs/dev/resume-styles.md`；不动 admin、不接 API、不引图表库、不改对外契约。
+- 不做：其余 4 个区块（highlights / education / projects / evaluations）下一轮；pro 动效（DAO-014 已分期）；`skills` 的能力雷达（hero 的零件，未到复用门槛）。
+- 涉及文件 / 模块：`types/resume.ts`（`ResumeSectionBodyProps`）、`assets/css/resume.css`（`.resume-pro-*`）、`components/resume/ResumeSectionCard.vue`、`components/resume/hero/ResumeHeroPro.vue`（改用上提类名）、`pages/resume/index.vue`（`CARD_STYLE`）、`components/resume/{experience,skills}/*`（各 3 档）、`components/resume/Resume{Experience,Skills}Section.vue`（薄壳）。
+- 风险与未知：① 三档内容编排是否"真的不同"（不能为了拆而制造差异）；② `minimal` / `standard` 的内容编排此前完全相同，拆开后要确保两档各自站得住；③ scoped 零件与全局零件放错位置会埋重复（已用"跨区块复用才上提"约束）。
+- 验收：见 `Issue #23`。
+- 第一刀：先把外壳与 token 改成数据驱动（加风格只加一行），再写区块三档。
+- 过门判断：`可开工`。
+
+## 设计与决策
+
+| 决策 | 理由 / 证据 | 确认者 | 日期 |
+| ---- | ----------- | ------ | ---- |
+| **三手段分层**：token（可参数化）→ 同组件分支（局部结构）→ 拆文件（整块结构） | 风格差异性质不同，手段就该不同；把可参数化的东西写成分支是浪费，把整块结构差异塞进变量是做不到 | 归枢起草（判据部分承 DAO-014） | 2026-10-08 |
+| **判据沿用 DAO-014 四条**（使用处 / 共享比例 / 差异性质 / 演进速度） | 已在 hero 与 `ResumeSectionCard` 上对照验证过相反取舍（前者拆、后者不拆） | Owner 确认（DAO-014） | 2026-10-08 |
+| **本轮起：区块也走"薄壳 + 一风格一文件"** | Owner 明确要求；与 hero 同构，改一个区块只需看一个目录 | Owner 确认 | 2026-10-08 |
+| **外观参数与标题结构都改数据映射**（`CARD_STYLE` / `HEADER_STYLE`） | 原先是 `standard ? … : …` 布尔，加 `pro` 会**掉进 minimal 分支**（真实缺陷）；映射表让"加一档 = 加一行" | 归枢起草 | 2026-10-08 |
+| **pro 通用零件上提到 `resume.css`**（`.resume-pro-block` / `-row` / `-chip` / `-stats`） | 原 scoped 在 `ResumeHeroPro.vue` 里；6 个区块都要用同一套"精致语言"，不上提就是 6 份复制 | 归枢起草 | 2026-10-08 |
+| **区块独有零件留在组件 scoped**（experience 时间线 / skills 组头细线） | 目前各只有 1 处使用；按 Owner 的决定"等真复用时再抽"，避免过早抽象 | Owner 确认 | 2026-10-08 |
+| 三档内容编排必须**确有差异** | `minimal` 克制（文本流）/ `standard` 结构（时间列 + 标签）/ `pro` 讲究（时间线 / 组头层级）；否则拆文件只是复制粘贴 | 归枢起草 | 2026-10-08 |
+| 止损线：任一区块三档开始出现 >50% 重复 | 就该回头抽 composable 或零件，而不是继续复制 | 归枢起草 | 2026-10-08 |
+
+### 架构规则（写入 `docs/dev/resume-styles.md`，供后续所有区块遵循）
+
+1. **能参数化的差异一律进 token**，不写分支；
+2. **局部结构差异**用同一组件内的 `variant` 数据映射；
+3. **整块结构差异**且满足判据任两条 → 拆「薄壳 + `components/resume/<section>/<Name><Style>.vue`」；
+4. **跨区块复用的零件上提到 `resume.css`**（`.resume-pro-*` 一类）；只此一处用的留 scoped；
+5. 拆分**只动内部实现**，对外契约（`ResumeSectionProps` / 注册表 / 编辑与拖拽注入）不变。
+
+## 确认门与续跑
+
+- 当前确认门：`已确认，已进入续跑`
+- 需要确认：① pro 覆盖范围；② 拆分粒度；③ 零件层时机。
+- 已确认事实：Owner 选定 **① 全部区块都要 pro 版排版**；**② 一个风格一个文件**；**③ 零件等真复用再抽**。已按此执行（本轮先落 2 个区块示范）。
+
+## 执行与验证
+
+| 类型   | 命令 / 样本 / 链接 | 结果 | 仍未验证的边界 |
+| ------ | ------------------ | ---- | -------------- |
+| 机器验 | `pnpm --filter @template/web typecheck`；`oxlint apps/web` | 待填 | — |
+| 结构验 | 薄壳只做路由；三档实现各自独立；对外契约未变 | 待填 | — |
+| 意图验 | 三档 SSR 抓 `/resume`（临时切 mock `style.id`） | 待填 | — |
+| 意图验 | hero 改用上提类名后未回归（`.resume-pro-*` 命中、hero 专属 scoped 类仍在） | 待填 | — |
+
+## 交接
+
+- 已完成：`ResumeSectionBodyProps` 类型；`resume.css` 加 `.resume-pro-*` 通用零件（并让 hero 改用它们、删掉 scoped 重复）；`ResumeSectionCard` 三态数据映射；`CARD_STYLE` 三档外观参数；`experience` / `skills` 各 3 档实现 + 薄壳路由。
+- 当前状态：`in-progress`（编码完成，验证中）
+- 阻塞：无。
+- 下一步第一刀：跑 typecheck / oxlint 与三档 SSR，然后写架构规则文档、提交并合回 dev；**下一轮**按同一模式落其余 4 个区块。
+- 文档锚点：`Issue #23`、`docs/dev/resume-styles.md`
+- 集成锚点：`待 feat/23-* -> dev`
+
+## 收口与沉淀
+
+- `dao-review` 结论：`未执行`
+- 最终验证证据：`待补`
+- Git / PR：`待补`
+- 常规提交：`待补`
+- Dao Commit：`不适用`
+- 沉淀候选：`候选观察` —— 「多档风格的三手段分层 + 五条规则」（token / 分支 / 拆文件 / 零件上提 / 契约不变）。DAO-014 给了四条判据，本卡补上了"分层"与"零件归属"两块，可视为一套完整方法的雏形；React 版会同样遇到，值得对照验证。
+- 收口备注：本卡暴露一个真实缺陷 —— 原先的外观与标题都是**布尔判断**（`isStandard`），加第三档会静默掉进第一档。三档以上就必须改数据映射。

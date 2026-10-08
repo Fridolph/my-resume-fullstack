@@ -120,11 +120,11 @@ const radarLabelText = computed(() =>
   </div>
 
   <!-- 数字块 -->
-  <dl v-if="stats.length" class="pro-stats">
-    <div v-for="stat in stats" :key="stat.label" class="pro-stat">
-      <dt class="pro-stat-label">{{ stat.label }}</dt>
-      <dd class="pro-stat-value">{{ stat.value }}</dd>
-      <p v-if="stat.hint" class="pro-stat-hint">{{ stat.hint }}</p>
+  <dl v-if="stats.length" class="resume-pro-stats">
+    <div v-for="stat in stats" :key="stat.label" class="resume-pro-stat">
+      <dt class="resume-pro-stat-label">{{ stat.label }}</dt>
+      <dd class="resume-pro-stat-value">{{ stat.value }}</dd>
+      <p v-if="stat.hint" class="resume-pro-stat-hint">{{ stat.hint }}</p>
     </div>
   </dl>
 
@@ -144,7 +144,7 @@ const radarLabelText = computed(() =>
   </p>
 
   <!-- 能力雷达 -->
-  <section v-if="radarAxes.length" class="pro-block">
+  <section v-if="radarAxes.length" class="resume-pro-block">
     <span class="resume-eyebrow">Capability</span>
     <div class="flex items-center gap-3">
       <svg
@@ -193,10 +193,10 @@ const radarLabelText = computed(() =>
   </section>
 
   <!-- 联系方式 -->
-  <section class="pro-block">
+  <section class="resume-pro-block">
     <span class="resume-eyebrow">Contact</span>
     <div class="grid gap-1.5">
-      <div v-for="item in visibleContact" :key="item.key" class="pro-row">
+      <div v-for="item in visibleContact" :key="item.key" class="resume-pro-row">
         <UIcon :name="item.icon" class="resume-accent size-4 shrink-0" />
         <span class="sr-only">{{ item.label }}</span>
         <span class="resume-muted min-w-0 break-all text-sm">{{ item.value }}</span>
@@ -205,7 +205,7 @@ const radarLabelText = computed(() =>
   </section>
 
   <!-- 个人链接 -->
-  <section v-if="profile.links.length" class="pro-block">
+  <section v-if="profile.links.length" class="resume-pro-block">
     <span class="resume-eyebrow">Links</span>
     <div class="resume-btn-group">
       <a
@@ -214,7 +214,7 @@ const radarLabelText = computed(() =>
         :href="link.url"
         target="_blank"
         rel="noreferrer"
-        class="pro-chip"
+        class="resume-pro-chip"
       >
         <UIcon :name="link.icon || 'i-lucide-external-link'" class="resume-accent size-4" />
         {{ link.label }}
@@ -223,10 +223,10 @@ const radarLabelText = computed(() =>
   </section>
 
   <!-- 兴趣 -->
-  <section v-if="profile.interests.length" class="pro-block">
+  <section v-if="profile.interests.length" class="resume-pro-block">
     <span class="resume-eyebrow">Interests</span>
     <div class="resume-btn-group">
-      <span v-for="interest in profile.interests" :key="interest.label" class="pro-chip">
+      <span v-for="interest in profile.interests" :key="interest.label" class="resume-pro-chip">
         <UIcon v-if="interest.icon" :name="interest.icon" class="resume-accent size-4" />
         {{ interest.label }}
       </span>
@@ -266,41 +266,6 @@ const radarLabelText = computed(() =>
   background: currentColor;
 }
 
-/* ── 数字块 ─────────────────────────────────────────── */
-.pro-stats {
-  display: grid;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--resume-border);
-}
-
-.pro-stat {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: baseline;
-  gap: 0 0.5rem;
-}
-
-.pro-stat-label {
-  font-size: 0.7rem;
-  color: var(--resume-muted);
-}
-
-.pro-stat-value {
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--resume-primary);
-}
-
-.pro-stat-hint {
-  grid-column: 2;
-  font-size: 0.7rem;
-  line-height: 1.4;
-  color: var(--resume-muted);
-}
-
 /* ── 介绍卡 / 分块 / 条目 / 胶囊 ─────────────────────── */
 .pro-intro {
   margin-top: 0.75rem;
@@ -309,33 +274,6 @@ const radarLabelText = computed(() =>
   padding: 0.75rem;
   font-size: 0.85rem;
   line-height: 1.6;
-  color: var(--resume-text);
-}
-
-.pro-block {
-  display: grid;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.pro-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  border: 1px solid var(--resume-border);
-  border-radius: calc(var(--resume-card-radius) * 0.5);
-  padding: 0.4rem 0.6rem;
-}
-
-.pro-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border: 1px solid var(--resume-border);
-  border-radius: 9999px;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.75rem;
-  font-weight: 600;
   color: var(--resume-text);
 }
 

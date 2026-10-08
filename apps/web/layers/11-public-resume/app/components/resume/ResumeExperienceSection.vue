@@ -1,42 +1,33 @@
 <script setup lang="ts">
-import type { ResumeSectionProps } from '#layers/public-resume/app/types/resume'
+import type { Component } from 'vue'
+import type { ResumeSectionProps, ResumeStyleId } from '#layers/public-resume/app/types/resume'
 import ResumeSectionCard from './ResumeSectionCard.vue'
+import ResumeExperienceMinimal from './experience/ResumeExperienceMinimal.vue'
+import ResumeExperiencePro from './experience/ResumeExperiencePro.vue'
+import ResumeExperienceStandard from './experience/ResumeExperienceStandard.vue'
 
-/** 工作经历：公司 / 时间 / 角色 / 概述 / 成果 / 技术栈（后两者受展示开关控制） */
-defineProps<ResumeSectionProps>()
+/**
+ * 工作经历 —— **入口薄壳**。
+ *
+ * 分工：外壳（卡片表面 + 标题行）由 `ResumeSectionCard` 统一负责，
+ * 这里只按 `variant` 把**内容部分**路由到 `experience/` 下的对应实现。
+ *
+ * 与 hero 薄壳的差别：hero 不用 `ResumeSectionCard`（它自带排版），所以那边薄壳自己挂外壳。
+ * 对外契约（`ResumeSectionProps` / 注册表 / 编辑与拖拽注入）三档完全一致 —— 拆的只是内部实现。
+ */
+const props = defineProps<ResumeSectionProps>()
+
+const BODY_VARIANTS: Record<ResumeStyleId, Component> = {
+  minimal: ResumeExperienceMinimal,
+  standard: ResumeExperienceStandard,
+  pro: ResumeExperiencePro,
+}
+
+const body = computed(() => BODY_VARIANTS[props.variant])
 </script>
 
 <template>
   <ResumeSectionCard :section="section" :variant="variant">
-    <article v-for="item in content.experience" :key="item.company" class="flex flex-col gap-1 sm:flex-row sm:gap-4">
-      <p class="resume-muted w-32 shrink-0 text-xs">{{ item.period }}</p>
-      <div class="min-w-0 space-y-2">
-        <header>
-          <p class="resume-text font-medium">{{ item.company }}</p>
-          <p class="resume-muted text-xs">
-            {{ item.role }}<template v-if="item.domain"> · {{ item.domain }}</template>
-          </p>
-        </header>
-
-        <p v-if="item.overview"class="resume-muted">{{ item.overview }}</p>
-
-        <ul v-if="options.showAchievements && item.achievements?.length" class="list-inside list-disc space-y-1">
-          <li v-for="line in item.achievements" :key="line"class="resume-muted">
-            {{ line }}
-          </li>
-        </ul>
-
-        <div v-if="options.showTechStack && item.tech?.length" class="flex flex-wrap gap-1.5 pt-1">
-          <span
-            v-for="tech in item.tech"
-            :key="tech"
-            class="rounded px-2 py-0.5 text-xs"
-            :style="{ background: 'var(--resume-chip-bg)', color: 'var(--resume-chip-text)' }"
-          >
-            {{ tech }}
-          </span>
-        </div>
-      </div>
-    </article>
+    <component :is="body" :content="content" :options="options" :variant="variant" />
   </ResumeSectionCard>
 </template>
