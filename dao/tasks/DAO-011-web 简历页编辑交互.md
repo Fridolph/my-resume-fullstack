@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`self-tested`
+- 状态：`review-ready`
 - Owner：`昇哥确认范围（空栏可落 / 模块托盘 / 上移下移 / 布局与内容都自动保存）；归枢协作执行`
 - 创建日期：`2026-10-07`
 - 关联：`Issue #16`、`DAO-007`（B 期拖拽初版）、`DAO-008`（风格维度）、`DAO-010`（样式统一，语义类约定）、`docs/dev/resume-edit-interactions.md`（本轮新增）、`docs/dev/resume-display-architecture.md` §6
@@ -16,6 +16,7 @@
 | `planned -> designed`     | 摸清 B 期拖拽的 4 个缺口（空栏 / 手动保存 / 隐藏模块 / DOM 依赖）与缺键盘替代，Owner 逐项选定范围 | Owner 确认 | 2026-10-07 |
 | `designed -> in-progress` | Issue #16 已建；分支 `feat/16-resume-edit-dnd` 从 dev（`dca8932`）开出                  | 归枢记录   | 2026-10-07 |
 | `in-progress -> self-tested` | 状态层 / 容器 / 托盘 / 两个抽屉完成；typecheck、oxlint 通过；真实浏览器跑通 A–G 七项（含**拖进空栏**、跨栏写 slot、刷新保留、三种布局栏位集合） | 归枢记录 | 2026-10-07 |
+| `self-tested -> review-ready` | 交接包齐全；功能 + 文档两个提交本地 squash 合入 dev（`fb6053f`） | 归枢记录 | 2026-10-07 |
 
 ## Grill：开工前对齐
 
@@ -62,18 +63,18 @@
 ## 交接
 
 - 已完成：类型与状态层（落点语义、栏内交换、自动保存与唯一写盘点）；实测修掉两个拖拽坑（`forceFallback`、空栏判定阈值）；容器（空栏落点、数据化落点、拖拽态、托盘挂载）；`ResumeColumn`（上移/下移/编辑/拖拽/隐藏工具条、空栏占位）；新增 `ResumeSectionTray`；页面与两个抽屉的保存状态 UI；`resume.css` 新增编辑态语义类。
-- 当前状态：`self-tested`（编码与验证完成，待提交）
+- 当前状态：`review-ready`（已合入 dev，等 Owner 判 `done`）
 - 阻塞：无。
-- 下一步第一刀：提交（功能 + 文档 + 卡）并合回 dev，回填 Issue #16。
+- 下一步第一刀：本卡无下一步（已集成）。后续可推进：`DAO-008` / `DAO-010` 遗留的浏览器目视（375px、三栏窄栏、深色主题、抽屉跟随主题），以及 `DAO-005` 的 alova 迁移收尾。
 - 文档锚点：`Issue #16`、`docs/dev/resume-edit-interactions.md`
-- 集成锚点：`待 feat/16-* -> dev`
+- 集成锚点：`已集成（fb6053f，本地 squash 合入 dev，未推远端）`
 
 ## 收口与沉淀
 
-- `dao-review` 结论：`未执行`
-- 最终验证证据：`待补`
-- Git / PR：`待补`
-- 常规提交：`待补`
+- `dao-review` 结论：`可收口（质量门 + 真实浏览器 A–G 均通过；未验证边界已显式列出）`
+- 最终验证证据：`见「执行与验证」表（typecheck / oxlint / playwright A–G 七项）`
+- Git / PR：`本地 squash，无 PR：fb6053f`
+- 常规提交：`421b9f9（feat）/ caa82bb（docs）`
 - Dao Commit：`不适用`
 - 沉淀候选：`候选观察` —— 「拖拽落点必须从渲染数据算，不要从被 sortablejs 改过的 DOM 算」这条对任何"库直接操作 DOM + 框架受控重渲染"的组合都成立（React + react-dnd 同理）；本项目在 sortablejs + Vue 上验证到。
 - 收口备注：本卡验证「编辑交互能否在不改区块组件契约的前提下做深」—— `ResumeColumn` 仍是唯一注入编辑能力的地方，7 个区块组件一行未改。
