@@ -27,7 +27,7 @@ export const adminNavigation: AdminNavigationItem[] = [
     label: 'Comps',
     icon: 'i-lucide-component',
     children: [
-      { label: 'Modal', to: '/comps/modal' },
+      { label: 'Overlay / Modal (shared)', to: '/comps/overlay' },
       { label: 'Loaders', to: '/comps/loaders' },
       { label: 'Tour', to: '/comps/tour' },
       { label: 'Tour spotlight', to: '/comps/tour-light' },
@@ -36,7 +36,6 @@ export const adminNavigation: AdminNavigationItem[] = [
       { label: 'Sort list', to: '/comps/sort-list' },
       { label: 'Sortable bar', to: '/comps/sortable-bar' },
       { label: 'Permission wrapper', to: '/comps/permission-wrapper' },
-      { label: 'Overlay (shared)', to: '/comps/overlay' },
     ],
   },
   {

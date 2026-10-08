@@ -84,7 +84,7 @@ layers/00-shared  ←  feature layers（11~20）  ←  app/
 web 与 admin 都要用的 Vue 组件放 `packages/ui`。它是 **Nuxt layer**（不是 npm 包）：
 
 - 两端 `nuxt.config.ts` 各有一行 `extends: ['../../packages/ui']`；组件在 `packages/ui/app/components/**`
-  里，宿主中**自动导入**（文件名即组件名，如 `AppDrawer`、`AppModal`），无需 import、无需构建
+  里，宿主中**自动导入**（文件名即组件名，如 `MyDrawer`、`MyModal`），无需 import、无需构建
 - layer 内引用自身用 `#layers/ui/app/...`（与 §6 同一条约定）
 - **不要**写 `import { ref } from 'vue'` 或 `import x from '~/utils/...'`：前者会按 `packages/ui/node_modules`
   解析而失败，后者是宿主私有代码。用宿主的自动导入（`ref` / `computed` / `UButton` …）即可

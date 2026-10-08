@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import AppDrawer from './AppDrawer.vue'
+import MyDrawer from './MyDrawer.vue'
 import { cn } from '#layers/ui/app/lib/cn'
 import { useNarrowScreen } from '#layers/ui/app/composables/useNarrowScreen'
 
 /**
- * AppModal —— 共享对话框（`packages/ui`）
+ * MyModal —— 共享对话框（`packages/ui`）
  *
  * 桌面（≥ `breakpoint`）用 `UModal`；**小于 `breakpoint` 时退化为抽屉**（移动端键盘友好、拇指可达）。
- * 移动分支直接复用 `AppDrawer`，所以两边的内置动作区、关闭语义不会各长一套。
- * slot 契约与 `AppDrawer` 完全一致：
+ * 移动分支直接复用 `MyDrawer`，所以两边的内置动作区、关闭语义不会各长一套。
+ * slot 契约与 `MyDrawer` 完全一致：
  * `trigger` / 默认（body）/ `header` / `title` / `description` / `actions` / `close` / `footer`
  */
+/** 根是 `v-if` / `v-else` 两个分支（多根）→ 必须显式透传 `$attrs`，否则 Vue 无处可挂 */
+defineOptions({ inheritAttrs: false })
+
 const props = withDefaults(
   defineProps<{
     title?: string
@@ -20,7 +23,7 @@ const props = withDefaults(
     /** 移动端抽屉从哪一侧滑出 */
     mobileDirection?: 'top' | 'right' | 'bottom' | 'left'
     /** 尺寸档位（移动端传给抽屉：侧边=宽度，上下=高度） */
-    size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
+    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
     /** 是否允许用遮罩 / Esc / 滑动关闭 */
     dismissible?: boolean
     /** 底部状态文案（放在动作区左侧） */
@@ -33,7 +36,7 @@ const props = withDefaults(
     loading?: boolean
     /** 点确认后是否自动关闭（异步提交场景可设 false） */
     closeOnConfirm?: boolean
-    /** 分别透传给 `UModal` / `AppDrawer` 的 ui 覆写 */
+    /** 分别透传给 `UModal` / `MyDrawer` 的 ui 覆写 */
     ui?: { modal?: Record<string, any>; drawer?: Record<string, any> }
   }>(),
   {
@@ -111,7 +114,9 @@ const modalUi = computed(() => {
 
   return {
     ...user,
-    content: cn('overflow-hidden', user.content),
+    // 与 MyDrawer 同一套结构：content 是 flex 列 → body（contents）里的 div 负责滚动，
+    // header / footer 作为兄弟节点 shrink-0，滚动时不动。
+    content: cn('flex flex-col overflow-hidden', user.content),
     header: cn('shrink-0', user.header),
     body: cn('contents', user.body),
     footer: cn('shrink-0', user.footer),
@@ -136,6 +141,7 @@ const forwarded = computed(() => FORWARD_SLOTS.filter(name => name in slots))
 <template>
   <UModal
     v-if="!isMobile"
+    v-bind="$attrs"
     :open="open"
     :title="title"
     :description="description"
@@ -167,9 +173,10 @@ const forwarded = computed(() => FORWARD_SLOTS.filter(name => name in slots))
     </template>
   </UModal>
 
-  <!-- 移动端：直接复用共享抽屉，行为与 AppDrawer 完全一致 -->
-  <AppDrawer
+  <!-- 移动端：直接复用共享抽屉，行为与 MyDrawer 完全一致 -->
+  <MyDrawer
     v-else
+    v-bind="$attrs"
     v-model:open="open"
     :title="title"
     :description="description"
@@ -202,5 +209,5 @@ const forwarded = computed(() => FORWARD_SLOTS.filter(name => name in slots))
     <template v-if="slots.footer" #footer="slotProps">
       <slot name="footer" v-bind="slotProps" />
     </template>
-  </AppDrawer>
+  </MyDrawer>
 </template>

@@ -178,6 +178,10 @@ export function useResumeDisplay() {
   function setSideWidth(width: ResumeDisplayConfig['layout']['sideWidth']) {
     config.value.layout.sideWidth = width
   }
+  /** 「放宽信息栏」是开关语义，这里给一个 toggle（与 toggleStickySide 对称） */
+  function toggleSideWidth() {
+    config.value.layout.sideWidth = config.value.layout.sideWidth === 'wide' ? 'compact' : 'wide'
+  }
 
   // ── 品牌 ──────────────────────────────────────────────
   /** 只覆盖传入的字段；留空字段仍走预设 */
@@ -362,6 +366,7 @@ export function useResumeDisplay() {
     setSplitSide,
     toggleStickySide,
     setSideWidth,
+    toggleSideWidth,
     // 品牌 / 主题 / 背景
     setBrand,
     applyTheme,

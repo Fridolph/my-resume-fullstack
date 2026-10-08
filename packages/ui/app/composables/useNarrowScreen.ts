@@ -30,7 +30,7 @@ export function useNarrowScreen(query: () => string) {
 
   onMounted(bind)
   onBeforeUnmount(() => mql?.removeEventListener('change', update))
-  // 断点本身可能来自 props（如 AppModal 的 breakpoint）
+  // 断点本身可能来自 props（如 MyModal 的 breakpoint）
   watch(query, bind)
 
   return isNarrow

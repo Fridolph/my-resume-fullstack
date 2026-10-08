@@ -61,3 +61,29 @@
 4. **托盘落点不写 `order`**：写 `order` 会让"藏了再拿出来"把模块挪到别处。
 5. **栏内相邻交换 ≠ 交换 order 下标**：分栏是派生的，栏内相邻的两项在 `order` 里可能隔着一堆别的模块；只交换这两项在 `order` 中的位置即可。
 6. `sortablejs` 的 `handle: '[data-drag-handle]'` 意味着**只有手柄能起拖**，托盘项与栏内项都要带手柄（否则整块都能拖，容易误触）。
+
+## 6. 展示设置抽屉的分层（2026-10-08 重构）
+
+```text
+ResumeSettingsDrawer.vue          ① 壳：MyDrawer（#header / 默认槽 / #footer，size=2xl=640px）
+└── ResumeSettingsPanel.vue       ② 编排：Tabs 分组 + 数据就绪判断
+    └── settings/                 ③ 内容：每个 tab 一个组件
+        ├── ResumeSettingsLayoutTab.vue     布局 / 信息栏位置 / 风格
+        ├── ResumeSettingsThemeTab.vue      配色 / 明暗 / 调色盘 / 背景
+        ├── ResumeSettingsSectionsTab.vue   区块显隐（列表 + USwitch）
+        └── ResumeSettingsGroup.vue         「小标题 + 内容」分组（三个 tab 共用）
+```
+
+规则：
+
+1. **只有编排层判断「数据能不能渲染」**；tab 组件只消费数据 + 调动作，不发请求、不判断就绪
+   —— **将来这批内容改成从接口获取时，只改 `ResumeSettingsPanel`**（把 store 换成 query 的
+   loading / empty / error 分支），三个 tab 组件不需要动；
+2. 每组一个**小标题区域**（`ResumeSettingsGroup`）：标题字号、间距、可选 `hint` 只有一处定义；
+3. **控件语义要分清**：
+   - **互斥项**（布局：通栏/左右/三栏；信息栏：在左/在右）→ 选中态按钮（solid）；
+   - **开关项**（放宽、跟随滚动、区块显隐）→ toggle 按钮 / `USwitch`；
+   - 两类可以同组呈现（便于比较），但**必须用 `hint` 说明**（如"前两项二选一，后两项各自独立"）；
+4. 宽度用 `MyDrawer` 的 `size="2xl"`（**640px**）；**别再回到三列横排** —— 抽屉里横排既宽又难扫；
+5. 槽位归位：标题与说明进 `#header`、动作进 `#footer`、内容走默认槽（自带滚动容器）。
+   注意 `MyDrawer` 的 `#content` 是**替换整个面板**（含头尾），内容区应该用默认槽，不要用 `#content`。

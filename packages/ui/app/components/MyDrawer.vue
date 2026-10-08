@@ -2,9 +2,9 @@
 import { cn } from '#layers/ui/app/lib/cn'
 
 /**
- * AppDrawer —— 共享抽屉（`packages/ui`）
+ * MyDrawer —— 共享抽屉（`packages/ui`）
  *
- * 与 `AppModal` 共用同一套 slot 契约：
+ * 与 `MyModal` 共用同一套 slot 契约：
  * `trigger` / 默认（body）/ `header` / `title` / `description` / `actions` / `close` / `footer`
  *
  * 约定：
@@ -12,6 +12,9 @@ import { cn } from '#layers/ui/app/lib/cn'
  *   （Reka 在关闭动画结束后还会再触发一次 `update:open(false)`，不拦截就会 emit 两次）
  * - 面板只在 `open` 为真时渲染 → 默认不需要 `ClientOnly`，SSR 首屏不会出现浮层
  */
+/** `inheritAttrs: false` + 显式 `v-bind="$attrs"`：属性只落到 UDrawer 一处，避免双重绑定 */
+defineOptions({ inheritAttrs: false })
+
 const props = withDefaults(
   defineProps<{
     title?: string
@@ -19,7 +22,7 @@ const props = withDefaults(
     /** 抽屉从哪一侧滑出 */
     direction?: 'top' | 'right' | 'bottom' | 'left'
     /** 尺寸档位：侧边抽屉=宽度，上下抽屉=高度 */
-    size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
+    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
     /** 是否允许用遮罩 / Esc / 滑动关闭 */
     dismissible?: boolean
     /** 底部状态文案（放在动作区左侧） */
@@ -105,6 +108,7 @@ const SIZE_CLASS: Record<NonNullable<typeof props.size>, { side: string; top: st
   md: { side: 'sm:max-w-md', top: 'max-h-[60vh]' },
   lg: { side: 'sm:max-w-lg', top: 'max-h-[75vh]' },
   xl: { side: 'sm:max-w-xl', top: 'max-h-[85vh]' },
+  '2xl': { side: 'sm:max-w-[40rem]', top: 'max-h-[92vh]' },   // 640px：设置面板这类内容用
   full: { side: 'sm:max-w-full', top: 'max-h-[95vh]' },
 }
 
@@ -117,7 +121,10 @@ const drawerUi = computed(() => {
 
   return {
     ...user,
-    content: cn('overflow-hidden', sizeClass, user.content),
+    // `flex flex-col` 是 header / footer「钉住」的前提：body 用 `contents` 把内层 div
+    // 提升为 content 的 flex 子项，那个 div 才是唯一的滚动容器（flex-1 + overflow-y-auto），
+    // header / footer 作为兄弟节点 shrink-0 → 滚动只发生在中间，头尾不动。
+    content: cn('flex flex-col overflow-hidden', sizeClass, user.content),
     header: cn('shrink-0', user.header),
     body: cn('contents', user.body),
     footer: cn('shrink-0', user.footer),
@@ -139,16 +146,28 @@ const contentProps = computed(() => {
 /** 转发实际存在的槽位，避免在不使用时生成空容器 */
 const FORWARD_SLOTS = ['content', 'header', 'title', 'description', 'actions', 'close'] as const
 const forwarded = computed(() => FORWARD_SLOTS.filter(name => name in slots))
+
+/**
+ * 调用方用 `#header` 自定义头部时，Nuxt UI 就不再渲染默认的标题 / 描述区，
+ * 于是 Reka 报「DialogContent requires a DialogTitle」「Missing Description」——
+ * 无障碍语义（`aria-labelledby` / `aria-describedby`）失去目标。
+ * 这里补一份**视觉隐藏**的标题与描述；视觉上的标题仍在调用方的 `#header` 里。
+ */
+const needsHiddenTitle = computed(() => Boolean(props.title) && 'header' in slots && !('title' in slots))
+const needsHiddenDescription = computed(
+  () => Boolean(props.description) && 'header' in slots && !('description' in slots),
+)
 </script>
 
 <template>
   <UDrawer
+    v-bind="$attrs"
+    :ui="drawerUi"
     :open="open"
     :title="title"
     :description="description"
     :direction="direction"
     :content="contentProps"
-    :ui="drawerUi"
     :should-scale-background="false"
     :set-background-color-on-scale="false"
     @update:open="onUpdateOpen"
@@ -159,8 +178,16 @@ const forwarded = computed(() => FORWARD_SLOTS.filter(name => name in slots))
       <slot :name="name" v-bind="{ ...slotProps, close }" />
     </template>
 
+    <template v-if="needsHiddenTitle" #title>
+      <span class="sr-only">{{ title }}</span>
+    </template>
+
+    <template v-if="needsHiddenDescription" #description>
+      <span class="sr-only">{{ description }}</span>
+    </template>
+
     <template #body>
-      <div class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+      <div class="min-h-0 flex-1 overflow-y-auto">
         <slot :close="close" />
       </div>
     </template>

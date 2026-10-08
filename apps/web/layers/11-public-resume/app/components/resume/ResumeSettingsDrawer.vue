@@ -3,11 +3,16 @@ import { useResumeDisplay } from '#layers/public-resume/app/composables/useResum
 import ResumeSettingsPanel from './ResumeSettingsPanel.vue'
 
 /**
- * 展示设置抽屉。
+ * 展示设置抽屉（**壳**）。
  *
- * 设置本体仍是 `ResumeSettingsPanel`（纯内容组件），这里只管外壳与页脚。
- * 改动**自动保存**（见 useResumeDisplay 的持久化段），所以页脚不再有「保存」按钮，
- * 只显示保存状态 + 「重置」，避免"自动保存了还要再点一次"的歧义。
+ * 用共享层的 `MyDrawer`（`packages/ui`，自动导入）：统一的 slot 契约 + 幂等关闭；
+ * 宽度取 `2xl`（**640px**，见 MyDrawer 的尺寸表）。
+ *
+ * 槽位分工：
+ * - `#header`：标题 + 说明（右侧关闭按钮）
+ * - 默认槽（body，自带滚动容器）：`ResumeSettingsPanel`（Tabs 编排）
+ * - `#footer`：保存状态 + 「重置 / 确认」；**改动是自动保存的**，所以「确认」= 关闭抽屉
+ *   （不承担"写入"职责，否则会与自动保存重复一套入口）
  */
 const open = defineModel<boolean>('open', { default: false })
 const { saveState, savedAt, reset } = useResumeDisplay()
@@ -24,16 +29,45 @@ const statusText = computed(() => {
 </script>
 
 <template>
-  <UDrawer v-model:open="open" direction="right" title="展示设置" description="布局 / 主题 / 风格 / 背景 / 区块显隐">
-    <template #body>
-      <ResumeSettingsPanel />
+  <MyDrawer
+    v-model:open="open"
+    :ui="{
+      root: 'p-0',
+      content: 'w-150!',
+    }"
+    direction="right"
+    title="展示设置"
+    description="布局 / 风格 / 主题 / 背景 / 区块显隐"
+  >
+    <template #header>
+      <div class="flex w-full items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="resume-text text-sm font-semibold">展示设置</p>
+          <p class="resume-muted mt-0.5 text-xs">
+            布局 / 风格 / 主题 / 背景 / 区块显隐 —— 改动会自动保存
+          </p>
+        </div>
+        <UButton
+          size="xs"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-x"
+          aria-label="关闭"
+          @click="open = false"
+        />
+      </div>
     </template>
+
+    <ResumeSettingsPanel />
 
     <template #footer>
       <div class="flex w-full items-center justify-between gap-2">
         <span class="resume-muted text-xs">{{ statusText }}</span>
-        <UButton color="neutral" variant="ghost" label="重置" @click="reset" />
+        <div class="flex gap-2">
+          <UButton color="neutral" variant="ghost" label="重置" @click="reset" />
+          <UButton label="确认" @click="open = false" />
+        </div>
       </div>
     </template>
-  </UDrawer>
+  </MyDrawer>
 </template>

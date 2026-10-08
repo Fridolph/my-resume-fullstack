@@ -159,7 +159,7 @@ definePageMeta({
 
 - **组件**：`components/<category>/<Name>.vue`，自动命名 = `<Category><Name>`（如 `components/modal/Confirm.vue` → `ModalConfirm`）。
 - **Demo 页**：`pages/comps/<name>.vue`（layout `has-sidebar` + `content-pad`），每个组件一段用法示例。
-- **导航**：`config/admin-navigation.ts` 的 Comps 项下加 `children`（如 `{ label: "Modal", to: "/comps/modal" }`）。
+- **导航**：`config/admin-navigation.ts` 的 Comps 项下加 `children`（如 `{ label: "Overlay / Modal (shared)", to: "/comps/overlay" }`，合并入口放组内首位）。
 - **共享逻辑**：跨组件的 composable 放 `composables/`，纯工具放 `utils/`（如 `utils/cn.ts`）；第三方工具用 `@vueuse/core`。
 
 > 注：路由用 `comps`（`pages/comps/`），不用 `components`——`components` 是 Nuxt 保留目录，会导致路由 404。
@@ -169,8 +169,8 @@ definePageMeta({
 两个目录都是展示页，但分层不同（2026-10-08 明确）：
 
 - **`/comps/<name>` —— 单一组件**：解释「**一个**组件怎么用」，包含它的各种变体（方向 / 尺寸 / 插槽）。
-  同源的一组组件可以同居一个页（如 `ModalConfirm` / `ModalDeleteConfirm` / `ModalResponsive` 在 `/comps/modal`）。
-  **共享组件（`packages/ui`）的示例也放这里** —— 例：`AppDrawer` / `AppModal` 在 `/comps/overlay`。
+  同源的一组组件可以同居一个页（如 `ModalConfirm` / `ModalDeleteConfirm` / `ModalResponsive` 与共享的 `MyDrawer` / `MyModal` 同在 `/comps/overlay`——**同类浮层合并到一个入口**，避免按实现来源拆页）。
+  **共享组件（`packages/ui`）的示例也放这里**：`MyDrawer` / `MyModal` 与 admin 业务弹窗同页（`/comps/overlay`），页内用分组标题区分「共享组件（packages/ui）」与「业务封装（apps/admin）」。
 - **`/demos/<name>` —— 组合场景**：**两个以上组件协作**出来的、带一点业务语义的页
   （如 `/demos/pdf-review`、`/demos/layout-editor`、`/demos/options-tabs`）。
 
@@ -190,12 +190,12 @@ definePageMeta({
 
 | 组件                                                                         | Demo 页                            | 状态      |
 | ---------------------------------------------------------------------------- | ---------------------------------- | --------- |
-| `ModalConfirm` / `ModalDeleteConfirm` / `ModalResponsive` / `ModalForbidden` | `/comps/modal`                     | ✅        |
+| `ModalConfirm` / `ModalDeleteConfirm` / `ModalResponsive` / `ModalForbidden` | `/comps/overlay`（业务封装组）     | ✅        |
 | `LoadersColorSpin`                                                           | `/comps/loaders`                   | ✅        |
 | `TourSpotlight` / `TourSpotlightStep`                                        | `/comps/tour`、`/comps/tour-light` | ✅        |
 | `PermissionWrapper`                                                          | `/comps/permission-wrapper`        | ✅        |
 | `PdfPage` / `PdfCover` / `PdfCoverSheet` / `PdfDocVnode`                     | `/demos/pdf-review`                | ✅        |
-| `AppDrawer` / `AppModal`（`packages/ui` 共享 layer）                         | `/comps/overlay`                   | ✅        |
+| `MyDrawer` / `MyModal`（`packages/ui` 共享 layer）                         | `/comps/overlay`（共享组件组）     | ✅        |
 | `TextEditor`                                                                 | `/comps/text-editor`               | 🚧 进行中 |
 
 **新增一个 comp demo 的三步核对**：

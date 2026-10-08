@@ -39,10 +39,10 @@ export default defineNuxtConfig({
 
 ## 组件
 
-### `AppDrawer` —— 抽屉
+### `MyDrawer` —— 抽屉
 
 ```vue
-<AppDrawer v-model:open="open" title="标题" description="说明" direction="right" size="md">
+<MyDrawer v-model:open="open" title="标题" description="说明" direction="right" size="md">
   <template #trigger>
     <UButton label="打开" />
   </template>
@@ -55,16 +55,16 @@ export default defineNuxtConfig({
       <UButton label="保存" @click="confirm" />
     </div>
   </template>
-</AppDrawer>
+</MyDrawer>
 ```
 
-### `AppModal` —— 对话框（移动端退化为抽屉）
+### `MyModal` —— 对话框（移动端退化为抽屉）
 
 桌面用 `UModal`；**宽度小于 `breakpoint`（默认 768px）时退化为抽屉**（移动端键盘友好）。
-内部复用 `AppDrawer`，因此两个组件的动作区与关闭语义完全一致。
+内部复用 `MyDrawer`，因此两个组件的动作区与关闭语义完全一致。
 
 ```vue
-<AppModal
+<MyModal
   v-model:open="open"
   title="编辑资料"
   :breakpoint="768"
@@ -77,7 +77,7 @@ export default defineNuxtConfig({
 >
   <template #trigger><UButton label="编辑" /></template>
   <UForm>…</UForm>
-</AppModal>
+</MyModal>
 ```
 
 ### 共有 API
@@ -86,8 +86,8 @@ export default defineNuxtConfig({
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `v-model:open`   | 打开状态（也支持 `useOverlay` 那样默认打开）                                                                                                         |
 | props            | `title` / `description` / `size` / `dismissible` / `footerText` / `showActions` / `confirmText` / `cancelText` / `loading` / `closeOnConfirm` / `ui` |
-| `AppDrawer` 专属 | `direction`（`top` / `right` / `bottom` / `left`）                                                                                                   |
-| `AppModal` 专属  | `breakpoint`、`mobileDirection`                                                                                                                      |
+| `MyDrawer` 专属 | `direction`（`top` / `right` / `bottom` / `left`）                                                                                                   |
+| `MyModal` 专属  | `breakpoint`、`mobileDirection`                                                                                                                      |
 | slots            | `trigger` / 默认（body）/ `header` / `title` / `description` / `actions` / `close` / `footer`                                                        |
 | emits            | `confirm`、`cancel`、`close(confirmed?)`                                                                                                             |
 
@@ -96,7 +96,7 @@ export default defineNuxtConfig({
 - **隐式关闭统一**：点遮罩 / Esc / 滑动都走同一个 `close()`，且只 emit 一次（Reka 在关闭动画后还会再触发一次 `update:open(false)`）
 - **内置动作区**：`show-actions` 时 footer 渲染「取消 / 确认 + footerText」，`loading` 会挂到确认按钮上；`close-on-confirm=false` 适合"异步提交成功后才关"
 - **`#footer` 优先**：给了 `#footer` 就完全接管，不再渲染内置动作区
-- **不需要 `ClientOnly`**：浮层面板只在 `open` 为真时渲染，SSR 首屏里不会出现（`AppModal` 的断点判断用 `useMediaQuery(..., { ssrWidth })` 避免服务端 / 客户端分支不一致）
+- **不需要 `ClientOnly`**：浮层面板只在 `open` 为真时渲染，SSR 首屏里不会出现（`MyModal` 的断点判断用 `useMediaQuery(..., { ssrWidth })` 避免服务端 / 客户端分支不一致）
 
 ## 新增一个共享组件的步骤
 
@@ -114,3 +114,14 @@ export default defineNuxtConfig({
 消费方手动 `import`。而本项目共享的是"依赖宿主的 Nuxt UI + Tailwind"的组件 —— 走 layer 才是这套栈的
 原生方式：**零构建、自动导入、类型自动生成、改完两边立刻生效**。
 （只有一个例外值得将来再评估：如果共享组件要脱离 Nuxt 给非 Nuxt 工程用，才需要退回 npm 包形态。）
+
+## 命名与透传约定
+
+- 本层自行封装的组件统一用 **`My` 前缀**（`MyDrawer` / `MyModal` / …）：与 Nuxt UI 的 `U*`
+  区分开，一眼能看出"这是我们的封装"；文件名即组件名（宿主里自动导入）；
+- 封装组件一律 `defineOptions({ inheritAttrs: false })` + 显式 **`v-bind="$attrs"`**：
+  调用方传的 `class` / `id` / `aria-*` / 事件会落到**底层浮层组件**上，且只绑一处，不会双重绑定。
+  （`MyModal` 的根是 `v-if` / `v-else` 两个分支，属于多根组件 —— 不显式透传，Vue 无处挂载并会告警）
+- **头尾固定、内容滚动**：`content` 是 `flex flex-col`，`body` 用 `contents`
+  把内层滚动 div 提升为 flex 子项（`flex-1 overflow-y-auto`），header / footer 作为兄弟节点
+  `shrink-0` —— 于是 `#header` / `#footer` 天然钉在顶部 / 底部，不随内容滚动（不需要 CSS sticky）。
