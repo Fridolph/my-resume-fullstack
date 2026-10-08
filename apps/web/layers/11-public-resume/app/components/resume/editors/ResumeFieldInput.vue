@@ -5,6 +5,7 @@ import type { ResumeFieldSchema } from '#layers/public-resume/app/config/resume-
  * 单个字段的输入控件（按 schema 的类型分发）。
  *
  * - `text` / `textarea`：直接 emit 新值
+ * - `number`：数字输入（emit `Number`，供能力雷达这类数值字段使用）
  * - `tags`：标签数组，回车添加、点标签删除（emit 新数组，保持不可变）
  */
 const props = defineProps<{
@@ -66,6 +67,15 @@ function removeTag(index: number) {
     :placeholder="field.placeholder"
     :model-value="String(value ?? '')"
     @update:model-value="emit('update:value', String($event))"
+  />
+
+  <UInput
+    v-else-if="field.type === 'number'"
+    class="w-full"
+    type="number"
+    :placeholder="field.placeholder"
+    :model-value="value === undefined || value === null ? '' : String(value)"
+    @update:model-value="emit('update:value', Number($event))"
   />
 
   <UInput
