@@ -219,6 +219,63 @@ export interface ResumeSectionEditorSchema { segments: ResumeFieldGroupSchema[] 
 7. 动效在 `prefers-reduced-motion: reduce` 下不播放。
 8. 移动端（375px）：hero 翻牌与徽标不溢出。
 
-## 10. 本轮明确不做
+## 10. 主题配色与自定义（2026-10-08 追加）
+
+> 关联：`Issue #18`、`dao/tasks/DAO-012-web 简历页主题与自定义调色盘.md`
+
+### 10.1 三栏宽度改为固定 300px
+
+三栏模式左右两栏从比例制 `1fr 4fr 1fr` 改为**固定 300px**：`lg:grid-cols-[300px_minmax(0,1fr)_300px]`；
+只有一侧时分别退化为 `[300px_minmax(0,1fr)]` / `[minmax(0,1fr)_300px]`。
+split 的两档（`320/360`，wide `380/420`）与 single 的 `max-w-4xl` 限宽**保持不变**。
+
+### 10.2 主题颜色字段显式化
+
+原先 `--resume-surface / border / text / muted / chip-bg / chip-text` 是**由 `dark` 布尔派生**的，
+这挡住了「选完预设再微调几个色」这条路。现在它们进入 `ResumeThemeConfig`：
+
+```ts
+interface ResumeThemeConfig {
+  id: string
+  label: string
+  dark: boolean      // 只承载「明暗语义」：页面底色渐变 + 背景遮罩
+  primary: string
+  gradientFrom: string
+  gradientTo: string
+  surface: string
+  text: string
+  muted: string
+  border: string
+  chipBg: string
+  chipText: string
+}
+```
+
+- 3 个预设（**蓝色简约** / 绿色清新 / 深色科技）各自**把颜色写全**，并统一用 hex —— 便于编辑与回显。
+- 「蓝色商务」已删除（与「蓝色简约」观感重合）。
+- 页面注入时直接取这些字段，不再按 `dark` 三元派生；`--resume-page` 仍按 `dark` 给两套渐变。
+
+### 10.3 自定义主题与调色盘
+
+- 「自定义」= **复制当前配色** + 换 `id: 'custom'`，所以从任意预设出发都能接着微调，而不是从空白开始。
+- 面板行为：预设态**只读**展示 9 项色值（色块 + hex）；自定义态开放编辑（hex 输入 + `UColorPicker`），并可切换明暗。
+- 用的是 Nuxt UI 自带组件：`UColorPicker`（`modelValue: String`，默认 `format="hex"`）+ `UPopover` 收纳。
+  > ui.nuxt.com/theme 那套完整编辑器是 **docs 站的实现，不是 npm 组件**，不能直接 import；可复用的是上面这两个 + CSS 变量机制。
+- 因为 `--resume-primary` 是项目自己的 CSS 变量（**不是** Nuxt UI 的 color alias），自定义可以直接用任意 hex ——
+  不受 Nuxt UI「`app.config.ts` 只能用命名调色板」那条限制。
+
+### 10.4 旧本地配置迁移
+
+`loadLocal` 里做一次 `normalizeTheme`：缺字段用**同 id 预设**补全；id 已不存在（如 `business`）回退到首个预设。
+不做这步的话，旧的 localStorage 会让新变量变成 `undefined`，页面直接失色。
+
+### 10.5 验证要点（含 SSR 的坑）
+
+- 三栏：SSR 里应出现 `lg:grid-cols-[300px_minmax(0,1fr)_300px]`。
+- 面板：**`UDrawer` / `UModal` 在 SSR 不渲染内容** —— 要验证面板得临时把内容直出（或被 `git checkout` 后还原），
+  或临时把 `settingsOpen` 默认置 `true`（实测仍不渲染，故用前者）。
+- 抓取点：9 项字段标签 + 只读 hex 色值、主题按钮集合里**不含「蓝色商务」**、无 `Failed to resolve component` / `NUXT_E*`。
+
+## 11. 本轮明确不做
 
 `cool` 风格、整页模板组件、头像跳转 / AI 对话入口、`contact` 的 key 与结构变更、图片上传、`publishedAt`、PDF、i18n、技能可视化图表、admin 侧风格选择。
