@@ -121,10 +121,17 @@ const drawerUi = computed(() => {
 
   return {
     ...user,
-    // `flex flex-col` 是 header / footer「钉住」的前提：body 用 `contents` 把内层 div
-    // 提升为 content 的 flex 子项，那个 div 才是唯一的滚动容器（flex-1 + overflow-y-auto），
-    // header / footer 作为兄弟节点 shrink-0 → 滚动只发生在中间，头尾不动。
-    content: cn('flex flex-col overflow-hidden', sizeClass, user.content),
+    // ⚠️ content 必须保留 Nuxt UI 默认的 `flex`（**横向**）：vaul 的 handle 靠 `my-auto`
+    // 在其中垂直居中。若改成 `flex-col`，handle 会变成普通的纵向兄弟节点并抢走一大块高度
+    // （实测把内容区顶到 y=411）—— 这就是"把手错位"。
+    // 调用方显式覆写 content（如 `w-150!`）时**不再注入尺寸档**：`max-w-*` 会压住 `w-*`
+    // （max-width 优先于 width），实测出现过 `w-150!` 被默认档 `sm:max-w-md` 压成 448px 的坑。
+    content: cn('overflow-hidden', user.content ? '' : sizeClass, user.content),
+    // container 才是 Nuxt UI 的纵向容器（默认已是 `flex flex-col`），也是它默认放滚动的地方。
+    // 我们要「头尾固定、只有中间滚」，因此在这里**关掉它的滚动**（默认的 `overflow-y-auto`
+    // 用普通类覆盖不掉，必须 important），把滚动交给内层 body 滚动区。
+    container: cn('min-h-0 !overflow-hidden', user.container),
+    handle: user.handle,
     header: cn('shrink-0', user.header),
     body: cn('contents', user.body),
     footer: cn('shrink-0', user.footer),
