@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`review-ready`
+- 状态：`done`
 - Owner：`昇哥确认方向（对齐旧站左右布局 + admin 的配置驱动能力）并指定 mock 来源；归枢协作执行`
 - 创建日期：`2026-10-07`
 - 关联：`Issue #3`（阶段一）、`#5`（阶段二）、`#7`（B 期）、`#9`（内容编辑）、`#11`（Header 瘦身）、`DAO-005`、`docs/dev/layers.md`、`docs/dev/data-layer.md`、`docs/dev/resume-display-architecture.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、配置参考 `apps/admin/layers/20-comps/app/pages/demos/resume-config-layout.vue`
@@ -99,3 +99,9 @@
 - Dao Commit：`不适用（各期按 feat -> dev 集成，标题形式为 [Feat] …，未使用卦象锚点）`
 - 沉淀候选：`候选观察`——「可插拔展示域 = 注册表 + 统一 props 契约 + 编辑能力外置」在 4 期迭代里始终成立：新增区块只动三处（展示组件 / 注册表 / 编辑 schema），7 个区块组件从未因拖拽或内容编辑而改动。是否跨项目成立（尤其 React 版）待第二仓验证。
 - 收口备注：① 本卡同时验证「展示域与 admin 配置域共享同一份布局契约」这一判断，但 web 侧契约已先扩展（`brand` 等），与 admin 的 `useResumeLayout` 仍处分叉期，收敛时机另定；② 全仓 `format:check` 缺口由 DAO-006 单独处理。
+
+## 收口记录（2026-10-08）
+
+- 状态 `review-ready -> done`：交付已合入 `dev`（见「交接 → 集成锚点」），验证证据与未验证边界均在本卡内可查。
+- 依据：Owner 于 2026-10-08 要求「任务完成后立即检查并收口 Issue 与任务卡，避免积累」，据此判 `done`。
+  卡内已如实标注的未验证边界（如浏览器目视、端到端交互）**不阻塞收口**，另行统一安排。

@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`review-ready`
+- 状态：`done`
 - Owner：`昇哥选定方案（Nuxt layer 不用 npm 包）、组件形态（抽屉为主 + Modal 窄屏退化）与 demos 位置（admin）`
 - 创建日期：`2026-10-07`
 - 卡号说明：`原为 DAO-012；并行分支 feat/18-resume-theme-custom 已占用该号（主题与自定义调色盘），本卡避让为 DAO-013`
@@ -80,3 +80,9 @@
 - 沉淀候选：`候选观察` —— 「monorepo 里共享 Vue 组件该用 layer 而不是 npm 包」+ 「Tailwind v4 不扫 app 目录外，需要 `@source`」。两条都不是本仓特例，可能对其它 Nuxt monorepo 成立；React 侧对应物（workspace 包 + tailwind content 配置）值得在双仓闭环里对照。
 - 并行情况：合入时发现并行分支 `feat/18-resume-theme-custom`（Issue #18，主题模型改为「预设 × 明暗」）也建了一张 DAO-012，本卡因此避让为 DAO-013；两边改动文件几乎不重叠（对方在 resume 主题域，本卡在 packages/ui 与两端配置）。
 - 收口备注：本卡还验证了「共享 layer 能否零依赖」——`useNarrowScreen` 替代 `@vueuse/core` 后，layer 不需要任何 dependencies，也就不需要为它跑一次 `pnpm install`。
+
+## 收口记录（2026-10-08）
+
+- 状态 `review-ready -> done`：交付已合入 `dev`（见「交接 → 集成锚点」），验证证据与未验证边界均在本卡内可查。
+- 依据：Owner 于 2026-10-08 要求「任务完成后立即检查并收口 Issue 与任务卡，避免积累」，据此判 `done`。
+  卡内已如实标注的未验证边界（如浏览器目视、端到端交互）**不阻塞收口**，另行统一安排。

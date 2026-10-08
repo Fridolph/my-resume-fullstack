@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`review-ready`
+- 状态：`done`
 - Owner：`昇哥（改动由本人在 feat/15-resume-style-unify 上完成；归枢做质量门与收口）`
 - 创建日期：`2026-10-07`
 - 关联：`Issue #15`、`docs/dev/css-conventions.md`、`docs/dev/resume-styles.md`、`DAO-008`（风格维度，引入了 `--resume-card-*` 等风格变量）
@@ -63,3 +63,9 @@
 - Dao Commit：`不适用`
 - 沉淀候选：`候选观察` —— 「CSS 变量该注入 `<body>` 而不是内容容器」这条对"组件库会把浮层 teleport 到 body"的项目普遍成立；本项目在 Nuxt UI（`UModal` / `UDrawer`）上验证到。是否跨项目 / 跨框架成立（React + Headless UI / Radix 的 Portal 同理）值得观察。
 - 收口备注：本卡是**追记**——改动先于任务卡产生，说明"边做边记"在这类样式重构里仍会发生；流程上应避免，但补卡比不补好。
+
+## 收口记录（2026-10-08）
+
+- 状态 `review-ready -> done`：交付已合入 `dev`（见「交接 → 集成锚点」），验证证据与未验证边界均在本卡内可查。
+- 依据：Owner 于 2026-10-08 要求「任务完成后立即检查并收口 Issue 与任务卡，避免积累」，据此判 `done`。
+  卡内已如实标注的未验证边界（如浏览器目视、端到端交互）**不阻塞收口**，另行统一安排。

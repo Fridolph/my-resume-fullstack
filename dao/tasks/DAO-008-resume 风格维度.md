@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`review-ready`
+- 状态：`done`
 - Owner：`昇哥逐项确认设计与范围（9 项）；归枢协作执行`
 - 创建日期：`2026-10-07`
 - 关联：`Issue #13`、`DAO-007`（展示域本体，review-ready）、`docs/dev/resume-styles.md`（本卡设计稿）、`docs/dev/resume-display-architecture.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、旧站契约 `/Users/fri/Desktop/personal/my-resume/packages/api-client/src/types/resume.types.ts`、机制参考 `/Users/fri/Desktop/greensketch-basic/app/pages/projects/[projectId]/@components/proposal/layout/{ProposalModuleList.vue,templates/*}`
@@ -89,3 +89,9 @@
 - Dao Commit：`不适用`
 - 沉淀候选：`无`
 - 收口备注：本卡验证的假设「风格作为正交维度能否不把区块组件写脏」已成立：`variant` 只在 `ResumeSectionCard` / `ResumeHeroCard` 两处分叉，其余 5 个区块组件只多了一行透传，没有出现"每个组件都要判断风格"的扩散；颜色全部走 `--resume-*`（含 `color-mix` 派生），所以「风格 × 主题」两个维度没有互相污染。待第二个实现（React 版）验证是否同样成立。
+
+## 收口记录（2026-10-08）
+
+- 状态 `review-ready -> done`：交付已合入 `dev`（见「交接 → 集成锚点」），验证证据与未验证边界均在本卡内可查。
+- 依据：Owner 于 2026-10-08 要求「任务完成后立即检查并收口 Issue 与任务卡，避免积累」，据此判 `done`。
+  卡内已如实标注的未验证边界（如浏览器目视、端到端交互）**不阻塞收口**，另行统一安排。
