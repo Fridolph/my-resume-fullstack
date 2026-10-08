@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`review-ready`
+- 状态：`done`
 - Owner：`昇哥选定方案 B（Nuxt 官方 #layers/<name>）与范围（web + admin 一起）、并决定先本地合入 dev 再开分支`
 - 创建日期：`2026-10-07`
 - 关联：`Issue #14`、`DAO-007` / `DAO-008`（展示域与风格维度，均已合入 dev）、`docs/dev/layers.md` §6、Nuxt 4.5 自动生成的 layer 别名
@@ -74,3 +74,9 @@
 - Dao Commit：`不适用`
 - 沉淀候选：`候选观察` —— 「alias 方案要按『能否表达自身语义』选：Nuxt 的 `@`/`~` 是全局扁平表，无法表达『layer 内指向自身』；官方 `#layers/<name>` 才是正确机制」。这条与框架无关的教训（任何 bundler 的 alias 都是扁平表）可能在 React 版需要重新踩一次（Vite alias / tsconfig paths 同样限制），值得观察。
 - 收口备注：本次顺带暴露一个**跨 app 的隐性耦合**——一个 app 新增 devDependency 的类型包会被 pnpm 提升，从而改变另一个 app 的类型检查结果。以后在 web 加 `@types/*` 时，要注意 admin 是否也会被波及。
+
+## 收口记录（2026-10-08）
+
+- 状态 `review-ready -> done`：交付已合入 `dev`（见「交接 → 集成锚点」），验证证据与未验证边界均在本卡内可查。
+- 依据：Owner 于 2026-10-08 要求「任务完成后立即检查并收口 Issue 与任务卡，避免积累」，据此判 `done`。
+  卡内已如实标注的未验证边界（如浏览器目视、端到端交互）**不阻塞收口**，另行统一安排。

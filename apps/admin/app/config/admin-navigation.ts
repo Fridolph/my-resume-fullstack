@@ -36,6 +36,7 @@ export const adminNavigation: AdminNavigationItem[] = [
       { label: "Sort list", to: "/comps/sort-list" },
       { label: "Sortable bar", to: "/comps/sortable-bar" },
       { label: "Permission wrapper", to: "/comps/permission-wrapper" },
+      { label: "Overlay (shared)", to: "/comps/overlay" },
     ],
   },
   {

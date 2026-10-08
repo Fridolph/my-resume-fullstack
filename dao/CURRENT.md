@@ -2,6 +2,7 @@
 
 - [`DAO-014` web 简历页 pro 风格与 hero 拆分（薄壳 + 三档 / 画廊 / 雷达）](./tasks/DAO-014-web%20简历页%20pro%20风格与%20hero%20拆分.md) —— 状态：`self-tested`
 - [`DAO-012` web 简历页主题与自定义调色盘（三栏 300px / 预设精简 / 调色盘）](./tasks/DAO-012-web%20简历页主题与自定义调色盘.md) —— 状态：`self-tested`
+- [`DAO-013` 建立 packages/ui 共享 layer（AppDrawer / AppModal）](./tasks/DAO-013-建立%20packages-ui%20共享%20layer.md) —— 状态：`review-ready`（已合入 dev，待 Owner 判 `done`）
 - [`DAO-011` web 简历页编辑交互（自由拖拽 / 托盘 / 自动保存）](./tasks/DAO-011-web%20简历页编辑交互.md) —— 状态：`review-ready`（已合入 dev，待 Owner 判 `done`）
 - [`DAO-010` web 简历页样式统一（1920 容器 / 域公共 CSS / Nuxt UI token）](./tasks/DAO-010-web%20简历页样式统一.md) —— 状态：`review-ready`（待 Owner 判 `done`）
 - [`DAO-009` web/admin 别名 import 统一](./tasks/DAO-009-web-admin%20别名%20import%20统一.md) —— 状态：`review-ready`（已合入 dev，待 Owner 判 `done`）

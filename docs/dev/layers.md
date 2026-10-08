@@ -78,3 +78,24 @@ layers/00-shared  ←  feature layers（11~20）  ←  app/
 5. 不要再用 `../../` 跨目录相对路径：它把「目录深度」编进了 import，移动文件或调整层级就要同步一批引用。
 
 > **为什么 `@` 不能做到「在 layer 内指向 layer 自身」**：别名是一张全局扁平的 `名字 → 目录` 映射（Vite 与 `vue-tsc` 共用，后者走 `.nuxt/tsconfig.json` 的 `paths`），它没有「按导入文件所在位置解析」的能力。要实现那种语义，得自己写 Vite `resolveId` 插件，并为 TS 另造一套能表达条件解析的类型映射 —— 代价远大于收益，所以采用 Nuxt 官方的 `#layers/<name>`。
+
+## 7. 跨 app 共享 UI 组件：`packages/ui`
+
+web 与 admin 都要用的 Vue 组件放 `packages/ui`。它是 **Nuxt layer**（不是 npm 包）：
+
+- 两端 `nuxt.config.ts` 各有一行 `extends: ['../../packages/ui']`；组件在 `packages/ui/app/components/**`
+  里，宿主中**自动导入**（文件名即组件名，如 `AppDrawer`、`AppModal`），无需 import、无需构建
+- layer 内引用自身用 `#layers/ui/app/...`（与 §6 同一条约定）
+- **不要**写 `import { ref } from 'vue'` 或 `import x from '~/utils/...'`：前者会按 `packages/ui/node_modules`
+  解析而失败，后者是宿主私有代码。用宿主的自动导入（`ref` / `computed` / `UButton` …）即可
+- 可放 `app/components/**`、`app/composables/**`、`app/lib/**`；
+  **不要**放 `app/utils/**`（该目录会被自动导入，容易与宿主的同名工具撞车）
+- layer **不声明运行时依赖**：需要能力时优先自己写
+  （例：`app/composables/useNarrowScreen.ts` 替代了 `@vueuse/core` 的 `useMediaQuery`）
+- ⚠️ Tailwind v4 **不扫 app 目录之外**的源码：各 app 的 `main.css` 里有
+  `@source "../../../../../packages/ui";`，新增共享组件不需要改这一行
+
+判断标准很简单：**能不能脱离 Vue 运行** —— 能 → `packages/common`（纯 TS，`tsc` 构建后 import）；
+不能（含模板 / 依赖 Nuxt UI）→ `packages/ui`（layer，源码级共享）。
+
+完整说明与组件 API 见 [`packages/ui/README.md`](../../packages/ui/README.md)。

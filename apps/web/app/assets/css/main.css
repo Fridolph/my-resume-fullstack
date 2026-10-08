@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/* 共享 layer（packages/ui）里的 Tailwind 类也要被扫到，否则那些类不会生成 */
+@source "../../../../../packages/ui";
+
 /*
  * 基础样式约定（详见 docs/dev/css-conventions.md）
  * 1) 移动优先；内容区最大宽度 1920px（Header 保持全宽，内容区 max-w-1920）
