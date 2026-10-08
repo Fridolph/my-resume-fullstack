@@ -113,15 +113,20 @@ Owner 用最小回答确认后，Agent 必须先将确认事实写回本区，�
 | 结构验   | `layers/11-resume` 被 Nuxt 自动发现；导航 `/resume` 生效；依赖方向未越界                                          | 通过；`/resume` 200 并渲染域入口内容                                          | 简历域的真实业务页面尚未落地                                         |
 | 意图验   | admin dev `:4020` SSR：`/` 渲染 `api online · uptime …`，`/resume` 200；web dev `:4021` SSR：`/` 渲染 `API 心跳：已连接`，`/resume` `/ai-talk` 均 200 | 通过；admin 与 web 的 colada 都在 SSR 阶段真实取到后端数据，无 `Failed to resolve component` / `NUXT_E*` | “失效重取”按钮的客户端行为为人工观察，未自动化 |
 | 已知缺口 | `pnpm exec oxfmt --check .`                                                                                       | **在本次改动之前**就对 121 个既有文件报不合格（与本次改动无关）               | 需 Owner 决定统一重排，还是锁定 oxfmt 版本                           |
+| 机器验   | `pnpm --filter @template/admin typecheck`；`oxlint apps/admin`                                                                                    | 通过；oxlint 0 warning / 0 error（136 files）                                 | 全仓 `format:check` 见“已知缺口”（DAO-006）                          |
+| 结构验   | 去 alova：删除 `plugins/alova.ts`；`apis/files.ts` 改原生 XHR（进度 + `AbortSignal` + 统一解包）；`useFileUploader` 改 colada `useMutation`；`nuxt.d.ts` 去 `$alova`；`package.json` / lockfile 移除 `alova`、`@alova/adapter-xhr` | 通过；业务代码 `grep alova` 残留 **0**；上传不再依赖模板遗留库                                  | —                                                                    |
+| 意图验   | admin dev `:4047` SSR 抓 `/comps/upload`（`useFileUploader` 上传页）与 `/demos/plugins`                                                            | 均 **200**；无 `Failed to resolve component` / `NUXT_E*`；demos 文案已改为「原生 XHR + colada mutation」 | **真实上传端到端未验**（需后端 `/masterData/file/multipleUpload`）；进度回调与取消的浏览器表现未验 |
 
 ## 交接
 
 每次换窗口、模型或协作者时，覆盖更新“当前交接”，只保留一条仍有效的接棒信息；重要历史由 Git 记录，不在这里堆叠过程日志。
 
+- 已完成（2026-10-08 追加）：**alova 上传链路迁移完成** —— 原生 XHR + colada mutation，插件与依赖一并移除（证据见「执行与验证」）。验收③的 mutation 部分由此补齐。
 - 已完成：项目定位转型的文档同步（`AGENTS.md`、`README.md`、`.dao/`）；三项选型确认并写回；**admin 与 web 两端**的数据层接入 colada（`$request` 契约对齐 `packages/common`、query key 规范、`useHealthQuery` 示例、SSR 取数 + 失效重取验证）；`layers/11-resume`（admin）与 `layers/11-public-resume` + `layers/12-ai-talk`（web）骨架；导航把模板示例折叠进 Demos 入口；`docs/dev/data-layer.md`；两端 README 更新。
 - 当前状态：`in-progress`
 - 阻塞：无。以下已确认或另立卡：格式基线 → `DAO-006`（待执行）；模板 demo 已折叠为 Demo 入口；启动 PostgreSQL 16 与建库的环境变更仍需在进入 `apps/api` 前确认。
-- 下一步第一刀：把 alova 的上传链路替换为原生 XHR + colada mutation（`plugins/alova.ts`、`apis/files.ts`、`useUploadFile.ts`、`useFileUploader.ts`，并同步 `demos/plugins.vue` / `comps/upload.vue`），补齐验收③的 mutation 部分；随后进入 `apps/api` 的 Prisma + PostgreSQL + Redis 与 auth 闭环。
+- 下一步第一刀：进入 `apps/api` 的 Prisma + PostgreSQL + Redis 与 auth 闭环（验收④⑤）。**前置**：启动 PostgreSQL 16 与建库属环境变更，需 Owner 先确认；Redis 本机已运行。
+
 - 文档锚点：`dao/CURRENT.md`、`.dao/inheritance.md`、`.dao/context.md`、`docs/dev/layers.md`、`AGENTS.md`
 - 集成锚点：`不适用`
 
