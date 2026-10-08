@@ -219,7 +219,7 @@ export interface ResumeSectionEditorSchema { segments: ResumeFieldGroupSchema[] 
 7. 动效在 `prefers-reduced-motion: reduce` 下不播放。
 8. 移动端（375px）：hero 翻牌与徽标不溢出。
 
-## 10. 主题配色与自定义（2026-10-08 追加）
+## 10. 主题配色与自定义（2026-10-08 追加，同日修订）
 
 > 关联：`Issue #18`、`dao/tasks/DAO-012-web 简历页主题与自定义调色盘.md`
 
@@ -229,52 +229,76 @@ export interface ResumeSectionEditorSchema { segments: ResumeFieldGroupSchema[] 
 只有一侧时分别退化为 `[300px_minmax(0,1fr)]` / `[minmax(0,1fr)_300px]`。
 split 的两档（`320/360`，wide `380/420`）与 single 的 `max-w-4xl` 限宽**保持不变**。
 
-### 10.2 主题颜色字段显式化
+### 10.2 主题模型：配色预设 × 明暗（对早期决策的修订）
 
-原先 `--resume-surface / border / text / muted / chip-bg / chip-text` 是**由 `dark` 布尔派生**的，
-这挡住了「选完预设再微调几个色」这条路。现在它们进入 `ResumeThemeConfig`：
+**这条推翻了 `DAO-007` 阶段的决定。** 当时 Owner 选的是「保持合并式预设，不做 `mode × preset` 拆分」
+（见 [resume-display-architecture.md](./resume-display-architecture.md) §3.3），但实际用下来问题明确：
+
+- 「深色科技」把**明暗**和**配色**压成了一个维度：想要「蓝色 + 深色」做不到；
+- 系统里没有一个「浅色 / 深色」的独立开关。
+
+现在的模型（正交两维）：
 
 ```ts
-interface ResumeThemeConfig {
+export type ResumeColorMode = 'light' | 'dark'
+
+export interface ResumeThemePalette {
+  primary, gradientFrom, gradientTo,
+  surface, text, muted, border, chipBg, chipText
+}
+
+export interface ResumeThemePreset {
   id: string
   label: string
-  dark: boolean      // 只承载「明暗语义」：页面底色渐变 + 背景遮罩
-  primary: string
-  gradientFrom: string
-  gradientTo: string
-  surface: string
-  text: string
-  muted: string
-  border: string
-  chipBg: string
-  chipText: string
+  light: ResumeThemePalette     // 每套预设自带两组色值
+  dark: ResumeThemePalette
+}
+
+export interface ResumeThemeConfig extends ResumeThemePreset {
+  mode: ResumeColorMode         // 当前生效的明暗
 }
 ```
 
-- 3 个预设（**蓝色简约** / 绿色清新 / 深色科技）各自**把颜色写全**，并统一用 hex —— 便于编辑与回显。
-- 「蓝色商务」已删除（与「蓝色简约」观感重合）。
-- 页面注入时直接取这些字段，不再按 `dark` 三元派生；`--resume-page` 仍按 `dark` 给两套渐变。
+- **生效色值 = `theme[theme.mode]`**；页面注入、`--resume-page` 渐变、背景层遮罩全部由 `mode` 决定
+  （不再有那个语义混杂的 `dark` 布尔）。
+- 3 套预设各自**自带两组**：
+  | 预设 | 浅色组 | 深色组 |
+  | --- | --- | --- |
+  | 蓝色简约 | `#1578d0` + 白底、`#0f172a` 正文 | `#60a5fa` + `#111827` 底 |
+  | 绿色清新 | `#2f9e63` + 白底 | `#4ade80` + `#111827` 底 |
+  | **科技感** | 冷调浅底 `#f8fafc` + 青蓝 `#0891b2` | **纯黑底 `#000000`** + 青色高光 `#22d3ee` |
+- **切预设保留当前明暗**：「绿色 + 深色」本身是合理组合，不该被重置。
 
-### 10.3 自定义主题与调色盘
+### 10.3 自定义与调色盘
 
-- 「自定义」= **复制当前配色** + 换 `id: 'custom'`，所以从任意预设出发都能接着微调，而不是从空白开始。
-- 面板行为：预设态**只读**展示 9 项色值（色块 + hex）；自定义态开放编辑（hex 输入 + `UColorPicker`），并可切换明暗。
-- 用的是 Nuxt UI 自带组件：`UColorPicker`（`modelValue: String`，默认 `format="hex"`）+ `UPopover` 收纳。
-  > ui.nuxt.com/theme 那套完整编辑器是 **docs 站的实现，不是 npm 组件**，不能直接 import；可复用的是上面这两个 + CSS 变量机制。
+- 「自定义」= 复制当前预设的**两组**值 + 换 `id: 'custom'`。
+- 调色盘**两组平铺**（浅色 / 深色各 9 项，共 18 行）：预设态只读（色块 + hex），
+  自定义态可编辑（hex 输入 + `UColorPicker`）；编辑的是**所在那一组**（`setThemeField(mode, key, value)`）。
+- 明暗切换在面板上**独立一行**（浅色 / 深色按钮），与配色按钮组分开。
+- 组件仍是 Nuxt UI 自带的 `UColorPicker`（`modelValue: String`，默认 `format="hex"`）+ `UPopover` 收纳。
+  > ui.nuxt.com/theme 那套完整编辑器是 **docs 站的实现，不是 npm 组件**，不能直接 import。
 - 因为 `--resume-primary` 是项目自己的 CSS 变量（**不是** Nuxt UI 的 color alias），自定义可以直接用任意 hex ——
   不受 Nuxt UI「`app.config.ts` 只能用命名调色板」那条限制。
 
 ### 10.4 旧本地配置迁移
 
-`loadLocal` 里做一次 `normalizeTheme`：缺字段用**同 id 预设**补全；id 已不存在（如 `business`）回退到首个预设。
-不做这步的话，旧的 localStorage 会让新变量变成 `undefined`，页面直接失色。
+主题模型改过三轮：① 颜色由 `dark` 派生 → ② 9 个颜色平铺在 theme 顶层 → ③ 预设 × 明暗两组。
+`normalizeTheme` 负责把旧数据搬过来：
+
+1. 认得出 `id` → 用该预设补底；认不出（如已删的 `business`、旧 id `light`）→ 回退首个预设；
+2. `source.light` / `source.dark` 是完整 palette → 用它覆盖预设对应组；
+3. 旧结构里**平铺在顶层**的那批色值 → 放到 `mode` 指向的那一组（尽量保住用户当时的观感）；
+4. `mode` 从 `mode` 字段或旧的 `dark` 布尔推断。
+
+不做这步的话，旧 localStorage 会让新变量变成 `undefined`，页面直接失色。
 
 ### 10.5 验证要点（含 SSR 的坑）
 
 - 三栏：SSR 里应出现 `lg:grid-cols-[300px_minmax(0,1fr)_300px]`。
-- 面板：**`UDrawer` / `UModal` 在 SSR 不渲染内容** —— 要验证面板得临时把内容直出（或被 `git checkout` 后还原），
-  或临时把 `settingsOpen` 默认置 `true`（实测仍不渲染，故用前者）。
-- 抓取点：9 项字段标签 + 只读 hex 色值、主题按钮集合里**不含「蓝色商务」**、无 `Failed to resolve component` / `NUXT_E*`。
+- 明暗：切 `mode` 后 body 上的 `--resume-primary / --resume-surface` 应换成**另一组**的值
+  （如 `tech + dark` → `--resume-surface:#000000`）。
+- 面板：**`UDrawer` / `UModal` 在 SSR 不渲染内容** —— 要验证面板得临时把内容直出（之后 `git checkout` 还原）。
+- 抓取点：9 个字段标签各出现 2 次（两组平铺）、明暗按钮存在、**不含已删预设的文案**、无 `Failed to resolve component` / `NUXT_E*`。
 
 ## 11. 本轮明确不做
 
