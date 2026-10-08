@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`in-progress`
+- 状态：`done`
 - Owner：`昇哥定架构方向（全部区块都要 pro 版 / 一风格一文件 / 零件等真复用再抽）`
 - 创建日期：`2026-10-08`
 - 关联：`Issue #23`、`DAO-008`（风格维度初版）、`DAO-014`（hero 薄壳 + 三档，已合 dev）、`docs/dev/resume-styles.md`、`docs/dev/admin-ui-patterns.md`（comps/demos 分层，无关但同属"目录约定"）
@@ -15,6 +15,8 @@
 | ------------------------- | ---------------------------------------------------------------------------------------- | ---------- | ---------- |
 | `planned -> designed`     | Owner 定下三项：**全部区块都要 pro 版**、**一风格一文件**、**零件等真复用再抽**；并确认先落架构规则 | Owner 确认 | 2026-10-08 |
 | `designed -> in-progress` | Issue #23 已建；分支 `feat/23-pro-sections` 从 dev（`07e7e9e`）开出                      | 归枢记录   | 2026-10-08 |
+| `in-progress -> self-tested` | 架构规则 + 三态化 + 零件上提 + experience/skills 三档落地；typecheck / oxlint 通过 | 归枢记录 | 2026-10-08 |
+| `self-tested -> done` | 三档 SSR 互斥断言全过（pro 不再掉档、无告警）；两个提交本地 squash 合入 dev（`ed4c6ca`），Issue #23 已回填并关闭 | 归枢记录 | 2026-10-08 |
 
 ## Grill：开工前对齐
 
@@ -58,26 +60,26 @@
 
 | 类型   | 命令 / 样本 / 链接 | 结果 | 仍未验证的边界 |
 | ------ | ------------------ | ---- | -------------- |
-| 机器验 | `pnpm --filter @template/web typecheck`；`oxlint apps/web` | 待填 | — |
-| 结构验 | 薄壳只做路由；三档实现各自独立；对外契约未变 | 待填 | — |
-| 意图验 | 三档 SSR 抓 `/resume`（临时切 mock `style.id`） | 待填 | — |
-| 意图验 | hero 改用上提类名后未回归（`.resume-pro-*` 命中、hero 专属 scoped 类仍在） | 待填 | — |
+| 机器验 | `pnpm --filter @template/web typecheck`；`oxlint apps/web packages` | 通过；oxlint 0 warning / 0 error（59 files，含 8 个新文件） | `format:check` 仍是既有缺口（DAO-006） |
+| 结构验 | 薄壳只做 `Record<ResumeStyleId, Component>` 路由；三档实现各 1 文件；`ResumeSectionProps` / 注册表 / 编辑与拖拽注入方式均未改 | 通过；拆的只是内部实现 | — |
+| 意图验 | 三档 SSR 互斥断言（临时切 mock 的 `style.id`，验证后已还原） | 通过：experience 三档分别是**一行式 / 时间列 `w-28` / 时间线 `exp-timeline`**；skills 三档分别是**单行文本 / `resume-chip` 标签墙 / 组头 + `resume-pro-chip`**；标题结构 minimal 无色条、standard `h-5 w-1`、pro 渐隐细线 + `h-6 w-1.5`；三档均无 `Failed to resolve component` / `NUXT_E*` | pro 在 300px 窄栏下的**实际观感**（时间线、组头细线）未目视 |
+| 意图验 | hero 改用上提类名后未回归 | 通过：`resume-pro-*` 命中 12 处；hero 专属 scoped 类（`pro-shot` / `pro-intro` / `pro-availability*` / `pro-radar*`）保留；无告警 | — |
 
 ## 交接
 
 - 已完成：`ResumeSectionBodyProps` 类型；`resume.css` 加 `.resume-pro-*` 通用零件（并让 hero 改用它们、删掉 scoped 重复）；`ResumeSectionCard` 三态数据映射；`CARD_STYLE` 三档外观参数；`experience` / `skills` 各 3 档实现 + 薄壳路由。
-- 当前状态：`in-progress`（编码完成，验证中）
+- 当前状态：`done`
 - 阻塞：无。
-- 下一步第一刀：跑 typecheck / oxlint 与三档 SSR，然后写架构规则文档、提交并合回 dev；**下一轮**按同一模式落其余 4 个区块。
+- 下一步第一刀：本卡无下一步。**下一轮**按同一模式落其余 4 个区块（highlights / education / projects / evaluations）：薄壳 + `<section>/` 三档 + 内容确有差异；零件等到真复用再上提。
 - 文档锚点：`Issue #23`、`docs/dev/resume-styles.md`
-- 集成锚点：`待 feat/23-* -> dev`
+- 集成锚点：`已集成（ed4c6ca，本地 squash 合入 dev）`
 
 ## 收口与沉淀
 
-- `dao-review` 结论：`未执行`
-- 最终验证证据：`待补`
-- Git / PR：`待补`
-- 常规提交：`待补`
+- `dao-review` 结论：`可收口（质量门 + 三档互斥验证通过；观感目视列为已知边界）`
+- 最终验证证据：`见「执行与验证」表`
+- Git / PR：`本地 squash，无 PR：ed4c6ca`
+- 常规提交：`6fd9be4（feat）/ dcb9b76（docs）`
 - Dao Commit：`不适用`
 - 沉淀候选：`候选观察` —— 「多档风格的三手段分层 + 五条规则」（token / 分支 / 拆文件 / 零件上提 / 契约不变）。DAO-014 给了四条判据，本卡补上了"分层"与"零件归属"两块，可视为一套完整方法的雏形；React 版会同样遇到，值得对照验证。
 - 收口备注：本卡暴露一个真实缺陷 —— 原先的外观与标题都是**布尔判断**（`isStandard`），加第三档会静默掉进第一档。三档以上就必须改数据映射。
