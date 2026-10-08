@@ -1,0 +1,65 @@
+# 【DAO-010】web 简历页样式统一（1920 容器 + 域公共 CSS + Nuxt UI token）
+
+> 任务卡是这一关键事件的唯一事实源。只写改变下一步判断的事实；不要复制聊天记录或原始终端输出。
+
+## 身份
+
+- 状态：`review-ready`
+- Owner：`昇哥（改动由本人在 feat/15-resume-style-unify 上完成；归枢做质量门与收口）`
+- 创建日期：`2026-10-07`
+- 关联：`Issue #15`、`docs/dev/css-conventions.md`、`docs/dev/resume-styles.md`、`DAO-008`（风格维度，引入了 `--resume-card-*` 等风格变量）
+
+## 状态轨迹
+
+| 迁移                      | 依据                                                                                     | 确认者     | 日期       |
+| ------------------------- | ---------------------------------------------------------------------------------------- | ---------- | ---------- |
+| `planned -> in-progress`  | Owner 在 `feat/15-resume-style-unify` 上完成改动（18 文件 / +221 −217），过程中未建卡      | Owner 执行 | 2026-10-07 |
+| `in-progress -> review-ready` | 归枢补跑质量门（web typecheck、oxlint、SSR 抓页）全部通过，工作区改动已提交并合入 dev      | 归枢记录   | 2026-10-07 |
+
+## Grill：开工前对齐（据 Issue #15 追记）
+
+- 目标：① 内容容器统一 `max-w-1920`，split 侧栏对齐旧站宽度；② web 侧落地项目 CSS 约定；③ 简历域重复样式收敛为 `layers/11-public-resume/app/assets/css/resume.css` 的语义类；④ `--resume-*` 默认值集中声明、组件不再写 `var(..., fallback)`；⑤ Nuxt UI token 与简历主题打通；⑥ 页面底色改旧站式渐变。
+- 边界：只改 `apps/web`（`app.config.ts`、`app/assets/css/main.css`、`layers/11-public-resume/**`、`layers/12-ai-talk` 一处）；不改数据模型与交互逻辑。
+- 不做：不改 `apps/admin`、不做 PDF 打印样式、不新增依赖。
+- 风险与未知：变量从内容容器上移到 `<body>` 后，SSR 产物与 teleport 组件的一致性需要实测；`max-w-1920` 在 1440/1920 两档下的观感需人工确认。
+- 验收：见 `Issue #15`；本轮由归枢补跑质量门与 SSR 验证。
+- 过门判断：`可开工`（改动已完成，本卡为追记 + 收口）。
+
+## 设计与决策
+
+| 决策 | 理由 / 证据 | 确认者 | 日期 |
+| ---- | ----------- | ------ | ---- |
+| 主题 / 风格变量注入 `<body>`，不再挂在内容容器上 | `UModal` / `UDrawer` teleport 到 body，挂在容器上的变量它们解析不到 → 控件颜色与圆角无法跟随简历主题 | Owner 执行 | 2026-10-07 |
+| 变量默认值集中到 `resume.css` 的 `:root`，组件不再写 `var(--x, fallback)` | 兜底值散落在组件里会让"变量到底有没有生效"难以判断；集中后 SSR 与运行时一致 | Owner 执行 | 2026-10-07 |
+| 重复的单位属性收敛成语义类（`.resume-card` / `.resume-eyebrow` / `.resume-chip` / `.resume-btn-group` / `.resume-label` / `.resume-title`），Tailwind 只管布局 | provider 一次、消费多处；`ResumeSectionCard` 与 `ResumeHeroCard` 的卡片外壳写法合一 | Owner 执行 | 2026-10-07 |
+| split 侧栏宽度对齐旧站（`lg:320px` / `xl:360px`，wide 档 380/420） | 旧站固定 `lg:320px / xl:360px`；`compact` 档即旧站观感 | Owner 执行 | 2026-10-07 |
+| Nuxt UI 覆写收敛到 `app.config.ts`（如 `drawer.slots.content`） | 该抽屉全站只有一处用法，组件里不必再写 `:ui` | Owner 执行 | 2026-10-07 |
+
+## 执行与验证
+
+| 类型   | 命令 / 样本 / 链接 | 结果 | 仍未验证的边界 |
+| ------ | ------------------ | ---- | -------------- |
+| 机器验 | `pnpm --filter @template/web typecheck` | 通过 | `format:check` 仍是既有缺口（DAO-006） |
+| 机器验 | `oxlint apps/web`（42 files） | 0 warning / 0 error | — |
+| 结构验 | `nuxt.config.ts` 注册 `app/assets/css/resume.css`（131 行）；变量默认值集中在 `:root` | 通过；组件内 `var(..., fallback)` 已移除 | 未统计是否仍有残留 fallback（下次 lint/评审可加规则） |
+| 意图验 | dev server（`:4023`）抓 `/resume` | 200；`<body style="--resume-primary:#1578d0;…--resume-page:radial-gradient(…)"` → 变量确实注入 body；语义类出现（`resume-card` ×12、`resume-chip` ×136）；无告警 | **1920 / 1440 屏实际观感、深色主题、抽屉与弹窗跟随主题色，均未在浏览器目视** |
+| 意图验 | 同一次抓页的 `--resume-page` | 含 `radial-gradient` + `linear-gradient`，颜色由 `var(--resume-primary)` 与 `color-mix` 派生 → 随主题变化 | 深色档的渐变实际观感未看 |
+
+## 交接
+
+- 已完成：容器宽度与 split 侧栏对齐（`lg:320/360px`、`xl:380/420px`）；`main.css` 补通用约定（+56 行）；简历域样式收敛到 `resume.css`（131 行，变量默认值 + 语义类）；变量注入上移到 `<body>`；`app.config.ts` 收敛 Nuxt UI 覆写；页面底色改旧站式渐变；多数组件改为消费语义类（`ResumePageContainer` −93 行、`ResumeSectionCard`、`ResumeHeroCard` 等）。
+- 当前状态：`review-ready`
+- 阻塞：无。
+- 下一步第一刀：本卡无下一步。**留待浏览器目视的项**（1920/1440 观感、深色渐变、抽屉/弹窗主题色）建议与 `DAO-008` 遗留的 UI 目视一起做。
+- 文档锚点：`Issue #15`、`docs/dev/css-conventions.md`、`docs/dev/resume-styles.md`
+- 集成锚点：`见收口区`
+
+## 收口与沉淀
+
+- `dao-review` 结论：`可收口（质量门与 SSR 通过；浏览器目视项已显式留待）`
+- 最终验证证据：见上表（typecheck / oxlint / SSR body 变量与语义类断言）
+- Git / PR：`本地 squash，无 PR：c0828c5`
+- 常规提交：`292ac82`
+- Dao Commit：`不适用`
+- 沉淀候选：`候选观察` —— 「CSS 变量该注入 `<body>` 而不是内容容器」这条对"组件库会把浮层 teleport 到 body"的项目普遍成立；本项目在 Nuxt UI（`UModal` / `UDrawer`）上验证到。是否跨项目 / 跨框架成立（React + Headless UI / Radix 的 Portal 同理）值得观察。
+- 收口备注：本卡是**追记**——改动先于任务卡产生，说明"边做边记"在这类样式重构里仍会发生；流程上应避免，但补卡比不补好。
