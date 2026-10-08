@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`self-tested`
+- 状态：`review-ready`
 - Owner：`昇哥选定方案（Nuxt layer 不用 npm 包）、组件形态（抽屉为主 + Modal 窄屏退化）与 demos 位置（admin）`
 - 创建日期：`2026-10-07`
 - 卡号说明：`原为 DAO-012；并行分支 feat/18-resume-theme-custom 已占用该号（主题与自定义调色盘），本卡避让为 DAO-013`
@@ -17,6 +17,7 @@
 | `planned -> designed`     | 核实了 monorepo 现状（`packages/common` 只放纯 TS；admin 已有 `ModalResponsive` 但 web 用不到；两端都没 `extends`），Owner 选定三项 | Owner 确认 | 2026-10-07 |
 | `designed -> in-progress` | Issue #20 已建；分支 `feat/20-shared-ui-layer` 从 dev 开出                              | 归枢记录   | 2026-10-07 |
 | `in-progress -> self-tested` | layer 与两个组件完成；两端 typecheck、oxlint 通过；`/demos/overlay` SSR 正常、断点退化经真实浏览器验证 | 归枢记录 | 2026-10-07 |
+| `self-tested -> review-ready` | 交接包齐全；功能 + 文档两个提交本地 squash 合入 dev（`7b436c6`）；卡片避让为 DAO-013 | 归枢记录 | 2026-10-08 |
 
 ## Grill：开工前对齐
 
@@ -63,18 +64,19 @@
 ## 交接
 
 - 已完成：`packages/ui` layer 骨架（`package.json` / `nuxt.config.ts` / README）；`AppDrawer`、`AppModal`、`useNarrowScreen`、`cn`；两端 `extends` + Tailwind `@source`；admin demos 页与导航入口；layer 零运行时依赖。
-- 当前状态：`self-tested`（编码与验证完成，待提交）
+- 当前状态：`review-ready`（已合入 dev，等 Owner 判 `done`）
 - 阻塞：无。
-- 下一步第一刀：提交（layer+组件+demos / 文档 / 卡）并合回 dev，回填 Issue #20；之后另开一张卡做「现有浮层替换」。
+- 下一步第一刀：本卡无下一步（已集成）。后续可做：①「现有浮层替换」（web 3 处 + admin 4 处收敛到 AppDrawer / AppModal）；② `DAO-008` / `DAO-010` / `DAO-011` 遗留的浏览器目视。
 - 文档锚点：`Issue #20`、`packages/ui/README.md`、`docs/dev/layers.md`
-- 集成锚点：`待 feat/20-* -> dev`
+- 集成锚点：`已集成（7b436c6，本地 squash 合入 dev，未推远端）`
 
 ## 收口与沉淀
 
-- `dao-review` 结论：`未执行`
-- 最终验证证据：`待补`
-- Git / PR：`待补`
-- 常规提交：`待补`
+- `dao-review` 结论：`可收口（质量门 + SSR + 断点退化均通过）`
+- 最终验证证据：`见「执行与验证」表`
+- Git / PR：`本地 squash，无 PR：7b436c6`
+- 常规提交：`9e61ae9（feat）/ 316e4ad（docs）/ 改号提交`
 - Dao Commit：`不适用`
 - 沉淀候选：`候选观察` —— 「monorepo 里共享 Vue 组件该用 layer 而不是 npm 包」+ 「Tailwind v4 不扫 app 目录外，需要 `@source`」。两条都不是本仓特例，可能对其它 Nuxt monorepo 成立；React 侧对应物（workspace 包 + tailwind content 配置）值得在双仓闭环里对照。
+- 并行情况：合入时发现并行分支 `feat/18-resume-theme-custom`（Issue #18，主题模型改为「预设 × 明暗」）也建了一张 DAO-012，本卡因此避让为 DAO-013；两边改动文件几乎不重叠（对方在 resume 主题域，本卡在 packages/ui 与两端配置）。
 - 收口备注：本卡还验证了「共享 layer 能否零依赖」——`useNarrowScreen` 替代 `@vueuse/core` 后，layer 不需要任何 dependencies，也就不需要为它跑一次 `pnpm install`。
