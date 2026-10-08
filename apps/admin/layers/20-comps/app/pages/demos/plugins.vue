@@ -48,7 +48,7 @@ async function sendRequest() {
         公共插件层：统一请求层
         <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">$request</code>（ofetch）按
         <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">packages/common</code> 的 success / data / message
-        契约解包；上传仍用 <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">$alova</code>（Alova + XHR，待迁移为 colada mutation）。
+        契约解包；上传走 <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">原生 XHR + colada mutation</code>（fetch 拿不到进度与取消）。
       </p>
     </div>
 
@@ -95,25 +95,25 @@ async function sendRequest() {
       <template #header>
         <div>
           <p class="font-semibold">
-            $alova —— 上传专用（待迁移）
+            上传 —— 原生 XHR + colada mutation
           </p>
           <p class="text-sm text-muted">
-            plugins/alova.ts：XHR 适配器（可拿进度 + abort）；数据层统一到 colada 后替换为原生 XHR + mutation
+            apis/files.ts 的 uploadFiles 负责 XHR（进度 + abort）；useFileUploader 用 colada mutation 管状态
           </p>
         </div>
       </template>
 
       <div class="space-y-2 text-sm text-muted">
         <p>
-          用 XHR 而非 fetch，才能拿到 <code class="text-xs">onUpload</code> 进度并配合 <code class="text-xs">abort()</code>；
-          上传请求不可复用进行中的请求。
+          用 XHR 而非 fetch，才能拿到 <code class="text-xs">upload.onprogress</code> 进度并配合 <code class="text-xs">abort()</code>；
+          上传请求不可复用进行中的请求（否则进度会串）。
         </p>
         <p>
           实际用法见 <ULink to="/comps/upload" class="text-primary hover:underline">组件库 · Upload</ULink>
           页（<code class="text-xs">useFileUploader</code> / <code class="text-xs">uploadFiles</code>）。
         </p>
-        <pre class="overflow-auto rounded-lg bg-elevated p-3 text-xs">const alova = nuxtApp.$alova
-// 业务里推荐用 apis/files.ts 的 uploadFiles / createUploadMethod</pre>
+        <pre class="overflow-auto rounded-lg bg-elevated p-3 text-xs">import { uploadFiles } from '~/apis/files'
+// 组件里更推荐 useFileUploader（校验 + 进度 + 取消），见 /comps/upload</pre>
       </div>
     </UCard>
 

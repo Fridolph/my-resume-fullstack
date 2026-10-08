@@ -8,9 +8,9 @@ import type {
   FileUploadInput,
   ImageDimensionOptions,
 } from '~/utils/fileValidation'
-import { useUploader } from 'alova/client'
+import { useMutation } from '@pinia/colada'
 import { tryit } from 'radashi'
-import { createUploadMethod, toFileUploadProgress } from '~/apis/files'
+import { uploadFiles } from '~/apis/files'
 import {
   fileCountRule,
   fileSizeRule,
@@ -81,7 +81,7 @@ function toFilesModel<M extends boolean>(value: FileUploadInput, multiple: M): F
 }
 
 /**
- * 文件上传编排：可组合校验 + Alova useUploader + 对接 UFileUpload。
+ * 文件上传编排：可组合校验 + colada mutation（网络层为原生 XHR）+ 对接 UFileUpload。
  *
  * `files` 可直接作为 UFileUpload 的 v-model；插槽里的 open / removeFile 仍由组件提供。
  * 校验或请求失败会抛错（校验为 `FileUploadError`），不内置 toast；
@@ -106,31 +106,30 @@ export function useFileUploader<M extends boolean = false>(
   /** 最近一次校验失败；通过则为 null */
   const issue = ref<FileRuleIssue | null>(null)
 
-  const {
-    progress: alovaProgress,
-    appendFiles,
-    removeFiles,
-    upload: runUpload,
-    abort: abortUpload,
-  } = useUploader(
-    (fileItems: { file: File, name: string }[]) => createUploadMethod(
-      fileItems.map(item => item.file),
-      toValue(options.contentType) ?? DEFAULT_CONTENT_TYPE,
-    ),
-    {
-      mode: 'batch' as const,
-      replaceSrc: (data, index) => {
-        const list = Array.isArray(data) ? data as UploadedFile[] : []
-        return list[index]?.originalFilePath || ''
-      },
-    },
-  )
+  /** 当前上传的取消句柄：上传不可复用进行中的请求，否则进度 / 取消会对错文件 */
+  const abortController = shallowRef<AbortController | null>(null)
 
-  watch(alovaProgress, (nextProgress) => {
-    const next = toFileUploadProgress(nextProgress.uploaded, nextProgress.total)
-    progress.value = next
-    options.onProgress?.(next)
-  }, { deep: true })
+  /**
+   * 上传走 colada mutation（数据层统一在 colada），但**网络层是原生 XHR** ——
+   * `fetch` 拿不到进度、也不能取消请求体（见 `apis/files.ts` 的 `uploadFiles`）。
+   * 进度与取消由 XHR + `AbortController` 提供，状态与失效交给 colada。
+   */
+  const uploadMutation = useMutation({
+    mutation: async (payload: { files: File[], contentType: number }) => {
+      abortController.value?.abort()
+      const controller = new AbortController()
+      abortController.value = controller
+
+      return await uploadFiles(payload.files, {
+        contentType: payload.contentType,
+        signal: controller.signal,
+        onProgress: (next) => {
+          progress.value = next
+          options.onProgress?.(next)
+        },
+      })
+    },
+  })
 
   /** 把快捷配置（accept / maxFileSize 等）转成规则，再拼上自定义 `rules` */
   function resolveRules(): FileRule[] {
@@ -193,7 +192,8 @@ export function useFileUploader<M extends boolean = false>(
 
   /** 取消当前上传；用户取消不视为错误 */
   function abort() {
-    void abortUpload()
+    abortController.value?.abort()
+    abortController.value = null
   }
 
   function resetProgress() {
@@ -201,7 +201,7 @@ export function useFileUploader<M extends boolean = false>(
   }
 
   /**
-   * 校验通过后走 Alova `useUploader` 批量上传。
+   * 校验通过后走 colada mutation 批量上传（进度 / 取消由 XHR 提供）。
    * 也可作为 UFileUpload 的 `@update:model-value` 处理函数（不要绑 `@change`）。
    */
   async function upload(input: FileUploadInput = files.value): Promise<UploadedFile[] | null> {
@@ -211,32 +211,19 @@ export function useFileUploader<M extends boolean = false>(
     }
 
     abort()
-    removeFiles()
     uploading.value = true
     error.value = null
     resetProgress()
 
-    const [err, result] = await tryit(async () => {
-      await appendFiles(checked.files.map(file => ({ file })))
-      const uploadedResult = await runUpload()
-
-      if (uploadedResult instanceof Error) {
-        if (isAbortError(uploadedResult)) {
-          return null
-        }
-        throw uploadedResult
-      }
-
-      if (!isUploadedFileList(uploadedResult)) {
-        throw new Error('Upload failed')
-      }
-
-      return uploadedResult
-    })()
+    const [err, result] = await tryit(() => uploadMutation.mutateAsync({
+      files: checked.files,
+      contentType: toValue(options.contentType) ?? DEFAULT_CONTENT_TYPE,
+    }))()
 
     uploading.value = false
 
     if (err) {
+      // 用户取消不算失败
       if (isAbortError(err)) {
         error.value = null
         return null
@@ -246,9 +233,10 @@ export function useFileUploader<M extends boolean = false>(
       throw err
     }
 
-    if (!result) {
-      error.value = null
-      return null
+    if (!isUploadedFileList(result)) {
+      const invalid = new Error('Upload failed')
+      error.value = invalid
+      throw invalid
     }
 
     progress.value = { ...progress.value, percent: 100 }
@@ -272,7 +260,6 @@ export function useFileUploader<M extends boolean = false>(
   /** 取消进行中的请求，并清空选择、进度、错误与已上传结果 */
   function reset() {
     abort()
-    removeFiles()
     files.value = toFilesModel(null, multiple)
     uploaded.value = []
     issue.value = null

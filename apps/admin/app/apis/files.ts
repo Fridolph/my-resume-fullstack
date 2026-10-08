@@ -1,6 +1,4 @@
 import type { UploadedFile } from '~/types/file'
-import { tryit } from 'radashi'
-import { isAbortError } from '~/utils/request'
 
 /** 上传进度；`percent` 为 0–100 的整数 */
 export interface FileUploadProgress {
@@ -17,6 +15,13 @@ export interface UploadFilesOptions {
   signal?: AbortSignal
   /** 上传进度回调 */
   onProgress?: (progress: FileUploadProgress) => void
+}
+
+/** 上传响应的宽松形状：后端 upload 接口尚未定稿，只做最小假设（对齐 packages/common 字段名） */
+interface UploadResponsePayload {
+  success?: boolean
+  message?: string
+  data?: unknown
 }
 
 /** 与历史 FileApi 默认值对齐 */
@@ -44,52 +49,92 @@ export function toUploadFormData(input: FormData | File | File[]): FormData {
   return formData
 }
 
-export function createUploadMethod(input: FormData | File | File[], contentType = DEFAULT_CONTENT_TYPE) {
-  const formData = toUploadFormData(input)
-  return useNuxtApp().$alova.Post(UPLOAD_PATH, formData, {
-    params: { contentType },
-    cacheFor: null,
-  })
+function uploadUrl(contentType: number): string {
+  const apiBase = String(useRuntimeConfig().public.apiBase || '').replace(/\/$/, '')
+  return `${apiBase}${UPLOAD_PATH}?contentType=${encodeURIComponent(String(contentType))}`
+}
+
+/** 按 `{ success, data, message }`（packages/common）解包；字符串响应先 JSON.parse */
+function unwrapUploadResponse(responseText: string, status: number): UploadedFile[] {
+  let payload: UploadResponsePayload
+  try {
+    payload = JSON.parse(responseText || '{}') as UploadResponsePayload
+  }
+  catch {
+    throw new Error('Upload failed')
+  }
+
+  const httpOk = status >= 200 && status < 300
+  if (httpOk && payload.success === true) {
+    return Array.isArray(payload.data) ? (payload.data as UploadedFile[]) : []
+  }
+
+  throw new Error(payload.message || 'Request failed')
 }
 
 /**
- * 独立上传请求：不走校验与 toast，支持进度与取消。
- * 可直接传入 FormData、单个 File 或 File[]。
+ * 上传文件：**刻意用原生 XHR**（不是 fetch）。
+ *
+ * `fetch` 拿不到上传进度，也无法取消一个已发出的请求体；XHR 的 `upload.onprogress`
+ * 与 `abort()` 才能同时满足「进度条」与「取消」。这与数据层其余部分并不冲突：
+ * 进度 / 取消属于 XHR 的能力，状态与失效由 colada mutation 负责（见 `useFileUploader`）。
+ *
+ * 可直接传入 FormData、单个 File 或 File[]。用户取消时抛 `AbortError`。
  */
-export async function uploadFiles(
+export function uploadFiles(
   input: FormData | File | File[],
   options: UploadFilesOptions = {},
 ): Promise<UploadedFile[]> {
   const { contentType = DEFAULT_CONTENT_TYPE, signal, onProgress } = options
-  const method = createUploadMethod(input, contentType)
-  const off = method.onUpload(({ loaded, total }: { loaded: number, total: number }) => {
-    onProgress?.(toFileUploadProgress(loaded, total))
+
+  return new Promise<UploadedFile[]>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException('The operation was aborted.', 'AbortError'))
+      return
+    }
+
+    const xhr = new XMLHttpRequest()
+    let handleAbort = () => {}
+    const cleanup = () => signal?.removeEventListener('abort', handleAbort)
+
+    handleAbort = () => xhr.abort()
+    signal?.addEventListener('abort', handleAbort, { once: true })
+
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        onProgress?.(toFileUploadProgress(event.loaded, event.total))
+      }
+    })
+
+    xhr.addEventListener('abort', () => {
+      cleanup()
+      reject(new DOMException('The operation was aborted.', 'AbortError'))
+    })
+
+    xhr.addEventListener('error', () => {
+      cleanup()
+      reject(new Error('Upload failed'))
+    })
+
+    xhr.addEventListener('load', () => {
+      cleanup()
+      try {
+        resolve(unwrapUploadResponse(xhr.responseText, xhr.status))
+      }
+      catch (err) {
+        reject(err)
+      }
+    })
+
+    xhr.open('POST', uploadUrl(contentType), true)
+    xhr.send(toUploadFormData(input))
   })
-
-  const onAbort = () => {
-    void method.abort()
-  }
-  if (signal) {
-    if (signal.aborted) {
-      throw new DOMException('The operation was aborted.', 'AbortError')
-    }
-    signal.addEventListener('abort', onAbort, { once: true })
-  }
-
-  const [err, result] = await tryit(() => method.send())()
-  off()
-  signal?.removeEventListener('abort', onAbort)
-
-  if (err) {
-    if (signal?.aborted || isAbortError(err)) {
-      throw new DOMException('The operation was aborted.', 'AbortError')
-    }
-    throw err
-  }
-
-  return Array.isArray(result) ? result as UploadedFile[] : []
 }
 
+/**
+ * 兼容旧调用（`useUploadFile` 等仍在使用）。
+ * 新代码请直接用 `uploadFiles`，或在组件里用 `useFileUploader`（带校验与进度状态）。
+ */
 export function uploadFile(body: FormData, contentType = { contentType: 1 }): Promise<UploadedFile[]> {
   return uploadFiles(body, { contentType: contentType.contentType })
 }

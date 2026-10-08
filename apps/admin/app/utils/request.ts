@@ -6,7 +6,7 @@ export function isAbortError(err: unknown): boolean {
     || (err instanceof Error && err.name === 'AbortError')) {
     return true
   }
-  // Alova / XHR 有时只把 abort 写在 message 里
+  // XHR 有时只把 abort 写在 message 里
   const message = err instanceof Error ? err.message : String(err || '')
   return /abort/i.test(message)
 }
