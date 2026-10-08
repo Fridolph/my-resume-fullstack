@@ -163,6 +163,18 @@ definePageMeta({
 
 > 注：路由用 `comps`（`pages/comps/`），不用 `components`——`components` 是 Nuxt 保留目录，会导致路由 404。
 
+### comps 与 demos 怎么分
+
+两个目录都是展示页，但分层不同（2026-10-08 明确）：
+
+- **`/comps/<name>` —— 单一组件**：解释「**一个**组件怎么用」，包含它的各种变体（方向 / 尺寸 / 插槽）。
+  同源的一组组件可以同居一个页（如 `ModalConfirm` / `ModalDeleteConfirm` / `ModalResponsive` 在 `/comps/modal`）。
+  **共享组件（`packages/ui`）的示例也放这里** —— 例：`AppDrawer` / `AppModal` 在 `/comps/overlay`。
+- **`/demos/<name>` —— 组合场景**：**两个以上组件协作**出来的、带一点业务语义的页
+  （如 `/demos/pdf-review`、`/demos/layout-editor`、`/demos/options-tabs`）。
+
+判断口径：**这一页在解释「一个组件怎么用」还是「一组组件怎么协作」**。单一组件即使变体很多，也归 `comps`。
+
 当前已落地：
 - 弹窗：`ModalConfirm`（确认）、`ModalDeleteConfirm`（删除确认 + 倒计时防误删）、`ModalResponsive`（响应式 Modal/Drawer）、`ModalForbidden`（无权限提示）。
 - 加载：`LoadersColorSpin`（区域加载，放 `relative` 容器内居中；`size` 控制直径）；骨架屏后续 `LoadersSkeleton`。
@@ -181,6 +193,7 @@ definePageMeta({
 | `TourSpotlight` / `TourSpotlightStep` | `/comps/tour`、`/comps/tour-light` | ✅ |
 | `PermissionWrapper` | `/comps/permission-wrapper` | ✅ |
 | `PdfPage` / `PdfCover` / `PdfCoverSheet` / `PdfDocVnode` | `/demos/pdf-review` | ✅ |
+| `AppDrawer` / `AppModal`（`packages/ui` 共享 layer） | `/comps/overlay` | ✅ |
 | `TextEditor` | `/comps/text-editor` | 🚧 进行中 |
 
 **新增一个 comp demo 的三步核对**：
