@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import type { ResumeLayoutMode, ResumeSectionKey } from '#layers/public-resume/app/types/resume'
 import { resumeSectionDefinitions } from '#layers/public-resume/app/config/resume-sections'
+import type { ResumeThemeColorKey } from '#layers/public-resume/app/types/resume'
 import {
+  RESUME_CUSTOM_THEME,
   resumeBackgroundPresets,
   resumeStylePresets,
+  resumeThemeFields,
   resumeThemePresets,
 } from '#layers/public-resume/app/mock/resume-display'
 import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
@@ -24,6 +27,8 @@ const {
   toggleStickySide,
   setSideWidth,
   applyTheme,
+  applyCustomTheme,
+  setThemeField,
   setStyle,
   setTexture,
   setBackgroundType,
@@ -39,6 +44,14 @@ const layoutModes: { value: ResumeLayoutMode, label: string, icon: string }[] = 
 
 function isHidden(key: ResumeSectionKey) {
   return config.value.sections.hidden.includes(key)
+}
+
+/** 当前是否「自定义」主题 —— 只有它开放逐项编辑 */
+const isCustomTheme = computed(() => config.value.theme.id === RESUME_CUSTOM_THEME.id)
+
+/** 调色盘读取当前生效值 */
+function themeValue(key: ResumeThemeColorKey): string {
+  return config.value.theme[key]
 }
 </script>
 
@@ -94,7 +107,7 @@ function isHidden(key: ResumeSectionKey) {
         </div>
       </section>
 
-      <!-- 主题（配色） -->
+      <!-- 主题（配色）：预设 + 调色盘 -->
       <section class="space-y-2">
         <p class="resume-label">主题</p>
         <div class="resume-btn-group">
@@ -107,6 +120,69 @@ function isHidden(key: ResumeSectionKey) {
             :variant="config.theme.id === preset.id ? 'solid' : 'outline'"
             @click="applyTheme(preset)"
           />
+          <UButton
+            size="xs"
+            :label="RESUME_CUSTOM_THEME.label"
+            :icon="isCustomTheme ? 'i-lucide-pipette' : undefined"
+            :color="isCustomTheme ? 'primary' : 'neutral'"
+            :variant="isCustomTheme ? 'solid' : 'outline'"
+            @click="applyCustomTheme"
+          />
+        </div>
+
+        <!-- 调色盘：预设态只读（能看色值），自定义态可逐项改 -->
+        <div class="grid gap-1 pt-1">
+          <div
+            v-for="field in resumeThemeFields"
+            :key="field.key"
+            class="flex items-center gap-2"
+          >
+            <span
+              class="size-4 shrink-0 rounded border"
+              :style="{ background: themeValue(field.key), borderColor: 'var(--resume-border)' }"
+            />
+            <span class="resume-muted w-14 shrink-0 text-xs">{{ field.label }}</span>
+
+            <template v-if="isCustomTheme">
+              <UInput
+                size="xs"
+                class="min-w-0 flex-1"
+                :model-value="themeValue(field.key)"
+                @update:model-value="setThemeField(field.key, String($event))"
+              />
+              <UPopover>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-pipette"
+                  :aria-label="`选择${field.label}`"
+                />
+                <template #content>
+                  <UColorPicker
+                    size="xs"
+                    :model-value="themeValue(field.key)"
+                    @update:model-value="setThemeField(field.key, $event ?? '')"
+                  />
+                </template>
+              </UPopover>
+            </template>
+            <code v-else class="resume-muted min-w-0 truncate text-xs">{{ themeValue(field.key) }}</code>
+          </div>
+        </div>
+
+        <!-- 明暗：预设自带，自定义才可切 -->
+        <div class="flex items-center gap-2 pt-1">
+          <UButton
+            v-if="isCustomTheme"
+            size="xs"
+            :icon="config.theme.dark ? 'i-lucide-moon' : 'i-lucide-sun'"
+            :label="config.theme.dark ? '深色底' : '浅色底'"
+            :color="config.theme.dark ? 'primary' : 'neutral'"
+            :variant="config.theme.dark ? 'soft' : 'outline'"
+            @click="setThemeField('dark', !config.theme.dark)"
+          />
+          <span v-else class="resume-muted text-xs">预设只读；切到「自定义」后可逐项改</span>
         </div>
       </section>
 

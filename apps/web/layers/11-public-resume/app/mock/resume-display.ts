@@ -2,6 +2,7 @@ import type {
   ResumeBackgroundPreset,
   ResumeDisplayConfig,
   ResumeStyleId,
+  ResumeThemeColorKey,
   ResumeThemeConfig,
 } from '#layers/public-resume/app/types/resume'
 
@@ -17,16 +18,73 @@ export const resumeStylePresets: { id: ResumeStyleId, label: string, icon: strin
 ]
 
 /**
- * 主题预设（合并式：一套预设自带明暗与配色）。
+ * 主题预设（合并式：一套预设自带明暗与全部颜色）。
+ *
+ * 颜色**写全**，与「自定义」主题字段完全一致 —— 自定义就是复制当前值再逐项改，
+ * 所以不能靠 `dark` 派生颜色。
  *
  * 与 admin 的 `useResumeLayout`（`RESUME_THEME_PRESETS`）字段保持同构，
  * 便于后续「admin 选主题 → web 渲染」直接复用，不用各写一份映射。
  */
 export const resumeThemePresets: ResumeThemeConfig[] = [
-  { id: 'light', label: '简约白', primary: '#1578d0', gradientFrom: '#1578d0', gradientTo: '#3ec064', dark: false },
-  { id: 'forest', label: '绿色清新', primary: '#2f9e63', gradientFrom: '#2f9e63', gradientTo: '#7ac943', dark: false },
-  { id: 'business', label: '蓝色商务', primary: '#1d4ed8', gradientFrom: '#1d4ed8', gradientTo: '#0ea5e9', dark: false },
-  { id: 'night', label: '深色科技', primary: '#22d3ee', gradientFrom: '#22d3ee', gradientTo: '#6366f1', dark: true },
+  {
+    id: 'light',
+    label: '蓝色简约',
+    dark: false,
+    primary: '#1578d0',
+    gradientFrom: '#1578d0',
+    gradientTo: '#3ec064',
+    surface: '#ffffff',
+    text: '#0f172a',
+    muted: '#64748b',
+    border: '#e2e8f0',
+    chipBg: '#f1f5f9',
+    chipText: '#334155',
+  },
+  {
+    id: 'forest',
+    label: '绿色清新',
+    dark: false,
+    primary: '#2f9e63',
+    gradientFrom: '#2f9e63',
+    gradientTo: '#7ac943',
+    surface: '#ffffff',
+    text: '#0f172a',
+    muted: '#64748b',
+    border: '#e2e8f0',
+    chipBg: '#f1f5f9',
+    chipText: '#334155',
+  },
+  {
+    id: 'night',
+    label: '深色科技',
+    dark: true,
+    primary: '#22d3ee',
+    gradientFrom: '#22d3ee',
+    gradientTo: '#6366f1',
+    surface: '#111827',
+    text: '#e5e7eb',
+    muted: '#94a3b8',
+    border: '#1f2937',
+    chipBg: '#1f2937',
+    chipText: '#e2e8f0',
+  },
+]
+
+/** 「自定义」主题的 id / 标签：切到它时复制当前配色，之后逐项微调 */
+export const RESUME_CUSTOM_THEME = { id: 'custom', label: '自定义' } as const
+
+/** 调色盘展示 / 编辑的项目（顺序即面板中的顺序） */
+export const resumeThemeFields: { key: ResumeThemeColorKey, label: string }[] = [
+  { key: 'primary', label: '主色' },
+  { key: 'gradientFrom', label: '渐变起' },
+  { key: 'gradientTo', label: '渐变止' },
+  { key: 'surface', label: '纸面' },
+  { key: 'text', label: '正文' },
+  { key: 'muted', label: '次要文字' },
+  { key: 'border', label: '边框' },
+  { key: 'chipBg', label: '标签底' },
+  { key: 'chipText', label: '标签字' },
 ]
 
 /** 噪点纹理：体积极小的 SVG data-URI（`#` 已编码为 `%23`） */

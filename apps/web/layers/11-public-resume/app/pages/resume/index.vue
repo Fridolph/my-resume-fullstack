@@ -139,12 +139,13 @@ const resumeVars = computed(() => {
         ? 'linear-gradient(180deg, #020617 0%, #0f172a 100%)'
         : 'linear-gradient(180deg, color-mix(in srgb, var(--resume-primary) 3%, #f7f9fe) 0%, color-mix(in srgb, var(--resume-primary) 6%, #eef3fb) 100%)',
     ].join(', '),
-    '--resume-surface': theme.dark ? 'rgb(17 24 39)' : 'rgb(255 255 255)',
-    '--resume-border': theme.dark ? 'rgb(31 41 55)' : 'rgb(226 232 240)',
-    '--resume-text': theme.dark ? 'rgb(229 231 235)' : 'rgb(15 23 42)',
-    '--resume-muted': theme.dark ? 'rgb(148 163 184)' : 'rgb(100 116 139)',
-    '--resume-chip-bg': theme.dark ? 'rgb(31 41 55)' : 'rgb(241 245 249)',
-    '--resume-chip-text': theme.dark ? 'rgb(226 232 240)' : 'rgb(51 65 85)',
+    // 这些颜色是主题的显式字段（「自定义」主题可逐项编辑），不再由 dark 派生
+    '--resume-surface': theme.surface,
+    '--resume-border': theme.border,
+    '--resume-text': theme.text,
+    '--resume-muted': theme.muted,
+    '--resume-chip-bg': theme.chipBg,
+    '--resume-chip-text': theme.chipText,
 
     // ── 风格（外观参数）──
     '--resume-card-radius': standard ? '1.5rem' : '1rem',

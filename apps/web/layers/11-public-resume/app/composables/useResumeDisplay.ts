@@ -8,7 +8,11 @@ import type {
   ResumeStyleId,
   ResumeThemeConfig,
 } from '#layers/public-resume/app/types/resume'
-import { resumeDisplayMock } from '#layers/public-resume/app/mock/resume-display'
+import {
+  RESUME_CUSTOM_THEME,
+  resumeDisplayMock,
+  resumeThemePresets,
+} from '#layers/public-resume/app/mock/resume-display'
 
 const STORAGE_KEY = 'my-resume.display-config'
 
@@ -21,6 +25,20 @@ export type ResumeSaveState = 'idle' | 'pending' | 'saved'
 /** 深拷贝一份默认配置：避免多个请求 / 多次挂载共享同一个对象 */
 function createDefaultConfig(): ResumeDisplayConfig {
   return structuredClone(resumeDisplayMock)
+}
+
+/**
+ * 旧版本地配置的主题迁移。
+ *
+ * 主题颜色曾由 `dark` 派生，后来改成显式字段（为了支持「自定义」逐项编辑），
+ * 所以从 localStorage 读到的旧配置可能缺字段：缺就用同 id 预设补全；
+ * id 已不存在（如已删除的「蓝色商务」）则回退到首个预设。
+ */
+function normalizeTheme(theme: Partial<ResumeThemeConfig> | undefined): ResumeThemeConfig {
+  const preset
+    = resumeThemePresets.find((item) => item.id === theme?.id) ?? resumeThemePresets[0]!
+
+  return { ...preset, ...theme }
 }
 
 /**
@@ -112,6 +130,21 @@ export function useResumeDisplay() {
   // ── 主题 / 背景 ───────────────────────────────────────
   function applyTheme(preset: ResumeThemeConfig) {
     config.value.theme = { ...preset }
+  }
+
+  /**
+   * 切到「自定义」：把当前配色复制一份再换 id。
+   *
+   * 这样从任意预设出发都能接着微调，而不是从空白开始；
+   * 切回预设时自定义的那份值不再保留（用户预期是"看预设长什么样"）。
+   */
+  function applyCustomTheme() {
+    config.value.theme = { ...config.value.theme, ...RESUME_CUSTOM_THEME }
+  }
+
+  /** 改主题里的单个值（面板仅在自定义主题下开放编辑） */
+  function setThemeField<K extends keyof ResumeThemeConfig>(key: K, value: ResumeThemeConfig[K]) {
+    config.value.theme = { ...config.value.theme, [key]: value }
   }
   function setBackgroundType(type: ResumeBackgroundType) {
     config.value.background.type = type
@@ -238,7 +271,10 @@ export function useResumeDisplay() {
     }
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
-      config.value = JSON.parse(raw) as ResumeDisplayConfig
+      const parsed = JSON.parse(raw) as ResumeDisplayConfig
+      // 旧配置可能缺主题字段，补全后再使用（见 normalizeTheme）
+      parsed.theme = normalizeTheme(parsed.theme)
+      config.value = parsed
     }
     // 恢复数据本身不算"待保存的改动"
     saveState.value = 'idle'
@@ -260,6 +296,8 @@ export function useResumeDisplay() {
     // 品牌 / 主题 / 背景
     setBrand,
     applyTheme,
+    applyCustomTheme,
+    setThemeField,
     setBackgroundType,
     setTexture,
     setBackgroundImage,

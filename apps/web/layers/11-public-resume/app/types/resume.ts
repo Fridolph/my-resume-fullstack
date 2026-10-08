@@ -174,18 +174,47 @@ export interface ResumeDisplayOptions {
   showAchievements: boolean
 }
 
-/** 主题配置：最终下发为 CSS 变量（--resume-primary 等） */
+/**
+ * 主题配置：最终下发为 CSS 变量（`--resume-*`）。
+ *
+ * 颜色字段**全部显式存值**（不再由 `dark` 派生），因为「自定义」主题允许逐项编辑；
+ * `dark` 只承载「明暗语义」，决定页面底色渐变与背景遮罩这一层。
+ */
 export interface ResumeThemeConfig {
   id: string
   label: string
+  /** 是否为深色主题（决定页面底色渐变与背景遮罩） */
+  dark: boolean
   /** 主色 */
   primary: string
   /** 渐变起止（头像 / 强调块） */
   gradientFrom: string
   gradientTo: string
-  /** 是否为深色主题（决定纸面与文字色） */
-  dark: boolean
+  /** 纸面 / 卡片底色 */
+  surface: string
+  /** 正文色 */
+  text: string
+  /** 次要文字色 */
+  muted: string
+  /** 边框色 */
+  border: string
+  /** 标签底色 */
+  chipBg: string
+  /** 标签文字色 */
+  chipText: string
 }
+
+/** 调色盘可编辑的颜色字段（不含 `dark` / `id` / `label`） */
+export type ResumeThemeColorKey
+  = | 'primary'
+    | 'gradientFrom'
+    | 'gradientTo'
+    | 'surface'
+    | 'text'
+    | 'muted'
+    | 'border'
+    | 'chipBg'
+    | 'chipText'
 
 /** 展示布局配置（admin 生成、web 只读渲染） */
 export type ResumeBackgroundType = 'plain' | 'texture' | 'image'
