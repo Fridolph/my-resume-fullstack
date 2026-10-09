@@ -3,7 +3,7 @@ import type { ApiErrorBody } from '~/types/api'
 /**
  * 请求上下文与统一错误工具。
  *
- * 与 `apps/admin` 保持同一份实现（见 docs/dev/data-layer.md）：
+ * 与 `apps/admin` 保持同一份实现（见 docs/web/04_数据层_约定.md）：
  * 第三次出现同款实现时，再考虑抽到 `packages/*` 共享。
  */
 
@@ -40,13 +40,15 @@ export function buildRequestHeaders(ctx: { token?: string | null }): Record<stri
 /** 归一化后的错误载荷 */
 export interface ApiErrorPayload {
   message?: string
+  /** 后端业务码（`packages/common` 的 `code`） */
+  code?: number
   statusCode?: number
   data?: unknown
 }
 
 /** 把后端错误包装成可读的 ApiError，调用方可以读 statusCode / data */
 export function createApiError(payload: ApiErrorPayload) {
-  const statusCode = payload.statusCode
+  const statusCode = payload.code
   const message = payload.message || 'Request failed'
   const label = statusCode != null ? `[API ${statusCode}] ${message}` : `[API] ${message}`
   const error = new Error(label) as Error & {
@@ -88,7 +90,7 @@ export function getApiErrorMessage(err: unknown, fallback = 'Error') {
 
 /** 按状态码触发 Nuxt hook，方便全局弹 toast / 跳登录 */
 export async function applyApiErrorHooks(payload: ApiErrorBody, nuxtApp: ReturnType<typeof useNuxtApp>) {
-  const statusCode = Number(payload.statusCode)
+  const statusCode = Number(payload.code)
   const known = [400, 401, 403, 404, 500, 502, 503, 504]
   const hook = (known.includes(statusCode) ? `api:error:${statusCode}` : 'api:error') as any
   await nuxtApp.callHook(hook, payload as any)

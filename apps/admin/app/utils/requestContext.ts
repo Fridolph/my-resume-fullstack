@@ -5,7 +5,7 @@ import type { ApiErrorBody } from '~/types/api'
  *
  * 职责：
  * - 鉴权 token 的存放约定与请求头组装
- * - 把后端 `{ success, message, statusCode }` 归一化成可读的 `ApiError`
+ * - 把后端 `{ code, message }` 归一化成可读的 `ApiError`
  * - 按状态码触发 Nuxt hook，方便全局弹 toast / 跳登录
  *
  * 说明：my-resume 只有一个后端，没有多分区 host；模板遗留的
@@ -45,13 +45,15 @@ export function buildRequestHeaders(ctx: { token?: string | null }): Record<stri
 /** 归一化后的错误载荷 */
 export interface ApiErrorPayload {
   message?: string
+  /** 后端业务码（`packages/common` 的 `code`） */
+  code?: number
   statusCode?: number
   data?: unknown
 }
 
 /** 把后端错误包装成可读的 ApiError，调用方可以读 statusCode / data */
 export function createApiError(payload: ApiErrorPayload) {
-  const statusCode = payload.statusCode
+  const statusCode = payload.code
   const message = payload.message || 'Request failed'
   const label = statusCode != null ? `[API ${statusCode}] ${message}` : `[API] ${message}`
   const error = new Error(label) as Error & {
@@ -93,7 +95,7 @@ export function getApiErrorMessage(err: unknown, fallback = 'Error') {
 
 /** 按状态码触发 Nuxt hook，方便全局弹 toast / 跳登录 */
 export async function applyApiErrorHooks(payload: ApiErrorBody, nuxtApp: ReturnType<typeof useNuxtApp>) {
-  const statusCode = Number(payload.statusCode)
+  const statusCode = Number(payload.code)
   const known = [400, 401, 403, 404, 500, 502, 503, 504]
   const hook = (known.includes(statusCode) ? `api:error:${statusCode}` : 'api:error') as any
   await nuxtApp.callHook(hook, payload as any)
