@@ -32,9 +32,12 @@ const statusText = computed(() => {
   <MyDrawer
     v-model:open="open"
     :ui="{
-      root: 'p-0',
+      root: 'p-0!',
       content: 'w-150!',
+      container: 'p-4',
+      header: 'pb-2 border-b border-gray-200',
     }"
+    :handle="false"
     direction="right"
     title="展示设置"
     description="布局 / 风格 / 主题 / 背景 / 区块显隐"
@@ -43,30 +46,21 @@ const statusText = computed(() => {
       <div class="flex w-full items-start justify-between gap-3">
         <div class="min-w-0">
           <p class="resume-text text-sm font-semibold">展示设置</p>
-          <p class="resume-muted mt-0.5 text-xs">
-            布局 / 风格 / 主题 / 背景 / 区块显隐 —— 改动会自动保存
-          </p>
+          <p class="resume-muted mt-0.5 text-xs">布局 / 风格 / 主题 / 背景 / 区块显隐 —— 改动会自动保存</p>
         </div>
-        <UButton
-          size="xs"
-          color="neutral"
-          variant="ghost"
-          icon="i-lucide-x"
-          aria-label="关闭"
-          @click="open = false"
-        />
+        <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-x" aria-label="关闭" @click="open = false" />
       </div>
     </template>
 
     <ResumeSettingsPanel />
 
     <template #footer>
-      <div class="flex w-full items-center justify-between gap-2">
-        <span class="resume-muted text-xs">{{ statusText }}</span>
+      <div class="flex w-full items-center justify-between gap-2 border-t border-gray-200 pt-2">
         <div class="flex gap-2">
-          <UButton color="neutral" variant="ghost" label="重置" @click="reset" />
           <UButton label="确认" @click="open = false" />
+          <UButton color="neutral" variant="outline" label="重置" @click="reset" />
         </div>
+        <span class="resume-muted text-xs">{{ statusText }}</span>
       </div>
     </template>
   </MyDrawer>
