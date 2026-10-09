@@ -9,7 +9,7 @@ import { TOKEN_COOKIE_KEY } from '@template/common'
  *
  * 三个关键决定（见 `docs/dev/02_身份与权限_设计.md` §2.3 / §3.2）：
  *
- * 1. **持久化用 cookie**（`my-resume.token`，与请求层 `$request` 注入 `Authorization` 是同一个键）
+ * 1. **持久化用 cookie**（`my-resume.token`，与请求层 `$api` 注入 `Authorization` 是同一个键）
  *    —— cookie 在 SSR 阶段就能读到，首屏直出真实身份，从根上消除"水合后跳一下"。
  * 2. **共享状态用 `useState`**：每次调用返回同一个 ref。若每个组件各自 `useCookie()`，
  *    会拿到互不同步的 ref（A 组件改了 B 组件不知道）。

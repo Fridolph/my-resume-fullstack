@@ -1,5 +1,5 @@
 /**
- * 跨端共享的 API 契约类型（前端 `$request` / `httpRequest` 与后端 `apps/api` 共用）。
+ * 跨端共享的 API 契约类型（前端 `$api` 与后端 `apps/api` 共用）。
  *
  * ## 唯一形状
  *

@@ -4,7 +4,7 @@
  * 参照的返回样例：`{ code, data: { token, refreshToken, oswUserInfo, oswCompanyInfo, permissionList }, msg, traceId }`
  *
  * ⚠️ 与本项目现有响应包装（`{ success, data, message, timestamp }`，见 `packages/common`）不同：
- * 本轮**只在 auth mock 层**采用后端形状，不动 `$request` 与 `packages/common` ——
+ * 本轮**只在 auth mock 层**采用后端形状，不动 `$api` 与 `packages/common` ——
  * 那两者是全局契约，改动会影响所有现有调用；等 P2 真接后端时再统一（记在文档「待统一」里）。
  */
 
