@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { useResumeAdmin } from '#layers/public-resume/app/composables/useResumeAdmin'
-
 /**
  * 管理员登录弹窗（**本地 mock**）。
  *
  * 弹窗自己声明清楚"这不是鉴权"，避免后来者误以为这里提供了保护。
  */
 const open = defineModel<boolean>('open', { default: false })
-const { signIn, mockHint } = useResumeAdmin()
+const { signIn, mockHint } = useAuthState()
 
 const form = reactive({ username: '', password: '' })
 const errorMessage = ref('')
@@ -27,7 +25,7 @@ function submit() {
 </script>
 
 <template>
-  <UModal v-model:open="open" title="管理员登录">
+  <UModal v-model:open="open" title="登录">
     <template #body>
       <div class="space-y-4">
         <UAlert
@@ -35,7 +33,7 @@ function submit() {
           variant="subtle"
           icon="i-lucide-shield-alert"
           title="本地 mock 登录，不是鉴权"
-          :description="`${mockHint}。账号密码写在前端、任何人可绕过，仅用于把「登录 → 编辑 → 保存」这条流程跑通。接入后端 auth 后会替换掉这里。`"
+          :description="`${mockHint}。账号密码写在前端、任何人可绕过，仅用于把「游客 / 普通用户 / 管理员」三种身份跑通；接入后端 auth 后会替换掉这里。`"
         />
 
         <UFormField label="账号" name="username">

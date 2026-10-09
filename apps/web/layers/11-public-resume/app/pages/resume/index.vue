@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import ResumeLoginButton from '#layers/public-resume/app/components/resume/ResumeLoginButton.vue'
+import ResumeAccountMenu from '#layers/public-resume/app/components/resume/ResumeAccountMenu.vue'
 import ResumePageContainer from '#layers/public-resume/app/components/resume/ResumePageContainer.vue'
 import ResumePageHeader from '#layers/public-resume/app/components/resume/ResumePageHeader.vue'
 import ResumeSectionEditorDrawer from '#layers/public-resume/app/components/resume/ResumeSectionEditorDrawer.vue'
 import ResumeSettingsDrawer from '#layers/public-resume/app/components/resume/ResumeSettingsDrawer.vue'
 import { getSectionDefinition } from '#layers/public-resume/app/config/resume-sections'
 import { useResumeActiveSection } from '#layers/public-resume/app/composables/useResumeActiveSection'
-import { useResumeAdmin } from '#layers/public-resume/app/composables/useResumeAdmin'
 import { useResumeContent } from '#layers/public-resume/app/composables/useResumeContent'
 import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
 import type { ResumeSectionKey, ResumeStyleId } from '#layers/public-resume/app/types/resume'
@@ -17,8 +16,9 @@ import type { ResumeSectionKey, ResumeStyleId } from '#layers/public-resume/app/
  * 头部（品牌 + 滚动模块名 + 操作）· 正文容器 · 两个抽屉（设置 / 内容编辑）。
  * 操作块本身都在组件里：登录入口自带弹窗，设置自带抽屉，页面只负责开关状态。
  *
- * 保存策略：布局配置与内容都是**自动保存**（编辑态下防抖落盘，见两个 composable），
- * 页面只显示"保存中 / 已自动保存 · 刚刚"，并保留一个「重置」。
+ * 保存策略：布局配置与内容都是**自动保存**（编辑态下防抖落盘，见两个 composable）；
+ * 保存状态与「重置」都收进身份菜单（见 `docs/dev/identity-and-access.md` §4）；
+ * 头部右侧按「常显 / 登录后 / 身份区」三档呈现，**是否出现由权限决定**。
  */
 definePageMeta({
   title: '公开简历',
@@ -44,11 +44,22 @@ const {
   reset: resetContent,
 } = useResumeContent()
 
-const { isAdmin, restore } = useResumeAdmin()
+// 权限判断来自宿主 app 的 usePermission（自动导入）；页面不直接碰权限键字符串。
+// `canResetConfig` 交给身份菜单内部判断（危险操作不该对无权者可见），页面只关心"能看"与"能用 AI"。
+const { canViewDisplay, canEditSections, canUseAiChat } = usePermission()
 const { activeKey } = useResumeActiveSection()
 
 const editorOpen = ref(false)
 const editingKey = ref<ResumeSectionKey | null>(null)
+
+/** 编辑模式：有编辑权限的人可以切到"读者视角"预览（★ 它只是视图开关，不改变权限本身） */
+const editMode = ref(true)
+
+/** 重置是破坏性操作 → 先弹二次确认 */
+const resetConfirmOpen = ref(false)
+
+/** 真·可编辑 = 有权限 **且** 处于编辑模式 */
+const canEdit = computed(() => canEditSections.value && editMode.value)
 
 /** 品牌：优先用配置，未配置回退预设（姓名首字 / 姓名 / 定位） */
 const brand = computed(() => ({
@@ -227,12 +238,11 @@ useHead({
 
 // 登录态与已保存内容都在客户端恢复：SSR 不渲染编辑态，避免水合不一致
 onMounted(() => {
-  restore()
   loadDisplay()
   loadContent()
 })
 
-watch(isAdmin, value => setEditable(value), { immediate: true })
+watch(canEdit, value => setEditable(value), { immediate: true })
 
 function openEditor(key: ResumeSectionKey) {
   editingKey.value = key
@@ -242,6 +252,7 @@ function openEditor(key: ResumeSectionKey) {
 function resetAll() {
   resetDisplay()
   resetContent()
+  resetConfirmOpen.value = false
 }
 </script>
 
@@ -249,14 +260,8 @@ function resetAll() {
   <div>
     <ResumePageHeader :brand="brand" :active-section-title="activeSectionTitle">
       <template #actions>
-        <template v-if="isAdmin">
-          <span class="resume-muted hidden text-xs sm:inline">{{ saveLabel }}</span>
-          <UButton size="xs" color="neutral" variant="ghost" label="重置" @click="resetAll" />
-        </template>
-
-        <ResumeLoginButton />
-
-        <UTooltip text="展示设置">
+        <!-- ① 常显（所有角色）：展示设置 = `Resume.Display:edit` -->
+        <UTooltip v-if="canViewDisplay" text="展示设置">
           <UButton
             size="xs"
             color="neutral"
@@ -266,6 +271,26 @@ function resetAll() {
             @click="settingsOpen = true"
           />
         </UTooltip>
+
+        <!-- ② 登录后追加：AI 对话 = `AiTalk.Chat:create`（功能未上线，先占位且不可点） -->
+        <UTooltip v-if="canUseAiChat" text="AI 对话（开发中）">
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-sparkles"
+            aria-label="AI 对话（开发中）"
+            disabled
+          />
+        </UTooltip>
+
+        <!-- ③ 身份区：未登录 = 登录按钮；已登录 = 账户菜单（保存状态 / 编辑模式 / 重置 / 退出） -->
+        <ResumeAccountMenu
+          :save-label="saveLabel"
+          :edit-mode="editMode"
+          @update:edit-mode="editMode = $event"
+          @reset="resetConfirmOpen = true"
+        />
       </template>
     </ResumePageHeader>
 
@@ -276,6 +301,25 @@ function resetAll() {
       @hide="toggleSection"
       @edit="openEditor"
     />
+
+    <!-- 重置的二次确认：破坏性操作（清空本地配置与内容，不可撤销） -->
+    <UModal v-model:open="resetConfirmOpen" title="重置全部配置与内容？">
+      <template #body>
+        <div class="space-y-2 text-sm">
+          <p>
+            会清除浏览器里保存的<strong>展示配置</strong>（布局 / 风格 / 主题 /
+            背景）与<strong>简历内容</strong>，恢复为默认值。
+          </p>
+          <p class="text-error">此操作不可撤销。</p>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton color="neutral" variant="ghost" label="取消" @click="resetConfirmOpen = false" />
+          <UButton color="error" label="确认重置" @click="resetAll" />
+        </div>
+      </template>
+    </UModal>
 
     <ResumeSettingsDrawer v-model:open="settingsOpen" />
     <ResumeSectionEditorDrawer v-model:open="editorOpen" :section-key="editingKey" />
