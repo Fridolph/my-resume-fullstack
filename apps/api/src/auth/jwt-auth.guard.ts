@@ -39,7 +39,7 @@ function extractBearerToken(request: Request): string | null {
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly auth: AuthService,
+    private readonly authService: AuthService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -59,7 +59,7 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     // 校验失败时 AuthService 会抛带 errorCode 的 401；成功则把用户挂到 request 上供控制器读取
-    request.user = await this.auth.verify(token)
+    request.user = await this.authService.verify(token)
     return true
   }
 }

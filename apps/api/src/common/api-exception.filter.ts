@@ -33,12 +33,16 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
     // 用 originalUrl：request.url 在 setGlobalPrefix('api') 下不含前缀，
     // 而前端排查时要看到的是"浏览器里那条路径"（/api/auth/me 而不是 /auth/me）
+    // 注意两个码的分工：`response.status()` 是 **HTTP 状态码**（协议层结局），
+    // 传给 `createApiErrorBody` 的 `code` 是**业务码**（语义层结局）。
+    // 目前两者数值一致（HTTP 500 ↔ code 500），保持"看一眼就能对上"；
+    // 将来若出现"HTTP 仍然 200、但业务失败"的接口，只改这里的 `code` 即可，不必动 HTTP 状态。
     response
       .status(status)
       .json(
         createApiErrorBody({
           message,
-          statusCode: status,
+          code: status,
           path: request.originalUrl ?? request.url,
           errorCode,
           traceId,

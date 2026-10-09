@@ -25,10 +25,10 @@ import { PrismaClient } from '../generated/prisma/client'
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name)
 
-  constructor(config: ConfigService) {
-    // `super()` 必须在访问 `this` 之前调用，所以这里直接把 config 用掉
+  constructor(private readonly configService: ConfigService) {
+    // `super()` 必须在访问 `this` 之前调用，所以这里直接用参数（不能写 this.configService）
     super({
-      adapter: new PrismaPg({ connectionString: config.getOrThrow<string>('DATABASE_URL') }),
+      adapter: new PrismaPg({ connectionString: configService.getOrThrow<string>('DATABASE_URL') }),
     })
   }
 

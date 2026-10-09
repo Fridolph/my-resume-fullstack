@@ -14,7 +14,7 @@ export interface JwtPayload {
   sub: string
   /** 用户名（便于日志与前端显示） */
   username: string
-  /** 权限键（`docs/dev/identity-and-access.md` §2.1 的规范）；后端做鉴权判断时用 */
+  /** 权限键（`docs/dev/02_身份与权限_设计.md` §2.1 的规范）；后端做鉴权判断时用 */
   permissionKeys: string[]
   /** 签发时间（秒） */
   iat?: number

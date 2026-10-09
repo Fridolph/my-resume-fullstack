@@ -23,6 +23,8 @@ export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
+    // seed 由代码里的权限键定义驱动（见 prisma/seed.ts 的说明），可反复执行
+    seed: 'tsx prisma/seed.ts',
   },
   datasource: {
     url: process.env.DATABASE_URL,

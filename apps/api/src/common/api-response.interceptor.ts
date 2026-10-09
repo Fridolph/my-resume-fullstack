@@ -18,6 +18,8 @@ export class ApiResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<Request>()
 
+    // 这里只负责"成功"的形状（code = 200）；失败一律走 ApiExceptionFilter。
+    // 两个出口共用 `@template/common` 的同一份契约 —— 这就是"唯一形状"的落地方式。
     return next.handle().pipe(map(data => createApiResponse(data, 'ok', { traceId: request.traceId })))
   }
 }

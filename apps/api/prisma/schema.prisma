@@ -54,24 +54,85 @@ datasource db {
 
 /// 用户。
 ///
-/// 目前 `apps/api` 的鉴权还是内存演示账号（`auth/auth.service.ts`），本模型是**持久化的目标形态**：
-/// 接上数据库后，把 `AuthService.validateCredentials` 换成"按 username 查这里 + 比对 hash"即可，
-/// 对外契约（`validateCredentials` / `sign` / `verify`）不用改。
+/// 接上数据库后，`AuthService.validateCredentials` 换成"按 username 查这里 + 校验哈希"，
+/// 对外契约（`validateCredentials` / `sign` / `verify`）不变。
 ///
 /// ⚠️ 两个刻意的设计：
-/// - **只存 `passwordHash`，不存明文**；哈希算法（bcrypt / argon2）等接入用户模块时定，
-///   届时加一个 `infrastructure/` 里的适配器，不让 `auth` 依赖具体算法；
-/// - **权限键不进这张表**：`docs/dev/identity-and-access.md` §2.2 把角色定义为"权限键的预设集合"，
-///   目前是三档固定集合（代码常量）。真要做"逐用户自定义权限"时，再规范化为
-///   `Permission` / `UserPermission` 两张表 —— 现在建表只是为"以后可能"付成本。
+/// - **只存 `passwordHash`，不存明文**（也不存"可解密"的形式）：哈希是单向 + 随机盐 + 故意慢，
+///   盐防彩虹表、慢让暴力破解不划算；
+/// - **权限不在这张表上**：走 `user_roles → role_permissions → permissions`。
+///   表结构多两张，换来"人可以有多个角色、角色可以改权限"这两件事不用改表。
 model User {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   /// 登录名，唯一 —— 登录查询与唯一约束都依赖它
-  username     String   @unique
-  /// 密码哈希（不含算法前缀以外的明文信息）
+  username     String    @unique
+  /// 对外显示名：登录名（如 `admin`）通常不适合展示在简历/后台界面上
+  displayName  String
+  /// 密码哈希（scrypt，格式见 `src/common/password.ts`）
   passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  /// 软删除标记（有值即视为已删除）。
+  /// ⚠️ 代价：**每条查询都必须带上 `deletedAt: null`** —— 这个过滤统一收在
+  /// `users.repository.ts` 里，不允许散到各处（漏一个就会把已删用户查出来）。
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  roles UserRole[]
 
   @@map("users")
+}
+
+/// 角色。role.key 必须与 `src/auth/permission-keys.ts` 的 `ROLE_PERMISSION_PRESETS` 对齐（seed 校验）。
+model Role {
+  id          String   @id @default(cuid())
+  /// 稳定的机器可读标识：`admin` / `user`
+  key         String   @unique
+  /// 展示名：`管理员` / `普通用户`
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+/// 权限键。**键名定义在代码里**（`src/auth/permission-keys.ts`），这里只承载"关系"。
+/// seed 会按代码常量同步这张表（幂等）。
+model Permission {
+  id          String   @id @default(cuid())
+  /// `<域>.<资源>:<动作>`，例如 `Resume.Profile:view`
+  key         String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+/// 角色 ↔ 权限（多对多）
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+/// 用户 ↔ 角色（多对多）。
+/// 多对多而不是 `User.roleId`：现在只有两档角色，但"一个人既是编辑又是审核"迟早出现，
+/// 那时改表 + 改所有查询，比一开始就留一张关联表贵得多。多角色时权限**取并集去重**。
+model UserRole {
+  userId String
+  roleId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
 }

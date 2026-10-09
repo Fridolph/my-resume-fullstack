@@ -9,7 +9,7 @@
  *
  * ## 命名
  *
- * 沿用权限键的 `<域>.<资源>:<动作>` 风格（见 `docs/dev/identity-and-access.md` §2.1），
+ * 沿用权限键的 `<域>.<资源>:<动作>` 风格（见 `docs/dev/02_身份与权限_设计.md` §2.1），
  * 于是 `AUTH.Token:expired`、`Common.Validation:failed` 这种读起来是句子、搜起来能命中的形式。
  *
  * 出口有两个（都由 `apps/api` 统一写）：

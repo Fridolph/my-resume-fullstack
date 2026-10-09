@@ -14,7 +14,7 @@ import type { AuthUser, JwtPayload } from '../common/http-context'
  * 2. 内存数组 → repository（`infrastructure/repositories/`）。
  *
  * 账号与前端 mock 对齐（`apps/web/app/mock/auth.ts` 的 `admin/admin`、`user/user`），
- * 权限键取自 `docs/dev/identity-and-access.md` §2.1 / §2.2。
+ * 权限键取自 `docs/dev/02_身份与权限_设计.md` §2.1 / §2.2。
  */
 const DEMO_ACCOUNTS = [
   {
@@ -41,7 +41,7 @@ const DEMO_ACCOUNTS = [
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly jwt: JwtService) {}
+  constructor(private readonly jwtService: JwtService) {}
 
   /** 账号密码 → 用户；不匹配返回 `null`，由调用方决定抛什么错（这里不抛，便于将来复用） */
   validateCredentials(username: string, password: string): AuthUser | null {
@@ -72,7 +72,7 @@ export class AuthService {
       permissionKeys: user.permissionKeys,
     }
 
-    return this.jwt.signAsync(payload)
+    return this.jwtService.signAsync(payload)
   }
 
   /**
@@ -84,7 +84,7 @@ export class AuthService {
    */
   async verify(token: string): Promise<AuthUser> {
     try {
-      const payload = await this.jwt.verifyAsync<JwtPayload>(token)
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(token)
 
       return {
         userId: payload.sub,
