@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getApiErrorMessage } from '~/utils/requestContext'
+import { normalizeApiError, resolveApiErrorMessage } from '@template/common'
 
 definePageMeta({
   layout: 'has-sidebar',
@@ -9,7 +9,7 @@ definePageMeta({
 const nuxtApp = useNuxtApp()
 const toast = useToast()
 
-// 演示：监听 400 业务码（plugins/httpRequest.ts 会通过 applyApiErrorHooks 触发）
+// 演示：监听 400 业务码（plugins/httpRequest.ts 会按 code / errorCode 触发 api:error 系列 hook）
 // 注：hook 名称是动态业务码，NuxtApp 的 hook 类型未逐一声明，这里断言绕过
 ;(nuxtApp.hook as any)('api:error:400', (payload: any) => {
   toast.add({ title: 'api:error:400 hook', description: payload?.message, color: 'error' })
@@ -28,8 +28,8 @@ async function sendRequest() {
     const res = await nuxtApp.$request(lastPath.value, { method: 'GET' })
     result.value = JSON.stringify(res, null, 2)
   } catch (e) {
-    result.value = getApiErrorMessage(e)
-    toast.add({ title: 'Request failed', description: getApiErrorMessage(e), color: 'error' })
+    result.value = resolveApiErrorMessage(normalizeApiError(e))
+    toast.add({ title: 'Request failed', description: resolveApiErrorMessage(normalizeApiError(e)), color: 'error' })
   } finally {
     loading.value = false
   }

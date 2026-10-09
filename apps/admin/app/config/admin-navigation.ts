@@ -51,6 +51,7 @@ export const adminNavigation: AdminNavigationItem[] = [
       { label: 'PDF review', to: '/demos/pdf-review' },
       { label: 'Plugins', to: '/demos/plugins' },
       { label: 'Utils', to: '/demos/utils' },
+      { label: 'Request / errors', to: '/demos/request' },
       { label: 'Resume config layout', to: '/demos/resume-config-layout' },
       { label: 'Resume layout editor', to: '/demos/layout-editor' },
       { label: 'Resume options tabs', to: '/demos/options-tabs' },
