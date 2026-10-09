@@ -56,6 +56,7 @@ export const adminNavigation: AdminNavigationItem[] = [
       { label: 'Resume options tabs', to: '/demos/options-tabs' },
       { label: 'Resume compare modal', to: '/demos/compare-modal' },
       { label: 'Hobby gallery', to: '/demos/hobby-modal' },
+      { label: 'Nuxt Rive card', to: '/demos/nuxt-rive-card' },
     ],
   },
 ]
