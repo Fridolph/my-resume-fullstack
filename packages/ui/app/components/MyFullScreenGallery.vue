@@ -100,7 +100,12 @@ const open = defineModel<boolean>('open', { default: false })
             :target="item.href ? '_blank' : undefined"
             :rel="item.href ? 'noreferrer' : undefined"
           >
-            <img :src="item.url" :alt="item.title || ''" loading="lazy" class="block aspect-[4/3] w-full object-cover" />
+            <img
+              :src="item.url"
+              :alt="item.title || ''"
+              loading="lazy"
+              class="block aspect-[4/3] w-full object-cover"
+            />
 
             <span
               v-if="item.title || item.description"

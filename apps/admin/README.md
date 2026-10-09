@@ -62,16 +62,16 @@ apps/admin/
 - 功能域页面放 `layers/<NN>-<name>/`，每个 layer 只需 `$meta.name`（自动发现）。
 - 依赖方向：`layers/00-shared` ← feature layers（11~20）← `app/`；feature layer 只能依赖 `00-shared` + 自身。
 - 公共/基础组件放 `app/components/`（全局自动导入），不急于下沉到 `00-shared`。
-- 详见 [docs/web/03_Layers_分层约定.md](../../docs/web/03_Layers_分层约定.md)。
+- 详见 [docs/web/03*Layers*分层约定.md](../../docs/web/03_Layers_分层约定.md)。
 
 ## 数据层（Pinia Colada）
 
-数据层统一用 `@pinia/colada`，完整约定见 [docs/web/04_数据层_约定.md](../../docs/web/04_数据层_约定.md)：
+数据层统一用 `@pinia/colada`，完整约定见 [docs/web/04*数据层*约定.md](../../docs/web/04_数据层_约定.md)：
 
 - `plugins/httpRequest.ts` 注入 `$request`（ofetch）：baseURL、鉴权头、统一响应解包（对齐 `packages/common` 的 `{ success, data, message }`）与错误归一化。
 - `app/apis/*` 只做取数；缓存与失效在 `app/composables/*` 的 query / mutation 里声明；query key 集中在 `app/lib/query-keys.ts`。
 - 示例：`useHealthQuery()` + `/` 页面的 Infrastructure check 卡片（SSR 首屏取数 + 失效重取）。
-- 模板遗留的 alova（上传）待迁移为原生 XHR + colada mutation，见 docs/web/04_数据层_约定.md 第 5、6 节。
+- 模板遗留的 alova（上传）待迁移为原生 XHR + colada mutation，见 docs/web/04*数据层*约定.md 第 5、6 节。
 
 ## 登录页
 
@@ -99,7 +99,7 @@ Settings 迁入 `layers/13-settings`：父页 `settings.vue`（`layout: "has-sid
 - **导航**：`admin-navigation.ts` 的 Comps 项下加 `children`。
 - 路由用 `comps`（`/comps/*`），**不用 `components`**——`components` 是 Nuxt 保留目录，会导致 404。
 
-已落地：`ModalConfirm` / `ModalDeleteConfirm`（删除确认 + 倒计时）、`ModalResponsive` / `ModalForbidden`、`LoadersColorSpin`（骨架屏后续 `LoadersSkeleton`）、`TourSpotlight` / `TourSpotlightStep`、`PermissionWrapper`（按权限显隐）、PDF（`PdfPage` / `PdfCover` / `PdfDocVnode`）。详见 [docs/admin/01_UI_布局与组件模式.md](../../docs/admin/01_UI_布局与组件模式.md) 第 7 节。
+已落地：`ModalConfirm` / `ModalDeleteConfirm`（删除确认 + 倒计时）、`ModalResponsive` / `ModalForbidden`、`LoadersColorSpin`（骨架屏后续 `LoadersSkeleton`）、`TourSpotlight` / `TourSpotlightStep`、`PermissionWrapper`（按权限显隐）、PDF（`PdfPage` / `PdfCover` / `PdfDocVnode`）。详见 [docs/admin/01*UI*布局与组件模式.md](../../docs/admin/01_UI_布局与组件模式.md) 第 7 节。
 
 ## PDF 预览 / 打印
 
@@ -116,7 +116,7 @@ Settings 迁入 `layers/13-settings`：父页 `settings.vue`（`layout: "has-sid
 
 - 移动优先；内容区最大宽度 1920px（`max-w-1920`）。
 - 页面级留白统一 `content-pad`；单个 `class` 超 12 个类时抽 BEM + `@apply`。
-- 详见 [docs/web/02_CSS_基础约定.md](../../docs/web/02_CSS_基础约定.md)。
+- 详见 [docs/web/02*CSS*基础约定.md](../../docs/web/02_CSS_基础约定.md)。
 
 ## 接入真实登录
 

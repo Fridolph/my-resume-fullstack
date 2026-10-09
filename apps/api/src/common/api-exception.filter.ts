@@ -37,17 +37,15 @@ export class ApiExceptionFilter implements ExceptionFilter {
     // 传给 `createApiErrorBody` 的 `code` 是**业务码**（语义层结局）。
     // 目前两者数值一致（HTTP 500 ↔ code 500），保持"看一眼就能对上"；
     // 将来若出现"HTTP 仍然 200、但业务失败"的接口，只改这里的 `code` 即可，不必动 HTTP 状态。
-    response
-      .status(status)
-      .json(
-        createApiErrorBody({
-          message,
-          code: status,
-          path: request.originalUrl ?? request.url,
-          errorCode,
-          traceId,
-        }),
-      )
+    response.status(status).json(
+      createApiErrorBody({
+        message,
+        code: status,
+        path: request.originalUrl ?? request.url,
+        errorCode,
+        traceId,
+      }),
+    )
   }
 }
 

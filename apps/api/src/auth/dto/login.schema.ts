@@ -22,15 +22,8 @@ import { z } from 'zod'
 export const loginSchema = z.object({
   // `{ error }` 是 Zod 4 的写法（统一了 v3 的 `required_error` / `invalid_type_error`）：
   // 缺字段、类型不对、以及下面的长度约束，都走同一条文案出口
-  username: z
-    .string({ error: '用户名必须是字符串' })
-    .trim()
-    .min(1, '用户名不能为空')
-    .max(32, '用户名过长'),
-  password: z
-    .string({ error: '密码必须是字符串' })
-    .min(4, '密码至少 4 位')
-    .max(64, '密码过长'),
+  username: z.string({ error: '用户名必须是字符串' }).trim().min(1, '用户名不能为空').max(32, '用户名过长'),
+  password: z.string({ error: '密码必须是字符串' }).min(4, '密码至少 4 位').max(64, '密码过长'),
 })
 
 /** 控制器入参类型：**由 schema 推出**，不手写 */

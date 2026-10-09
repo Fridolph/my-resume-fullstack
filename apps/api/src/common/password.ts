@@ -60,7 +60,14 @@ export async function hashPassword(plain: string): Promise<string> {
     p: SCRYPT_PARAMS.p,
   })
 
-  return ['scrypt', SCRYPT_PARAMS.N, SCRYPT_PARAMS.r, SCRYPT_PARAMS.p, salt.toString('base64'), derived.toString('base64')].join('$')
+  return [
+    'scrypt',
+    SCRYPT_PARAMS.N,
+    SCRYPT_PARAMS.r,
+    SCRYPT_PARAMS.p,
+    salt.toString('base64'),
+    derived.toString('base64'),
+  ].join('$')
 }
 
 export async function verifyPassword(plain: string, stored: string): Promise<boolean> {

@@ -108,7 +108,7 @@ const SIZE_CLASS: Record<NonNullable<typeof props.size>, { side: string; top: st
   md: { side: 'sm:max-w-md', top: 'max-h-[60vh]' },
   lg: { side: 'sm:max-w-lg', top: 'max-h-[75vh]' },
   xl: { side: 'sm:max-w-xl', top: 'max-h-[85vh]' },
-  '2xl': { side: 'sm:max-w-[40rem]', top: 'max-h-[92vh]' },   // 640px：设置面板这类内容用
+  '2xl': { side: 'sm:max-w-[40rem]', top: 'max-h-[92vh]' }, // 640px：设置面板这类内容用
   full: { side: 'sm:max-w-full', top: 'max-h-[95vh]' },
 }
 

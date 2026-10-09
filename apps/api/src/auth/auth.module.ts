@@ -27,9 +27,7 @@ import { JwtAuthGuard } from './jwt-auth.guard'
       useFactory: (config: ConfigService) => {
         const secret = config.get<string>('JWT_SECRET')?.trim()
         if (!secret) {
-          throw new Error(
-            '缺少环境变量 JWT_SECRET：请在 .env 中配置（参考 .env.example）。不使用默认密钥是有意为之。',
-          )
+          throw new Error('缺少环境变量 JWT_SECRET：请在 .env 中配置（参考 .env.example）。不使用默认密钥是有意为之。')
         }
 
         // `expiresIn` 在 @nestjs/jwt@12 里的类型是 ms 库的 `StringValue`（形如 "2h"），不是任意 string。

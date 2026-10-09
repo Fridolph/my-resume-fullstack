@@ -90,7 +90,9 @@ web 与 admin 都要用的 Vue 组件放 `packages/ui`。它是 **Nuxt layer**�
   解析而失败，后者是宿主私有代码。用宿主的自动导入（`ref` / `computed` / `UButton` …）即可
 - 可放 `app/components/**`、`app/composables/**`、`app/lib/**`；
   **不要**放 `app/utils/**`（该目录会被自动导入，容易与宿主的同名工具撞车）
-- layer **不声明运行时依赖**：需要能力时优先自己写
+- layer **不声明第三方运行时依赖**：需要能力时优先自己写（例：`useNarrowScreen` 替代 `@vueuse/core`）；
+  但**可以依赖 workspace 内的纯 TS 包** —— 如 `@template/common`（请求契约与纯工具），
+  在 `packages/ui/package.json` 里以 `workspace:*` 声明（**不声明 TS 就解析不到**，会连带报一堆无关错误）
   （例：`app/composables/useNarrowScreen.ts` 替代了 `@vueuse/core` 的 `useMediaQuery`）
 - ⚠️ Tailwind v4 **不扫 app 目录之外**的源码：各 app 的 `main.css` 里有
   `@source "../../../../../packages/ui";`，新增共享组件不需要改这一行

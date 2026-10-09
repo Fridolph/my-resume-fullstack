@@ -13,14 +13,14 @@
 参考项目 `fullstack-mianshiwang/apps/ww-server` 的骨架本身没错（`domain / application / infrastructure / transport`）。
 但把它的 `common/` 逐文件读完，问题一目了然 —— **同一个"响应"有六份定义**：
 
-| 文件 | 输出形状 |
-| ---- | -------- |
-| `interceptors/response.interceptor.ts` | `{ code, message, data, timestamp, path }` |
-| `filters/all-exceptions.filter.ts` | `{ code, message, data, timestamp, path, error? }` |
-| `filters/http-exception.filter.ts` | **`{ success, message }`**（完全不同的形状） |
-| `filters/unauthorized-exception.filter.ts` | **`{ success, message }`**（同上） |
-| `utils/response.util.ts` | `{ code, message, data, timestamp }`（少了 `path`） |
-| `dto/response.dto.ts` | 定义了 `ResponseDto`，**没有任何地方使用** |
+| 文件                                       | 输出形状                                            |
+| ------------------------------------------ | --------------------------------------------------- |
+| `interceptors/response.interceptor.ts`     | `{ code, message, data, timestamp, path }`          |
+| `filters/all-exceptions.filter.ts`         | `{ code, message, data, timestamp, path, error? }`  |
+| `filters/http-exception.filter.ts`         | **`{ success, message }`**（完全不同的形状）        |
+| `filters/unauthorized-exception.filter.ts` | **`{ success, message }`**（同上）                  |
+| `utils/response.util.ts`                   | `{ code, message, data, timestamp }`（少了 `path`） |
+| `dto/response.dto.ts`                      | 定义了 `ResponseDto`，**没有任何地方使用**          |
 
 四条可复现的判断（不只是"写得乱"，而是**会反复复发**的机制）：
 
@@ -56,19 +56,19 @@
 
 出口只有两个，且都走同一份契约：
 
-| 场景 | 出口 |
-| ---- | ---- |
-| 正常返回 | `ApiResponseInterceptor` → `createApiResponse()`（`code = 200`） |
+| 场景       | 出口                                                                    |
+| ---------- | ----------------------------------------------------------------------- |
+| 正常返回   | `ApiResponseInterceptor` → `createApiResponse()`（`code = 200`）        |
 | 抛任何异常 | `ApiExceptionFilter`（**唯一一个 `@Catch()`**）→ `createApiErrorBody()` |
 
 **不要新增 `@Catch(HttpException)` 之类的过滤器** —— 理由见 §2 第 3 条。
 
 #### `code` 与 HTTP 状态码：两个不同的东西
 
-| | 在哪 | 表达什么 |
-| --- | --- | --- |
+|                 | 在哪                         | 表达什么                                                   |
+| --------------- | ---------------------------- | ---------------------------------------------------------- |
 | **HTTP 状态码** | 响应**行** `HTTP/1.1 200 OK` | 这次请求在**协议层**的结局：到没到、方法对不对、资源在不在 |
-| **`code`** | 响应**体** | 这次业务在**语义层**的结局 |
+| **`code`**      | 响应**体**                   | 这次业务在**语义层**的结局                                 |
 
 两者数值目前保持一致（HTTP 500 ↔ `code 500`），因为这样"看一眼就能对上"、排查最省事。
 但它们是**独立设置**的：`response.status()` 由框架按协议层结局给出，`code` 由业务决定 ——
@@ -80,7 +80,9 @@
 
 ```ts
 import { isApiSuccess } from '@template/common'
-if (response.ok && payload && isApiSuccess(payload)) { /* ... */ }
+if (response.ok && payload && isApiSuccess(payload)) {
+  /* ... */
+}
 ```
 
 不要自己写 `payload.code === 200`：成功的边界将来可能调整（例如引入 `204` 表示"成功但无数据"），
@@ -90,9 +92,9 @@ if (response.ok && payload && isApiSuccess(payload)) { /* ... */ }
 
 它们**不是重复**，而是给前端两种粒度的判断依据：
 
-| | 例 | 用途 |
-| --- | --- | --- |
-| `code` | `401` | **类目**：这是"认证问题"，可以统一引导去登录 |
+|             | 例                                          | 用途                                         |
+| ----------- | ------------------------------------------- | -------------------------------------------- |
+| `code`      | `401`                                       | **类目**：这是"认证问题"，可以统一引导去登录 |
 | `errorCode` | `AUTH.Token:missing` / `AUTH.Token:expired` | **具体原因**：过期就尝试刷新，缺失就直接登出 |
 
 只给 `code` 的话，前端分不清"没带令牌"和"令牌过期"；只给 `errorCode` 的话，
@@ -172,12 +174,12 @@ src/
 
 **判据（什么时候引入下层）**：
 
-| 出现这种情况 | 才引入 |
-| ------------ | ------ |
-| 有**不依赖框架的规则**（如"发布快照必须满足的约束"、"权限键校验"） | `domain/` |
-| 一个用例要**编排多个来源**（库 + 外部 API + 缓存），且逻辑值得单独命名 | `application/services/` |
-| 换了持久化实现（内存 → PostgreSQL / Redis），或要屏蔽第三方细节 | `infrastructure/repositories/` |
-| 模块开始接收多种输入（HTTP + 队列 + 定时任务） | `transport/` |
+| 出现这种情况                                                           | 才引入                         |
+| ---------------------------------------------------------------------- | ------------------------------ |
+| 有**不依赖框架的规则**（如"发布快照必须满足的约束"、"权限键校验"）     | `domain/`                      |
+| 一个用例要**编排多个来源**（库 + 外部 API + 缓存），且逻辑值得单独命名 | `application/services/`        |
+| 换了持久化实现（内存 → PostgreSQL / Redis），或要屏蔽第三方细节        | `infrastructure/repositories/` |
+| 模块开始接收多种输入（HTTP + 队列 + 定时任务）                         | `transport/`                   |
 
 `auth` 现在用内存演示账号：等接入 `users` 表时，`infrastructure/repositories/` 才真正有意义。
 
@@ -192,12 +194,12 @@ src/
 
 ## 6. 技术选型（2026-10-09 定）
 
-| 方面 | 选型 | 为什么 |
-| ---- | ---- | ------ |
-| 数据库 | **PostgreSQL** | 简历数据是关系型（用户 → 简历 → 版本 → 权限），需要外键、唯一约束、事务；文档库能存，但约束得自己在代码里补 |
-| ORM | **Prisma** | schema 是**结构唯一真源** + `migrate` 成熟 + Studio 可视化；配 zod 生成器可把真源收敛成一条链 |
-| 入参校验 | **Zod**（Nest 12 的 Standard Schema） | 校验规则与 TS 类型**同源**（`z.infer`），且纯值可共享给前端；替代 class-validator / class-transformer |
-| 鉴权 | **纯 `@nestjs/jwt` 自研 Guard** | 少 3 个依赖、链路透明（见 §3.3） |
+| 方面     | 选型                                  | 为什么                                                                                                      |
+| -------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 数据库   | **PostgreSQL**                        | 简历数据是关系型（用户 → 简历 → 版本 → 权限），需要外键、唯一约束、事务；文档库能存，但约束得自己在代码里补 |
+| ORM      | **Prisma**                            | schema 是**结构唯一真源** + `migrate` 成熟 + Studio 可视化；配 zod 生成器可把真源收敛成一条链               |
+| 入参校验 | **Zod**（Nest 12 的 Standard Schema） | 校验规则与 TS 类型**同源**（`z.infer`），且纯值可共享给前端；替代 class-validator / class-transformer       |
+| 鉴权     | **纯 `@nestjs/jwt` 自研 Guard**       | 少 3 个依赖、链路透明（见 §3.3）                                                                            |
 
 ### 6.1 为什么强调"单一真源链"
 
@@ -227,11 +229,11 @@ schema.prisma ──generate──▶ Prisma Client 类型（数据库访问）
 
 ### 6.3 两个构建坑（各花了一次排查）
 
-| 现象 | 根因 | 处置 |
-| ---- | ---- | ---- |
-| `prisma migrate dev` 之后，client 上 `prisma.permission` 之类的模型访问器是 `undefined` | v7 的 `migrate dev` **不会**顺带重新生成 client | 迁移后手动跑一次 `pnpm exec prisma generate`（写进脚本，别靠记忆） |
-| `nest build` 退出码 0 但 `dist/` 是空的、`main.js` 不存在 | `tsconfig` 的 `incremental: true` 与 `nest-cli.json` 的 `deleteOutDir: true` **互相打架**：build 先把 dist 删掉，增量缓存却认为"没变化"→ 一个文件都不输出。**这是必现，不是偶发** | 去掉 `incremental`（本项目规模全量编译足够快），换来"不会静默不输出" |
-| 编译产物变成 `dist/src/main.js` | 新增 `prisma.config.ts`（在项目根）被 tsconfig 扫到 → TypeScript 推断的 `rootDir` 被拉高到项目根 | `tsconfig.json` 明确 `include: ["src/**/*"]` + `rootDir: "src"` |
+| 现象                                                                                    | 根因                                                                                                                                                                              | 处置                                                                 |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `prisma migrate dev` 之后，client 上 `prisma.permission` 之类的模型访问器是 `undefined` | v7 的 `migrate dev` **不会**顺带重新生成 client                                                                                                                                   | 迁移后手动跑一次 `pnpm exec prisma generate`（写进脚本，别靠记忆）   |
+| `nest build` 退出码 0 但 `dist/` 是空的、`main.js` 不存在                               | `tsconfig` 的 `incremental: true` 与 `nest-cli.json` 的 `deleteOutDir: true` **互相打架**：build 先把 dist 删掉，增量缓存却认为"没变化"→ 一个文件都不输出。**这是必现，不是偶发** | 去掉 `incremental`（本项目规模全量编译足够快），换来"不会静默不输出" |
+| 编译产物变成 `dist/src/main.js`                                                         | 新增 `prisma.config.ts`（在项目根）被 tsconfig 扫到 → TypeScript 推断的 `rootDir` 被拉高到项目根                                                                                  | `tsconfig.json` 明确 `include: ["src/**/*"]` + `rootDir: "src"`      |
 
 ### 6.5 数据模型：RBAC 五张表
 
@@ -239,11 +241,11 @@ schema.prisma ──generate──▶ Prisma Client 类型（数据库访问）
 users ──< user_roles >── roles ──< role_permissions >── permissions
 ```
 
-| 决定 | 理由 |
-| ---- | ---- |
-| `UserRole` 做**多对多**（而非 `User.roleId`） | 现在只有两档角色，但"既是编辑又是审核"迟早出现；那时改表 + 改所有查询，比一开始就留一张关联表贵 |
-| `Permission` 表由**代码常量 seed** | 键名写在代码里能进类型、能被前端镜像、能 diff；库只维护"谁拥有它"的**关系**（避免再出现"多份真源"） |
-| **软删除** `deletedAt` | 可审计、可恢复；代价是每条查询都要带 `deletedAt: null` —— 因此该过滤**统一收在 repository 层**，不散到各处 |
-| 密码用 `node:crypto` 的 scrypt | 零依赖；存储格式 `scrypt$N$r$p$salt$hash` **把参数写进字符串**，将来调强参数时旧密码仍可验证、可静默升级 |
+| 决定                                          | 理由                                                                                                       |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `UserRole` 做**多对多**（而非 `User.roleId`） | 现在只有两档角色，但"既是编辑又是审核"迟早出现；那时改表 + 改所有查询，比一开始就留一张关联表贵            |
+| `Permission` 表由**代码常量 seed**            | 键名写在代码里能进类型、能被前端镜像、能 diff；库只维护"谁拥有它"的**关系**（避免再出现"多份真源"）        |
+| **软删除** `deletedAt`                        | 可审计、可恢复；代价是每条查询都要带 `deletedAt: null` —— 因此该过滤**统一收在 repository 层**，不散到各处 |
+| 密码用 `node:crypto` 的 scrypt                | 零依赖；存储格式 `scrypt$N$r$p$salt$hash` **把参数写进字符串**，将来调强参数时旧密码仍可验证、可静默升级   |
 
 > 权限键常量在 `apps/api/src/auth/permission-keys.ts`，与前端 `apps/web/app/config/permissions.ts` 是**镜像**关系（理想做法是放 `packages/common`，待解决 ESM/CJS 后合并）。
