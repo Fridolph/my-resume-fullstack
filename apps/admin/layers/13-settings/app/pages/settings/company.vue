@@ -1,5 +1,8 @@
 <script setup lang="ts">
 definePageMeta({
+  // 页面级守卫：配置相关页面需要进后台的权限（见 docs/dev/identity-and-access.md §3.4）
+  middleware: 'permission',
+  permissions: ['Admin.Console:view'],
   title: 'Company profile',
 })
 </script>
