@@ -190,7 +190,8 @@ export interface ResumeBackgroundConfig {
 
 ### 第 1 期（已交付，PR #12）
 
-- `ResumeLoginButton`：登录按钮与弹窗合并；`variant: text | icon` —— 第 2 期可直接放进入口栏。
+- ~~`ResumeLoginButton`~~（2026-10-09 已被 `ResumeAccountMenu` 取代并删除：它只能表达"登录 / 退出"，
+  装不下"菜单项按权限出现"；见 [`identity-and-access.md`](./identity-and-access.md) §4）。
 - `ResumeSettingsDrawer`：设置改由 `UDrawer` 承载，`ResumeSettingsPanel` 退化为**纯内容组件**（无宽度样式、无页脚动作）。
   好处：头部高度不再随设置开合变化。
 - `ResumeDisplayConfig.brand`：`logoText` / `logoUrl` / `title` / `description`，**未配置回退预设**（姓名首字 / 姓名 / 定位）。
@@ -199,9 +200,16 @@ export interface ResumeBackgroundConfig {
   `rootMargin: '-72px 0px -55% 0px'` 取「当前正在读」的区块；头部中区显示其标题，回到顶部恢复品牌区。
   只观察 main 栏，符合「主内容模块才参与」的预期。
 
-### 第 2 期（已确认方向，待实施）
+### 第 2 期（**落点已改**：见 [`identity-and-access.md`](./identity-and-access.md) §4.1）
 
-把操作入口从头部迁进**收起式左侧窄栏（rail）**：
+> **2026-10-08 决策**：Owner 选择**头部三档**方案（`docs/dev/identity-and-access.md`），
+> 本节的 rail 方案**降级为「将来操作项显著增多时」的备选**。其两个核心诉求已被新方案吸收：
+> ①「按身份分级显示」；② `ResumeChromeAction { key, label, icon, group, visible?, onSelect }`
+> 契约形状（其中 `visible` 从"按登录态判断"升级为**按权限键判断**）。
+>
+> 下方原案保留供对照。
+
+原案：把操作入口从头部迁进**收起式左侧窄栏（rail）**：
 
 - **形态**：自定义 `aside`（固定宽 56px）+ `UTooltip` + `UButton`，不使用 `UDashboardSidebar` ——
   后者属于后台仪表盘体系，会给公开站引入整页布局语义。
