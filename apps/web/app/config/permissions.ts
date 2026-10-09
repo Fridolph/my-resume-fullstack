@@ -7,11 +7,16 @@
  * - 权限键**成对**：`XX:view` 决定"能不能看到"，`XX:edit` 决定"能不能操作"。
  *   三档语义（Owner 2026-10-09 定）：
  *
- *   | 持有            | 表现                     |
- *   | --------------- | ------------------------ |
- *   | 无 `view`       | **不展示**（`v-if`）      |
- *   | 有 `view` 无 `edit` | **展示但不可操作**（`disabled`） |
- *   | `view` + `edit` | 完整操作（admin）         |
+ *   | 持有                          | 表现                                  |
+ *   | ----------------------------- | ------------------------------------- |
+ *   | 无 `view`                     | **不展示**（`v-if` / tabs 过滤）       |
+ *   | `view` only                   | 展示 + **整组 disabled**（点都点不动） |
+ *   | `view` + `interact`           | 展示 + **可点，但动作被拒 + 提示**     |
+ *   | `view` + `interact` + `edit`  | 完整操作                              |
+ *
+ *   `interact` 是**前端特有的第三档**（后端动词集只有 view / create / edit / delete），
+ *   表达"看得见、点得动，但改不了"——用于"让试用用户感到接近可用，同时明确提示权限不足"。
+ *   接后端时若后端没有对应概念，退化为 `view` + 前端角色判断即可（见文档 §2.5）。
  *
  * - 命名对齐后端（`域.资源:动作`）：后端 `permissionPermitKeys` 可以直接喂进来判断，
  *   **不需要映射表**；真实键名以后端契约定稿为准（改键名 = 改这一个文件）；
@@ -34,10 +39,14 @@ export const PERMISSIONS = {
   themeEdit: 'Resume.Theme:edit',
   /** 能看到「自定义调色盘」 */
   themeCustomView: 'Resume.ThemeCustom:view',
+  /** 能点「自定义调色盘」但操作会被拒（第三档） */
+  themeCustomInteract: 'Resume.ThemeCustom:interact',
   /** 能用「自定义调色盘」—— 比"切换预设"高一档，所以单独成对 */
   themeCustomEdit: 'Resume.ThemeCustom:edit',
   /** 能看到「区块显隐」 */
   sectionsView: 'Resume.Sections:view',
+  /** 能点区块开关但操作会被拒（第三档） */
+  sectionsInteract: 'Resume.Sections:interact',
   /** 能改区块显隐 + 拖拽编辑简历模块 */
   sectionsEdit: 'Resume.Sections:edit',
   /** 重置全部配置与内容（危险操作） */
@@ -74,10 +83,19 @@ const PUBLIC_DISPLAY_KEYS: readonly PermissionKey[] = [
 /** 角色 → 权限键的预设（**后端 permissionList 缺失时的兜底**，绝不返回空集） */
 export const ROLE_PERMISSIONS: Record<Role, readonly PermissionKey[]> = {
   guest: [...PUBLIC_DISPLAY_KEYS],
-  user: [...PUBLIC_DISPLAY_KEYS, PERMISSIONS.aiChatView, PERMISSIONS.aiChatCreate],
+  user: [
+    ...PUBLIC_DISPLAY_KEYS,
+    // 第三档：能点，但操作会被拒并提示（"可以点击，不能操作"）
+    PERMISSIONS.themeCustomInteract,
+    PERMISSIONS.sectionsInteract,
+    PERMISSIONS.aiChatView,
+    PERMISSIONS.aiChatCreate,
+  ],
   admin: [
     ...PUBLIC_DISPLAY_KEYS,
+    PERMISSIONS.themeCustomInteract,
     PERMISSIONS.themeCustomEdit,
+    PERMISSIONS.sectionsInteract,
     PERMISSIONS.sectionsEdit,
     PERMISSIONS.configDelete,
     PERMISSIONS.snapshotCreate,

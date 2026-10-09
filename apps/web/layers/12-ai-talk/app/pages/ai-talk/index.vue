@@ -1,6 +1,8 @@
 <script setup lang="ts">
 definePageMeta({
   title: 'AI 对话',
+  // 页面级守卫：需要 AiTalk.Chat:view（组件显隐挡不住直接敲 URL）
+  middleware: 'ai-chat',
 })
 
 const plannedParts = [

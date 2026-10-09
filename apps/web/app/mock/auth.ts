@@ -65,9 +65,11 @@ const ACCOUNTS: Record<MockAccount, MockAccountConfig> = {
       PERMISSIONS.displayEdit,
       PERMISSIONS.themeView,
       PERMISSIONS.themeEdit,
-      // 只给 view：能看到「自定义调色盘」与「区块显隐」，但控件不可操作
+      // 第三档：能看到、也能点，但操作会被拒并提示（区别于游客的"整组 disabled"）
       PERMISSIONS.themeCustomView,
+      PERMISSIONS.themeCustomInteract,
       PERMISSIONS.sectionsView,
+      PERMISSIONS.sectionsInteract,
       PERMISSIONS.aiChatView,
       PERMISSIONS.aiChatCreate,
     ],

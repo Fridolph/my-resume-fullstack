@@ -55,8 +55,14 @@ export function usePermission() {
   const canViewTheme = computed(() => hasPermission(PERMISSIONS.themeView))
   const canEditTheme = computed(() => hasPermission(PERMISSIONS.themeEdit))
   const canViewCustomTheme = computed(() => hasPermission(PERMISSIONS.themeCustomView))
+  /** 第三档：能点但可能被拒（`edit` 隐含 `interact`） */
+  const canInteractCustomTheme = computed(() =>
+    hasAnyPermission([PERMISSIONS.themeCustomInteract, PERMISSIONS.themeCustomEdit]),
+  )
   const canEditCustomTheme = computed(() => hasPermission(PERMISSIONS.themeCustomEdit))
   const canViewSections = computed(() => hasPermission(PERMISSIONS.sectionsView))
+  /** 第三档：能点但可能被拒（`edit` 隐含 `interact`） */
+  const canInteractSections = computed(() => hasAnyPermission([PERMISSIONS.sectionsInteract, PERMISSIONS.sectionsEdit]))
   const canEditSections = computed(() => hasPermission(PERMISSIONS.sectionsEdit))
   const canResetConfig = computed(() => hasPermission(PERMISSIONS.configDelete))
   const canViewAiChat = computed(() => hasPermission(PERMISSIONS.aiChatView))
@@ -74,8 +80,10 @@ export function usePermission() {
     canViewTheme,
     canEditTheme,
     canViewCustomTheme,
+    canInteractCustomTheme,
     canEditCustomTheme,
     canViewSections,
+    canInteractSections,
     canEditSections,
     canResetConfig,
     canViewAiChat,

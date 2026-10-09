@@ -27,7 +27,23 @@ const {
 } = useResumeDisplay()
 
 // 切换预设 / 明暗 / 背景是一档；「自定义调色盘」是更高的一档（见 config/permissions.ts）
-const { canEditCustomTheme, canEditTheme } = usePermission()
+const { canEditCustomTheme, canEditTheme, canInteractCustomTheme } = usePermission()
+
+const toast = useToast()
+
+/** 「自定义」比"切预设"高一档：能点但可能被拒（第三档语义） */
+function onCustomThemeClick() {
+  if (!canEditCustomTheme.value) {
+    toast.add({
+      title: '需要管理员权限',
+      description: '「自定义」配色只有管理员可以编辑',
+      color: 'warning',
+    })
+    return
+  }
+
+  applyCustomTheme()
+}
 
 /** 当前是否「自定义」主题 —— 只有它开放逐项编辑 */
 const isCustomTheme = computed(() => config.value.theme.id === RESUME_CUSTOM_THEME.id)
@@ -59,12 +75,12 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
         />
         <UButton
           size="xs"
-          :disabled="!canEditCustomTheme"
+          :disabled="!canInteractCustomTheme"
           :label="RESUME_CUSTOM_THEME.label"
           :icon="isCustomTheme ? 'i-lucide-pipette' : undefined"
           :color="isCustomTheme ? 'primary' : 'neutral'"
           :variant="isCustomTheme ? 'solid' : 'outline'"
-          @click="applyCustomTheme"
+          @click="onCustomThemeClick"
         />
       </div>
     </ResumeSettingsGroup>
@@ -85,7 +101,7 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
     </ResumeSettingsGroup>
 
     <ResumeSettingsGroup
-      :locked="!canEditCustomTheme"
+      :locked="!canInteractCustomTheme"
       title="调色盘"
       :hint="isCustomTheme ? '浅色 / 深色各一套，可逐项改' : '预设只读；切到「自定义」后可编辑'"
     >
