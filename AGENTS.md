@@ -11,7 +11,7 @@
 - `apps/web` 是用户端，`apps/admin` 是管理端，`apps/api` 是后端服务，`packages/common` 存放跨应用的稳定类型与基础能力。
 - 业务按模块推进：一个任务卡只落一个模块或一条闭环，不顺手扩展相邻模块；未定的选型写进任务卡待确认项，不靠猜测落地。
 - 新增目录、包、基础设施或共享契约前，先说明动机、影响范围、回滚方式，并同步更新 README。
-- 分支模型：`main` 只承载发布与正式版本，**不直接在 `main` 上开发**；日常开发在 `dev`，并从 `dev` 开 `feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…` 短分支，验证完成后合回 `dev`。完整流程见 [docs/dev/workflow.md](./docs/dev/workflow.md)。
+- 分支模型：`main` 只承载发布与正式版本，**不直接在 `main` 上开发**；日常开发在 `dev`，并从 `dev` 开 `feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…` 短分支，验证完成后合回 `dev`。完整流程见 [docs/dev/01_开发流程_分支与提交.md](./docs/dev/01_开发流程_分支与提交.md)。
 
 ## 2. 安全与隐私
 
@@ -66,7 +66,10 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
 - TypeScript 保持严格类型；前端使用 Vue Composition API 与 `<script setup lang="ts">`；NestJS 按 module、controller、service 与 common 边界组织。
 - 测试文件优先放在对应模块的 `__tests__/` 目录，验证真实行为，不提交只为凑覆盖率的模板测试。
 - UI 改动必须验证桌面端与移动端关键路径；后端改动必须验证对应接口及异常路径。
-- **UI 与交互未经 Owner 实看确认，不得提交**：机器验证（typecheck / lint / 结构断言 / 截图度量）只证明"没坏"，不证明"对"。凡涉及视觉、布局、动效、交互手感的改动，先把改动留在工作区并说明"看哪里、看什么"，待 Owner 确认后再提交；Owner 未确认前不要用 squash / 合并把改动带进 `dev`。
+- **提交时机按"能不能被机器验证"分层**：
+  - **UI 与交互**（视觉 / 布局 / 动效 / 手感）：机器验证只证明"没坏"，不证明"对"。改动先留在工作区并说明"看哪里、看什么"，**经 Owner 实看确认后**再提交；未确认前不要用 squash / 合并带进 `dev`。
+  - **其余**（后端 / 共享契约 / 文档 / 构建配置等可机器验证的部分）：**自测通过即可在当前分支本地提交**，不必逐次确认 —— 一个 task 补充完善且 `typecheck` / `lint` / 实测通过，就该落成提交，别把改动攒在工作区。
+  - **推送远端**仍按 Owner 显式指示执行：**本地提交 ≠ 已发布**，二者不混为一谈。
 - 提交前至少执行 `pnpm format:check`、`pnpm lint`、`pnpm typecheck`、`pnpm test` 和受影响范围的构建；若项目尚无测试，说明缺口而不是伪造测试。
 
 ## 5. Skills：使用、安装与边界
