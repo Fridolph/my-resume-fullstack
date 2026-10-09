@@ -155,6 +155,9 @@ PORT=4049
 ## 常用脚本
 
 ```bash
+# 首次：起本地 PostgreSQL（Docker；数据存在 named volume 里）
+docker compose up -d
+
 pnpm dev             # 启动 web、admin、api 三端
 pnpm build           # 构建所有 workspace package
 pnpm build:fresh     # 忽略 Turbo 缓存后重新构建
