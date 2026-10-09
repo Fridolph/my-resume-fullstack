@@ -8,6 +8,7 @@ import { getSectionDefinition } from '#layers/public-resume/app/config/resume-se
 import { useResumeActiveSection } from '#layers/public-resume/app/composables/useResumeActiveSection'
 import { useResumeContent } from '#layers/public-resume/app/composables/useResumeContent'
 import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
+import type { DropdownMenuItem } from '@nuxt/ui'
 import type { ResumeSectionKey, ResumeStyleId } from '#layers/public-resume/app/types/resume'
 
 /**
@@ -249,6 +250,30 @@ function openEditor(key: ResumeSectionKey) {
   editorOpen.value = true
 }
 
+/**
+ * 小屏（< sm）把头部次要操作收进一个菜单 —— 窄屏放不下平铺的按钮。
+ * 与桌面端用**同一份权限判断**（决定项的有无），只是呈现方式不同，避免两处逻辑分叉。
+ */
+const mobileMenuItems = computed<DropdownMenuItem[]>(() => {
+  const items: DropdownMenuItem[] = []
+
+  if (canViewDisplay.value) {
+    items.push({
+      label: '展示设置',
+      icon: 'i-lucide-sliders-horizontal',
+      onSelect: () => {
+        settingsOpen.value = true
+      },
+    })
+  }
+
+  if (canUseAiChat.value) {
+    items.push({ label: 'AI 对话（开发中）', icon: 'i-lucide-sparkles', disabled: true })
+  }
+
+  return items
+})
+
 function resetAll() {
   resetDisplay()
   resetContent()
@@ -263,6 +288,7 @@ function resetAll() {
         <!-- ① 常显（所有角色）：展示设置 = `Resume.Display:edit` -->
         <UTooltip v-if="canViewDisplay" text="展示设置">
           <UButton
+            class="hidden sm:inline-flex"
             size="xs"
             color="neutral"
             variant="outline"
@@ -275,6 +301,7 @@ function resetAll() {
         <!-- ② 登录后追加：AI 对话 = `AiTalk.Chat:create`（功能未上线，先占位且不可点） -->
         <UTooltip v-if="canUseAiChat" text="AI 对话（开发中）">
           <UButton
+            class="hidden sm:inline-flex"
             size="xs"
             color="neutral"
             variant="outline"
@@ -285,6 +312,17 @@ function resetAll() {
         </UTooltip>
 
         <!-- ③ 身份区：未登录 = 登录按钮；已登录 = 账户菜单（保存状态 / 编辑模式 / 重置 / 退出） -->
+        <!-- ③ 小屏：把上面的次要项收进一个菜单（与桌面端同一份权限判断） -->
+        <UDropdownMenu :items="mobileMenuItems" :content="{ align: 'end' }" class="sm:hidden">
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-ellipsis-vertical"
+            aria-label="更多操作"
+          />
+        </UDropdownMenu>
+
         <ResumeAccountMenu
           :save-label="saveLabel"
           :edit-mode="editMode"
