@@ -114,7 +114,7 @@ function normalizeTheme(theme: unknown): ResumeThemeConfig {
 export function useResumeDisplay() {
   const config = useState<ResumeDisplayConfig>('resume-display-config', createDefaultConfig)
   const settingsOpen = useState<boolean>('resume-display-settings-open', () => false)
-  /** 编辑模式：由管理员登录态决定（见 useResumeAdmin / pages/resume/index.vue） */
+  /** 编辑模式：由权限键 `Resume.Sections:edit` 决定（见 usePermission / pages/resume/index.vue） */
   const editable = useState<boolean>('resume-display-editable', () => false)
   const saveState = useState<ResumeSaveState>('resume-display-save-state', () => 'idle')
   const savedAt = useState<number | null>('resume-display-saved-at', () => null)
