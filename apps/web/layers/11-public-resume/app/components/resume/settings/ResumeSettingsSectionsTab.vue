@@ -11,6 +11,7 @@ import ResumeSettingsGroup from './ResumeSettingsGroup.vue'
  * 顺序与栏位归属不在这里（由页面上的拖拽决定）。
  */
 const { config, toggleSection } = useResumeDisplay()
+const { canEditSections } = usePermission()
 
 function isVisible(key: ResumeSectionKey) {
   return !config.value.sections.hidden.includes(key)
@@ -18,7 +19,7 @@ function isVisible(key: ResumeSectionKey) {
 </script>
 
 <template>
-  <ResumeSettingsGroup title="区块显隐" hint="顺序与栏位归属在页面上拖拽调整">
+  <ResumeSettingsGroup :locked="!canEditSections" title="区块显隐" hint="顺序与栏位归属在页面上拖拽调整">
     <ul class="grid gap-1">
       <li
         v-for="definition in resumeSectionDefinitions"

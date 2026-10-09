@@ -15,16 +15,10 @@ import ResumeSettingsGroup from './ResumeSettingsGroup.vue'
  *
  * 本组件只消费数据 + 调动作，不发请求、不判断数据是否就绪（那在 `ResumeSettingsPanel`）。
  */
-const {
-  config,
-  setLayoutMode,
-  setSplitSide,
-  toggleSideWidth,
-  toggleStickySide,
-  setStyle,
-} = useResumeDisplay()
+const { config, setLayoutMode, setSplitSide, toggleSideWidth, toggleStickySide, setStyle } = useResumeDisplay()
+const { canEditDisplay } = usePermission()
 
-const layoutModes: { value: ResumeLayoutMode, label: string, icon: string }[] = [
+const layoutModes: { value: ResumeLayoutMode; label: string; icon: string }[] = [
   { value: 'single', label: '通栏', icon: 'i-lucide-rows-3' },
   { value: 'split', label: '左右', icon: 'i-lucide-columns-2' },
   { value: 'threeColumn', label: '三栏', icon: 'i-lucide-columns-3' },
@@ -36,7 +30,7 @@ const sideHint = computed(() => (config.value.layout.mode === 'single' ? '通栏
 
 <template>
   <div class="space-y-5">
-    <ResumeSettingsGroup title="布局">
+    <ResumeSettingsGroup title="布局" :locked="!canEditDisplay">
       <div class="resume-btn-group">
         <UButton
           v-for="item in layoutModes"
@@ -51,7 +45,11 @@ const sideHint = computed(() => (config.value.layout.mode === 'single' ? '通栏
       </div>
     </ResumeSettingsGroup>
 
-    <ResumeSettingsGroup title="信息栏位置" :hint="sideHint || '前两项二选一，后两项各自独立'">
+    <ResumeSettingsGroup
+      :locked="!canEditDisplay"
+      title="信息栏位置"
+      :hint="sideHint || '前两项二选一，后两项各自独立'"
+    >
       <div class="resume-btn-group">
         <UButton
           size="xs"
@@ -88,7 +86,7 @@ const sideHint = computed(() => (config.value.layout.mode === 'single' ? '通栏
       </div>
     </ResumeSettingsGroup>
 
-    <ResumeSettingsGroup title="风格" hint="只管区块的样子，不改变颜色与顺序">
+    <ResumeSettingsGroup :locked="!canEditDisplay" title="风格" hint="只管区块的样子，不改变颜色与顺序">
       <div class="resume-btn-group">
         <UButton
           v-for="preset in resumeStylePresets"

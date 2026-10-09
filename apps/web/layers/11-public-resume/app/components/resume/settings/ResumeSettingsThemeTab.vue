@@ -26,11 +26,14 @@ const {
   setBackgroundImage,
 } = useResumeDisplay()
 
+// 切换预设 / 明暗 / 背景是一档；「自定义调色盘」是更高的一档（见 config/permissions.ts）
+const { canEditCustomTheme, canEditTheme } = usePermission()
+
 /** 当前是否「自定义」主题 —— 只有它开放逐项编辑 */
 const isCustomTheme = computed(() => config.value.theme.id === RESUME_CUSTOM_THEME.id)
 
 /** 调色盘把 light / dark 两组平铺展示（顺序即展示顺序） */
-const themeGroups: { mode: ResumeColorMode, label: string }[] = [
+const themeGroups: { mode: ResumeColorMode; label: string }[] = [
   { mode: 'light', label: '浅色' },
   { mode: 'dark', label: '深色' },
 ]
@@ -43,7 +46,7 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
 
 <template>
   <div class="space-y-5">
-    <ResumeSettingsGroup title="配色">
+    <ResumeSettingsGroup :locked="!canEditTheme" title="配色">
       <div class="resume-btn-group">
         <UButton
           v-for="preset in resumeThemePresets"
@@ -56,6 +59,7 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
         />
         <UButton
           size="xs"
+          :disabled="!canEditCustomTheme"
           :label="RESUME_CUSTOM_THEME.label"
           :icon="isCustomTheme ? 'i-lucide-pipette' : undefined"
           :color="isCustomTheme ? 'primary' : 'neutral'"
@@ -65,7 +69,7 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
       </div>
     </ResumeSettingsGroup>
 
-    <ResumeSettingsGroup title="明暗" hint="与配色预设正交">
+    <ResumeSettingsGroup :locked="!canEditTheme" title="明暗" hint="与配色预设正交">
       <div class="resume-btn-group">
         <UButton
           v-for="group in themeGroups"
@@ -81,6 +85,7 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
     </ResumeSettingsGroup>
 
     <ResumeSettingsGroup
+      :locked="!canEditCustomTheme"
       title="调色盘"
       :hint="isCustomTheme ? '浅色 / 深色各一套，可逐项改' : '预设只读；切到「自定义」后可编辑'"
     >
@@ -127,7 +132,7 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
       </div>
     </ResumeSettingsGroup>
 
-    <ResumeSettingsGroup title="背景">
+    <ResumeSettingsGroup :locked="!canEditTheme" title="背景">
       <div class="resume-btn-group">
         <UButton
           v-for="preset in resumeBackgroundPresets"
