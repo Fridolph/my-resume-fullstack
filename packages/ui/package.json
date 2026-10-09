@@ -7,5 +7,8 @@
   "scripts": {
     "typecheck": "echo \"layer 由宿主 app 的 typecheck 覆盖（apps/web、apps/admin）\"",
     "lint": "echo \"layer 的 lint 由根 oxlint 覆盖\""
+  },
+  "dependencies": {
+    "@template/common": "workspace:*"
   }
 }

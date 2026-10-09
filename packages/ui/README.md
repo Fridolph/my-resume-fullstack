@@ -35,7 +35,7 @@ export default defineNuxtConfig({
 
 新增共享组件时**不用**改这两处。
 
-**依赖约定**：layer 不声明运行时依赖 —— `vue` 与 `@nuxt/ui` 由宿主提供。所以组件里直接用自动导入的 `ref` / `computed` / `UButton`，**不要**写 `import { ref } from 'vue'`（那样会按 `packages/ui/node_modules` 解析而找不到）。需要额外能力时优先自己写：`app/composables/useNarrowScreen.ts` 就是用来替代 `@vueuse/core` 的 `useMediaQuery`，避免给两个 app 各加一份依赖。
+**依赖约定**：layer **不声明第三方运行时依赖**（但可以 `workspace:*` 依赖 `@template/common` 这类纯 TS 包） —— `vue` 与 `@nuxt/ui` 由宿主提供。所以组件里直接用自动导入的 `ref` / `computed` / `UButton`，**不要**写 `import { ref } from 'vue'`（那样会按 `packages/ui/node_modules` 解析而找不到）。需要额外能力时优先自己写：`app/composables/useNarrowScreen.ts` 就是用来替代 `@vueuse/core` 的 `useMediaQuery`，避免给两个 app 各加一份依赖。
 
 ## 组件
 
@@ -133,6 +133,16 @@ export default defineNuxtConfig({
 - **内置动作区**：`show-actions` 时 footer 渲染「取消 / 确认 + footerText」，`loading` 会挂到确认按钮上；`close-on-confirm=false` 适合"异步提交成功后才关"
 - **`#footer` 优先**：给了 `#footer` 就完全接管，不再渲染内置动作区
 - **不需要 `ClientOnly`**：浮层面板只在 `open` 为真时渲染，SSR 首屏里不会出现（`MyModal` 的断点判断用 `useMediaQuery(..., { ssrWidth })` 避免服务端 / 客户端分支不一致）
+
+## 非组件能力
+
+这个 layer 也放**依赖 Nuxt 的共享逻辑**（判据仍是"能不能脱离 Vue"：不能 → 这里；能 → `packages/common`）：
+
+| 文件                 | 用途                                                                   |
+| -------------------- | ---------------------------------------------------------------------- |
+| `app/plugins/api.ts` | `$api` —— 唯一的请求层（鉴权头 / 解包 / 公共错误默认处理），两端零代码 |
+
+> layer 的 `app/plugins/` 由 Nuxt 自动加载，**宿主什么都不用写**；`apis/*.ts` 里 `const { $api } = useNuxtApp()` 即可。
 
 ## 新增一个共享组件的步骤
 
