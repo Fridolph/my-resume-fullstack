@@ -33,38 +33,38 @@ setPermissionKeys(keys: string[]): void        // 会话就绪时写入
 
 `<域>:<动作>`，全小写，动作是动词；域与 `layers/` 的业务域同名（便于对照）。
 
-| 权限键                    | 决定                                | 落点                             |
-| ------------------------- | ----------------------------------- | -------------------------------- |
-| `Resume.Profile:view`     | 浏览公开简历（所有角色都有）        | 页面本身                         |
-| `Resume.Display:view`     | 能看到「布局与风格」                | 展示设置抽屉的 tab               |
-| `Resume.Display:edit`     | 能切布局 / 风格                     | 该 tab 内的按钮                  |
-| `Resume.Theme:view`       | 能看到「主题与背景」                | 抽屉 tab                         |
-| `Resume.Theme:edit`       | 能切配色预设 / 明暗 / 背景          | 该 tab 内的按钮                  |
-| `Resume.ThemeCustom:view` | 能看到「自定义调色盘」              | 调色盘分组                       |
-| `Resume.ThemeCustom:edit` | 能用自定义调色盘（逐项改色）        | 调色盘分组内的输入框 / 取色器    |
-| `Resume.Sections:view`    | 能看到「区块显隐」                  | 抽屉 tab                         |
-| `Resume.Sections:edit`    | 能改区块显隐 **+ 拖拽编辑简历模块** | 开关 / 页面上的拖拽手柄          |
-| `Resume.Config:delete`    | 重置全部配置与内容（危险）          | 身份菜单                         |
-| `Resume.Snapshot:create`  | 发布快照（将来）                    | 后续 publish 域                  |
-| `AiTalk.Chat:view`        | 能看到 AI 对话入口                  | Header 第二档                    |
-| `AiTalk.Chat:create`      | 能发起 AI 对话                      | AI 页 / 弹窗                     |
-| `Admin.Console:view`      | 进入 admin 端（路由守卫用）         | `definePageMeta({ middleware })` |
+| 权限键                        | 决定                                | 落点                                   |
+| ----------------------------- | ----------------------------------- | -------------------------------------- |
+| `Resume.Profile:view`         | 浏览公开简历（所有角色都有）        | 页面本身                               |
+| `Resume.Display:view`         | 能看到「布局与风格」                | 展示设置抽屉的 tab                     |
+| `Resume.Display:edit`         | 能切布局 / 风格                     | 该 tab 内的按钮                        |
+| `Resume.Theme:view`           | 能看到「主题与背景」                | 抽屉 tab                               |
+| `Resume.Theme:edit`           | 能切配色预设 / 明暗 / 背景          | 该 tab 内的按钮                        |
+| `Resume.ThemeCustom:view`     | 能看到「自定义调色盘」              | 调色盘分组                             |
+| `Resume.ThemeCustom:interact` | 能点「自定义」但会被拒（第三档）    | 调色盘分组的按钮（点击后提示权限不足） |
+| `Resume.ThemeCustom:edit`     | 能用自定义调色盘（逐项改色）        | 调色盘分组内的输入框 / 取色器          |
+| `Resume.Sections:view`        | 能看到「区块显隐」                  | 抽屉 tab                               |
+| `Resume.Sections:interact`    | 能点区块开关但会被拒（第三档）      | 开关（点击后提示权限不足）             |
+| `Resume.Sections:edit`        | 能改区块显隐 **+ 拖拽编辑简历模块** | 开关 / 页面上的拖拽手柄                |
+| `Resume.Config:delete`        | 重置全部配置与内容（危险）          | 身份菜单                               |
+| `Resume.Snapshot:create`      | 发布快照（将来）                    | 后续 publish 域                        |
+| `AiTalk.Chat:view`            | 能看到 AI 对话入口                  | Header 第二档                          |
+| `AiTalk.Chat:create`          | 能发起 AI 对话                      | AI 页 / 弹窗                           |
+| `Admin.Console:view`          | 进入 admin 端（路由守卫用）         | `definePageMeta({ middleware })`       |
 
 > **命名对齐后端**（Owner 2026-10-09 定）：沿用后端样例的 `域.资源:动作`（如 `Settings.Cases:edit`、
 > `Leads.MyLeads:view`），动作取后端动词集 `view` / `create` / `edit` / `delete`。
 > 这样后端 `permissionPermitKeys` 可以**直接喂进来判断、不需要映射表**；
 > 上表的键名是先按同一规范起名，真实键名以后端契约定稿为准（改键名 = 改 `config/permissions.ts` 一处）。
 
-**三档语义（Owner 2026-10-09 定，权限键"成对"的根据）**：
+**四态语义（Owner 2026-10-09 定，权限键"成对 + 第三档"的根据）**：
 
-| 持有                | 表现                             | 落点                                                              |
-| ------------------- | -------------------------------- | ----------------------------------------------------------------- |
-| 无 `view`           | **不展示**（`v-if`）             | 抽屉里整块 tab 不出现（`ResumeSettingsPanel` 过滤 tabs）          |
-| 有 `view` 无 `edit` | **展示但不可操作**（`disabled`） | `ResumeSettingsGroup` 的 `locked`（`fieldset disabled` 整组禁用） |
-| `view` + `edit`     | 完整操作                         | 正常交互                                                          |
-
-于是"自定义调色盘"与"区块显隐"这类**只给 `view` 不给 `edit`** 的能力，
-天然就是"让游客看见价值、却改不动"的那一档。
+| 持有                         | 表现                                   | 落点                                                     |
+| ---------------------------- | -------------------------------------- | -------------------------------------------------------- |
+| 无 `view`                    | **不展示**（`v-if`）                   | 抽屉里整块 tab 不出现（`ResumeSettingsPanel` 过滤）      |
+| `view` only                  | 展示 + **整组 disabled**（点都点不动） | `ResumeSettingsGroup` 的 `locked`（`fieldset disabled`） |
+| `view` + `interact`          | 展示 + **可点，但动作被拒 + 提示**     | 动作层拦截（见 §2.5）                                    |
+| `view` + `interact` + `edit` | 完整操作                               | 正常交互                                                 |
 
 > 具体粒度以"**UI 上能独立出现/消失的最小单元**"为准：一个权限键对应一个可独立控制的入口。不要为"将来可能"提前铺键。
 
@@ -146,11 +146,11 @@ mock（`apps/web/app/mock/auth.ts`）**按真实后端返回的形状造**，P2 
 { code, data: { token, refreshToken, oswUserInfo, oswCompanyInfo, permissionList }, msg, traceId }
 ```
 
-| 身份         | 进入方式             | 权限来源                                                                   |
-| ------------ | -------------------- | -------------------------------------------------------------------------- |
-| **游客**     | 不登录（没有 token） | `ROLE_PERMISSIONS.guest` 兜底                                              |
+| 身份         | 进入方式             | 权限来源                                                               |
+| ------------ | -------------------- | ---------------------------------------------------------------------- |
+| **游客**     | 不登录（没有 token） | `ROLE_PERMISSIONS.guest` 兜底                                          |
 | **普通用户** | `user` / `user`      | `permissionList[0].permissionPermitKeys`（游客的全部 + AI 入口两个键） |
-| **管理员**   | `admin` / `admin`    | 全量 7 个键                                                                |
+| **管理员**   | `admin` / `admin`    | 全量 7 个键                                                            |
 
 - **token 存 cookie**（`my-resume.token`）—— 与请求层 `$request` 注入 `Authorization` 用的是**同一个键**，
   一个 cookie 同时解决"SSR 可读"与"请求带鉴权"；`useAuthState.hydrate()` 由 token 反解会话
@@ -169,6 +169,31 @@ mock（`apps/web/app/mock/auth.ts`）**按真实后端返回的形状造**，P2 
 >
 > 实现与约定见 `docs/dev/api-conventions.md`。**auth mock 仍需在 P2 收尾时改成这套形状**
 > （它现在还是 `{ code, data: {...}, msg, traceId }`）。
+
+### 2.5 第三档 `interact`：能点，但会被拒（2026-10-09 追加）
+
+Owner 的诉求是两档之外还有第三种：**游客"整块禁用"，普通用户"能点，但不能操作"**。
+用 `view` / `edit` 表达不了（两者都没有 `edit`），于是加了**前端特有的一档**：
+
+```text
+XX:view       能看到
+XX:interact   能点，但动作会被拒并提示   ← 前端特有
+XX:edit       能真正修改（隐含 interact）
+```
+
+| 持有                         | 表现                                 |
+| ---------------------------- | ------------------------------------ |
+| `view` only                  | 展示 + 整组 `fieldset disabled`      |
+| `view` + `interact`          | 展示 + 可点，但动作被拒 + toast 提示 |
+| `view` + `interact` + `edit` | 完整操作                             |
+
+**实现取舍（重要）**："能点但无效"**不是**把控件做成假的，而是在**动作层拦截** ——
+无权限时不改 `model-value`，于是开关会弹回，同时给出明确提示。
+否则用户会以为界面坏了，那比直接 `disabled` 更糟。
+
+**接后端时的退化方案**：后端动词集只有 `view` / `create` / `edit` / `delete`，没有 `interact`。
+若后端不加这个键，把 `usePermission` 里 `canInteractXxx` 的实现改成
+"`hasPermission(view)` + 场景/角色判断"即可，**调用方零改动**（判断集中在 `usePermission`）。
 
 ## 3. 落点分层（不引第三套机制）
 
@@ -239,6 +264,14 @@ React 里必须用 Provider，是因为 Context **没有**「SSR-safe 的请求�
 | **页面层** | Nuxt **route middleware**（`definePageMeta({ middleware: 'auth' })`） | **能不能进这个页面**（admin 配置页必须） |
 | **接口层** | 后端                                                                  | **真正的权限**；前端 keys 只做体验       |
 
+**已落地（2026-10-09）**：
+
+- web 的 `/ai-talk` 用 `middleware: 'ai-chat'` 守 `AiTalk.Chat:view` —— 没有该权限的人直接敲 URL 会被退回 `/resume`
+  （**组件显隐挡不住直接输入地址**）；
+- admin 的 `middleware/permission.ts` 是**骨架**，页面用
+  `definePageMeta({ middleware: 'permission', permissions: ['Admin.Console:view'] })` 声明需要的权限；
+  **过渡策略 = 没有权限数据就放行**（admin 还没接后端），**接后端后必须改成"空即拦"**。
+
 > ⚠️ 只做 UI 显隐**不等于**做了权限：组件不渲染 ≠ 接口调不到。页面级用 middleware 兜，数据级必须靠后端（同 §5 的判断）。
 
 ## 4. Header 三档（Owner 选定）
@@ -260,7 +293,9 @@ React 里必须用 Provider，是因为 Context **没有**「SSR-safe 的请求�
 2. **危险操作收进菜单**：`重置` 从主操作位移入身份下拉的"危险区"，点击后**弹二次确认**（`UModal`）—— 确认文案要写清"哪些会被清掉、能不能恢复"（本地配置与内容都能重置，且**不可恢复**）。
 3. **登录前后右侧长度基本不变**：未登录是「展示设置 + 登录」，登录后是「展示设置 + AI + 身份菜单」，骨架一致 → 避免整条头部因登录而重排。
 4. **品牌不挪到右侧**（Owner 提过）：品牌在左是阅读惯例；挪到右侧只会让左侧空、右侧更挤，**不解决"杂"**。要腾空间应做减法（见 1、2 条），而不是搬家。
-5. **移动端**：`< sm` 只留品牌 + 身份区；常显/登录后项收进一个「菜单」图标 → Drawer（与 §6.1 第 2 期的响应式策略一致）。
+5. **移动端（已落地 2026-10-09）**：`< sm` 时桌面按钮（展示设置 / AI 入口）`hidden`，改由一个
+   「更多操作」菜单承载（`UDropdownMenu`）—— 与桌面端用**同一份权限判断**（`mobileMenuItems` 复用
+   `canViewDisplay` / `canUseAiChat`），只是呈现方式不同，避免两处逻辑分叉；身份区在所有尺寸都在最右。
 
 **落地（2026-10-09，P0 第一版）**：
 
