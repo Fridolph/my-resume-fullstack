@@ -63,7 +63,10 @@ function driftOf(row: number, index: number) {
     <span class="resume-eyebrow">Links</span>
 
     <div v-for="(row, rowIndex) in linkRows" :key="rowIndex" class="relative pt-2">
-      <span class="absolute inset-x-0 top-[0.1rem] h-[3px] rounded-full [background:linear-gradient(90deg,transparent,color-mix(in_srgb,var(--resume-border)_70%,var(--resume-primary))_12%,color-mix(in_srgb,var(--resume-border)_70%,var(--resume-primary))_88%,transparent)]" aria-hidden="true" />
+      <span
+        class="absolute inset-x-0 top-[0.1rem] h-[3px] rounded-full [background:linear-gradient(90deg,transparent,color-mix(in_srgb,var(--resume-border)_70%,var(--resume-primary))_12%,color-mix(in_srgb,var(--resume-border)_70%,var(--resume-primary))_88%,transparent)]"
+        aria-hidden="true"
+      />
 
       <div class="flex items-start justify-around gap-2">
         <a
@@ -75,10 +78,18 @@ function driftOf(row: number, index: number) {
           class="hero-links-item group relative inline-flex origin-top flex-col items-center pt-[var(--hang,18px)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--resume-primary)] motion-reduce:transition-none"
           :style="`--hang: ${hangOf(rowIndex, index)}; --tilt: ${tiltOf(rowIndex, index)}; --drift: ${driftOf(rowIndex, index)}`"
         >
-          <span class="absolute top-0 left-1/2 h-[var(--hang,18px)] w-px bg-[color-mix(in_srgb,var(--resume-border)_90%,transparent)]" aria-hidden="true" />
-          <span class="inline-flex flex-col items-center gap-[0.3rem] rounded-[0.5rem] border border-[var(--resume-border)] bg-[color-mix(in_srgb,var(--resume-chip-bg)_55%,transparent)] px-[0.3rem] py-[0.45rem] [transform:translateX(var(--drift,0px))_rotate(var(--tilt,0deg))] transition-[border-color,box-shadow] duration-200 ease-[ease] group-hover:border-[color-mix(in_srgb,var(--resume-primary)_50%,transparent)] group-hover:shadow-[0_10px_20px_color-mix(in_srgb,var(--resume-primary)_12%,transparent)] motion-reduce:transition-none">
+          <span
+            class="absolute top-0 left-1/2 h-[var(--hang,18px)] w-px bg-[color-mix(in_srgb,var(--resume-border)_90%,transparent)]"
+            aria-hidden="true"
+          />
+          <span
+            class="inline-flex flex-col items-center gap-[0.3rem] rounded-[0.5rem] border border-[var(--resume-border)] bg-[color-mix(in_srgb,var(--resume-chip-bg)_55%,transparent)] px-[0.3rem] py-[0.45rem] [transform:translateX(var(--drift,0px))_rotate(var(--tilt,0deg))] transition-[border-color,box-shadow] duration-200 ease-[ease] group-hover:border-[color-mix(in_srgb,var(--resume-primary)_50%,transparent)] group-hover:shadow-[0_10px_20px_color-mix(in_srgb,var(--resume-primary)_12%,transparent)] motion-reduce:transition-none"
+          >
             <UIcon :name="link.icon || 'i-lucide-external-link'" class="size-[0.9rem] resume-accent" />
-            <span class="[writing-mode:vertical-rl] [text-orientation:mixed] text-[0.75rem] leading-none font-semibold tracking-[0.08em] resume-text">{{ link.label }}</span>
+            <span
+              class="[writing-mode:vertical-rl] [text-orientation:mixed] text-[0.75rem] leading-none font-semibold tracking-[0.08em] resume-text"
+              >{{ link.label }}</span
+            >
           </span>
         </a>
       </div>

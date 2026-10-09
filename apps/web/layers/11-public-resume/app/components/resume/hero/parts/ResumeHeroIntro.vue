@@ -51,7 +51,12 @@ watch(restText, () => {
     <span class="resume-eyebrow">Intro</span>
 
     <!-- 重播靠 `cycle` 换 key 让 Vue 重建节点；SSR 输出的是完整全文（可选中 / 可读屏） -->
-    <p v-if="lead" :key="`lead-${cycle}`" class="resume-text text-[0.95rem] leading-[1.65] font-semibold" :style="`--typing: ${typingWindow}`">
+    <p
+      v-if="lead"
+      :key="`lead-${cycle}`"
+      class="resume-text text-[0.95rem] leading-[1.65] font-semibold"
+      :style="`--typing: ${typingWindow}`"
+    >
       <span class="sr-only">{{ lead }}</span>
       <span aria-hidden="true">
         <span v-for="(char, index) in leadChars" :key="index" class="hero-intro-char" :style="`--i: ${index}`">{{
@@ -63,7 +68,11 @@ watch(restText, () => {
 
     <div v-if="rest.length" class="hero-intro-rest grid gap-[0.4rem]">
       <div ref="restRef" :class="restCollapsed ? 'line-clamp-2' : ''">
-        <p v-for="sentence in rest" :key="sentence" class="hero-intro-sentence resume-muted text-[0.85rem] leading-[1.65] transition-opacity duration-200 ease-[ease]">
+        <p
+          v-for="sentence in rest"
+          :key="sentence"
+          class="hero-intro-sentence resume-muted text-[0.85rem] leading-[1.65] transition-opacity duration-200 ease-[ease]"
+        >
           {{ sentence }}
         </p>
       </div>

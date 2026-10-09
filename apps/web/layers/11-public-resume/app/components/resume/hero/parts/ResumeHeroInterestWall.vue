@@ -72,7 +72,10 @@ const galleryItems = computed(() =>
           <span>{{ item.label }}</span>
         </button>
 
-        <span v-else class="hero-hobby inline-flex items-center gap-[0.35rem] rounded-full border border-[var(--resume-border)] px-[0.6rem] py-1 text-[0.75rem] font-semibold resume-muted transition-[border-color,color,transform] duration-200 ease-[ease] hover:border-[color-mix(in_srgb,var(--resume-primary)_40%,transparent)]">
+        <span
+          v-else
+          class="hero-hobby inline-flex items-center gap-[0.35rem] rounded-full border border-[var(--resume-border)] px-[0.6rem] py-1 text-[0.75rem] font-semibold resume-muted transition-[border-color,color,transform] duration-200 ease-[ease] hover:border-[color-mix(in_srgb,var(--resume-primary)_40%,transparent)]"
+        >
           <UIcon :name="item.icon || 'i-lucide-sparkles'" class="size-4 resume-accent" />
           <span>{{ item.label }}</span>
         </span>
