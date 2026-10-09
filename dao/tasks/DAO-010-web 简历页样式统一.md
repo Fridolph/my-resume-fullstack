@@ -7,7 +7,7 @@
 - 状态：`done`
 - Owner：`昇哥（改动由本人在 feat/15-resume-style-unify 上完成；归枢做质量门与收口）`
 - 创建日期：`2026-10-07`
-- 关联：`Issue #15`、`docs/dev/css-conventions.md`、`docs/dev/resume-styles.md`、`DAO-008`（风格维度，引入了 `--resume-card-*` 等风格变量）
+- 关联：`Issue #15`、`docs/web/02_CSS_基础约定.md`、`docs/web/07_简历风格_三档实现.md`、`DAO-008`（风格维度，引入了 `--resume-card-*` 等风格变量）
 
 ## 状态轨迹
 
@@ -51,7 +51,7 @@
 - 当前状态：`review-ready`
 - 阻塞：无。
 - 下一步第一刀：本卡无下一步。**留待浏览器目视的项**（1920/1440 观感、深色渐变、抽屉/弹窗主题色）建议与 `DAO-008` 遗留的 UI 目视一起做。
-- 文档锚点：`Issue #15`、`docs/dev/css-conventions.md`、`docs/dev/resume-styles.md`
+- 文档锚点：`Issue #15`、`docs/web/02_CSS_基础约定.md`、`docs/web/07_简历风格_三档实现.md`
 - 集成锚点：`见收口区`
 
 ## 收口与沉淀

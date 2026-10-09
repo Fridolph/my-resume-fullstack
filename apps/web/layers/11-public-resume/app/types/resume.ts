@@ -5,7 +5,7 @@
  * - `ResumeContent`：内容（来自简历快照，单语言；语言由 draft 承载，见 DAO-005 的领域模型方向）
  * - `ResumeDisplayConfig`：布局与编排（顺序 / 显隐 / 分栏 / 细粒度开关）
  * - `ResumeThemeConfig`：配色（主色与渐变，最终以 CSS 变量下发给组件）
- * - `ResumeStyleConfig`：风格（区块「长什么样」，与配色、编排正交，见 docs/dev/resume-styles.md）
+ * - `ResumeStyleConfig`：风格（区块「长什么样」，与配色、编排正交，见 docs/web/07_简历风格_三档实现.md）
  *
  * admin 侧负责生成配置，web 侧只渲染；两边共用这几个类型即可长期同构。
  */
@@ -337,7 +337,7 @@ export interface ResumeDisplayConfig {
  *
  * `variant` 只承载**结构差异**（hero 的呈现方式、外壳标题结构），
  * 纯视觉参数（圆角 / 阴影 / 渐变 / hover）走 `--resume-*` 风格 token，
- * 见 docs/dev/resume-styles.md §5。
+ * 见 docs/web/07_简历风格_三档实现.md §5。
  */
 /**
  * hero 三档实现（`components/resume/hero/*`）的共用入参。

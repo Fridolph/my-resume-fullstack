@@ -1,7 +1,7 @@
 # 后端约定（apps/api）
 
 > 状态：auth 与 common 的公共部分已落地（2026-10-09），持续补充。
-> 关联：`docs/dev/identity-and-access.md`（权限模型与 Header 分档）、`README.md`（启动方式与端口）
+> 关联：`docs/dev/02_身份与权限_设计.md`（权限模型与 Header 分档）、`README.md`（启动方式与端口）
 
 ## 1. 这份文档要回答什么
 
@@ -40,17 +40,17 @@
 
 ### 3.1 唯一响应形状
 
-成功与失败**同形状**，只靠 `success` 区分；契约定义在 `packages/common/src/index.ts`（前端 `$request` 与后端共用）。
+成功与失败**同一个形状**，靠 `code` 区分；契约定义在 `packages/common/src/index.ts`（前端与后端共用）。
 
 ```jsonc
 // 成功
-{ "success": true, "data": { /* ... */ }, "message": "ok", "timestamp": "2026-10-09T…", "traceId": "…" }
+{ "code": 200, "data": { /* ... */ }, "message": "ok", "timestamp": "…", "traceId": "…" }
 
-// 失败（同一形状 + 三个定位字段）
+// 失败（同形状 + 定位字段）
 {
-  "success": false, "data": null, "message": "密码至少 4 位",
-  "timestamp": "…", "statusCode": 400, "path": "/api/auth/login",
-  "errorCode": "Common.Validation:failed", "traceId": "…"
+  "code": 401, "data": null, "message": "未携带访问令牌",
+  "timestamp": "…", "path": "/api/auth/me",
+  "errorCode": "AUTH.Token:missing", "traceId": "…"
 }
 ```
 
@@ -58,14 +58,45 @@
 
 | 场景 | 出口 |
 | ---- | ---- |
-| 正常返回 | `ApiResponseInterceptor` → `createApiResponse()` |
+| 正常返回 | `ApiResponseInterceptor` → `createApiResponse()`（`code = 200`） |
 | 抛任何异常 | `ApiExceptionFilter`（**唯一一个 `@Catch()`**）→ `createApiErrorBody()` |
 
 **不要新增 `@Catch(HttpException)` 之类的过滤器** —— 理由见 §2 第 3 条。
 
-### 3.2 错误码（`errorCode`）
+#### `code` 与 HTTP 状态码：两个不同的东西
 
-前端**按码分支，不解析文案**（文案会改、会被翻译）。
+| | 在哪 | 表达什么 |
+| --- | --- | --- |
+| **HTTP 状态码** | 响应**行** `HTTP/1.1 200 OK` | 这次请求在**协议层**的结局：到没到、方法对不对、资源在不在 |
+| **`code`** | 响应**体** | 这次业务在**语义层**的结局 |
+
+两者数值目前保持一致（HTTP 500 ↔ `code 500`），因为这样"看一眼就能对上"、排查最省事。
+但它们是**独立设置**的：`response.status()` 由框架按协议层结局给出，`code` 由业务决定 ——
+将来出现「HTTP 仍是 200、但业务失败」的接口（如"批量导入部分成功"）时，只改 `code` 即可。
+
+码表在 `packages/common` 的 `API_CODE`（**共享**，不是后端私有 —— 前端也要判断成功与否）。
+
+#### 前端判断成功请用 `isApiSuccess()`
+
+```ts
+import { isApiSuccess } from '@template/common'
+if (response.ok && payload && isApiSuccess(payload)) { /* ... */ }
+```
+
+不要自己写 `payload.code === 200`：成功的边界将来可能调整（例如引入 `204` 表示"成功但无数据"），
+收在一个函数里改一次即可，散落各处就会有人漏改。
+
+### 3.2 两套码的分工：`code`（粗）与 `errorCode`（细）
+
+它们**不是重复**，而是给前端两种粒度的判断依据：
+
+| | 例 | 用途 |
+| --- | --- | --- |
+| `code` | `401` | **类目**：这是"认证问题"，可以统一引导去登录 |
+| `errorCode` | `AUTH.Token:missing` / `AUTH.Token:expired` | **具体原因**：过期就尝试刷新，缺失就直接登出 |
+
+只给 `code` 的话，前端分不清"没带令牌"和"令牌过期"；只给 `errorCode` 的话，
+又要为每个字符串维护映射才能知道该跳登录还是跳首页。两个都给，谁都不必猜。
 
 - 命名沿用权限键的 `<域>.<资源>:<动作>` 风格：`AUTH.Token:expired`、`Common.Validation:failed`；
 - 定义集中在 `apps/api/src/common/error-codes.ts`；
@@ -97,7 +128,27 @@
 - 它在**守卫之前**执行 —— 所以连 401 的请求也有 traceId，日志能串起来（拦截器做不到这点）；
 - 自定义字段（`req.traceId` / `req.user`）用 declaration merging 定义在 `common/http-context.ts`，全仓一处。
 
-## 4. 目录：渐进引入，而不是先把目录建好
+### 3.6 依赖注入的命名
+
+**规则：注入的变量名 = 类名首字母小写。**
+
+```ts
+constructor(
+  private readonly authService: AuthService,      // ✅
+  private readonly configService: ConfigService,  // ✅
+  private readonly prismaService: PrismaService,  // ✅
+) {}
+
+// ❌ constructor(private readonly auth: AuthService) {}
+```
+
+**为什么值得统一**：`this.auth` 这种"半截名字"在读代码时要回头翻构造函数才知道它是哪个类；
+`this.authService` 自解释。类一多（`auth` / `authService` / `authGuard` 同时存在）时，
+`this.` 后面那一截是辨认对象唯一可靠的线索 —— 命名在这一步省下的字，会在阅读时加倍还回去。
+
+`private readonly` 两个修饰词也各有职责：`private` 表示不对外暴露，`readonly` 表示注入后不再替换
+（依赖注入进来就应该是稳定的，重新赋值通常是 bug 的前兆）。
+，而不是先把目录建好
 
 本轮 `apps/api/src` 的形态：
 
@@ -178,5 +229,21 @@ schema.prisma ──generate──▶ Prisma Client 类型（数据库访问）
 
 | 现象 | 根因 | 处置 |
 | ---- | ---- | ---- |
+| `prisma migrate dev` 之后，client 上 `prisma.permission` 之类的模型访问器是 `undefined` | v7 的 `migrate dev` **不会**顺带重新生成 client | 迁移后手动跑一次 `pnpm exec prisma generate`（写进脚本，别靠记忆） |
 | `nest build` 退出码 0 但 `dist/` 是空的、`main.js` 不存在 | `tsconfig` 的 `incremental: true` 与 `nest-cli.json` 的 `deleteOutDir: true` **互相打架**：build 先把 dist 删掉，增量缓存却认为"没变化"→ 一个文件都不输出。**这是必现，不是偶发** | 去掉 `incremental`（本项目规模全量编译足够快），换来"不会静默不输出" |
 | 编译产物变成 `dist/src/main.js` | 新增 `prisma.config.ts`（在项目根）被 tsconfig 扫到 → TypeScript 推断的 `rootDir` 被拉高到项目根 | `tsconfig.json` 明确 `include: ["src/**/*"]` + `rootDir: "src"` |
+
+### 6.5 数据模型：RBAC 五张表
+
+```text
+users ──< user_roles >── roles ──< role_permissions >── permissions
+```
+
+| 决定 | 理由 |
+| ---- | ---- |
+| `UserRole` 做**多对多**（而非 `User.roleId`） | 现在只有两档角色，但"既是编辑又是审核"迟早出现；那时改表 + 改所有查询，比一开始就留一张关联表贵 |
+| `Permission` 表由**代码常量 seed** | 键名写在代码里能进类型、能被前端镜像、能 diff；库只维护"谁拥有它"的**关系**（避免再出现"多份真源"） |
+| **软删除** `deletedAt` | 可审计、可恢复；代价是每条查询都要带 `deletedAt: null` —— 因此该过滤**统一收在 repository 层**，不散到各处 |
+| 密码用 `node:crypto` 的 scrypt | 零依赖；存储格式 `scrypt$N$r$p$salt$hash` **把参数写进字符串**，将来调强参数时旧密码仍可验证、可静默升级 |
+
+> 权限键常量在 `apps/api/src/auth/permission-keys.ts`，与前端 `apps/web/app/config/permissions.ts` 是**镜像**关系（理想做法是放 `packages/common`，待解决 ESM/CJS 后合并）。

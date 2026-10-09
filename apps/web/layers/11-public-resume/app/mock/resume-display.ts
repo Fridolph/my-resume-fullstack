@@ -10,7 +10,7 @@ import type {
  * 风格预设（本轮两档）。
  *
  * 与主题预设不同：这里只声明「有哪些风格」，具体视觉参数由 `styleVars`（容器）
- * 与区块组件的 `variant` 分支承载，见 docs/dev/resume-styles.md。
+ * 与区块组件的 `variant` 分支承载，见 docs/web/07_简历风格_三档实现.md。
  */
 export const resumeStylePresets: { id: ResumeStyleId; label: string; icon: string }[] = [
   { id: 'minimal', label: '极简', icon: 'i-lucide-minus' },

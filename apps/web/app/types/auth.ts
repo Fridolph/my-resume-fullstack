@@ -1,5 +1,5 @@
 /**
- * auth 接口的数据形状 —— **按真实后端返回对齐**（见 `docs/dev/identity-and-access.md` §2.3）。
+ * auth 接口的数据形状 —— **按真实后端返回对齐**（见 `docs/dev/02_身份与权限_设计.md` §2.3）。
  *
  * 参照的返回样例：`{ code, data: { token, refreshToken, oswUserInfo, oswCompanyInfo, permissionList }, msg, traceId }`
  *

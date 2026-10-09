@@ -7,7 +7,7 @@
 - 状态：`in-progress`
 - Owner：`昇哥确认目标、项目转型与三项选型；归枢协作执行`
 - 创建日期：`2026-10-07`
-- 关联：`dao/CURRENT.md`、`dao/tasks/DAO-006-统一全仓格式化基线.md`、`.dao/inheritance.md`、`.dao/context.md`、`docs/dev/layers.md`、`docs/dev/data-layer.md`、外部蓝图 `my-resume/docs/rs/`（三份）、`my-resume/apps/server`（旧后端对照）
+- 关联：`dao/CURRENT.md`、`dao/tasks/DAO-006-统一全仓格式化基线.md`、`.dao/inheritance.md`、`.dao/context.md`、`docs/web/03_Layers_分层约定.md`、`docs/web/04_数据层_约定.md`、外部蓝图 `my-resume/docs/rs/`（三份）、`my-resume/apps/server`（旧后端对照）
 
 ## 状态轨迹
 
@@ -25,7 +25,7 @@
 - 不做：不实现具体业务页面（resume 编辑 / 发布 / AI 能力另立任务卡）；不迁移 my-resume 的 AI / RAG 能力，不引入 Milvus / Neo4j / LangGraph；不删除或改写 my-resume 旧仓；不一次性铺满所有 layer；本轮不把 Redis 用作缓存层。
 - 涉及文件 / 模块：`apps/web`、`apps/admin`（`layers/`、`plugins/`、`composables/`、`apis/`、`lib/`、`utils/`、`types/`、`nuxt.config.ts`、`package.json`）、`apps/api`（`src/common`、`src/config`、`src/database`、`src/redis`、`src/modules/auth`）、`packages/common`、根 `package.json`、`AGENTS.md` / `README.md` / `.dao/` / `docs/dev/`。
 - 风险与未知：模板演示 layer（`11-projects`、`12-teams`）与新业务域并存会混淆边界，去留待 Owner 定；移除 alova 会影响既有上传 demo；本机有 PostgreSQL 16（homebrew，未启动）与 Redis（已运行），**启动数据库服务与建库属环境变更，需先向 Owner 说明并确认**；Prisma 与 `@pinia/colada` 属新增依赖。
-- 验收：① `pnpm format:check`、`pnpm lint`、`pnpm typecheck`、`pnpm build` 通过；② admin / web 至少一个业务域 layer 按 `layers.md` 依赖方向落地并在 `docs/dev/` 有约定说明；③ 数据层可用：`@pinia/colada` 完成一个真实接口的 query + mutation（含 SSR 与失效重取），alova 从 `apps/admin` 移除；④ `apps/api` 能连 PostgreSQL 与 Redis，并有可区分的 health / ready 检查；⑤ 鉴权闭环：登录拿 token → 携带 token 访问受保护接口通过、未携带被拒绝；⑥ 文档同步：`AGENTS.md`、`README.md`、`.dao/`、`docs/dev/`。
+- 验收：① `pnpm format:check`、`pnpm lint`、`pnpm typecheck`、`pnpm build` 通过；② admin / web 至少一个业务域 layer 按 `docs/web/03_Layers_分层约定.md` 依赖方向落地并在 `docs/dev/` 有约定说明；③ 数据层可用：`@pinia/colada` 完成一个真实接口的 query + mutation（含 SSR 与失效重取），alova 从 `apps/admin` 移除；④ `apps/api` 能连 PostgreSQL 与 Redis，并有可区分的 health / ready 检查；⑤ 鉴权闭环：登录拿 token → 携带 token 访问受保护接口通过、未携带被拒绝；⑥ 文档同步：`AGENTS.md`、`README.md`、`.dao/`、`docs/dev/`。
 - 第一刀：Owner 确认三项选型后，建立 `apps/admin` / `apps/web` 的 layer 骨架与 `@pinia/colada` 数据层，再落 `apps/api` 的 PostgreSQL / Redis 接入与鉴权闭环。
 - 过门判断：`可开工`；编码前确认门已完成。
 
@@ -60,7 +60,7 @@ layers/
 
 `apps/web` 同构：`11-public-resume`（公开展示）+ `12-ai-talk`（访客对话）。
 
-- 数据层与基础设施先落 `app/`，不改依赖方向；只有出现跨域复用、可独立测试的复合能力时，才新建 `00-shared`（依据 `docs/dev/layers.md` 第 3 节的“不过早抽象”）。
+- 数据层与基础设施先落 `app/`，不改依赖方向；只有出现跨域复用、可独立测试的复合能力时，才新建 `00-shared`（依据 `docs/web/03_Layers_分层约定.md` 第 3 节的“不过早抽象”）。
 - 模板遗留 `11-projects` / `12-teams` 与业务域职责不同：建议删除或并入 demo 层，避免边界混淆（**待 Owner 定**）。
 
 ### 已确认选型（2026-10-07）
@@ -122,12 +122,12 @@ Owner 用最小回答确认后，Agent 必须先将确认事实写回本区，�
 每次换窗口、模型或协作者时，覆盖更新“当前交接”，只保留一条仍有效的接棒信息；重要历史由 Git 记录，不在这里堆叠过程日志。
 
 - 已完成（2026-10-08 追加）：**alova 上传链路迁移完成** —— 原生 XHR + colada mutation，插件与依赖一并移除（证据见「执行与验证」）。验收③的 mutation 部分由此补齐。
-- 已完成：项目定位转型的文档同步（`AGENTS.md`、`README.md`、`.dao/`）；三项选型确认并写回；**admin 与 web 两端**的数据层接入 colada（`$request` 契约对齐 `packages/common`、query key 规范、`useHealthQuery` 示例、SSR 取数 + 失效重取验证）；`layers/11-resume`（admin）与 `layers/11-public-resume` + `layers/12-ai-talk`（web）骨架；导航把模板示例折叠进 Demos 入口；`docs/dev/data-layer.md`；两端 README 更新。
+- 已完成：项目定位转型的文档同步（`AGENTS.md`、`README.md`、`.dao/`）；三项选型确认并写回；**admin 与 web 两端**的数据层接入 colada（`$request` 契约对齐 `packages/common`、query key 规范、`useHealthQuery` 示例、SSR 取数 + 失效重取验证）；`layers/11-resume`（admin）与 `layers/11-public-resume` + `layers/12-ai-talk`（web）骨架；导航把模板示例折叠进 Demos 入口；`docs/web/04_数据层_约定.md`；两端 README 更新。
 - 当前状态：`in-progress`
 - 阻塞：无。以下已确认或另立卡：格式基线 → `DAO-006`（待执行）；模板 demo 已折叠为 Demo 入口；启动 PostgreSQL 16 与建库的环境变更仍需在进入 `apps/api` 前确认。
 - 下一步第一刀：进入 `apps/api` 的 Prisma + PostgreSQL + Redis 与 auth 闭环（验收④⑤）。**前置**：启动 PostgreSQL 16 与建库属环境变更，需 Owner 先确认；Redis 本机已运行。
 
-- 文档锚点：`dao/CURRENT.md`、`.dao/inheritance.md`、`.dao/context.md`、`docs/dev/layers.md`、`AGENTS.md`
+- 文档锚点：`dao/CURRENT.md`、`.dao/inheritance.md`、`.dao/context.md`、`docs/web/03_Layers_分层约定.md`、`AGENTS.md`
 - 集成锚点：`不适用`
 
 ## 收口与沉淀

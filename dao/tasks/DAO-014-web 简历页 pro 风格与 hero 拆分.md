@@ -7,7 +7,7 @@
 - 状态：`done`
 - Owner：`昇哥定范围（pro = 排版与动效分期；内容字段「加较多」；worktree 从 feat/18 开分支）`
 - 创建日期：`2026-10-08`
-- 关联：`Issue #21`、`DAO-008`（风格维度）、`DAO-010`（样式统一）、`DAO-012`（主题模型）、`docs/dev/resume-styles.md` §11
+- 关联：`Issue #21`、`DAO-008`（风格维度）、`DAO-010`（样式统一）、`DAO-012`（主题模型）、`docs/web/07_简历风格_三档实现.md` §11
 
 ## 状态轨迹
 
@@ -20,7 +20,7 @@
 ## Grill：开工前对齐
 
 - 目标：① hero 拆成「入口薄壳 + 三档实现」；② 实现 `pro`（画廊 / 数字块 / 能力雷达 / 求职状态，**排版部分**）；③ `ResumeStyleId` 加 `pro` 并进风格预设；④ `profile` 加 4 个**可选**字段；⑤ 编辑侧支持（含新增 `number` 字段类型）。
-- 边界：只改 `apps/web/layers/11-public-resume/app/**` 与 `docs/dev/resume-styles.md`；不动 admin、不接 API、不引图表库。
+- 边界：只改 `apps/web/layers/11-public-resume/app/**` 与 `docs/web/07_简历风格_三档实现.md`；不动 admin、不接 API、不引图表库。
 - 不做：动效（分期）、图片上传、整页模板、admin 侧风格选择、`contact` 键位变更。
 - 涉及文件 / 模块：`types/resume.ts`、`mock/resume-content.zh.ts`、`mock/resume-display.ts`、`composables/useResumeProfileView.ts`（新）、`components/resume/ResumeHeroCard.vue`、`components/resume/hero/*`（新 3 个）、`config/resume-editor-schemas.ts`、`components/resume/editors/ResumeFieldInput.vue`。
 - 风险与未知：① 拆组件容易被误读为"改了对外契约"（实际只动内部实现）；② 雷达是 SVG 手绘，顶点计算与窄栏可读性未目视；③ pro 版式按窄栏设计，宽栏下可能显得不够铺开；④ 新字段可选 → 组件必须容错（`?? []` / `v-if`）。
@@ -53,11 +53,11 @@
 
 ## 交接
 
-- 已完成：hero 拆分为「入口薄壳 + `hero/` 三档实现」；`pro` 排版实现（形象画廊、数字块、能力雷达 SVG、求职状态徽标）；`ResumeStyleId` 加 `pro` + 风格预设「精致」；`profile` 4 个可选字段 + mock 内容；编辑 schema 三段 + `number` 字段类型；`docs/dev/resume-styles.md` §11 记录定位、取舍判据、字段与排版约束。
+- 已完成：hero 拆分为「入口薄壳 + `hero/` 三档实现」；`pro` 排版实现（形象画廊、数字块、能力雷达 SVG、求职状态徽标）；`ResumeStyleId` 加 `pro` + 风格预设「精致」；`profile` 4 个可选字段 + mock 内容；编辑 schema 三段 + `number` 字段类型；`docs/web/07_简历风格_三档实现.md` §11 记录定位、取舍判据、字段与排版约束。
 - 当前状态：`self-tested`（编码与机器验证完成）
 - 阻塞：无。
 - 下一步第一刀：提交并 push，开 PR；**动效分期**（pro 的入场 stagger / 视差 / hover 特效）可作为下一张卡 —— 薄壳 + 独立文件的形态已经为它留好位置。
-- 文档锚点：`Issue #21`、`docs/dev/resume-styles.md` §11
+- 文档锚点：`Issue #21`、`docs/web/07_简历风格_三档实现.md` §11
 - 集成锚点：`待 feat/21-* -> dev`
 
 ## 收口与沉淀

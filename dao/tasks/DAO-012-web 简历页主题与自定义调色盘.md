@@ -7,7 +7,7 @@
 - 状态：`done`
 - Owner：`昇哥定范围（三栏 300px、「蓝色简约」沿用 #1578d0、自定义开放到底色/文字/边框等）`
 - 创建日期：`2026-10-08`
-- 关联：`Issue #18`、`DAO-010`（样式统一，引入了 `content-max` 与域公共类）、`DAO-011`（编辑交互，改了同一批组件）、`docs/dev/resume-styles.md` §11、`docs/dev/resume-display-architecture.md`
+- 关联：`Issue #18`、`DAO-010`（样式统一，引入了 `content-max` 与域公共类）、`DAO-011`（编辑交互，改了同一批组件）、`docs/web/07_简历风格_三档实现.md` §11、`docs/web/06_简历展示_架构设计.md`
 
 ## 状态轨迹
 
@@ -23,7 +23,7 @@
 ## Grill：开工前对齐
 
 - 目标：① 三栏左右两栏固定 `300px`；② 主题预设精简为 3 个并删除「蓝色商务」；③ 主题颜色字段显式化，支持「自定义」逐项编辑（含底色 / 文字 / 边框 / 标签）；④ 主题按钮组下方新增调色盘：预设态只读、自定义态可编辑，可切明暗。
-- 边界：只改 `apps/web/layers/11-public-resume/app/**` 与 `docs/dev/resume-styles.md`；不改 admin、不接后端、不新增依赖。
+- 边界：只改 `apps/web/layers/11-public-resume/app/**` 与 `docs/web/07_简历风格_三档实现.md`；不改 admin、不接后端、不新增依赖。
 - 不做：字体 / 间距 / 圆角（继续共用一套）；不引入 ui.nuxt.com/theme 的编辑器（docs 站实现，非 npm 组件）。
 - 涉及文件 / 模块：`types/resume.ts`、`mock/resume-display.ts`、`composables/useResumeDisplay.ts`、`pages/resume/index.vue`、`components/resume/{ResumePageContainer,ResumeSettingsPanel}.vue`。
 - 风险与未知：① 颜色从「dark 派生」改为显式字段，会让**旧 localStorage 配置缺字段** → 必须迁移（已做 `normalizeTheme`）；② `UDrawer` 在 SSR 不渲染内容，面板验证要临时直出；③ `UColorPicker` 的 `defineModel({ type: String })` 使 `update:modelValue` 为 `string | undefined`，需要 `?? ''`；④ 自定义色的对比度由用户负责（未做自动校验）。
@@ -64,11 +64,11 @@
 
 ## 交接
 
-- 已完成：三栏固定 300px；主题预设精简与改名（蓝色简约 / 绿色清新 / **科技感**）；**主题模型升级为「配色预设 × 明暗」**（每套预设自带 light/dark 两组，`mode` 独立切换）；`setMode` / `setThemeField(mode, key, value)` / `applyCustomTheme` / 三轮 `normalizeTheme` 迁移；页面注入按 `mode` 取组；面板明暗切换 + **两组平铺调色盘**（预设只读 / 自定义可编辑）；文档：`resume-styles.md` §10 改写并**修订** `resume-display-architecture.md` §3.3（「未采用」→「已采用」）。
+- 已完成：三栏固定 300px；主题预设精简与改名（蓝色简约 / 绿色清新 / **科技感**）；**主题模型升级为「配色预设 × 明暗」**（每套预设自带 light/dark 两组，`mode` 独立切换）；`setMode` / `setThemeField(mode, key, value)` / `applyCustomTheme` / 三轮 `normalizeTheme` 迁移；页面注入按 `mode` 取组；面板明暗切换 + **两组平铺调色盘**（预设只读 / 自定义可编辑）；文档：`docs/web/07_简历风格_三档实现.md` §10 改写并**修订** `docs/web/06_简历展示_架构设计.md` §3.3（「未采用」→「已采用」）。
 - 当前状态：`self-tested`（编码与机器验证完成）
 - 阻塞：无。
 - 下一步第一刀：提交并 push 到 `feat/18-resume-theme-custom`（PR #19 已加说明）；人工目视可在浏览器验证「切明暗 → 两组色值分别生效」「预设只读 → 切自定义 → 改色即时生效」。
-- 文档锚点：`Issue #18`、`docs/dev/resume-styles.md` §11
+- 文档锚点：`Issue #18`、`docs/web/07_简历风格_三档实现.md` §11
 - 集成锚点：`待 feat/18-* -> dev`
 
 ## 收口与沉淀

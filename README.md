@@ -22,13 +22,13 @@
 ## 工程约定
 
 - 使用 pnpm workspace 与 Turborepo 管理多应用和共享包。
-- 保持模板通用性：业务代码放在应用内；跨应用且稳定的**纯 TS**能力进 `packages/common`，跨应用的**UI 组件**进 `packages/ui`（layer 形式，见 [docs/dev/layers.md](./docs/dev/layers.md) §7）。
+- 保持模板通用性：业务代码放在应用内；跨应用且稳定的**纯 TS**能力进 `packages/common`，跨应用的**UI 组件**进 `packages/ui`（layer 形式，见 [docs/web/03_Layers_分层约定.md](./docs/web/03_Layers_分层约定.md) §7）。
 - 前端默认使用 Nuxt 4、Nuxt UI、Tailwind CSS 4 与 TypeScript；API 默认使用 NestJS、严格类型、统一响应和异常结构。
 - 改动前先明确目标、非目标、风险、涉及文件和验收标准；发现旁支问题应拆成独立 Issue。
 - 环境变量、密钥、数据库连接等敏感配置只放在后端 `.env`，不得提交或暴露给前端；用 `.env.example` 提供脱敏说明。
 - 模板默认在 `main` 小步推进；当并行协作、发布约束或主干稳定性需要更重承载时，再显式选择分支工作流。
 - 完整协作流程、测试要求、skills 与归母规则见 [AGENTS.md](./AGENTS.md)。
-- 前端（Nuxt 4 / Nuxt UI）的命名规则、高频踩坑与 admin 布局模板见 [docs/dev](./docs/dev/README.md)。
+- 前端（Nuxt 4 / Nuxt UI）的命名规则、高频踩坑与 admin 布局模板见 [docs/dev](./docs/README.md)。
 
 ## Dao-is-Coding 开发流程
 
@@ -126,7 +126,7 @@ pnpm run dev
 
 ### Admin 脚手架
 
-`apps/admin` 已提供可复用的后台起始模板，命名与布局规范见 [docs/dev](./docs/dev/README.md)：
+`apps/admin` 已提供可复用的后台起始模板，命名与布局规范见 [docs/dev](./docs/README.md)：
 
 - `/login` 使用 `AuthSplitLayout` 与 `AuthLoginForm`（组件 `LoginForm.vue`），左右图片分栏，通过 `image-side`、`imageSrc` 等 props 配置视觉区域。
 - 受保护业务页面使用 `has-sidebar` 布局：`AdminSidebar` 支持折叠和一级/二级导航，`AdminHeader` 提供 sticky header，侧栏底部 `AdminUserMenu` 提供用户下拉菜单。

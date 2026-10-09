@@ -7,7 +7,7 @@
 - 状态：`done`
 - Owner：`昇哥确认范围（空栏可落 / 模块托盘 / 上移下移 / 布局与内容都自动保存）；归枢协作执行`
 - 创建日期：`2026-10-07`
-- 关联：`Issue #16`、`DAO-007`（B 期拖拽初版）、`DAO-008`（风格维度）、`DAO-010`（样式统一，语义类约定）、`docs/dev/resume-edit-interactions.md`（本轮新增）、`docs/dev/resume-display-architecture.md` §6
+- 关联：`Issue #16`、`DAO-007`（B 期拖拽初版）、`DAO-008`（风格维度）、`DAO-010`（样式统一，语义类约定）、`docs/web/08_简历编辑_交互约定.md`（本轮新增）、`docs/web/06_简历展示_架构设计.md` §6
 
 ## 状态轨迹
 
@@ -66,7 +66,7 @@
 - 当前状态：`review-ready`（已合入 dev，等 Owner 判 `done`）
 - 阻塞：无。
 - 下一步第一刀：本卡无下一步（已集成）。后续可推进：`DAO-008` / `DAO-010` 遗留的浏览器目视（375px、三栏窄栏、深色主题、抽屉跟随主题），以及 `DAO-005` 的 alova 迁移收尾。
-- 文档锚点：`Issue #16`、`docs/dev/resume-edit-interactions.md`
+- 文档锚点：`Issue #16`、`docs/web/08_简历编辑_交互约定.md`
 - 集成锚点：`已集成（fb6053f，本地 squash 合入 dev，未推远端）`
 
 ## 收口与沉淀

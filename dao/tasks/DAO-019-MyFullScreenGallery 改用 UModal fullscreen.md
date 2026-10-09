@@ -21,7 +21,7 @@
 ## Grill：开工前对齐
 
 - 目标：① 组件改为基于 `UModal fullscreen`；② 原生 CSS 全换 Tailwind（只有 media / 复杂动画才留 `<style>`）；③ **API 与 mock 数据不变**（`v-model:open` / `title` / `description` / `items` / `emptyText`），调用方零改动；④ 同步 `/comps/full-screen-modal` 与 README。
-- 边界：只动组件本体、两个 admin 示例页、`packages/ui/README.md`、`docs/dev/resume-styles.md` §15.6。
+- 边界：只动组件本体、两个 admin 示例页、`packages/ui/README.md`、`docs/web/07_简历风格_三档实现.md` §15.6。
 - 不做：不删组件（它装的是"图集浏览"的业务语义，不是 UModal 薄壳）；不改调用方；不改 hero 的兴趣数据结构。
 - 风险与未知：`UModal` 的 `fullscreen` 与 `#body` 高度/内边距的配合（未知）；"点空白关闭"在全屏形态下没有遮罩可点。
 - 验收：见 `Issue #28`。
@@ -52,11 +52,11 @@
 
 ## 交接
 
-- 已完成：组件重写为 `UModal fullscreen`（API 不变）；`/comps/full-screen-modal` 与 `/demos/hobby-modal` 两个示例页可用；`packages/ui/README.md`、`docs/dev/resume-styles.md` §15.6 的"原生 dialog"说法全部更新。
+- 已完成：组件重写为 `UModal fullscreen`（API 不变）；`/comps/full-screen-modal` 与 `/demos/hobby-modal` 两个示例页可用；`packages/ui/README.md`、`docs/web/07_简历风格_三档实现.md` §15.6 的"原生 dialog"说法全部更新。
 - 当前状态：`done`
 - 阻塞：无。
 - 下一步第一刀：无（本卡收口）。后续若要让 gallery **跟随业务主题**，只需去掉 `ui.content` 的深色覆写与白色系覆写（一处改动）。
-- 文档锚点：`Issue #28`、`packages/ui/README.md`、`docs/dev/resume-styles.md` §15.6
+- 文档锚点：`Issue #28`、`packages/ui/README.md`、`docs/web/07_简历风格_三档实现.md` §15.6
 - 集成锚点：`已推送 origin/dev（d3ceb29）`
 
 ## 收口与沉淀

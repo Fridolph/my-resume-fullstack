@@ -7,7 +7,7 @@
 - 状态：`done`
 - Owner：`昇哥确认方向（对齐旧站左右布局 + admin 的配置驱动能力）并指定 mock 来源；归枢协作执行`
 - 创建日期：`2026-10-07`
-- 关联：`Issue #3`（阶段一）、`#5`（阶段二）、`#7`（B 期）、`#9`（内容编辑）、`#11`（Header 瘦身）、`DAO-005`、`docs/dev/layers.md`、`docs/dev/data-layer.md`、`docs/dev/resume-display-architecture.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、配置参考 `apps/admin/layers/20-comps/app/pages/demos/resume-config-layout.vue`
+- 关联：`Issue #3`（阶段一）、`#5`（阶段二）、`#7`（B 期）、`#9`（内容编辑）、`#11`（Header 瘦身）、`DAO-005`、`docs/web/03_Layers_分层约定.md`、`docs/web/04_数据层_约定.md`、`docs/web/06_简历展示_架构设计.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、配置参考 `apps/admin/layers/20-comps/app/pages/demos/resume-config-layout.vue`
 
 ## 状态轨迹
 
@@ -48,7 +48,7 @@
 ## 确认门与续跑
 
 - 当前确认门：`已确认，已进入续跑`
-- 需要确认：阶段二设计（见 [docs/dev/resume-display-architecture.md](../../docs/dev/resume-display-architecture.md) 第 9 节）——① 编辑能力归属；② 主题模型；③ 背景范围；④ 三栏比例；⑤ 接受 web 侧契约先扩展、admin 暂不跟进。
+- 需要确认：阶段二设计（见 [docs/web/06_简历展示_架构设计.md](../../docs/web/06_简历展示_架构设计.md) 第 9 节）——① 编辑能力归属；② 主题模型；③ 背景范围；④ 三栏比例；⑤ 接受 web 侧契约先扩展、admin 暂不跟进。
 - 可接受回答：逐项选定；或指出需要改的设计点。
 - 确认后回到：`in-progress`（阶段二编码）
 - 确认后第一刀：升级类型与 mock（layout / sections / background）→ 抽 `useResumeDisplay` → 拆组件 → 三布局 + 主题 + 背景 → 验证。
@@ -86,8 +86,8 @@
 - 当前状态：`review-ready`（展示域主体与交互链路已具备，等 Owner 判 `done`）
 - 阻塞：无。
 - 下一步第一刀：本卡无下一步。
-- 未承接项（须由别的任务承接，勿随本卡一起关闭）：① `resume-display-architecture.md` §6.1 第 2 期「入口栏 rail」——方向已确认、尚未实施；② C 期「保存接后端 + 公开快照携带配置」；③ 技能可视化图表；④ 真实浏览器端到端验证（登录 → 拖拽 → 保存 → 刷新 → 退出），环境缺本地 Playwright 包。
-- 文档锚点：`docs/dev/resume-display-architecture.md`、`docs/dev/layers.md`、`docs/dev/data-layer.md`、`Issue #3 / #5 / #7 / #9 / #11`
+- 未承接项（须由别的任务承接，勿随本卡一起关闭）：① `docs/web/06_简历展示_架构设计.md` §6.1 第 2 期「入口栏 rail」——方向已确认、尚未实施；② C 期「保存接后端 + 公开快照携带配置」；③ 技能可视化图表；④ 真实浏览器端到端验证（登录 → 拖拽 → 保存 → 刷新 → 退出），环境缺本地 Playwright 包。
+- 文档锚点：`docs/web/06_简历展示_架构设计.md`、`docs/web/03_Layers_分层约定.md`、`docs/web/04_数据层_约定.md`、`Issue #3 / #5 / #7 / #9 / #11`
 - 集成锚点：`已集成（各期经 PR #4 / #6 / #8 / #10 / #12 合入 dev）`
 
 ## 收口与沉淀

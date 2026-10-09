@@ -7,13 +7,13 @@
 - 状态：`done`
 - Owner：`昇哥逐项确认设计与范围（9 项）；归枢协作执行`
 - 创建日期：`2026-10-07`
-- 关联：`Issue #13`、`DAO-007`（展示域本体，review-ready）、`docs/dev/resume-styles.md`（本卡设计稿）、`docs/dev/resume-display-architecture.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、旧站契约 `/Users/fri/Desktop/personal/my-resume/packages/api-client/src/types/resume.types.ts`、机制参考 `/Users/fri/Desktop/greensketch-basic/app/pages/projects/[projectId]/@components/proposal/layout/{ProposalModuleList.vue,templates/*}`
+- 关联：`Issue #13`、`DAO-007`（展示域本体，review-ready）、`docs/web/07_简历风格_三档实现.md`（本卡设计稿）、`docs/web/06_简历展示_架构设计.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、旧站契约 `/Users/fri/Desktop/personal/my-resume/packages/api-client/src/types/resume.types.ts`、机制参考 `/Users/fri/Desktop/greensketch-basic/app/pages/projects/[projectId]/@components/proposal/layout/{ProposalModuleList.vue,templates/*}`
 
 ## 状态轨迹
 
 | 迁移                          | 依据                                                                                                                                                            | 确认者     | 日期       |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------- |
-| `planned -> designed`         | Owner 逐项确认 9 项设计决策（命名为 `style`、只做两档、token 为主 + variant 只做结构差异、贴合旧站 hero、翻牌不跳转等），设计稿定稿 `docs/dev/resume-styles.md` | Owner 确认 | 2026-10-07 |
+| `planned -> designed`         | Owner 逐项确认 9 项设计决策（命名为 `style`、只做两档、token 为主 + variant 只做结构差异、贴合旧站 hero、翻牌不跳转等），设计稿定稿 `docs/web/07_简历风格_三档实现.md` | Owner 确认 | 2026-10-07 |
 | `designed -> in-progress`     | Issue #13 已建；分支 `feat/13-resume-style-dimension` 从 `dev` 开出；前置 DAO-007 已收口到 review-ready                                                         | 归枢记录   | 2026-10-07 |
 | `in-progress -> self-tested`  | P1 编码完成（类型 / mock / 注入层 / 组件变体 / 多段编辑 schema / 图标依赖），typecheck、oxlint、SSR 两档抓页与「风格 × 主题」组合均通过                         | 归枢记录   | 2026-10-07 |
 | `self-tested -> review-ready` | 交接包齐全（已完成 / 未验证边界 / 未承接项 / 文档锚点）；四个提交在 `feat/13-resume-style-dimension` 就绪，等 Owner 判集成                                      | 归枢记录   | 2026-10-07 |
@@ -25,13 +25,13 @@
 - 不做：`cool` 风格（不进类型）、整页模板组件、头像跳转与 AI 对话入口、`contact` 的 key / 结构变更、图片上传、`publishedAt`、PDF、i18n、技能图表。
 - 涉及文件 / 模块：`types/resume.ts`、`mock/resume-display.ts`、`mock/resume-content.zh.ts`、`config/resume-editor-schemas.ts`、`config/resume-sections.ts`（只读，不改语义）、`composables/useResumeDisplay.ts`、`components/resume/{ResumeHeroCard,ResumeSectionCard,7 个 *Section,ResumePageContainer,ResumeColumn,ResumeSettingsPanel}.vue`、`components/resume/editors/{ResumeSchemaForm,ResumeFieldInput}.vue`、`ResumeSectionEditorDrawer.vue`；样式走 `ResumeSectionCard` / `ResumeHeroCard` 内的 scoped 样式，**不新增独立 CSS 文件**。
 - 风险与未知：① **旧站 CSS 把颜色烘死**（`rgba(96,165,250,.1)`、`#2563eb`），照抄会让「风格 × 主题」打架 —— 必须全部走 `--resume-*` + `color-mix`；② `variant` 透传多一跳（区块组件 → `ResumeSectionCard`），漏了会导致"外壳风格不变而 hero 变了"的半成品；③ 多段 schema 是一次内部契约改动，需连带改表单与抽屉；④ `@iconify-json/ri` 是新增依赖，需确认 Nuxt Icon 按需 bundle 后的体积；⑤ `hero.*ImageUrl` 只建模，无图时的回退必须实测。
-- 验收：见 `docs/dev/resume-styles.md` §9（typecheck / oxlint / SSR 两档产物差异 / 4 套主题 × 2 种风格无残色 / 编辑在两种风格下可用 / reduced-motion 降级 / 375px 不溢出）。
+- 验收：见 `docs/web/07_简历风格_三档实现.md` §9（typecheck / oxlint / SSR 两档产物差异 / 4 套主题 × 2 种风格无残色 / 编辑在两种风格下可用 / reduced-motion 降级 / 375px 不溢出）。
 - 第一刀：类型与 mock 升级（`ResumeStyleId`、`style`、`profile.hero/links/interests`）→ `typecheck` 过。
 - 过门判断：`可开工`（设计已逐项确认，确认门已完成）。
 
 ## 设计与决策
 
-设计稿全文见 [`docs/dev/resume-styles.md`](../../docs/dev/resume-styles.md)（含三层落点、贴合清单、硬约束、验收清单）。只记改变实现方向的结论：
+设计稿全文见 [`docs/web/07_简历风格_三档实现.md`](../../docs/web/07_简历风格_三档实现.md)（含三层落点、贴合清单、硬约束、验收清单）。只记改变实现方向的结论：
 
 | 决策                                                                                                                 | 理由 / 证据                                                                                         | 确认者     | 日期       |
 | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------- | ---------- |
@@ -39,7 +39,7 @@
 | 本轮只实现 `minimal` / `standard` 两档                                                                               | `ResumeStyleId` 会进公开快照，塞入未实现枚举会让前后端校验对不上                                    | Owner 确认 | 2026-10-07 |
 | token 为主，`variant` 只做结构差异                                                                                   | 视觉参数走变量 → 区块组件只消费变量，与既有 `--resume-*` 机制同构；只有 DOM 结构不同处才用 prop     | Owner 确认 | 2026-10-07 |
 | `standard` 贴合旧站 hero（含 hero / links / interests 新字段）                                                       | Owner 选择最大还原范围；字段按本仓「去 locale」方向落成 `string`                                    | Owner 确认 | 2026-10-07 |
-| 翻牌头像只做视觉、不接跳转                                                                                           | 旧站头像是 `/ai-talk` 的 AI 对话入口，属 `12-ai-talk`；feature layer 间不得互 import（`layers.md`） | Owner 确认 | 2026-10-07 |
+| 翻牌头像只做视觉、不接跳转                                                                                           | 旧站头像是 `/ai-talk` 的 AI 对话入口，属 `12-ai-talk`；feature layer 间不得互 import（`docs/web/03_Layers_分层约定.md`） | Owner 确认 | 2026-10-07 |
 | 图标沿用旧站 iconify 名，新增 `@iconify-json/ri`                                                                     | 保留与旧站内容的可对照性；Nuxt Icon 按需 bundle                                                     | Owner 确认 | 2026-10-07 |
 | 编辑 schema 改为多段（`segments`）                                                                                   | `profile` 需要 fields + 两个 list 共存，现有单 `mode` 承载不了                                      | Owner 确认 | 2026-10-07 |
 | `contact` 结构与 key 不动，只改外观                                                                                  | 加 `website` 会牵动 `ResumeContactItem` / mock / 编辑 schema，与本轮目标无关                        | Owner 确认 | 2026-10-07 |
@@ -71,13 +71,13 @@
 
 ## 交接
 
-- 已完成：设计定稿（`docs/dev/resume-styles.md`，含实现落点与硬约束）；P1 编码第一刀与第二刀全部落地 —— 类型 / mock 升级、风格 token 注入层、`ResumeSectionCard` 与 `ResumeHeroCard` 的 `minimal` / `standard` 变体、7 个区块组件 `variant` 透传、多段编辑 schema（含 `profile` 四段）、设置抽屉「风格」按钮组、`@iconify-json/ri`；徽标窄栏溢出修正；DAO-007 收口到 `review-ready`。
+- 已完成：设计定稿（`docs/web/07_简历风格_三档实现.md`，含实现落点与硬约束）；P1 编码第一刀与第二刀全部落地 —— 类型 / mock 升级、风格 token 注入层、`ResumeSectionCard` 与 `ResumeHeroCard` 的 `minimal` / `standard` 变体、7 个区块组件 `variant` 透传、多段编辑 schema（含 `profile` 四段）、设置抽屉「风格」按钮组、`@iconify-json/ri`；徽标窄栏溢出修正；DAO-007 收口到 `review-ready`。
 - 当前状态：`review-ready`（分支 `feat/13-resume-style-dimension` 上提交就绪：设计定稿 / 功能实现 / 文档回填 / 徽标修正 / 本卡回填）
 - 阻塞：无。
 - Owner 决定（2026-10-07）：**① 暂不推远端**（提交全部留在本地分支，由 Owner 择时集成）；**② UI 目视延后**——与 P2 的 `cool` 一起做，本轮的未验证边界保留在"执行与验证"表里，不当作已验证。
 - 下一步第一刀：Owner 择时集成时走 `feat/13-* -> dev`（开 PR 或本地 squash），并回填 Issue #13；集成前如需视觉复核，可用本机缓存的 chromium（`playwright@1.58`）截图或度量。
 - 未承接项：P2 的 `cool` 风格（含是否引入整页模板组件）、P3 的 admin 侧风格选择与公开快照打通、UI 目视与 375px / 窄栏复核、登录后编辑与拖拽的端到端。
-- 文档锚点：`Issue #13`、`docs/dev/resume-styles.md`、`docs/dev/resume-display-architecture.md`
+- 文档锚点：`Issue #13`、`docs/web/07_简历风格_三档实现.md`、`docs/web/06_简历展示_架构设计.md`
 - 集成锚点：`待 feat/13-* -> dev（Owner 择时）`
 
 ## 收口与沉淀

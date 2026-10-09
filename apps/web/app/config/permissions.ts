@@ -1,7 +1,7 @@
 /**
  * 角色与权限键（web 端）。
  *
- * 设计见 `docs/dev/identity-and-access.md` §2：
+ * 设计见 `docs/dev/02_身份与权限_设计.md` §2：
  *
  * - 组件里**只判断权限键**（`hasPermission(PERMISSIONS.sectionsEdit)`），**不判断角色**；
  * - 权限键**成对**：`XX:view` 决定"能不能看到"，`XX:edit` 决定"能不能操作"。

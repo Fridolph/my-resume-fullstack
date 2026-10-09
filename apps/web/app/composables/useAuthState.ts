@@ -7,7 +7,7 @@ import { TOKEN_COOKIE_KEY } from '~/utils/requestContext'
 /**
  * 会话与角色。
  *
- * 三个关键决定（见 `docs/dev/identity-and-access.md` §2.3 / §3.2）：
+ * 三个关键决定（见 `docs/dev/02_身份与权限_设计.md` §2.3 / §3.2）：
  *
  * 1. **持久化用 cookie**（`my-resume.token`，与请求层 `$request` 注入 `Authorization` 是同一个键）
  *    —— cookie 在 SSR 阶段就能读到，首屏直出真实身份，从根上消除"水合后跳一下"。

@@ -7,7 +7,7 @@
 - 状态：`done`
 - Owner：`昇哥实看后重设 pro 定位（在 standard 之上叠交互；同一信息换维度；不堆特效）`
 - 创建日期：`2026-10-08`
-- 关联：`Issue #24`、`DAO-014`（hero 初版：画廊 / 数字块 / 雷达）、`DAO-015`（风格实现架构 §12）、`docs/dev/resume-styles.md` §11.1 与 §14
+- 关联：`Issue #24`、`DAO-014`（hero 初版：画廊 / 数字块 / 雷达）、`DAO-015`（风格实现架构 §12）、`docs/web/07_简历风格_三档实现.md` §11.1 与 §14
 
 ## 状态轨迹
 
@@ -21,9 +21,9 @@
 ## Grill：开工前对齐
 
 - 目标：① 按新定位重做 hero pro（压缩+tooltip / 折叠 / 三维动效 / 图表联动，外加卡片与条目的 hover 与入场 stagger）；② 把新定位与手法清单写进文档；③ 卡片 hover 补齐到 pro。
-- 边界：只改 `hero/ResumeHeroPro.vue`、`assets/css/resume.css`（pro 卡片 hover）、`docs/dev/resume-styles.md`；不改对外契约、不动 minimal / standard、不动其余区块。
+- 边界：只改 `hero/ResumeHeroPro.vue`、`assets/css/resume.css`（pro 卡片 hover）、`docs/web/07_简历风格_三档实现.md`；不改对外契约、不动 minimal / standard、不动其余区块。
 - 不做：不引第三方动画 / 图表库；不做整页模板；不做纯装饰特效（见 §14.3）。
-- 涉及文件 / 模块：`apps/web/layers/11-public-resume/app/components/resume/hero/ResumeHeroPro.vue`、`apps/web/layers/11-public-resume/app/assets/css/resume.css`、`docs/dev/resume-styles.md`。
+- 涉及文件 / 模块：`apps/web/layers/11-public-resume/app/components/resume/hero/ResumeHeroPro.vue`、`apps/web/layers/11-public-resume/app/assets/css/resume.css`、`docs/web/07_简历风格_三档实现.md`。
 - 风险与未知：① 交互多、SSR 验证不到，必须真浏览器验；② tooltip 依赖 `UTooltip` 行为（hover 触发条件）；③ 交互可能损害可读性（文字必须仍是主体）；④ 动效多，`prefers-reduced-motion` 降级必须完整。
 - 验收：见 `Issue #24`。
 - 第一刀：先落「压缩 + tooltip + 复制」与「折叠」两条最能体现"维度转换"的手法，再补 3D 与图表联动。
@@ -58,7 +58,7 @@
 - 当前状态：`done`
 - 阻塞：无。
 - 下一步第一刀：本卡无下一步。**后续按 §14 的新定位推进**：① `experience` / `skills` 的 pro 目前是"静态排版"型，需补交互（折叠成果列表 / tooltip / hover 联动）；② 未拆的 4 个区块落三档时**直接按新定位写**，别先做静态版再返工。
-- 文档锚点：`Issue #24`、`docs/dev/resume-styles.md` §14
+- 文档锚点：`Issue #24`、`docs/web/07_简历风格_三档实现.md` §14
 - 集成锚点：`已集成（3f62063，本地 squash 合入 dev）`
 
 ## 收口与沉淀

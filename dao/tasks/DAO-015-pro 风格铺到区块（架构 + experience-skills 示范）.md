@@ -7,7 +7,7 @@
 - 状态：`done`
 - Owner：`昇哥定架构方向（全部区块都要 pro 版 / 一风格一文件 / 零件等真复用再抽）`
 - 创建日期：`2026-10-08`
-- 关联：`Issue #23`、`DAO-008`（风格维度初版）、`DAO-014`（hero 薄壳 + 三档，已合 dev）、`docs/dev/resume-styles.md`、`docs/dev/admin-ui-patterns.md`（comps/demos 分层，无关但同属"目录约定"）
+- 关联：`Issue #23`、`DAO-008`（风格维度初版）、`DAO-014`（hero 薄壳 + 三档，已合 dev）、`docs/web/07_简历风格_三档实现.md`、`docs/admin/01_UI_布局与组件模式.md`（comps/demos 分层，无关但同属"目录约定"）
 
 ## 状态轨迹
 
@@ -21,7 +21,7 @@
 ## Grill：开工前对齐
 
 - 目标：① 把「多档风格怎么组织」写成可执行的架构规则；② `ResumeSectionCard` 从布尔判断改数据驱动三态；③ pro 的通用零件从 hero 上提到 `resume.css`；④ 外观参数（`CARD_STYLE`）三档映射；⑤ 用 `experience` / `skills` 落出「薄壳 + 一风格一文件」的示范。
-- 边界：只改 `apps/web/layers/11-public-resume/app/**` 与 `docs/dev/resume-styles.md`；不动 admin、不接 API、不引图表库、不改对外契约。
+- 边界：只改 `apps/web/layers/11-public-resume/app/**` 与 `docs/web/07_简历风格_三档实现.md`；不动 admin、不接 API、不引图表库、不改对外契约。
 - 不做：其余 4 个区块（highlights / education / projects / evaluations）下一轮；pro 动效（DAO-014 已分期）；`skills` 的能力雷达（hero 的零件，未到复用门槛）。
 - 涉及文件 / 模块：`types/resume.ts`（`ResumeSectionBodyProps`）、`assets/css/resume.css`（`.resume-pro-*`）、`components/resume/ResumeSectionCard.vue`、`components/resume/hero/ResumeHeroPro.vue`（改用上提类名）、`pages/resume/index.vue`（`CARD_STYLE`）、`components/resume/{experience,skills}/*`（各 3 档）、`components/resume/Resume{Experience,Skills}Section.vue`（薄壳）。
 - 风险与未知：① 三档内容编排是否"真的不同"（不能为了拆而制造差异）；② `minimal` / `standard` 的内容编排此前完全相同，拆开后要确保两档各自站得住；③ scoped 零件与全局零件放错位置会埋重复（已用"跨区块复用才上提"约束）。
@@ -42,7 +42,7 @@
 | 三档内容编排必须**确有差异**                                                             | `minimal` 克制（文本流）/ `standard` 结构（时间列 + 标签）/ `pro` 讲究（时间线 / 组头层级）；否则拆文件只是复制粘贴 | 归枢起草                       | 2026-10-08 |
 | 止损线：任一区块三档开始出现 >50% 重复                                                   | 就该回头抽 composable 或零件，而不是继续复制                                                                        | 归枢起草                       | 2026-10-08 |
 
-### 架构规则（写入 `docs/dev/resume-styles.md`，供后续所有区块遵循）
+### 架构规则（写入 `docs/web/07_简历风格_三档实现.md`，供后续所有区块遵循）
 
 1. **能参数化的差异一律进 token**，不写分支；
 2. **局部结构差异**用同一组件内的 `variant` 数据映射；
@@ -71,7 +71,7 @@
 - 当前状态：`done`
 - 阻塞：无。
 - 下一步第一刀：本卡无下一步。**下一轮**按同一模式落其余 4 个区块（highlights / education / projects / evaluations）：薄壳 + `<section>/` 三档 + 内容确有差异；零件等到真复用再上提。
-- 文档锚点：`Issue #23`、`docs/dev/resume-styles.md`
+- 文档锚点：`Issue #23`、`docs/web/07_简历风格_三档实现.md`
 - 集成锚点：`已集成（ed4c6ca，本地 squash 合入 dev）`
 
 ## 收口与沉淀

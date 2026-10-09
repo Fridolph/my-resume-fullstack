@@ -3,7 +3,7 @@ import type { DropdownMenuItem } from '@nuxt/ui'
 import ResumeAdminLoginModal from './ResumeAdminLoginModal.vue'
 
 /**
- * 身份区（Header 右端，三档里的第三档）—— 见 `docs/dev/identity-and-access.md` §4。
+ * 身份区（Header 右端，三档里的第三档）—— 见 `docs/dev/02_身份与权限_设计.md` §4。
  *
  * - **未登录**：一个「登录」按钮（打开登录弹窗；一个口按账号区分身份）
  * - **已登录**：用户名下拉菜单，菜单项**按权限出现** ——
