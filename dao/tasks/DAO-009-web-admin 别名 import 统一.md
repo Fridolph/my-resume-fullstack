@@ -22,7 +22,7 @@
 
 - 目标：把 layer 内引用自身的相对路径（`../../types/resume` 等）统一改为 Nuxt 官方别名 `#layers/<name>/app/...`，app 层内部统一用 `~/...`；并把别名语义与约束写进 `docs/web/03_Layers_分层约定.md`。
 - 边界：只改 import 语句与文档；不改任何功能、样式、layer 划分与依赖方向。
-- 不做：不引入自定义别名（如 `@resume`）；不改 Nuxt 自动导入策略（不删可自动导入的 components / composables import）；不动 `packages/common`、`apps/api`。
+- 不做：不引入自定义别名（如 `@resume`）；不改 Nuxt 自动导入策略（不删可自动导入的 components / composables import）；不动 `packages/common`、`apps/server`。
 - 涉及文件 / 模块：`apps/web/layers/11-public-resume/**`（55 处 / 26 文件）、`apps/web/layers/12-ai-talk/**`（0 处）、`apps/admin/app/components/TextEditor/**`（7 处 / 7 文件）、`docs/web/03_Layers_分层约定.md`、`docs/dev/README.md`。
 - 风险与未知：① 别名全局可见 → 会削弱「layer 间不得互相 import」的隐性保护，需在文档里补约定；② `#layers/<name>` 依赖 `$meta.name`，若层名改动需同步（tsconfig 会自动重生成）；③ 替换后需两端 SSR 实跑，typecheck 通过不等于运行时解析正常。
 - 验收：见 `Issue #14`（两端 typecheck / oxlint / SSR 抓页 / 业务代码内不再有 `../` / 文档记录约定）。
@@ -49,7 +49,7 @@
 
 | 类型   | 命令 / 样本 / 链接                                                                                      | 结果                                                                                                                                | 仍未验证的边界                                                     |
 | ------ | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| 机器验 | `pnpm --filter @template/web typecheck`；`pnpm --filter @template/admin typecheck`                      | 均通过（admin 首次曾因上述回归报 3 个错，修正后通过）                                                                               | 全仓 `format:check` 仍是既有缺口（DAO-006）                        |
+| 机器验 | `pnpm --filter @rs/web typecheck`；`pnpm --filter @rs/admin typecheck`                      | 均通过（admin 首次曾因上述回归报 3 个错，修正后通过）                                                                               | 全仓 `format:check` 仍是既有缺口（DAO-006）                        |
 | 机器验 | `oxlint apps/web`（42 files）、`oxlint apps/admin`（136 files）                                         | 0 warning / 0 error                                                                                                                 | —                                                                  |
 | 结构验 | 全仓业务代码 grep `from '../`                                                                           | 0 处残留；替代为 `#layers/public-resume/app/...`（57 处）与 `~/components/TextEditor/...`（7 处）；同目录 `./x` 保留                | —                                                                  |
 | 结构验 | 两端 `.nuxt/tsconfig.json` 的别名                                                                       | web：`#layers/public-resume`、`#layers/ai-talk`；admin：`#layers/{resume,projects,teams,settings,comps}`；`~`/`@` 仍指向各自 `app/` | 未验证「层名改动」后的重生成（下次改 `$meta.name` 时留意）         |

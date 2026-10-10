@@ -84,7 +84,7 @@ NUXT_E4007: Your project has layouts but the `<NuxtLayout />` component has not 
 
 ```bash
 # 1. 类型检查（能抓到布局名 camelCase 这类错误）
-pnpm --filter @template/admin typecheck
+pnpm --filter @rs/admin typecheck
 
 # 2. 起 dev server 实测 SSR（能抓到组件解析失败、布局失效这类运行时问题）
 cd apps/admin && pnpm exec nuxt dev --host 0.0.0.0 --port 4020
@@ -107,7 +107,7 @@ curl -s http://localhost:4020/<path> | grep -o -i 'Failed to resolve component\|
 Vite Error: .../ResumeEducationSection.vue — Invalid end tag.
 ```
 
-`pnpm --filter @template/web typecheck` 全程通过，只有起 dev server 抓页时才以 500 暴露。同类破损还有：删掉 style 时连带删掉属性间空格、标签属性被截断。
+`pnpm --filter @rs/web typecheck` 全程通过，只有起 dev server 抓页时才以 500 暴露。同类破损还有：删掉 style 时连带删掉属性间空格、标签属性被截断。
 
 **规范**：
 

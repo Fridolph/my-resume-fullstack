@@ -6,7 +6,7 @@ import * as z from 'zod'
 import { uploadFiles } from '~/apis/files'
 import { FileUploadError, useFileUploader } from '~/composables/useFileUploader'
 import { imageDimensionRule, isAcceptedType, validateFiles } from '~/utils/fileValidation'
-import { isAbortError } from '@template/common'
+import { isAbortError } from '@rs/common'
 
 definePageMeta({
   layout: 'has-sidebar',

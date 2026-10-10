@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { normalizeApiError, resolveApiErrorMessage } from '@template/common'
+import { normalizeApiError, resolveApiErrorMessage } from '@rs/common'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { TableColumn } from '@nuxt/ui'
 import type { PdfAlign, PdfCoverImageMode, PdfTextVertical } from '~/types/pdf'

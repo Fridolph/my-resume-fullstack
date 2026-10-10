@@ -1,5 +1,5 @@
 {
-  "name": "@template/web",
+  "name": "@rs/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
     "@pinia/colada": "^1.4.7",
     "@pinia/colada-nuxt": "^1.2.0",
     "@pinia/nuxt": "^1.0.2",
-    "@template/common": "workspace:*",
+    "@rs/common": "workspace:*",
     "nuxt": "^4.2.2",
     "sortablejs": "^1.15.7",
     "vue": "^3.5.22"

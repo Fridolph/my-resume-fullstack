@@ -6,10 +6,12 @@
 
 - `apps/web`：Nuxt 4 + Nuxt UI + Tailwind CSS 4
 - `apps/admin`：Nuxt 4 + Nuxt UI + Tailwind CSS 4
-- `apps/api`：NestJS API，提供 `/api/health` 心跳接口
+- `apps/server`：NestJS API，提供 `/api/health` 心跳接口
 - `packages/common`：统一响应结构与错误结构（纯 TS，需构建）
 - `packages/ui`：跨 web / admin 共享的 UI 组件（Nuxt layer，零构建、自动导入；见 [packages/ui/README.md](./packages/ui/README.md)）
 - 根目录：Oxlint、Oxfmt、Standard Version 与协作规范
+
+后端目录为 `apps/server`，工作区包名为 `@rs/server`：`pnpm --filter @rs/server dev` 按包名选择项目，也可用 `pnpm --filter ./apps/server dev` 按路径选择。目录从 `apps/api` 重命名而来，现有源码、本地配置和数据库迁移文件一起保留；HTTP 前缀仍为 `/api`。若需回滚，同步恢复目录、包名、锁文件 importer 和文档命令即可，不涉及数据库回滚。
 
 ## 当前用途：my-resume 的 Nuxt 实现场
 
@@ -18,6 +20,16 @@
 - 推进方式：一个关键任务一张 `dao/tasks/DAO-*.md` 任务卡，只落一个模块或一条闭环；当前任务见 [`dao/CURRENT.md`](./dao/CURRENT.md)，任务边界见 [AGENTS.md](./AGENTS.md)。
 - 底座与业务分层：底座能力（工程骨架、公共组件、校验与工具）保持通用可抽离；`my-resume` 的业务实现放在应用自身的业务域 layer 与后端模块内。
 - 外部蓝图：`my-resume/docs/rs/` 的三份文档（三端职责、数据模型与 PostgreSQL 选型、AI 能力与迁移清理）。
+
+### 用户创建接口
+
+`apps/server/src/user` 按 `dto/`、controller、service、module 平级组织，目前只实现 `POST /api/user`。超级管理员可创建 `admin/user`；其他 CRUD 保留学习模板。认证已使用数据库账号，新账号可调用现有登录接口。Repository 仅在查询复杂或需要复用时引入。
+
+本轮新增用户资料可空列及 `super_admin` 角色预设，提供迁移和 seed 源码，未执行数据库操作或验证。运行前由 Owner 完成迁移、Prisma Client 生成与角色初始化；请求示例、步骤和学习说明见 [用户模块业务讨论](./docs/server/02_用户模块_业务讨论模板.md)。
+
+当前支持 username 或 email 登录、nickname 昵称、cuid 身份；创建用户时 username/email 至少填写一个。当前请求、seed 与 Apifox 操作以 [超管创号与邮箱登录](./docs/server/04_账号创建与登录_业务讨论.md) 为准，旧讨论记录仅供学习回顾。公开注册尚未开放。
+
+鉴权采用 Nest Passport 集成：`@nestjs/jwt` 签发令牌，`passport-jwt` 提取 Bearer token、验签与检查过期，JwtStrategy 查询当前数据库身份；全局 Guard 保留 `@Public()` 和统一错误码。每次请求恢复当前角色权限，不启用服务器 session。
 
 ## 工程约定
 
@@ -146,7 +158,7 @@ pnpm run dev
 # apps/web 或 apps/admin
 NUXT_PUBLIC_API_BASE=http://localhost:4049/api
 
-# apps/api
+# apps/server
 PORT=4049
 ```
 

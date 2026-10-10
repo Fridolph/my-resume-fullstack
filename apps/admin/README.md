@@ -1,4 +1,4 @@
-# @template/admin — 后台公共基础模版
+# @rs/admin — 后台公共基础模版
 
 Nuxt 4 + @nuxt/ui 的后台应用骨架，作为后续 admin 项目的公共起点。含登录页、布局体系、Nuxt Layers 功能域分层，以及一个「组件库 demo」（Comps）体系，为后续开源组件与基础仓库做准备。
 

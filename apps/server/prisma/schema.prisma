@@ -1,0 +1,141 @@
+// Prisma schema —— 数据库结构的**唯一真源**。
+//
+// ## 它在"单一真源链"里的位置
+//
+// 选 Prisma 的关键理由不是"功能多"，而是能把三份容易漂移的东西收敛成一条链：
+//
+//     schema.prisma  ──generate──▶  Prisma Client 类型（数据库访问）
+//           │
+//           └──（配 zod 生成器后）──▶  Zod schema ──▶ 前端表单校验 + TS 类型
+//
+// 反过来（Prisma 一份、Zod 一份、手写 TS 类型一份），就是参考项目那种"多份并存"的老路。
+// ⚠️ 生成 Zod 那一步（`zod-prisma-types` 等）**尚未接入** —— 等真正有表、有接口要用时再加，
+//    现在接只会多一个需要维护的生成器。
+//
+// ## 为什么是 PostgreSQL（而不是参考项目的 MongoDB）
+//
+// 简历这类数据的形状是关系型的：用户 → 简历 → 版本 → 权限，需要外键、唯一约束、事务。
+// 文档库能存，但约束要自己在代码里补，等于把数据库该保证的事搬到应用层。
+//
+// ## 命名约定
+//
+// - 模型 PascalCase、字段 camelCase（Prisma 默认），**表名/列名用 snake_case**（`@@map` / `@map`）
+//   —— 数据库侧保持 SQL 惯例，代码侧保持 TS 惯例，两边都不别扭；
+// - 时间戳统一 `createdAt` / `updatedAt`。
+
+generator client {
+  // Prisma 7：generator 名从 `prisma-client-js` 改为 `prisma-client`，且 `output` **必填**
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  // 本仓 API 编译为 CommonJS（tsconfig 的 module = commonjs）；Prisma 7 默认输出 ESM，
+  // 不声明就会在 require 时报错。将来若整个后端迁到 ESM，这行可以去掉。
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+  // ⚠️ Prisma 7 起 **不再** 在 schema 里写 url：
+  // 连接串属于「CLI 用」（migrate/studio）→ 放 `prisma.config.ts`；
+  // 「运行时」则由 PrismaClient 的 driver adapter 负责（见下方注释）。
+}
+
+// ── Prisma 7 的两处行为变化（都会咬人，先记在这里）──────────────────────
+//
+// 1. **运行时必须传 driver adapter**：v7 移除了 Rust 查询引擎，client 变成纯 TS 实现，
+//    直连 Postgres 需要 `@prisma/adapter-pg`：
+//
+//        import { PrismaPg } from '@prisma/adapter-pg'
+//        const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL })
+//        export const prisma = new PrismaClient({ adapter })
+//
+//    （本轮**没有**装它 —— 本机还没有 PG 实例，装了也用不上；等接 PrismaService 时一起加。）
+//
+// 2. **`.env` 不再自动加载**：CLI 侧要在 `prisma.config.ts` 里显式 `import 'dotenv/config'`。
+
+/// 用户。
+///
+/// 用户名或邮箱是登录账号；cuid 主键不随昵称修改，角色权限通过关联表恢复。
+///
+/// ⚠️ 两个刻意的设计：
+/// - **只存 `passwordHash`，不存明文**（也不存"可解密"的形式）：哈希是单向 + 随机盐 + 故意慢，
+///   盐防彩虹表、慢让暴力破解不划算；
+/// - **权限不在这张表上**：走 `user_roles → role_permissions → permissions`。
+///   表结构多两张，换来"人可以有多个角色、角色可以改权限"这两件事不用改表。
+model User {
+  id           String    @id @default(cuid())
+  /// 可选的唯一登录名；实际格式由 DTO 校验，数据库同时保留唯一约束。
+  username     String?   @unique
+  /// 可修改的展示昵称；为空时展示层回退到 username 或 email。
+  nickname     String?
+  /// 可选的唯一登录邮箱，创建与登录时统一去首尾空格、转小写。
+  email        String?   @unique
+  /// 旧手机号暂保留数据；当前接口不接收也不返回。
+  phone        String?   @unique
+  avatar       String?
+  /// 密码哈希（scrypt，格式见 `src/common/password.ts`）
+  passwordHash String
+  /// 软删除标记（有值即视为已删除）。
+  /// 登录、会话恢复和后续用户查询需显式排除已删除记录。
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  roles UserRole[]
+
+  @@map("users")
+}
+
+/// 角色。role.key 必须与 `src/auth/permission-keys.ts` 的 `ROLE_PERMISSION_PRESETS` 对齐（seed 校验）。
+model Role {
+  id          String   @id @default(cuid())
+  /// 稳定的机器可读标识：`super_admin` / `admin` / `user`
+  key         String   @unique
+  /// 展示名：`管理员` / `普通用户`
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+/// 权限键。**键名定义在代码里**（`src/auth/permission-keys.ts`），这里只承载"关系"。
+/// seed 会按代码常量同步这张表（幂等）。
+model Permission {
+  id          String   @id @default(cuid())
+  /// `<域>.<资源>:<动作>`，例如 `Resume.Profile:view`
+  key         String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+/// 角色 ↔ 权限（多对多）
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+/// 用户 ↔ 角色（多对多）。
+/// 多对多而不是 `User.roleId`：当前有三种预设角色，后续可同时关联编辑与审核等角色，
+/// 那时改表 + 改所有查询，比一开始就留一张关联表贵得多。多角色时权限**取并集去重**。
+model UserRole {
+  userId String
+  roleId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}

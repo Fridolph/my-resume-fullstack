@@ -10,7 +10,7 @@
 #   docker compose down           # 停掉（数据保留在 named volume）
 #   docker compose down -v        # ⚠️ 连数据卷一起删，不可恢复
 #
-# 连接串（写进 apps/api/.env，不要提交）：
+# 连接串（写进 apps/server/.env，不要提交）：
 #   DATABASE_URL="postgresql://resume:resume_dev_password@localhost:5432/my_resume?schema=public"
 name: my-resume-fullstack
 

@@ -10,7 +10,7 @@ web 与 admin 都要用的 **Vue / Nuxt UI 组件**放这里。它是一个 **Nu
 
 | 包                | 放什么                                                | 形态                       | 消费方式                               |
 | ----------------- | ----------------------------------------------------- | -------------------------- | -------------------------------------- |
-| `packages/common` | 框架无关的**纯 TS**：类型、常量、纯函数               | 需要 `tsc` 构建（`dist/`） | `import { … } from '@template/common'` |
+| `packages/common` | 框架无关的**纯 TS**：类型、常量、纯函数               | 需要 `tsc` 构建（`dist/`） | `import { … } from '@rs/common'` |
 | `packages/ui`     | **Vue / Nuxt UI 组件**（依赖 `@nuxt/ui`、Vue 运行时） | Nuxt layer，不构建         | 自动导入（组件名即文件名）             |
 
 判断标准：**能不能脱离 Vue 编译运行**。能 → `common`；不能（含模板 / 依赖 UI 库）→ `ui`。
@@ -35,7 +35,7 @@ export default defineNuxtConfig({
 
 新增共享组件时**不用**改这两处。
 
-**依赖约定**：layer **不声明第三方运行时依赖**（但可以 `workspace:*` 依赖 `@template/common` 这类纯 TS 包） —— `vue` 与 `@nuxt/ui` 由宿主提供。所以组件里直接用自动导入的 `ref` / `computed` / `UButton`，**不要**写 `import { ref } from 'vue'`（那样会按 `packages/ui/node_modules` 解析而找不到）。需要额外能力时优先自己写：`app/composables/useNarrowScreen.ts` 就是用来替代 `@vueuse/core` 的 `useMediaQuery`，避免给两个 app 各加一份依赖。
+**依赖约定**：layer **不声明第三方运行时依赖**（但可以 `workspace:*` 依赖 `@rs/common` 这类纯 TS 包） —— `vue` 与 `@nuxt/ui` 由宿主提供。所以组件里直接用自动导入的 `ref` / `computed` / `UButton`，**不要**写 `import { ref } from 'vue'`（那样会按 `packages/ui/node_modules` 解析而找不到）。需要额外能力时优先自己写：`app/composables/useNarrowScreen.ts` 就是用来替代 `@vueuse/core` 的 `useMediaQuery`，避免给两个 app 各加一份依赖。
 
 ## 组件
 
@@ -153,7 +153,7 @@ export default defineNuxtConfig({
 4. 在 admin 补两处：`comps/` 下建**组件索引页**（覆盖变体与边界）、`demos/` 下补**业务示例**，
    并在 `apps/admin/app/config/admin-navigation.ts` 的 Comps / Demos 分组里挂上入口；
    同时更新本文件的「组件」一节
-5. 两端跑 `pnpm --filter @template/web typecheck && pnpm --filter @template/admin typecheck`
+5. 两端跑 `pnpm --filter @rs/web typecheck && pnpm --filter @rs/admin typecheck`
 
 ## 为什么不用 npm 包
 

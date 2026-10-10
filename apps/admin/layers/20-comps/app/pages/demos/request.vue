@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { createApiErrorBody } from '@template/common'
-import type { NormalizedApiError } from '@template/common'
+import { createApiErrorBody } from '@rs/common'
+import type { NormalizedApiError } from '@rs/common'
 import {
   API_ERROR_POLICY,
   NETWORK_ERROR_CODE,
@@ -8,7 +8,7 @@ import {
   resolveApiErrorDetail,
   resolveApiErrorMessage,
   resolveApiErrorPolicy,
-} from '@template/common'
+} from '@rs/common'
 
 definePageMeta({
   layout: 'has-sidebar',

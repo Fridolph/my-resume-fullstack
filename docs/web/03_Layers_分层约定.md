@@ -51,7 +51,7 @@ layers/00-shared  ←  feature layers（11~20）  ←  app/
    export default defineNuxtConfig({ $meta: { name: '<name>' } })
    ```
 3. admin：在 `app/config/admin-navigation.ts` 的主导航里补对应 `children`/路由。
-4. `pnpm --filter @template/<app> typecheck` + dev server SSR 验证。
+4. `pnpm --filter @rs/<app> typecheck` + dev server SSR 验证。
 
 ## 5. 验证清单
 
@@ -91,7 +91,7 @@ web 与 admin 都要用的 Vue 组件放 `packages/ui`。它是 **Nuxt layer**�
 - 可放 `app/components/**`、`app/composables/**`、`app/lib/**`；
   **不要**放 `app/utils/**`（该目录会被自动导入，容易与宿主的同名工具撞车）
 - layer **不声明第三方运行时依赖**：需要能力时优先自己写（例：`useNarrowScreen` 替代 `@vueuse/core`）；
-  但**可以依赖 workspace 内的纯 TS 包** —— 如 `@template/common`（请求契约与纯工具），
+  但**可以依赖 workspace 内的纯 TS 包** —— 如 `@rs/common`（请求契约与纯工具），
   在 `packages/ui/package.json` 里以 `workspace:*` 声明（**不声明 TS 就解析不到**，会连带报一堆无关错误）
   （例：`app/composables/useNarrowScreen.ts` 替代了 `@vueuse/core` 的 `useMediaQuery`）
 - ⚠️ Tailwind v4 **不扫 app 目录之外**的源码：各 app 的 `main.css` 里有

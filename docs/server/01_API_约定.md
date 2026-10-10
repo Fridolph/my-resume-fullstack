@@ -1,6 +1,7 @@
-# 后端约定（apps/api）
+# 后端约定（apps/server）
 
 > 状态：auth 与 common 的公共部分已落地（2026-10-09），持续补充。
+> 2026-10-10 更新：当前采用 email 唯一登录、nickname 昵称、Service 直接访问 Prisma；当前创号/登录示例见 [超管创号与邮箱登录](./04_账号创建与登录_业务讨论.md)。
 > 关联：`docs/dev/02_身份与权限_设计.md`（权限模型与 Header 分档）、`README.md`（启动方式与端口）
 
 ## 1. 这份文档要回答什么
@@ -79,7 +80,7 @@
 #### 前端判断成功请用 `isApiSuccess()`
 
 ```ts
-import { isApiSuccess } from '@template/common'
+import { isApiSuccess } from '@rs/common'
 if (response.ok && payload && isApiSuccess(payload)) {
   /* ... */
 }
@@ -101,7 +102,7 @@ if (response.ok && payload && isApiSuccess(payload)) {
 又要为每个字符串维护映射才能知道该跳登录还是跳首页。两个都给，谁都不必猜。
 
 - 命名沿用权限键的 `<域>.<资源>:<动作>` 风格：`AUTH.Token:expired`、`Common.Validation:failed`；
-- 定义集中在 `apps/api/src/common/error-codes.ts`；
+- 定义集中在 `apps/server/src/common/error-codes.ts`；
 - 声明方式是 Nest 12 的官方途径：`throw new UnauthorizedException(msg, { errorCode: '…' })`；
 - 没显式声明时，过滤器按 HTTP 状态**兜底推断**（`inferErrorCode`），保证前端永远拿得到码。
 
@@ -113,9 +114,9 @@ if (response.ok && payload && isApiSuccess(payload)) {
 - **全局守卫 + 默认保护**：`JwtAuthGuard` 注册为 `APP_GUARD`，所有路由默认需要登录；
 - **显式开放**：`@Public()` 标在方法或控制器上（登录、心跳这类）；
   漏标的后果是"需要登录"（安全一侧），反过来做的话漏标就是漏洞；
-- **取当前用户**：`@CurrentUser()` / `@CurrentUser('username')`；
-- **不使用 Passport**：自研守卫的全部逻辑 20 行、每行可读，少 3 个依赖与一层黑盒（详见 `jwt-auth.guard.ts` 注释）；
-- **JWT 里只放鉴权必需项**（`sub` / `username` / `permissionKeys`）：JWT 是**签名不是加密**，不放敏感信息。
+- **取当前用户**：`@CurrentUser()` / `@CurrentUser('nickname')`；
+- **Passport JWT 策略**：采用 `@nestjs/passport` / `passport` / `passport-jwt`；Guard 保留公开路由和错误语义，Strategy 提取 Bearer token、验签、检查过期并调用 Service 恢复身份；`session: false`。
+- **JWT 只放身份引用**：sub 为用户 cuid 主键，iat/exp 由库生成；JWT 是签名而非加密。每次按 sub 回查数据库恢复 email/nickname、角色和权限，不携带权限快照。
 
 ### 3.4 配置
 
@@ -152,7 +153,7 @@ constructor(
 （依赖注入进来就应该是稳定的，重新赋值通常是 bug 的前兆）。
 ，而不是先把目录建好
 
-本轮 `apps/api/src` 的形态：
+本轮 `apps/server/src` 的形态：
 
 ```text
 src/
@@ -181,16 +182,16 @@ src/
 | 换了持久化实现（内存 → PostgreSQL / Redis），或要屏蔽第三方细节        | `infrastructure/repositories/` |
 | 模块开始接收多种输入（HTTP + 队列 + 定时任务）                         | `transport/`                   |
 
-`auth` 现在用内存演示账号：等接入 `users` 表时，`infrastructure/repositories/` 才真正有意义。
+`auth` 与 `user` 当前直接使用全局 PrismaService；仅当查询复杂或需要复用时引入平级 Repository，不因为使用数据库自动增加 infrastructure 层。
 
 ## 5. 加一个新接口的检查清单
 
 - [ ] 控制器只做"取参 → 调 service → 返回数据"，不写业务规则、不手工拼响应体（拦截器会包壳）；
-- [ ] 入参一律用 DTO + `class-validator`（`ValidationPipe` 已开 `whitelist`，未声明字段会被丢掉）；
+- [ ] 入参使用 Zod schema + z.infer DTO，通过 Nest StandardSchemaValidationPipe 校验并转换；strictObject 拒绝未声明字段；
 - [ ] 需要登录就什么都不用做（全局守卫默认保护）；要开放就显式加 `@Public()` 并写清理由；
 - [ ] 失败时抛 `HttpException` 子类，并给 `errorCode`（`error-codes.ts` 里登记常量）；
 - [ ] 不要新增响应形状、不要新增异常过滤器；
-- [ ] `pnpm --filter @template/api typecheck` + 用 `curl` 实测（成功 / 未授权 / 参数非法 三条路径）。
+- [ ] `pnpm --filter @rs/server typecheck` + 用 `curl` 实测（成功 / 未授权 / 参数非法 三条路径）。
 
 ## 6. 技术选型（2026-10-09 定）
 
@@ -199,7 +200,7 @@ src/
 | 数据库   | **PostgreSQL**                        | 简历数据是关系型（用户 → 简历 → 版本 → 权限），需要外键、唯一约束、事务；文档库能存，但约束得自己在代码里补 |
 | ORM      | **Prisma**                            | schema 是**结构唯一真源** + `migrate` 成熟 + Studio 可视化；配 zod 生成器可把真源收敛成一条链               |
 | 入参校验 | **Zod**（Nest 12 的 Standard Schema） | 校验规则与 TS 类型**同源**（`z.infer`），且纯值可共享给前端；替代 class-validator / class-transformer       |
-| 鉴权     | **纯 `@nestjs/jwt` 自研 Guard**       | 少 3 个依赖、链路透明（见 §3.3）                                                                            |
+| 鉴权     | **Passport JWT + `@nestjs/jwt`**       | Passport 负责请求认证，JwtService 签发令牌；复用成熟机制，减少手写协议逻辑（见 §3.3） |
 
 ### 6.1 为什么强调"单一真源链"
 
@@ -248,4 +249,4 @@ users ──< user_roles >── roles ──< role_permissions >── permissi
 | **软删除** `deletedAt`                        | 可审计、可恢复；代价是每条查询都要带 `deletedAt: null` —— 因此该过滤**统一收在 repository 层**，不散到各处 |
 | 密码用 `node:crypto` 的 scrypt                | 零依赖；存储格式 `scrypt$N$r$p$salt$hash` **把参数写进字符串**，将来调强参数时旧密码仍可验证、可静默升级   |
 
-> 权限键常量在 `apps/api/src/auth/permission-keys.ts`，与前端 `apps/web/app/config/permissions.ts` 是**镜像**关系（理想做法是放 `packages/common`，待解决 ESM/CJS 后合并）。
+> 权限键常量在 `apps/server/src/auth/permission-keys.ts`，与前端 `apps/web/app/config/permissions.ts` 是**镜像**关系（理想做法是放 `packages/common`，待解决 ESM/CJS 后合并）。

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { normalizeApiError, resolveApiErrorMessage } from '@template/common'
+import { normalizeApiError, resolveApiErrorMessage } from '@rs/common'
 import { fetchHealth } from '~/apis/health'
 
 definePageMeta({

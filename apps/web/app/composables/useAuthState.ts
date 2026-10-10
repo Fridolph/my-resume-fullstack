@@ -2,7 +2,7 @@ import type { AuthSessionData } from '~/types/auth'
 import type { Role } from '~/config/permissions'
 import { DEFAULT_ROLE, roleFromCode } from '~/config/permissions'
 import { accountFromToken, MOCK_ACCOUNT_HINT, mockAuthResponse, verifyMockAccount } from '~/mock/auth'
-import { TOKEN_COOKIE_KEY } from '@template/common'
+import { TOKEN_COOKIE_KEY } from '@rs/common'
 
 /**
  * 会话与角色。

@@ -14,7 +14,7 @@ import {
   normalizeFileInput,
   validateFiles,
 } from '~/utils/fileValidation'
-import { isAbortError } from '@template/common'
+import { isAbortError } from '@rs/common'
 
 /** 校验失败时由 `upload` / `validate` 抛出，`issue` 带 messageKey 给使用方自行提示 */
 export class FileUploadError extends Error {

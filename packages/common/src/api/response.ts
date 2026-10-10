@@ -1,7 +1,7 @@
 import { API_CODE } from './constants.js'
 import type { ApiErrorBody, ApiSuccessBody } from './types.js'
 
-/** 构造成功响应体（后端 `apps/api` 与前端 mock 共用） */
+/** 构造成功响应体（后端 `apps/server` 与前端 mock 共用） */
 export function createApiResponse<T>(data: T, message = 'ok', extra?: { traceId?: string }): ApiSuccessBody<T> {
   return {
     code: API_CODE.OK,

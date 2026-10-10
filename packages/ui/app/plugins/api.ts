@@ -7,7 +7,7 @@ import {
   TOKEN_COOKIE_KEY,
   toNormalizedApiError,
   type NormalizedApiError,
-} from '@template/common'
+} from '@rs/common'
 
 /**
  * **唯一的请求层**（web 与 admin 共用 —— 两端都是前端，请求逻辑完全相同）。
@@ -29,7 +29,7 @@ import {
  * 2. `onResponse`：成功 → 解包 `data`；失败 → 归一化 + 按策略处理；
  * 3. `onResponseError`：HTTP / 网络失败同样归一化 + 处理。
  *
- * **公共错误默认自动处理**（策略表在 `@template/common`，两端一致）：401 清 token 并触发
+ * **公共错误默认自动处理**（策略表在 `@rs/common`，两端一致）：401 清 token 并触发
  * `api:unauthorized`（宿主决定去哪登录）；403 / 404 / 5xx / 网络中断统一提示（带 traceId）。
  * 按接口跳过：`$api(url, { silent: true })`。设计见 `docs/web/05_请求错误处理_设计.md`。
  *

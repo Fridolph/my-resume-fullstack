@@ -1,4 +1,4 @@
-import { isApiSuccess } from '@template/common'
+import { isApiSuccess } from '@rs/common'
 import type { UploadedFile } from '~/types/file'
 
 /** 上传进度；`percent` 为 0–100 的整数 */

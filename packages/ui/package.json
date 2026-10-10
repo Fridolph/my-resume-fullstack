@@ -1,5 +1,5 @@
 {
-  "name": "@template/ui",
+  "name": "@rs/ui",
   "version": "0.1.0",
   "private": true,
   "description": "跨 app 共享的 Vue / Nuxt UI 组件（Nuxt layer 形式，源码级共享、零构建、零运行时依赖）",
@@ -9,6 +9,6 @@
     "lint": "echo \"layer 的 lint 由根 oxlint 覆盖\""
   },
   "dependencies": {
-    "@template/common": "workspace:*"
+    "@rs/common": "workspace:*"
   }
 }
