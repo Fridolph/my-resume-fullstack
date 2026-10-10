@@ -11,6 +11,7 @@ const identitySelect = {
   id: true,
   email: true,
   nickname: true,
+  sessionVersion: true,
   roles: {
     select: {
       role: {
@@ -60,7 +61,7 @@ export class AuthService {
     }
 
     const authUser = toAuthUser(user)
-    const { roleKeys, permissionKeys, ...identity } = authUser
+    const { roleKeys, permissionKeys, sessionVersion, ...identity } = authUser
 
     return {
       token: await this.sign(authUser),
@@ -75,12 +76,13 @@ export class AuthService {
    *
    * JWT 是签名而非加密，拿到令牌的人可以读取载荷，所以不放密码、邮箱或昵称。
    * 角色与权限不写入 JWT：每次请求验签后按 sub 回查数据库，角色变化与软删除
-   * 在下一次请求生效，代价是每次受保护请求都需要一次身份查询。
-   * 昵称变化不影响 sub；权限缓存、主动注销或 token 黑名单属于后续独立设计。
+   * 在下一次请求生效。sessionVersion 只用于撤销该用户的旧会话，不承载业务权限。
+   * 代价是每次受保护请求都需要一次身份查询；刷新令牌与跨设备会话管理属于后续设计。
    */
   async sign(user: AuthUser): Promise<string> {
     const payload: JwtPayload = {
       sub: user.userId,
+      sessionVersion: user.sessionVersion,
     }
 
     return this.jwtService.signAsync(payload)
@@ -91,16 +93,23 @@ export class AuthService {
    *
    * JwtStrategy 完成 token 验签与载荷检查，本方法只负责查询身份，不重复验签。
    * 身份查询故障仍交给全局 Filter，不能捕获后伪装成登录失效。
-   * 不信任旧 JWT 中可能携带的昵称、邮箱或权限快照，始终取数据库当前值；昵称为空时由展示层回退。
+   * 不信任 JWT 中可能携带的昵称、邮箱或权限快照，始终取数据库当前值；昵称为空时由展示层回退。
+   * 同时比较 token 的 sessionVersion 与数据库版本；版本不一致表示会话已被改密或超管强制下线。
    * 已删除用户即使持有尚未过期的 token，也不能继续访问受保护接口。
    */
-  async restoreUser(userId: string): Promise<AuthUser> {
+  async restoreUser(userId: string, tokenSessionVersion: number): Promise<AuthUser> {
     const user = await this.prismaService.user.findFirst({
       where: { id: userId, deletedAt: null },
       select: identitySelect,
     })
     if (!user) {
       throw new UnauthorizedException('用户不存在或已删除', { errorCode: API_ERROR_CODES.AUTH_USER_UNAVAILABLE })
+    }
+
+    if (user.sessionVersion !== tokenSessionVersion) {
+      throw new UnauthorizedException('登录状态已失效，请重新登录', {
+        errorCode: API_ERROR_CODES.AUTH_SESSION_REVOKED,
+      })
     }
 
     return toAuthUser(user)
@@ -119,6 +128,7 @@ function toAuthUser(user: UserIdentityRecord): AuthUser {
     userId: user.id,
     email: user.email,
     nickname: user.nickname,
+    sessionVersion: user.sessionVersion,
     roleKeys: user.roles.map(assignment => assignment.role.key).sort(),
     permissionKeys: [...new Set(permissionKeys)].sort(),
   }

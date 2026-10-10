@@ -21,9 +21,7 @@ import type { AuthUser } from '../../common/http-context'
 export const CurrentUser = createParamDecorator((field: keyof AuthUser | undefined, context: ExecutionContext) => {
   const request = context.switchToHttp().getRequest<Request>()
   const user = request.user
-  if (!user) {
-    return undefined
-  }
+  if (!user) return undefined
 
   return field ? user[field] : user
 })

@@ -31,6 +31,8 @@ export const API_ERROR_CODES = {
    * 当前用户不存在或已删除。
    */
   AUTH_USER_UNAVAILABLE: 'AUTH.User:unavailable',
+  /** 令牌对应的会话版本已经被服务端撤销。 */
+  AUTH_SESSION_REVOKED: 'AUTH.Session:revoked',
   /**
    * 创建用户所需的角色尚未初始化。
    */
@@ -39,6 +41,30 @@ export const API_ERROR_CODES = {
    * 操作者没有创建用户的身份或权限。
    */
   USER_CREATE_FORBIDDEN: 'Users.User:createForbidden',
+  /**
+   * 操作者无权修改目标用户的资料。
+   */
+  USER_UPDATE_FORBIDDEN: 'Users.User:updateForbidden',
+  /**
+   * 目标用户不存在或已软删除。
+   */
+  USER_NOT_FOUND: 'Users.User:notFound',
+  /**
+   * 操作者无权删除用户。
+   */
+  USER_DELETE_FORBIDDEN: 'Users.User:deleteForbidden',
+  /**
+   * 删除目标为超级管理员或不具备允许删除的角色。
+   */
+  USER_DELETE_PROTECTED: 'Users.User:deleteProtected',
+  /** 操作者无权修改目标用户的密码。 */
+  USER_PASSWORD_CHANGE_FORBIDDEN: 'Users.Password:changeForbidden',
+  /** 旧密码校验失败。 */
+  USER_PASSWORD_INVALID: 'Users.Password:invalid',
+  /** 操作者无权强制下线用户。 */
+  USER_FORCE_LOGOUT_FORBIDDEN: 'Users.Session:forceLogoutForbidden',
+  /** 强制下线目标受到保护。 */
+  USER_FORCE_LOGOUT_PROTECTED: 'Users.Session:forceLogoutProtected',
   /** 通用唯一约束冲突。 */
   COMMON_UNIQUE_CONFLICT: 'Common.Conflict:unique',
   /** 通用关联数据冲突。 */

@@ -15,6 +15,8 @@
 export interface JwtPayload {
   /** 用户主键 */
   sub: string
+  /** 签发时的会话版本；服务端递增版本后，旧令牌立即失效 */
+  sessionVersion: number
   /** 签发时间（秒） */
   iat?: number
   /** 过期时间（秒） */
@@ -26,6 +28,8 @@ export interface AuthUser {
   userId: string
   email: string | null
   nickname: string | null
+  /** 当前数据库认可的会话版本；只用于签发与校验令牌，不返回给客户端 */
+  sessionVersion: number
   /**
    * 从数据库恢复的当前角色键。
    */
