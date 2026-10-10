@@ -1,31 +1,37 @@
 <script setup lang="ts">
-import { queryKeys } from '~/lib/query-keys'
+import { normalizeApiError, resolveApiErrorMessage } from '@rs/common'
+import { fetchHealth } from '~/apis/health'
 
 definePageMeta({
   title: 'my-resume',
 })
 
-const queryCache = useQueryCache()
-
 /**
  * 公开站入口：只做导航与后端状态，不承载业务。
- * 后端状态来自数据层（colada query），页面不直接发请求。
+ *
+ * 心跳是"每次都要最新"的一类 → `useAsyncData`（SSR 直出 + 可手动刷新），**不进缓存**；
+ * 真正"频繁但不常变"的数据（简历 / 用户信息）才用 `useQuery`。
  */
-const { data: health, error: healthError, asyncStatus } = useHealthQuery()
+const {
+  data: health,
+  error: healthError,
+  status,
+  refresh: refreshHealthData,
+} = await useAsyncData('health', fetchHealth)
 
 const apiStatusLabel = computed(() => {
-  if (asyncStatus.value === 'loading') {
+  if (status.value === 'pending') {
     return '检测中'
   }
   return healthError.value ? '离线' : '已连接'
 })
 const apiStatusColor = computed(() =>
-  healthError.value ? 'bg-error' : asyncStatus.value === 'loading' ? 'bg-warning' : 'bg-success',
+  healthError.value ? 'bg-error' : status.value === 'pending' ? 'bg-warning' : 'bg-success',
 )
 
-/** 失效重取：沿用 admin 同一套约定（query key 集中在 lib/query-keys） */
+/** 手动重取（心跳不进缓存，所以这里是"重新请求"而不是"失效缓存"） */
 function refreshHealth() {
-  void queryCache.invalidateQueries({ key: queryKeys.health() })
+  void refreshHealthData()
 }
 
 const entries = [
@@ -84,7 +90,7 @@ const entries = [
             {{ health.service }} · uptime {{ Math.round(health.uptime) }}s
           </span>
           <span v-else-if="healthError" class="text-xs text-dimmed">
-            {{ getApiErrorMessage(healthError, '后端不可达') }}
+            {{ healthError ? resolveApiErrorMessage(normalizeApiError(healthError)) : '后端不可达' }}
           </span>
         </div>
       </UCard>

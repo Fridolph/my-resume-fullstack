@@ -4,7 +4,7 @@ import type { UploadedFile } from '~/types/file'
 import type { ImageDimensionOptions } from '~/utils/fileValidation'
 import { useFileDialog } from '@vueuse/core'
 import { FileUploadError, useFileUploader } from '~/composables/useFileUploader'
-import { isAbortError } from '~/utils/request'
+import { isAbortError } from '@rs/common'
 
 type FileUploadUi = NonNullable<FileUploadProps['ui']>
 

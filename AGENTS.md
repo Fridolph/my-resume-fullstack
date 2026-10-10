@@ -8,10 +8,10 @@
 
 - 分层看待底座与业务：底座是多个项目可复用的工程能力（骨架、公共组件、校验与工具），保持通用、可抽离；`my-resume` 的业务实现放在应用自身的业务域 layer 与后端模块内，不反向污染底座能力。
 - 当前技术栈为 `pnpm workspace`、Turborepo、Nuxt 4、Nuxt UI、Tailwind CSS 4、`@pinia/colada`、NestJS、PostgreSQL、Redis 与 TypeScript。
-- `apps/web` 是用户端，`apps/admin` 是管理端，`apps/api` 是后端服务，`packages/common` 存放跨应用的稳定类型与基础能力。
+- `apps/web` 是用户端，`apps/admin` 是管理端，`apps/server` 是后端服务，`packages/common` 存放跨应用的稳定类型与基础能力。
 - 业务按模块推进：一个任务卡只落一个模块或一条闭环，不顺手扩展相邻模块；未定的选型写进任务卡待确认项，不靠猜测落地。
 - 新增目录、包、基础设施或共享契约前，先说明动机、影响范围、回滚方式，并同步更新 README。
-- 分支模型：`main` 只承载发布与正式版本，**不直接在 `main` 上开发**；日常开发在 `dev`，并从 `dev` 开 `feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…` 短分支，验证完成后合回 `dev`。完整流程见 [docs/dev/workflow.md](./docs/dev/workflow.md)。
+- 分支模型：`main` 只承载发布与正式版本，**不直接在 `main` 上开发**；日常开发在 `dev`，并从 `dev` 开 `feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…` 短分支，验证完成后合回 `dev`。完整流程见 [docs/dev/01*开发流程*分支与提交.md](./docs/dev/01_开发流程_分支与提交.md)。
 
 ## 2. 安全与隐私
 
@@ -56,6 +56,18 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
 - 收口前先自查：是否达成目标、是否越界、验证是否真实完成、是否有隐藏风险、API/类型/文档是否同步、是否需要沉淀。需要时使用 `dao-review`，它不替代代码 review 或测试。
 - 对存在协作切换、风险、跨文件影响或阶段性价值的关键任务，在 `dao/` 创建一张任务卡，并由 `dao/CURRENT.md` 指向当前唯一关键任务。任务卡是目标、状态、验证、交接与收口的唯一事实源；小修不必机械建卡。完整规则见 [`dao/README.md`](./dao/README.md)。任务完成即收口：状态改 `done`、回填并关闭对应 Issue、把该卡从 `dao/CURRENT.md` 移出 —— 细则与盘点命令见 `dao/README.md` →「完成后立即收口（避免积累）」。
 
+### 3.3 学习项目的逐方法开发模式
+
+- 一轮只推进一个方法或一条最小业务闭环；后端接口与前端对接分别推进。
+- 顺序：提供 Markdown 讨论模板 → Owner 表达业务理解 → AI 讲解职责、补齐边界并给出完整伪代码 → Owner 确认 → 实装。
+- 未确认伪代码前只调整模板与讨论文档，不提前填入完整业务实现；字段、角色与权限中的未决项明确标记待确认。
+- 后端默认采用 Controller → Service → PrismaService；查询复杂、跨用例复用或需要隔离持久化实现时采用平级 Repository，不强制增加转发层。输入类型统一 `Dto` 后缀，参数使用对应类型的小驼峰名称（如 createUserDto）。
+- 优先采用 Nest 官方集成与成熟依赖来减少模板代码、明确职责，不以零依赖为目标。本项目鉴权采用 `@nestjs/passport` / `passport` / `passport-jwt`，保留 `@nestjs/jwt` 签发令牌；Guard 处理公开路由与错误语义，Strategy 认证后委托 Service 恢复身份。其他新依赖仍按任务范围说明用途和兼容性。
+- 模块方法使用多行 TSDoc：除职责外，补充必要的设计理由、业务边界、事务/并发与安全取舍，可作为学习与面试复盘材料。注释必须符合当前实现，不重复逐行代码，不沿用已失效的设计描述。
+- 例如 JWT 注释应说明签名不等于加密、sub 的身份含义、权限恢复策略与代价；当前按 sub 每次回查数据库，不能写成“权限变化只能等 token 过期”。较长的流程图与延伸讨论保留在业务文档。
+- 当前学习阶段由 Owner 运行并人工验证；AI 不主动执行格式、lint、类型检查、构建、接口实测或测试，不新增单元测试及测试脚本。
+- 本阶段的验证安排优先于下文默认质量门。AI 如实记录“未运行验证”，提供操作入口与预期结果；Owner 反馈验证结果前不宣称 `self-tested`、`done`，不自动提交或合并。
+
 ## 4. 工程原则与验证
 
 - 先明确目标、非目标、风险、改动文件和验收标准，再开始实现；任务变大时拆分，不顺手扩展无关范围。
@@ -66,7 +78,10 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
 - TypeScript 保持严格类型；前端使用 Vue Composition API 与 `<script setup lang="ts">`；NestJS 按 module、controller、service 与 common 边界组织。
 - 测试文件优先放在对应模块的 `__tests__/` 目录，验证真实行为，不提交只为凑覆盖率的模板测试。
 - UI 改动必须验证桌面端与移动端关键路径；后端改动必须验证对应接口及异常路径。
-- **UI 与交互未经 Owner 实看确认，不得提交**：机器验证（typecheck / lint / 结构断言 / 截图度量）只证明"没坏"，不证明"对"。凡涉及视觉、布局、动效、交互手感的改动，先把改动留在工作区并说明"看哪里、看什么"，待 Owner 确认后再提交；Owner 未确认前不要用 squash / 合并把改动带进 `dev`。
+- **提交时机按"能不能被机器验证"分层**：
+  - **UI 与交互**（视觉 / 布局 / 动效 / 手感）：机器验证只证明"没坏"，不证明"对"。改动先留在工作区并说明"看哪里、看什么"，**经 Owner 实看确认后**再提交；未确认前不要用 squash / 合并带进 `dev`。
+  - **其余**（后端 / 共享契约 / 文档 / 构建配置等可机器验证的部分）：**自测通过即可在当前分支本地提交**，不必逐次确认 —— 一个 task 补充完善且 `typecheck` / `lint` / 实测通过，就该落成提交，别把改动攒在工作区。
+  - **推送远端**仍按 Owner 显式指示执行：**本地提交 ≠ 已发布**，二者不混为一谈。
 - 提交前至少执行 `pnpm format:check`、`pnpm lint`、`pnpm typecheck`、`pnpm test` 和受影响范围的构建；若项目尚无测试，说明缺口而不是伪造测试。
 
 ## 5. Skills：使用、安装与边界

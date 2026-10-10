@@ -10,7 +10,7 @@
 
 ## 数据
 
-- 对话接口（含流式）走 `~/apis/*`；流式响应的接入方式与 `$request` 的分工在实现该模块时确定并回写 `docs/dev/data-layer.md`。
+- 对话接口（含流式）走 `~/apis/*`；流式响应的接入方式与 `$request` 的分工在实现该模块时确定并回写 `docs/web/04_数据层_约定.md`。
 - 缓存策略由 colada 声明，key 统一在 `~/lib/query-keys`。
 
 ## 现状

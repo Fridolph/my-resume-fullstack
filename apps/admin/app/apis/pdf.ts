@@ -20,10 +20,10 @@ export const PDF_EXPORT_ENDPOINT = '/pdf/download'
 
 /** 请求后端生成 PDF，返回文件下载地址 */
 export async function requestPdfExport(payload: PdfExportPayload): Promise<string> {
-  const { $request } = useNuxtApp()
+  const { $api } = useNuxtApp()
 
   // httpRequest 插件已解包 { code, msg, data }，这里拿到的就是 data（文件 URL）
-  return await $request<string>(PDF_EXPORT_ENDPOINT, {
+  return await $api<string>(PDF_EXPORT_ENDPOINT, {
     method: 'POST',
     body: payload,
   })

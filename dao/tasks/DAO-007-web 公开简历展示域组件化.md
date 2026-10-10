@@ -7,7 +7,7 @@
 - 状态：`done`
 - Owner：`昇哥确认方向（对齐旧站左右布局 + admin 的配置驱动能力）并指定 mock 来源；归枢协作执行`
 - 创建日期：`2026-10-07`
-- 关联：`Issue #3`（阶段一）、`#5`（阶段二）、`#7`（B 期）、`#9`（内容编辑）、`#11`（Header 瘦身）、`DAO-005`、`docs/dev/layers.md`、`docs/dev/data-layer.md`、`docs/dev/resume-display-architecture.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、配置参考 `apps/admin/layers/20-comps/app/pages/demos/resume-config-layout.vue`
+- 关联：`Issue #3`（阶段一）、`#5`（阶段二）、`#7`（B 期）、`#9`（内容编辑）、`#11`（Header 瘦身）、`DAO-005`、`docs/web/03_Layers_分层约定.md`、`docs/web/04_数据层_约定.md`、`docs/web/06_简历展示_架构设计.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、配置参考 `apps/admin/layers/20-comps/app/pages/demos/resume-config-layout.vue`
 
 ## 状态轨迹
 
@@ -48,7 +48,7 @@
 ## 确认门与续跑
 
 - 当前确认门：`已确认，已进入续跑`
-- 需要确认：阶段二设计（见 [docs/dev/resume-display-architecture.md](../../docs/dev/resume-display-architecture.md) 第 9 节）——① 编辑能力归属；② 主题模型；③ 背景范围；④ 三栏比例；⑤ 接受 web 侧契约先扩展、admin 暂不跟进。
+- 需要确认：阶段二设计（见 [docs/web/06*简历展示*架构设计.md](../../docs/web/06_简历展示_架构设计.md) 第 9 节）——① 编辑能力归属；② 主题模型；③ 背景范围；④ 三栏比例；⑤ 接受 web 侧契约先扩展、admin 暂不跟进。
 - 可接受回答：逐项选定；或指出需要改的设计点。
 - 确认后回到：`in-progress`（阶段二编码）
 - 确认后第一刀：升级类型与 mock（layout / sections / background）→ 抽 `useResumeDisplay` → 拆组件 → 三布局 + 主题 + 背景 → 验证。
@@ -58,21 +58,21 @@
 
 | 类型   | 命令 / 样本 / 链接                                                                                                                                                    | 结果                                                                                                                         | 仍未验证的边界                                           |
 | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| 机器验 | `pnpm --filter @template/web typecheck`；`oxlint apps/web`                                                                                                            | 通过；oxlint 0 warning / 0 error                                                                                             | 全仓 `format:check` 仍是既有缺口（DAO-006）              |
+| 机器验 | `pnpm --filter @rs/web typecheck`；`oxlint apps/web`                                                                                                            | 通过；oxlint 0 warning / 0 error                                                                                             | 全仓 `format:check` 仍是既有缺口（DAO-006）              |
 | 结构验 | `layers/11-public-resume/app` 分为 types / config / mock / components / pages；渲染器不 import 任何具体区块                                                           | 通过；新增区块只需「写组件 + 在 `config/resume-sections.ts` 登记」，渲染器不用改                                             | 技能可视化的图表能力未纳入（另立卡）                     |
 | 意图验 | dev server `:4021` 抓 `/resume`                                                                                                                                       | 通过；主题变量注入（`--resume-primary` 等）、左右两栏、6 个区块标题与内容 SSR 渲染                                           | 移动端断点只靠静态类保证，未逐屏实测                     |
 | 意图验 | 临时改 mock 配置：`hidden=['highlights','skills']` + 反转 `order` + 深色主题，再抓 `/resume`                                                                          | 通过；隐藏项消失、顺序完全按配置、`--resume-page:rgb(3 7 18)` 生效（改完已还原）                                             | 配置编辑面板仍是 demo，正式编辑属 admin 域               |
-| 机器验 | 阶段二：`pnpm --filter @template/web typecheck`；`oxlint apps/web`                                                                                                    | 通过；oxlint 0 warning / 0 error                                                                                             | 全仓 `format:check` 仍是既有缺口（DAO-006）              |
+| 机器验 | 阶段二：`pnpm --filter @rs/web typecheck`；`oxlint apps/web`                                                                                                    | 通过；oxlint 0 warning / 0 error                                                                                             | 全仓 `format:check` 仍是既有缺口（DAO-006）              |
 | 结构验 | 阶段二：`index.vue` 138 → 53 行（只剩编排）；`ResumeDisplayRenderer` 删除且全仓无残留引用；拆出 PageHeader / SettingsPanel / PageContainer / Column / BackgroundLayer | 通过；进页面即可读出「顶栏 + 正文容器」结构                                                                                  | 拖拽尚未接入（B 期）                                     |
 | 意图验 | 阶段二：SSR 抓默认 `/resume`                                                                                                                                          | 通过；`grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]` + 固定栏 sticky + 主题变量注入                                        | —                                                        |
 | 意图验 | 阶段二：临时把 mock 改成 `threeColumn` + `mesh` 纹理 + 深色主题，再抓 `/resume`                                                                                       | 通过；`lg:grid-cols-[1fr_4fr_1fr]`、背景层出现 `radial-gradient(...)`、`--resume-page:rgb(3 7 18)`                           | 图片背景仅建模，上传后置                                 |
 | 意图验 | 阶段二：临时改成 `single`，再抓 `/resume`                                                                                                                             | 通过；只剩 `grid-cols-1`（无多列类），6 个区块标题仍在（profile 为 hero 卡片无标题行）                                       | 移动端断点靠静态类保证，未逐屏截图                       |
-| 机器验 | B 期：`pnpm --filter @template/web typecheck`；`oxlint apps/web`                                                                                                      | 通过；oxlint 0 warning / 0 error（34 files）                                                                                 | 全仓 `format:check` 仍是既有缺口（DAO-006）              |
+| 机器验 | B 期：`pnpm --filter @rs/web typecheck`；`oxlint apps/web`                                                                                                      | 通过；oxlint 0 warning / 0 error（34 files）                                                                                 | 全仓 `format:check` 仍是既有缺口（DAO-006）              |
 | 结构验 | B 期：编辑态由容器注入（`ResumeColumn` 渲染手柄与隐藏按钮），区块组件未改动                                                                                           | 通过；7 个区块组件的 props 契约保持只读、未触碰                                                                              | 拖拽手柄的视觉/可达性未做专项检查                        |
 | 意图验 | B 期：SSR 抓未登录 `/resume`                                                                                                                                          | 通过；出现「管理员登录」，**无** `data-drag-handle` / 「编辑模式」文案 → SSR 不吐编辑态，水合安全                            | 登录后的客户端状态未在 SSR 断言                          |
 | 意图验 | B 期：拖拽落点算法（锚点语义）用 `/tmp` 脚本跑 6 个用例（同栏上移/下移、跨栏、落末尾、原地不动）                                                                      | 通过；`applyDragResult` 的顺序与归属结果均符合预期（脚本在 /tmp，未进仓库）                                                  | 端到端拖拽需人工在浏览器验证（环境无本地 Playwright 包） |
-| 机器验 | 内容编辑：`pnpm --filter @template/web typecheck`；`oxlint apps/web`                                                                                                  | 通过；oxlint 0 warning / 0 error（39 files）                                                                                 | 全仓 `format:check` 仍是既有缺口（DAO-006）              |
-| 机器验 | Header 瘦身：`pnpm --filter @template/web typecheck`；`oxlint apps/web`                                                                                               | 通过；oxlint 0 warning / 0 error（42 files）                                                                                 | 全仓 `format:check` 仍是既有缺口（DAO-006）              |
+| 机器验 | 内容编辑：`pnpm --filter @rs/web typecheck`；`oxlint apps/web`                                                                                                  | 通过；oxlint 0 warning / 0 error（39 files）                                                                                 | 全仓 `format:check` 仍是既有缺口（DAO-006）              |
+| 机器验 | Header 瘦身：`pnpm --filter @rs/web typecheck`；`oxlint apps/web`                                                                                               | 通过；oxlint 0 warning / 0 error（42 files）                                                                                 | 全仓 `format:check` 仍是既有缺口（DAO-006）              |
 | 结构验 | Header 瘦身：登录入口自带弹窗（`ResumeLoginButton`）；设置改 `ResumeSettingsDrawer` 承载，`ResumeSettingsPanel` 退化为纯内容                                          | 通过；页面不再出现登录按钮 / 弹窗 / 设置面板本体                                                                             | 入口栏（rail）属第 2 期                                  |
 | 意图验 | Header 瘦身：SSR 抓 `/resume`                                                                                                                                         | 通过；品牌区回退预设（首字「厉」/ 厉飞雨 / 全栈开发 / 前端方向），操作区只有「管理员登录 + 展示设置」，设置内容不在初始 HTML | 滚动标题联动依赖客户端 IO，需人工验证                    |
 | 意图验 | Header 瘦身：临时把 mock 的 `brand` 改成自定义值再抓页                                                                                                                | 通过；`LFY` / `自定义标题` / `用配置覆盖的描述` 均生效（改完已还原）                                                         | —                                                        |
@@ -86,14 +86,14 @@
 - 当前状态：`review-ready`（展示域主体与交互链路已具备，等 Owner 判 `done`）
 - 阻塞：无。
 - 下一步第一刀：本卡无下一步。
-- 未承接项（须由别的任务承接，勿随本卡一起关闭）：① `resume-display-architecture.md` §6.1 第 2 期「入口栏 rail」——方向已确认、尚未实施；② C 期「保存接后端 + 公开快照携带配置」；③ 技能可视化图表；④ 真实浏览器端到端验证（登录 → 拖拽 → 保存 → 刷新 → 退出），环境缺本地 Playwright 包。
-- 文档锚点：`docs/dev/resume-display-architecture.md`、`docs/dev/layers.md`、`docs/dev/data-layer.md`、`Issue #3 / #5 / #7 / #9 / #11`
+- 未承接项（须由别的任务承接，勿随本卡一起关闭）：① `docs/web/06_简历展示_架构设计.md` §6.1 第 2 期「入口栏 rail」——方向已确认、尚未实施；② C 期「保存接后端 + 公开快照携带配置」；③ 技能可视化图表；④ 真实浏览器端到端验证（登录 → 拖拽 → 保存 → 刷新 → 退出），环境缺本地 Playwright 包。
+- 文档锚点：`docs/web/06_简历展示_架构设计.md`、`docs/web/03_Layers_分层约定.md`、`docs/web/04_数据层_约定.md`、`Issue #3 / #5 / #7 / #9 / #11`
 - 集成锚点：`已集成（各期经 PR #4 / #6 / #8 / #10 / #12 合入 dev）`
 
 ## 收口与沉淀
 
 - `dao-review` 结论：`可收口（本卡交付已全部合入 dev；done 由 Owner 确认）`
-- 最终验证证据：各期机器验（`pnpm --filter @template/web typecheck`、`oxlint apps/web` 0 warning / 0 error）与意图验（SSR 抓 `/resume`、临时改 mock 验证配置驱动、`/tmp` 脚本验证拖拽落点与字段路径）见上表；原始输出与 PR 级说明在 PR #4 / #6 / #8 / #10 / #12。
+- 最终验证证据：各期机器验（`pnpm --filter @rs/web typecheck`、`oxlint apps/web` 0 warning / 0 error）与意图验（SSR 抓 `/resume`、临时改 mock 验证配置驱动、`/tmp` 脚本验证拖拽落点与字段路径）见上表；原始输出与 PR 级说明在 PR #4 / #6 / #8 / #10 / #12。
 - Git / PR：`PR #4（9d1a200）、#6（ba321be）、#8（5b2ba1b）、#10（3af8d05）、#12（7fd33f0）`
 - 常规提交：`已关联（上述 SHA）`
 - Dao Commit：`不适用（各期按 feat -> dev 集成，标题形式为 [Feat] …，未使用卦象锚点）`

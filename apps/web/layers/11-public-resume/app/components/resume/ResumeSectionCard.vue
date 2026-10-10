@@ -6,7 +6,7 @@ import type { ResumeStyleId } from '#layers/public-resume/app/types/resume'
  *
  * 所有 section 组件都用它包内容，因此标题结构、间距、表面样式只有一处定义。
  *
- * 风格分两层落地（见 docs/dev/resume-styles.md）：
+ * 风格分两层落地（见 docs/web/07_简历风格_三档实现.md）：
  * - **视觉参数**（表面 / 圆角 / 内边距 / 阴影 / hover）走 `.resume-card` 与 `--resume-card-*`
  *   变量，定义在 `app/assets/css/resume.css`，本组件不重复写样式；
  * - **标题结构**差异（DOM 不同，变量表达不了）由 `variant` 决定 —— 用下面的**数据映射**表达，

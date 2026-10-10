@@ -1,5 +1,5 @@
 {
-  "name": "@template/admin",
+  "name": "@rs/admin",
   "version": "0.2.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,8 @@
     "@pinia/colada": "^1.4.7",
     "@pinia/colada-nuxt": "^1.2.0",
     "@pinia/nuxt": "^1.0.2",
-    "@template/common": "workspace:*",
+    "@rive-app/webgl2": "^2.44.1",
+    "@rs/common": "workspace:*",
     "@tiptap/core": "3.30.5",
     "@tiptap/extension-code-block-lowlight": "3.30.5",
     "@tiptap/extension-emoji": "3.30.5",

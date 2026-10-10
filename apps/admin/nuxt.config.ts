@@ -10,6 +10,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:4049/api',
+      /** 401 时请求层把人送到这里（web 端不用跳转，所以不配） */
+      loginPath: '/login',
     },
   },
   typescript: { strict: true, typeCheck: true },

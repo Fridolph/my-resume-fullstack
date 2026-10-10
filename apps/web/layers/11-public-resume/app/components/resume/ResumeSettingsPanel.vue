@@ -12,7 +12,7 @@ import ResumeSettingsThemeTab from './settings/ResumeSettingsThemeTab.vue'
  *   ② 编排：**本组件** —— 决定「分几组」「数据能不能渲染」「哪几组对这个身份可见」
  *   ③ 内容：`settings/*Tab.vue` —— 每个 tab 内部再用 `ResumeSettingsGroup` 按模块分组
  *
- * **权限分层**（见 `docs/dev/identity-and-access.md` §2）：
+ * **权限分层**（见 `docs/dev/02_身份与权限_设计.md` §2）：
  * - 这一层管「**能不能看到这一组**」——无 `view` 权限的 tab 直接不出现在 tabs 里；
  * - 「能不能操作」交给 tab 内部：`ResumeSettingsGroup` 的 `locked` 会整组禁用控件。
  *

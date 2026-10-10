@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { queryKeys } from '~/lib/query-keys'
+import { normalizeApiError, resolveApiErrorMessage } from '@rs/common'
+import { fetchHealth } from '~/apis/health'
 
 definePageMeta({
   layout: 'has-sidebar',
@@ -55,10 +56,14 @@ const recentActivity = [
  * 数据层自检：colada query 打真实后端接口（/api/health）。
  * 换后端或加鉴权后，这里用来观察请求层 + 缓存层是否仍然成立。
  */
-const queryCache = useQueryCache()
-const { data: health, error: healthError, asyncStatus: healthStatus } = useHealthQuery()
+const {
+  data: health,
+  error: healthError,
+  status: healthStatus,
+  refresh: refreshHealthData,
+} = await useAsyncData('health', fetchHealth)
 
-const isHealthLoading = computed(() => healthStatus.value === 'loading')
+const isHealthLoading = computed(() => healthStatus.value === 'pending')
 const healthTone = computed(() =>
   healthError.value ? 'text-error' : isHealthLoading.value ? 'text-muted' : 'text-success',
 )
@@ -74,7 +79,7 @@ const healthSummary = computed(() => {
     return 'Checking backend…'
   }
   if (healthError.value) {
-    return getApiErrorMessage(healthError.value, 'Backend unreachable')
+    return healthError.value ? resolveApiErrorMessage(normalizeApiError(healthError.value)) : 'Backend unreachable'
   }
   return health.value
     ? `${health.value.service} online · uptime ${Math.round(health.value.uptime)}s`
@@ -86,7 +91,7 @@ const healthRaw = computed(() =>
 
 /** 失效重取：演示 colada 的缓存失效与重新取数 */
 function recheckHealth() {
-  void queryCache.invalidateQueries({ key: queryKeys.health() })
+  void refreshHealthData()
 }
 </script>
 

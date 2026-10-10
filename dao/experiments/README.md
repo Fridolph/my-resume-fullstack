@@ -39,8 +39,8 @@
 
 ## EX-006：质量任务的构建依赖
 
-- 问题：干净环境中，`typecheck` 与 `test` 会先于 `packages/common` 生成 `dist`，导致 `@template/common` 无法解析或测试入口不存在；`build` 后两项通过。
-- 结论：已在 `DAO-002` 中通过 Turbo 任务图修复；`typecheck` 增加 workspace 依赖的 `^build`，`@template/common:test` 仅增加自身 `build`，避免无测试 Nuxt 应用被连带构建。
+- 问题：干净环境中，`typecheck` 与 `test` 会先于 `packages/common` 生成 `dist`，导致 `@rs/common` 无法解析或测试入口不存在；`build` 后两项通过。
+- 结论：已在 `DAO-002` 中通过 Turbo 任务图修复；`typecheck` 增加 workspace 依赖的 `^build`，`@rs/common:test` 仅增加自身 `build`，避免无测试 Nuxt 应用被连带构建。
 - 验证：清理构建产物后，`pnpm typecheck`、`pnpm test`、`pnpm lint`、`pnpm build` 与 `pnpm format:check` 均通过。
 - 边界：这是模板工程健康问题，不是 `DAO-001` 的 Harness 实现范围；在专门任务立卡前不改构建配置。
 

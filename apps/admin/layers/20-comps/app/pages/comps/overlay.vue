@@ -246,7 +246,7 @@ const SIZES = ['sm', 'md', 'lg', 'xl', 'full'] as const
 
       <h2 class="text-base font-semibold tracking-tight text-highlighted">业务封装（apps/admin）</h2>
       <p class="text-sm leading-6 text-muted">
-        下面这几个是 admin 内部基于对话框能力封装的业务弹窗，与上面的通用 
+        下面这几个是 admin 内部基于对话框能力封装的业务弹窗，与上面的通用
         <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">MyModal</code> 同一入口查看。
       </p>
 

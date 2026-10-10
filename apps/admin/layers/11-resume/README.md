@@ -6,7 +6,7 @@
 
 - **属于本域**：简历草稿（draft）读写、内容编辑、版面布局、主题、版本对比、以及域内的组件 / composable / 类型。
 - **不属于本域**：公开发布与快照（`12-publish`）、AI 相关能力（`14-ai`）、跨域共享的基础设施（`app/`）。
-- **依赖方向**：本 layer 只依赖 `app/`（底座）与自身；不 import 其它 feature layer，也不被 `app/` 之外的 layer 反向依赖（详见 [docs/dev/layers.md](../../../../docs/dev/layers.md)）。
+- **依赖方向**：本 layer 只依赖 `app/`（底座）与自身；不 import 其它 feature layer，也不被 `app/` 之外的 layer 反向依赖（详见 [docs/web/03*Layers*分层约定.md](../../../../docs/web/03_Layers_分层约定.md)）。
 
 ## 数据
 

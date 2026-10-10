@@ -4,6 +4,9 @@ packages:
 
 onlyBuiltDependencies:
   - '@nestjs/core'
+  # Prisma 的引擎需要在安装时下载（pnpm 10 默认拦截所有 postinstall，必须显式放行）
+  - '@prisma/engines'
+  - 'prisma'
   - '@parcel/watcher'
   - esbuild
   - sharp

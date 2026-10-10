@@ -2,8 +2,8 @@ import type { $Fetch } from 'ofetch'
 
 declare module '#app' {
   interface NuxtApp {
-    /** ofetch 请求实例（plugins/httpRequest.ts 注入） */
-    $request: $Fetch
+    /** 统一请求层实例（由 packages/ui/app/plugins/api.ts 注入） */
+    $api: $Fetch
   }
 }
 

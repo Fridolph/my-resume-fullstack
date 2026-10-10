@@ -6,7 +6,7 @@
 
 - **属于本域**：公开简历的区块渲染（基本信息 / 经历 / 项目 / 技能图表 / 亮点）、语言与主题切换、展示用组件与类型。
 - **不属于本域**：简历的编辑与发布（在 `apps/admin`）、访客 AI 对话（`12-ai-talk`）。
-- **依赖方向**：只依赖 `app/`（底座）与自身，不 import 其它 feature layer（见 [docs/dev/layers.md](../../../../docs/dev/layers.md)）。
+- **依赖方向**：只依赖 `app/`（底座）与自身，不 import 其它 feature layer（见 [docs/web/03*Layers*分层约定.md](../../../../docs/web/03_Layers_分层约定.md)）。
 
 ## 数据
 

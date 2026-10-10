@@ -18,7 +18,7 @@ import type { ResumeSectionKey, ResumeStyleId } from '#layers/public-resume/app/
  * 操作块本身都在组件里：登录入口自带弹窗，设置自带抽屉，页面只负责开关状态。
  *
  * 保存策略：布局配置与内容都是**自动保存**（编辑态下防抖落盘，见两个 composable）；
- * 保存状态与「重置」都收进身份菜单（见 `docs/dev/identity-and-access.md` §4）；
+ * 保存状态与「重置」都收进身份菜单（见 `docs/dev/02_身份与权限_设计.md` §4）；
  * 头部右侧按「常显 / 登录后 / 身份区」三档呈现，**是否出现由权限决定**。
  */
 definePageMeta({

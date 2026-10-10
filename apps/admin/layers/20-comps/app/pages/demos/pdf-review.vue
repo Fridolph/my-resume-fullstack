@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { normalizeApiError, resolveApiErrorMessage } from '@rs/common'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { TableColumn } from '@nuxt/ui'
 import type { PdfAlign, PdfCoverImageMode, PdfTextVertical } from '~/types/pdf'
@@ -109,7 +110,7 @@ const { isPending, exportPdf, printPdf } = usePdfExport({
   onError: e =>
     toast.add({
       title: 'Export failed',
-      description: getApiErrorMessage(e) || '后端导出未接入，可先用 Print 降级。',
+      description: e ? resolveApiErrorMessage(normalizeApiError(e)) : '后端导出未接入，可先用 Print 降级。',
       color: 'error',
     }),
 })

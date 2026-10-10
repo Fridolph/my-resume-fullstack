@@ -1,3 +1,4 @@
+import { isApiSuccess } from '@rs/common'
 import type { UploadedFile } from '~/types/file'
 
 /** 上传进度；`percent` 为 0–100 的整数 */
@@ -19,7 +20,7 @@ export interface UploadFilesOptions {
 
 /** 上传响应的宽松形状：后端 upload 接口尚未定稿，只做最小假设（对齐 packages/common 字段名） */
 interface UploadResponsePayload {
-  success?: boolean
+  code?: number
   message?: string
   data?: unknown
 }
@@ -54,7 +55,7 @@ function uploadUrl(contentType: number): string {
   return `${apiBase}${UPLOAD_PATH}?contentType=${encodeURIComponent(String(contentType))}`
 }
 
-/** 按 `{ success, data, message }`（packages/common）解包；字符串响应先 JSON.parse */
+/** 按 `{ code, data, message }`（packages/common）解包；字符串响应先 JSON.parse */
 function unwrapUploadResponse(responseText: string, status: number): UploadedFile[] {
   let payload: UploadResponsePayload
   try {
@@ -64,7 +65,7 @@ function unwrapUploadResponse(responseText: string, status: number): UploadedFil
   }
 
   const httpOk = status >= 200 && status < 300
-  if (httpOk && payload.success === true) {
+  if (httpOk && isApiSuccess(payload)) {
     return Array.isArray(payload.data) ? (payload.data as UploadedFile[]) : []
   }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getApiErrorMessage } from '~/utils/requestContext'
+import { normalizeApiError, resolveApiErrorMessage } from '@rs/common'
 
 definePageMeta({
   layout: 'has-sidebar',
@@ -9,7 +9,7 @@ definePageMeta({
 const nuxtApp = useNuxtApp()
 const toast = useToast()
 
-// 演示：监听 400 业务码（plugins/httpRequest.ts 会通过 applyApiErrorHooks 触发）
+// 演示：监听 400 业务码（plugins/httpRequest.ts 会按 code / errorCode 触发 api:error 系列 hook）
 // 注：hook 名称是动态业务码，NuxtApp 的 hook 类型未逐一声明，这里断言绕过
 ;(nuxtApp.hook as any)('api:error:400', (payload: any) => {
   toast.add({ title: 'api:error:400 hook', description: payload?.message, color: 'error' })
@@ -25,11 +25,11 @@ async function sendRequest() {
   loading.value = true
   result.value = 'requesting…'
   try {
-    const res = await nuxtApp.$request(lastPath.value, { method: 'GET' })
+    const res = await nuxtApp.$api(lastPath.value, { method: 'GET' })
     result.value = JSON.stringify(res, null, 2)
   } catch (e) {
-    result.value = getApiErrorMessage(e)
-    toast.add({ title: 'Request failed', description: getApiErrorMessage(e), color: 'error' })
+    result.value = resolveApiErrorMessage(normalizeApiError(e))
+    toast.add({ title: 'Request failed', description: resolveApiErrorMessage(normalizeApiError(e)), color: 'error' })
   } finally {
     loading.value = false
   }
@@ -42,7 +42,7 @@ async function sendRequest() {
       <h1 class="text-xl font-semibold tracking-tight text-highlighted">app/plugins</h1>
       <p class="text-sm leading-6 text-muted">
         公共插件层：统一请求层
-        <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">$request</code>（ofetch）按
+        <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">$api</code>（ofetch）按
         <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">packages/common</code> 的 success / data / message
         契约解包；上传走
         <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">原生 XHR + colada mutation</code>（fetch
@@ -61,7 +61,7 @@ async function sendRequest() {
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">$request —— 统一请求层</p>
+          <p class="font-semibold">$api —— 统一请求层</p>
           <p class="text-sm text-muted">plugins/httpRequest.ts：ofetch 实例，自动挂鉴权头，统一响应解包 + 错误归一化</p>
         </div>
       </template>
@@ -79,7 +79,7 @@ async function sendRequest() {
         </div>
 
         <pre class="overflow-auto rounded-lg bg-elevated p-3 text-xs">
-const data = await nuxtApp.$request('/sketch/projects/detail', {
+const data = await nuxtApp.$api('/sketch/projects/detail', {
   method: 'GET',
   params: { projectId },
 })</pre

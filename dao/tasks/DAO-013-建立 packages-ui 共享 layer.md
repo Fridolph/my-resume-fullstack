@@ -8,7 +8,7 @@
 - Owner：`昇哥选定方案（Nuxt layer 不用 npm 包）、组件形态（抽屉为主 + Modal 窄屏退化）与 demos 位置（admin）`
 - 创建日期：`2026-10-07`
 - 卡号说明：`原为 DAO-012；并行分支 feat/18-resume-theme-custom 已占用该号（主题与自定义调色盘），本卡避让为 DAO-013`
-- 关联：`Issue #20`、`apps/admin/app/components/modal/Responsive.vue`（既有实现，将来收敛对象）、`packages/common`（分工对照组）、`docs/dev/layers.md`、`packages/ui/README.md`
+- 关联：`Issue #20`、`apps/admin/app/components/modal/Responsive.vue`（既有实现，将来收敛对象）、`packages/common`（分工对照组）、`docs/web/03_Layers_分层约定.md`、`packages/ui/README.md`
 
 ## 状态轨迹
 
@@ -24,7 +24,7 @@
 - 目标：新建 `packages/ui` 作为**跨 app 共享的 UI 组件 layer**（零构建、自动导入、类型自动生成），封装 `AppDrawer`（抽屉）与 `AppModal`（桌面对话框 / 窄屏退化为抽屉），并在 admin 的 demos 目录加示例页。
 - 边界：只新增 `packages/ui/**` 与「两个 app 的 `extends` + Tailwind `@source`」+ admin demos 页与导航 + 文档；不改任何现有浮层用法。
 - 不做：不在本轮替换 `UDrawer` / `UModal` / `ModalResponsive`（另开任务）；不加其他共享组件；不给 layer 加运行时依赖；不动 `packages/common`。
-- 涉及文件 / 模块：`packages/ui/{package.json,nuxt.config.ts,README.md,app/components/AppDrawer.vue,app/components/AppModal.vue,app/composables/useNarrowScreen.ts,app/utils/cn.ts}`、`apps/web/nuxt.config.ts`、`apps/admin/nuxt.config.ts`、`apps/*/app/assets/css/main.css`、`apps/admin/layers/20-comps/app/pages/demos/overlay.vue`、`apps/admin/app/config/admin-navigation.ts`、`docs/dev/layers.md`、根 `README.md`。
+- 涉及文件 / 模块：`packages/ui/{package.json,nuxt.config.ts,README.md,app/components/AppDrawer.vue,app/components/AppModal.vue,app/composables/useNarrowScreen.ts,app/utils/cn.ts}`、`apps/web/nuxt.config.ts`、`apps/admin/nuxt.config.ts`、`apps/*/app/assets/css/main.css`、`apps/admin/layers/20-comps/app/pages/demos/overlay.vue`、`apps/admin/app/config/admin-navigation.ts`、`docs/web/03_Layers_分层约定.md`、根 `README.md`。
 - 风险与未知：① Tailwind v4 **不扫 app 目录之外**的源码 → 必须加 `@source`；② layer 内**不能**用 `~/...` 或 `import { ref } from 'vue'`（按 `packages/ui/node_modules` 解析会失败，vue/@nuxt/ui 只能靠宿主的自动导入）；③ 动态 slot 名转发（`#[name]`）能否过 `vue-tsc` 需实测；④ 本机 pnpm store 冲突导致 `pnpm install` 被沙箱挡住（详见下方决策）。
 - 验收：见 `Issue #20`（自动导入可用 / slot 契约一致 / 窄屏退化 / 隐式关闭只 emit 一次 / demos 页可访问 / 两端 typecheck+oxlint / SSR 无告警且首屏无浮层）。
 - 第一刀：先搭 layer 骨架并让两端 `extends` + `@source` 跑通 typecheck，再写组件。
@@ -67,7 +67,7 @@
 - 当前状态：`review-ready`（已合入 dev，等 Owner 判 `done`）
 - 阻塞：无。
 - 下一步第一刀：本卡无下一步（已集成）。后续可做：①「现有浮层替换」（web 3 处 + admin 4 处收敛到 AppDrawer / AppModal）；② `DAO-008` / `DAO-010` / `DAO-011` 遗留的浏览器目视。
-- 文档锚点：`Issue #20`、`packages/ui/README.md`、`docs/dev/layers.md`
+- 文档锚点：`Issue #20`、`packages/ui/README.md`、`docs/web/03_Layers_分层约定.md`
 - 集成锚点：`已集成（7b436c6，本地 squash 合入 dev，未推远端）`
 
 ## 收口与沉淀
