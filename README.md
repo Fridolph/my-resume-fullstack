@@ -23,11 +23,13 @@
 
 ### 用户创建接口
 
-`apps/server/src/user` 按 `dto/`、controller、service、module 平级组织，目前只实现 `POST /api/user`。超级管理员可创建 `admin/user`；其他 CRUD 保留学习模板。认证已使用数据库账号，新账号可调用现有登录接口。Repository 仅在查询复杂或需要复用时引入。
+`apps/server/src/user` 按 `dto/`、controller、service、module 平级组织，已实现 `POST /api/user` 与 `PATCH /api/user/:id`。超级管理员可创建 `admin/user`；资料修改只允许 nickname/avatar，普通用户和管理员只能修改本人，超管可修改他人。其他 CRUD 保留学习模板。认证已使用数据库账号，新账号可调用现有登录接口。Repository 仅在查询复杂或需要复用时引入。
 
 本轮新增用户资料可空列及 `super_admin` 角色预设，提供迁移和 seed 源码，未执行数据库操作或验证。运行前由 Owner 完成迁移、Prisma Client 生成与角色初始化；请求示例、步骤和学习说明见 [用户模块业务讨论](./docs/server/02_用户模块_业务讨论模板.md)。
 
 当前支持 username 或 email 登录、nickname 昵称、cuid 身份；创建用户时 username/email 至少填写一个。当前请求、seed 与 Apifox 操作以 [超管创号与邮箱登录](./docs/server/04_账号创建与登录_业务讨论.md) 为准，旧讨论记录仅供学习回顾。公开注册尚未开放。
+
+资料修改与软删除已实装，等待 Owner 人工验证；密码和查询接口后续逐方法推进。已确认的权限边界、伪代码与 Apifox 清单见 [用户修改与删除业务讨论](./docs/server/05_用户修改与删除_业务讨论.md)。
 
 鉴权采用 Nest Passport 集成：`@nestjs/jwt` 签发令牌，`passport-jwt` 提取 Bearer token、验签与检查过期，JwtStrategy 查询当前数据库身份；全局 Guard 保留 `@Public()` 和统一错误码。每次请求恢复当前角色权限，不启用服务器 session。
 

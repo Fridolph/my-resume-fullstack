@@ -74,6 +74,8 @@ model User {
   avatar       String?
   /// 密码哈希（scrypt，格式见 `src/common/password.ts`）
   passwordHash String
+  /// 会话版本；递增后，旧版本 JWT 立即失效。
+  sessionVersion Int @default(0) @map("session_version")
   /// 软删除标记（有值即视为已删除）。
   /// 登录、会话恢复和后续用户查询需显式排除已删除记录。
   deletedAt    DateTime?

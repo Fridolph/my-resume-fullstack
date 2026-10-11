@@ -1,0 +1,360 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "my-resume Server API",
+    "version": "0.1.0",
+    "description": "当前已实现接口。由后端源码与 Zod Schema 人工维护；导入 Apifox 后请配置环境变量和 token。"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4049/api",
+      "description": "本地开发"
+    }
+  ],
+  "tags": [
+    { "name": "Health", "description": "服务健康检查" },
+    { "name": "Auth", "description": "登录和当前身份" },
+    { "name": "User", "description": "用户资料与会话管理" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "健康检查",
+        "operationId": "getHealth",
+        "security": [],
+        "responses": {
+          "200": { "$ref": "#/components/responses/HealthSuccess" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "用户名或邮箱登录",
+        "operationId": "login",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" },
+              "example": { "account": "super", "password": "super!" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/LoginSuccess" },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/CredentialsError" }
+        }
+      }
+    },
+    "/auth/info": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "获取当前登录身份",
+        "operationId": "getAuthInfo",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/AuthInfoSuccess" },
+          "401": { "$ref": "#/components/responses/UnauthorizedError" }
+        }
+      }
+    },
+    "/user": {
+      "post": {
+        "tags": ["User"],
+        "summary": "超管创建用户",
+        "description": "仅 super_admin 且具备 Settings.Users:create 权限；username 与 email 至少填写一个。",
+        "operationId": "createUser",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateUserRequest" },
+              "examples": {
+                "username": { "value": { "username": "learner", "password": "Learning123!", "roleKey": "user" } },
+                "email": { "value": { "email": "learner@example.com", "password": "Learning123!", "roleKey": "user" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/UserCreatedSuccess" },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/UnauthorizedError" },
+          "403": { "$ref": "#/components/responses/ForbiddenError" },
+          "409": { "$ref": "#/components/responses/UniqueConflictError" }
+        }
+      }
+    },
+    "/user/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "minLength": 1 },
+          "description": "用户 cuid"
+        }
+      ],
+      "patch": {
+        "tags": ["User"],
+        "summary": "修改用户资料",
+        "description": "user/admin 只能修改自己；super_admin 可修改其他未删除用户。仅允许 nickname、avatar。传 null 可清空。",
+        "operationId": "updateUser",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateUserRequest" },
+              "example": { "nickname": "学习用户", "avatar": null }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/UserProfileSuccess" },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/UnauthorizedError" },
+          "403": { "$ref": "#/components/responses/ForbiddenError" },
+          "404": { "$ref": "#/components/responses/UserNotFoundError" },
+          "409": { "$ref": "#/components/responses/StateConflictError" }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "summary": "软删除用户",
+        "description": "仅 super_admin 可删除 user/admin；不能删除自己或 super_admin。",
+        "operationId": "deleteUser",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/UserDeletedSuccess" },
+          "401": { "$ref": "#/components/responses/UnauthorizedError" },
+          "403": { "$ref": "#/components/responses/ForbiddenError" },
+          "404": { "$ref": "#/components/responses/UserNotFoundError" },
+          "409": { "$ref": "#/components/responses/StateConflictError" }
+        }
+      }
+    },
+    "/user/{id}/password": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "minLength": 1 },
+          "description": "必须等于当前登录用户的 userId"
+        }
+      ],
+      "patch": {
+        "tags": ["User"],
+        "summary": "修改自己的密码",
+        "description": "所有角色必须提供旧密码；成功后 sessionVersion 递增，当前账号所有旧 token 失效。",
+        "operationId": "changeOwnPassword",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ChangePasswordRequest" },
+              "example": { "oldPassword": "Learning123!", "newPassword": "Learning456!" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/IdSuccess" },
+          "400": { "$ref": "#/components/responses/PasswordError" },
+          "401": { "$ref": "#/components/responses/UnauthorizedError" },
+          "403": { "$ref": "#/components/responses/ForbiddenError" },
+          "404": { "$ref": "#/components/responses/UserNotFoundError" },
+          "409": { "$ref": "#/components/responses/StateConflictError" }
+        }
+      }
+    },
+    "/user/{id}/force-logout": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "minLength": 1 },
+          "description": "目标用户 cuid"
+        }
+      ],
+      "post": {
+        "tags": ["User"],
+        "summary": "超管强制下线",
+        "description": "仅 super_admin 且具备 Settings.Users:edit；目标只能是 user/admin。保留目标原密码。",
+        "operationId": "forceLogoutUser",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "$ref": "#/components/responses/IdSuccess" },
+          "401": { "$ref": "#/components/responses/UnauthorizedError" },
+          "403": { "$ref": "#/components/responses/ForbiddenError" },
+          "404": { "$ref": "#/components/responses/UserNotFoundError" },
+          "409": { "$ref": "#/components/responses/StateConflictError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ApiSuccess": {
+        "type": "object",
+        "required": ["code", "data", "message", "timestamp"],
+        "properties": {
+          "code": { "type": "integer", "example": 200 },
+          "data": {},
+          "message": { "type": "string", "example": "ok" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "traceId": { "type": "string", "format": "uuid" }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "required": ["code", "data", "message", "timestamp", "errorCode"],
+        "properties": {
+          "code": { "type": "integer", "example": 400 },
+          "data": { "type": "null" },
+          "message": { "type": "string" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "path": { "type": "string" },
+          "errorCode": { "type": "string", "example": "Common.Validation:failed" },
+          "traceId": { "type": "string", "format": "uuid" }
+        }
+      },
+      "HealthData": {
+        "type": "object",
+        "required": ["status", "service", "uptime"],
+        "properties": {
+          "status": { "type": "string", "example": "ok" },
+          "service": { "type": "string", "example": "api" },
+          "uptime": { "type": "number", "example": 42.12 }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["account", "password"],
+        "properties": {
+          "account": { "type": "string", "minLength": 3, "maxLength": 64, "example": "super" },
+          "password": { "type": "string", "minLength": 6, "maxLength": 20, "format": "password" }
+        }
+      },
+      "AuthData": {
+        "type": "object",
+        "required": ["userId", "email", "nickname", "roleKeys", "permissionKeys"],
+        "properties": {
+          "userId": { "type": "string" },
+          "email": { "type": "string", "format": "email", "nullable": true },
+          "nickname": { "type": "string", "nullable": true },
+          "roleKeys": { "type": "array", "items": { "type": "string" } },
+          "permissionKeys": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "LoginData": {
+        "allOf": [
+          { "$ref": "#/components/schemas/AuthData" },
+          { "type": "object", "required": ["token"], "properties": { "token": { "type": "string" } } }
+        ]
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["password"],
+        "anyOf": [{ "required": ["username"] }, { "required": ["email"] }],
+        "properties": {
+          "username": { "type": "string", "minLength": 3, "maxLength": 32, "pattern": "^[\\p{Script=Han}A-Za-z0-9_]+$" },
+          "email": { "type": "string", "format": "email", "maxLength": 64 },
+          "nickname": { "type": "string", "minLength": 2, "maxLength": 32 },
+          "password": { "type": "string", "minLength": 6, "maxLength": 20, "format": "password" },
+          "avatar": { "type": "string", "format": "uri", "maxLength": 2048 },
+          "roleKey": { "type": "string", "enum": ["admin", "user"], "default": "user" }
+        }
+      },
+      "UserProfile": {
+        "type": "object",
+        "required": ["id", "username", "nickname", "email", "avatar", "createdAt", "updatedAt"],
+        "properties": {
+          "id": { "type": "string" },
+          "username": { "type": "string", "nullable": true },
+          "nickname": { "type": "string", "nullable": true },
+          "email": { "type": "string", "format": "email", "nullable": true },
+          "avatar": { "type": "string", "format": "uri", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreatedUser": {
+        "allOf": [
+          { "$ref": "#/components/schemas/UserProfile" },
+          { "type": "object", "required": ["roles"], "properties": { "roles": { "type": "array", "items": { "$ref": "#/components/schemas/Role" } } } }
+        ]
+      },
+      "Role": {
+        "type": "object",
+        "required": ["id", "key", "name"],
+        "properties": {
+          "id": { "type": "string" },
+          "key": { "type": "string", "enum": ["super_admin", "admin", "user"] },
+          "name": { "type": "string" }
+        }
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "nickname": { "type": "string", "nullable": true, "minLength": 2, "maxLength": 32 },
+          "avatar": { "type": "string", "nullable": true, "format": "uri", "maxLength": 2048 }
+        }
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["oldPassword", "newPassword"],
+        "properties": {
+          "oldPassword": { "type": "string", "minLength": 6, "maxLength": 20, "format": "password" },
+          "newPassword": { "type": "string", "minLength": 6, "maxLength": 20, "format": "password" }
+        }
+      },
+      "IdResult": {
+        "type": "object",
+        "required": ["id"],
+        "properties": { "id": { "type": "string" } }
+      },
+      "DeletedUserResult": {
+        "type": "object",
+        "required": ["id", "deletedAt"],
+        "properties": { "id": { "type": "string" }, "deletedAt": { "type": "string", "format": "date-time" } }
+      }
+    },
+    "responses": {
+      "HealthSuccess": { "description": "成功", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiSuccess" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/HealthData" } } }] } } } },
+      "LoginSuccess": { "description": "登录成功", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiSuccess" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/LoginData" } } }] } } } },
+      "AuthInfoSuccess": { "description": "身份获取成功", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiSuccess" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/AuthData" } } }] } } } },
+      "UserCreatedSuccess": { "description": "创建成功", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiSuccess" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/CreatedUser" } } }] } } } },
+      "UserProfileSuccess": { "description": "修改成功", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiSuccess" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/UserProfile" } } }] } } } },
+      "UserDeletedSuccess": { "description": "删除成功", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiSuccess" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/DeletedUserResult" } } }] } } } },
+      "IdSuccess": { "description": "操作成功", "content": { "application/json": { "schema": { "allOf": [{ "$ref": "#/components/schemas/ApiSuccess" }, { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/IdResult" } } }] } } } },
+      "ValidationError": { "description": "请求参数不合法", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" }, "example": { "code": 400, "data": null, "message": "请求参数不合法", "errorCode": "Common.Validation:failed" } } } },
+      "CredentialsError": { "description": "账号或密码不正确", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" }, "example": { "code": 401, "data": null, "message": "账号或密码不正确", "errorCode": "AUTH.Credentials:invalid" } } } },
+      "UnauthorizedError": { "description": "未认证或会话已失效", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" }, "example": { "code": 401, "data": null, "message": "未携带访问令牌", "errorCode": "AUTH.Token:missing" } } } },
+      "ForbiddenError": { "description": "没有权限", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" }, "example": { "code": 403, "data": null, "message": "没有权限", "errorCode": "Users.User:updateForbidden" } } } },
+      "UserNotFoundError": { "description": "用户不存在或已删除", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" }, "example": { "code": 404, "data": null, "message": "用户不存在或已删除", "errorCode": "Users.User:notFound" } } } },
+      "UniqueConflictError": { "description": "唯一字段冲突", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" }, "example": { "code": 409, "data": null, "message": "数据已存在，请检查唯一字段", "errorCode": "Common.Conflict:unique" } } } },
+      "StateConflictError": { "description": "数据状态发生变化", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" }, "example": { "code": 409, "data": null, "message": "用户状态已变化，请刷新后重试", "errorCode": "Common.Conflict:state" } } } },
+      "PasswordError": { "description": "密码校验失败", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" }, "example": { "code": 400, "data": null, "message": "旧密码不正确", "errorCode": "Users.Password:invalid" } } } }
+    }
+  }
+}

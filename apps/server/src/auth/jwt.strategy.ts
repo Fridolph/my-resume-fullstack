@@ -10,7 +10,7 @@ import { AuthService } from './auth.service'
  * Passport 的 JWT 策略，使用与签发端相同的密钥和算法。
  *
  * passport-jwt 提取 Bearer token、验证签名和过期时间，通过后才调用 validate。
- * token 只提供身份引用，角色权限仍从数据库恢复；不启用服务器 session。
+ * token 提供身份引用和会话版本，角色权限仍从数据库恢复；不启用服务器 session。
  */
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -38,11 +38,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       typeof payload !== 'object' ||
       !('sub' in payload) ||
       typeof payload.sub !== 'string' ||
-      !payload.sub
+      !payload.sub ||
+      !('sessionVersion' in payload) ||
+      typeof payload.sessionVersion !== 'number' ||
+      !Number.isSafeInteger(payload.sessionVersion) ||
+      payload.sessionVersion < 0
     ) {
       throw new UnauthorizedException('访问令牌无效', { errorCode: API_ERROR_CODES.AUTH_TOKEN_INVALID })
     }
 
-    return this.authService.restoreUser(payload.sub)
+    return this.authService.restoreUser(payload.sub, payload.sessionVersion)
   }
 }

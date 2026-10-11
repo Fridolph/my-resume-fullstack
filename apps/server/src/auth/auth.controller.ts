@@ -39,7 +39,7 @@ export class AuthController {
    */
   @Get('info')
   getInfo(@CurrentUser() user: AuthUser) {
-    const { roleKeys, permissionKeys, ...identity } = user
+    const { roleKeys, permissionKeys, sessionVersion, ...identity } = user
 
     return {
       ...identity,
