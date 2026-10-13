@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import type { ResumeDocument, ResumeSection } from '@rs/common'
-import { resumeSectionComponents, getSectionDefinition } from '#layers/public-resume/app/config/resume-sections'
+import {
+  resumeSectionComponents,
+  getSectionDefinition,
+  toLegacySectionKey,
+} from '#layers/public-resume/app/config/resume-sections'
 import { toResumeContent } from '#layers/public-resume/app/utils/resume-document'
 import CapabilitySection from '../capabilities/CapabilitySection.vue'
 import ResumeBackgroundLayer from '../ResumeBackgroundLayer.vue'
 const props = defineProps<{ document: ResumeDocument }>()
-function keyOf(section: ResumeSection) {
-  return section.type === 'capabilities' ? 'skills' : section.type
-}
 const sections = computed(() =>
   props.document.display.sections.order.flatMap(id =>
     props.document.content.sections.filter(
@@ -94,12 +95,12 @@ const variables = computed(() => {
             :variant="document.display.style.id"
           />
           <component
-            :is="resumeSectionComponents[keyOf(section)]"
+            :is="resumeSectionComponents[toLegacySectionKey(section.type)]"
             v-else
             :section="{
-              ...getSectionDefinition(keyOf(section))!,
+              ...getSectionDefinition(toLegacySectionKey(section.type))!,
               label: section.title,
-              icon: section.icon || getSectionDefinition(keyOf(section))!.icon,
+              icon: section.icon || getSectionDefinition(toLegacySectionKey(section.type))!.icon,
             }"
             :content="toResumeContent(document, section)"
             :options="document.display.options"

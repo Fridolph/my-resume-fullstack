@@ -1,5 +1,6 @@
 import { resumeDocumentSchema, type ResumeDocument, type ResumeSection, type CapabilityData } from '@rs/common'
 import type { ResumeContent, ResumeDisplayConfig } from '#layers/public-resume/app/types/resume'
+import { toLegacySectionKey } from '#layers/public-resume/app/config/resume-sections'
 import { resumeContentMockZh } from '#layers/public-resume/app/mock/resume-content.zh'
 import { resumeDisplayMock } from '#layers/public-resume/app/mock/resume-display'
 
@@ -103,13 +104,9 @@ export function importResumeDocument(content: ResumeContent, display: ResumeDisp
     },
     { id: newId(), type: 'evaluations', title: titles.evaluations, data: { items: textItems(content.evaluations) } },
   ]
-  const legacyKey = (section: ResumeSection) => (section.type === 'capabilities' ? 'skills' : section.type)
-  const ordered = [
-    ...display.sections.order,
-    ...Object.keys(titles).map(type => (type === 'capabilities' ? 'skills' : type)),
-  ]
+  const ordered = [...display.sections.order, ...Object.keys(titles).map(toLegacySectionKey)]
   const order = [...new Set(ordered)].flatMap(key =>
-    sections.filter(section => legacyKey(section) === key).map(section => section.id),
+    sections.filter(section => toLegacySectionKey(section.type) === key).map(section => section.id),
   )
   return resumeDocumentSchema.parse({
     schemaVersion: 1,
@@ -119,12 +116,12 @@ export function importResumeDocument(content: ResumeContent, display: ResumeDisp
       sections: {
         order,
         hidden: sections
-          .filter(section => display.sections.hidden.includes(legacyKey(section)))
+          .filter(section => display.sections.hidden.includes(toLegacySectionKey(section.type)))
           .map(section => section.id),
         slot: Object.fromEntries(
           sections.map(section => [
             section.id,
-            display.sections.slot[legacyKey(section)] ?? (section.type === 'profile' ? 'side' : 'main'),
+            display.sections.slot[toLegacySectionKey(section.type)] ?? (section.type === 'profile' ? 'side' : 'main'),
           ]),
         ),
         overrides: Object.fromEntries(
