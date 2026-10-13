@@ -1,0 +1,944 @@
+{
+  "schemaVersion": 1,
+  "content": {
+    "sections": [
+      {
+        "id": "8e3e3d11-0176-413c-9433-c3327676550b",
+        "title": "基本信息",
+        "type": "profile",
+        "data": {
+          "name": "厉飞雨",
+          "headline": "全栈开发 / 前端方向",
+          "summary": "5 年全栈开发经验，前端为主（Vue / React），兼顾 Node.js 服务端；重视组件化、配置驱动与工程化沉淀，当前学习 AI Agent 应用工程化。",
+          "avatarText": "厉",
+          "availability": "可接受新机会",
+          "hero": {
+            "frontImageUrl": "",
+            "backImageUrl": "",
+            "linkUrl": "/ai-talk",
+            "slogans": [
+              {
+                "id": "e83dab0a-e405-4684-ab02-9a57f4799208",
+                "text": "热爱 Coding，生命不息，折腾不止"
+              },
+              {
+                "id": "713de3a5-310e-4ae8-bbb0-1a166c84241b",
+                "text": "羽毛球爱好者，快乐挥拍，球场飞翔"
+              }
+            ]
+          },
+          "infoItems": [
+            {
+              "id": "d2dc1ccc-d5e9-4d91-8b7e-fca850ffdbc2",
+              "kind": "education",
+              "label": "学历",
+              "value": "全日制本科 · 软件工程",
+              "icon": "i-lucide-graduation-cap"
+            },
+            {
+              "id": "95df1e29-198a-4e9d-86ce-22d211e780a5",
+              "kind": "years",
+              "label": "工作年限",
+              "value": "5 年",
+              "icon": "i-lucide-hourglass"
+            },
+            {
+              "id": "4998aebb-8ac9-4175-89bb-f44af6cc798f",
+              "kind": "location",
+              "label": "所在地",
+              "value": "中国 四川 成都",
+              "icon": "i-lucide-map-pin"
+            },
+            {
+              "id": "619377cd-735d-4288-879a-98a1ad3534ba",
+              "kind": "email",
+              "label": "邮箱",
+              "value": "lifeiyu.mock@example.com",
+              "icon": "i-lucide-mail"
+            },
+            {
+              "id": "55f4ee1a-3fc5-4701-bbf9-4bfb01caea51",
+              "kind": "phone",
+              "label": "电话",
+              "value": "13800000000",
+              "icon": "i-lucide-phone"
+            }
+          ],
+          "links": [
+            {
+              "id": "d4181d52-223b-449a-8ccb-61ed434673ec",
+              "label": "GitHub",
+              "url": "https://github.com/Fridolph",
+              "icon": "ri:github-fill"
+            },
+            {
+              "id": "342f02b5-825d-474f-9cb8-8cd9fb9b4258",
+              "label": "技术博客",
+              "url": "https://example.com/blog",
+              "icon": "ri:article-line"
+            }
+          ],
+          "interests": [
+            {
+              "id": "55aa56a9-6fe5-48b0-96d9-cfe5f91b6f7e",
+              "label": "羽毛球",
+              "icon": "ri:ping-pong-line",
+              "description": "每周两场，快乐挥拍",
+              "images": [
+                {
+                  "id": "94d7cf87-1a9d-4634-8fbc-d07d0432b412",
+                  "url": "",
+                  "href": "https://example.com/badminton/court",
+                  "title": "球场"
+                },
+                {
+                  "id": "c19b228a-139b-4302-9b92-409c1c931fcf",
+                  "url": "",
+                  "href": "https://example.com/badminton/racket",
+                  "title": "球拍"
+                }
+              ]
+            },
+            {
+              "id": "f242131b-8d7d-414c-852b-92215ab3fe1d",
+              "label": "摄影",
+              "icon": "ri:camera-line",
+              "description": "扫街与旅行记录",
+              "images": [
+                {
+                  "id": "c2dea06d-ca96-407b-96bc-97fa862862cd",
+                  "url": "",
+                  "href": "https://example.com/photo/street",
+                  "title": "扫街"
+                },
+                {
+                  "id": "ce4e51d2-3cdb-414e-95a2-cde727b4169e",
+                  "url": "",
+                  "href": "https://example.com/photo/travel",
+                  "title": "在路上"
+                }
+              ]
+            },
+            {
+              "id": "45889614-0743-47dc-af08-6cdd9f78db46",
+              "label": "写作",
+              "icon": "ri:quill-pen-line",
+              "description": "技术笔记与复盘随笔",
+              "images": [
+                {
+                  "id": "53f4f9b8-b982-42d0-aee9-dba47391a19c",
+                  "url": "",
+                  "href": "https://example.com/blog/tech",
+                  "title": "技术笔记"
+                },
+                {
+                  "id": "65dcab32-0c53-4986-bcd2-41be5fd88388",
+                  "url": "",
+                  "href": "https://example.com/blog/review",
+                  "title": "复盘"
+                }
+              ]
+            },
+            {
+              "id": "49d437be-f0fd-4325-a3a2-828e8e66922b",
+              "label": "跑步",
+              "icon": "ri:run-line",
+              "description": "每周 15 公里",
+              "images": [
+                {
+                  "id": "d854e89a-1c6d-4a99-a7d3-ee733c5dcbf7",
+                  "url": "",
+                  "href": "https://example.com/run/night",
+                  "title": "夜跑"
+                },
+                {
+                  "id": "34189cce-1910-4580-b580-68c827504964",
+                  "url": "",
+                  "href": "https://example.com/run/route",
+                  "title": "路线"
+                }
+              ]
+            },
+            {
+              "id": "d3436ab3-0401-4950-97c3-1b2666d544e9",
+              "label": "咖啡",
+              "icon": "ri:cup-line",
+              "description": "手冲入门中",
+              "images": [
+                {
+                  "id": "6dee0467-e5de-4627-89bf-604373de51e8",
+                  "url": "",
+                  "href": "https://example.com/coffee/pour-over",
+                  "title": "手冲"
+                },
+                {
+                  "id": "f125aac9-1d1d-4304-a8cb-07239da26128",
+                  "url": "",
+                  "href": "https://example.com/coffee/beans",
+                  "title": "豆子"
+                }
+              ]
+            },
+            {
+              "id": "e9b86018-5ff0-48a9-9fb5-f7f7edc9077a",
+              "label": "旅行",
+              "icon": "ri:plane-line",
+              "description": "一年两次长途",
+              "images": [
+                {
+                  "id": "a33a53eb-14c7-45b8-8675-4db33751b9d8",
+                  "url": "",
+                  "href": "https://example.com/travel/on-the-road",
+                  "title": "在路上"
+                },
+                {
+                  "id": "4169d632-98c8-427a-8ec4-1712a6d64d9c",
+                  "url": "",
+                  "href": "https://example.com/travel/mountain",
+                  "title": "山野"
+                }
+              ]
+            }
+          ],
+          "stats": [
+            {
+              "id": "b2ea4f0d-dd4e-410b-be07-81d8b3ed693e",
+              "label": "工作年限",
+              "value": "5 年",
+              "hint": "前端为主，兼顾服务端"
+            },
+            {
+              "id": "87d74228-8492-47c8-b2a1-4bd6656bbaf5",
+              "label": "沉淀组件",
+              "value": "30+",
+              "hint": "跨项目复用的业务组件"
+            },
+            {
+              "id": "e458e654-3815-402d-8bf8-1ad841568646",
+              "label": "主导模块",
+              "value": "8 个",
+              "hint": "从 0 到 1 的页面与中后台"
+            }
+          ],
+          "gallery": [
+            {
+              "id": "75481eb7-fde3-46b3-84e3-449eaa0c9a50",
+              "url": "",
+              "alt": "证件照"
+            },
+            {
+              "id": "04fb53b0-e369-4a7d-8892-4a01078c8542",
+              "url": "",
+              "alt": "生活照"
+            }
+          ]
+        }
+      },
+      {
+        "id": "63d9da73-fd32-4fdc-bfea-52a65cfc0729",
+        "title": "核心竞争力",
+        "type": "highlights",
+        "data": {
+          "items": [
+            {
+              "id": "5bde568d-9a89-4b9d-b8a3-e69ed8796ff6",
+              "title": "前端技术深度",
+              "description": "熟练掌握 Vue2/3、React、TypeScript，具备组件库、中后台与官网类项目从 0 到 1 的搭建经验。"
+            },
+            {
+              "id": "a4e4bb7b-476f-4612-9956-5506bf1a7ecf",
+              "title": "全栈交付能力",
+              "description": "掌握 Node.js、NestJS 与常见数据库，能独立完成前后端联调、接口设计与基础服务端模块。"
+            },
+            {
+              "id": "1edb9ad9-97ce-41c8-91dc-c6c418f2acbc",
+              "title": "业务抽象能力",
+              "description": "善于把重复需求沉淀为公共组件、配置结构或工具能力，注重可复用、可配置、可维护。"
+            },
+            {
+              "id": "ef42decb-2b56-4f81-86b0-803941753060",
+              "title": "工程化实践",
+              "description": "熟悉 Vite/Webpack、Monorepo、CI/CD、测试与代码规范，关注工程质量与协作效率。"
+            },
+            {
+              "id": "5e7d5c85-d1bd-4bc5-b360-8a22ddff44a3",
+              "title": "AI 工程化学习",
+              "description": "在真实开发中实践 AI 辅助编程，并学习 RAG、Agent 工作流与 SSE 流式交互等方向。"
+            }
+          ]
+        }
+      },
+      {
+        "id": "7c71e124-4ac7-4464-a92b-42d251927465",
+        "title": "教育经历",
+        "type": "education",
+        "data": {
+          "items": [
+            {
+              "id": "69710141-7667-45ae-8f9c-a21e37f29863",
+              "school": "西南某理工大学",
+              "date": {
+                "mode": "custom",
+                "text": "2017.09 - 2021.06"
+              },
+              "degree": "全日制本科 / 学士学位",
+              "major": "软件工程"
+            }
+          ]
+        }
+      },
+      {
+        "id": "8b3b05ca-adce-4a8e-8c63-381115a97841",
+        "title": "工作经历",
+        "type": "experience",
+        "data": {
+          "items": [
+            {
+              "id": "a750af59-e2c6-4b27-9f2d-1e1c378056af",
+              "company": "成都某云科技有限公司",
+              "date": {
+                "mode": "custom",
+                "text": "2023.06 - 至今"
+              },
+              "role": "全栈开发（偏前端）",
+              "domain": "SaaS / 企业服务 / ToB",
+              "overview": "负责核心产品前端架构设计与中后台开发，兼顾 Node.js 服务端模块与基础接口设计，参与组件库与配置驱动能力建设。",
+              "achievements": [
+                {
+                  "id": "7a5bd26d-ada5-4ff3-8752-fb1f13d1525a",
+                  "text": "主导前端组件库与设计规范建设，沉淀 30+ 业务组件，降低多页面重复开发成本"
+                },
+                {
+                  "id": "fd9e2448-893e-4798-a5af-321037c52611",
+                  "text": "设计配置驱动的表单与列表方案，同类型页面无需重复开发"
+                },
+                {
+                  "id": "f00bfeee-6602-45ef-9261-09711ae7618f",
+                  "text": "使用 Node.js + NestJS 完成权限、审批等基础服务端模块，打通前后端联调链路"
+                },
+                {
+                  "id": "d3b4bcfd-82bd-4c00-b647-7a4d883a60c4",
+                  "text": "实践 AI 辅助开发，工作流程清晰可回溯，代码生成效率提升"
+                }
+              ],
+              "tech": [
+                {
+                  "id": "b47d8d28-157e-4dc0-a20f-a9b122a75702",
+                  "text": "Vue3"
+                },
+                {
+                  "id": "b7e34b62-6723-4a9e-b352-dff9a3d049c5",
+                  "text": "TypeScript"
+                },
+                {
+                  "id": "c29d1086-e627-4b69-b25e-d7c6e246a7cc",
+                  "text": "Vite"
+                },
+                {
+                  "id": "263efb4f-8220-497b-8bce-fb3d429d2a64",
+                  "text": "Node.js"
+                },
+                {
+                  "id": "30370acd-d431-4179-9e1d-26b551851b65",
+                  "text": "NestJS"
+                },
+                {
+                  "id": "5f82c62e-7c09-41e1-9a03-842f45a556fc",
+                  "text": "Pinia"
+                },
+                {
+                  "id": "ee987ddf-5925-4b25-9287-7cfd5a3da1a4",
+                  "text": "TailwindCSS"
+                }
+              ]
+            },
+            {
+              "id": "25ae0896-e2c7-42bf-b3e8-75d32bc3d253",
+              "company": "成都某信息科技有限公司",
+              "date": {
+                "mode": "custom",
+                "text": "2021.07 - 2023.05"
+              },
+              "role": "前端开发",
+              "domain": "电商 / 中后台 / ToC",
+              "overview": "负责电商官网、活动页与管理后台开发，参与 Vue2 → Vue3 技术升级与工程化改造。",
+              "achievements": [
+                {
+                  "id": "27bbd4a2-99a9-44cc-a364-10d2aa45e5a6",
+                  "text": "完成管理后台 Vue2 → Vue3 + TypeScript 重构，统一技术栈并沉淀公共组件"
+                },
+                {
+                  "id": "21a23ef6-0d4f-48a1-8b18-e9ae58f77f6f",
+                  "text": "引入 Vite 与按需加载优化打包体积与首屏性能"
+                },
+                {
+                  "id": "ed71145d-d17d-4a57-9e6c-495bc5edb985",
+                  "text": "搭建数据看板与活动配置模块，支持运营自助配置上线"
+                },
+                {
+                  "id": "029da8fe-9c4a-4dec-a3da-9464d2c6f4ee",
+                  "text": "配合后端完成接口契约、状态管理与异常处理闭环"
+                }
+              ],
+              "tech": [
+                {
+                  "id": "79591a8a-57fa-46a7-bbb1-be44169d8888",
+                  "text": "Vue2"
+                },
+                {
+                  "id": "28ea1760-9150-451a-8dcc-2ea89697c215",
+                  "text": "Vue3"
+                },
+                {
+                  "id": "b8722bcd-956f-45a6-878c-d09821bb72e3",
+                  "text": "TypeScript"
+                },
+                {
+                  "id": "cbee3aef-b568-4814-b128-921199f8db97",
+                  "text": "Vite"
+                },
+                {
+                  "id": "6f10c182-d0dc-46ca-a180-98874f11ee7d",
+                  "text": "ECharts"
+                },
+                {
+                  "id": "7b5570a6-554e-41ea-841a-11aac2d4ed05",
+                  "text": "Element Plus"
+                },
+                {
+                  "id": "9eb5c418-081f-47fc-8bb0-266ff3216f06",
+                  "text": "Axios"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "8a494ba4-ed69-4a38-aa69-35258ae808dd",
+        "title": "项目经历",
+        "type": "projects",
+        "data": {
+          "items": [
+            {
+              "id": "48a66c96-f42b-4070-8d37-07684b8fd2a5",
+              "name": "某 SaaS 管理平台",
+              "date": {
+                "mode": "custom",
+                "text": "2023.06 - 至今"
+              },
+              "role": "前端核心开发",
+              "overview": "面向企业客户的管理平台，涵盖权限、审批、报表、配置中心等模块，支持多租户与多角色协作。",
+              "features": [
+                {
+                  "id": "39e1e2e7-0f6f-43b6-b500-53ab2b98b3d8",
+                  "text": "权限管理"
+                },
+                {
+                  "id": "b6af968c-bfb9-46e7-b9ad-3a10db21702f",
+                  "text": "审批流"
+                },
+                {
+                  "id": "a465583b-ed04-484e-bc8f-46108e197d56",
+                  "text": "数据报表"
+                },
+                {
+                  "id": "a908c113-2b45-4bde-9e8d-64b7f1c6c6de",
+                  "text": "表单 / 列表配置化"
+                },
+                {
+                  "id": "b3aa55e4-caa1-4d04-9f0f-bc40ebf8cdeb",
+                  "text": "组件库"
+                }
+              ],
+              "highlights": [
+                {
+                  "id": "aaf55f2d-9015-4a73-ba59-f3071949dc46",
+                  "text": "设计配置驱动的表单与列表方案，同类型页面可配置生成，减少重复开发"
+                },
+                {
+                  "id": "e7faa0a6-70d2-4a98-bf1a-9292bd15572d",
+                  "text": "沉淀公共组件库与开发规范，提升多页面一致性与复用率"
+                },
+                {
+                  "id": "7a984778-fd1a-42c2-a2f6-86e3d4e34dfa",
+                  "text": "通过路由懒加载、代码分割与资源优化改善首屏加载"
+                },
+                {
+                  "id": "fad56e4b-d74c-4aa5-8483-d896ce522266",
+                  "text": "为关键接口增加错误分级与空状态处理，提升使用体验"
+                }
+              ],
+              "tech": [
+                {
+                  "id": "7276cb0f-5774-409c-ad1b-da384049300e",
+                  "text": "Vue3"
+                },
+                {
+                  "id": "764281cb-ab6e-4fdf-ae00-cd20368b64f1",
+                  "text": "TypeScript"
+                },
+                {
+                  "id": "6bb1f510-48fe-4262-a190-51fb139ae1a3",
+                  "text": "Pinia"
+                },
+                {
+                  "id": "eff4675f-3f3e-4135-a883-99e69dfb8ad1",
+                  "text": "Vite"
+                },
+                {
+                  "id": "404c4632-15ba-4ff7-bf5d-5da8cb101792",
+                  "text": "Node.js"
+                },
+                {
+                  "id": "774b0acb-b23f-4b34-9591-dbc0ccfe53bb",
+                  "text": "NestJS"
+                },
+                {
+                  "id": "6769b77b-55dc-4324-9f2b-09067c89db91",
+                  "text": "TailwindCSS"
+                }
+              ]
+            },
+            {
+              "id": "575e917a-e7d1-4845-8b4e-40b6751b29a0",
+              "name": "某电商官网与活动平台",
+              "date": {
+                "mode": "custom",
+                "text": "2021.07 - 2023.05"
+              },
+              "role": "前端开发",
+              "overview": "面向 C 端用户的电商官网与活动页平台，支持营销活动配置、商品展示与数据看板。",
+              "features": [
+                {
+                  "id": "0711d86b-0a40-4a29-bbee-732f07b2e622",
+                  "text": "官网展示"
+                },
+                {
+                  "id": "feef5f5b-18d2-45ef-9e92-aa90bfe6a25f",
+                  "text": "活动页配置"
+                },
+                {
+                  "id": "7213e8ed-a325-4230-9900-47bfc59d36cb",
+                  "text": "商品列表"
+                },
+                {
+                  "id": "b82c1ad9-bd68-438d-8be1-d5b1e56b4571",
+                  "text": "数据看板"
+                },
+                {
+                  "id": "221da5eb-07e9-46f9-9219-ab7e12b0310e",
+                  "text": "运营后台"
+                }
+              ],
+              "highlights": [
+                {
+                  "id": "a5c419d7-c36b-4650-afd2-9ea7ac132947",
+                  "text": "完成官网与活动页的响应式布局与设计还原，适配移动端与桌面端"
+                },
+                {
+                  "id": "e78490f9-5a9b-4754-b86c-335286cd9bad",
+                  "text": "将重复活动页抽象为配置模板，减少临时开发成本"
+                },
+                {
+                  "id": "78183f87-6c9b-4d0f-88e8-6ee667e9c703",
+                  "text": "使用 ECharts 搭建运营数据看板，支持多维度图表展示"
+                },
+                {
+                  "id": "090be7bc-bdfc-4845-8926-8b1549a34933",
+                  "text": "配合后端完成下单、支付回调等链路的前端状态管理"
+                }
+              ],
+              "tech": [
+                {
+                  "id": "d67d0a22-5add-4b4f-94fc-82b2881a05b0",
+                  "text": "Vue3"
+                },
+                {
+                  "id": "3d99bcab-5594-4086-a779-b999c9d50ae6",
+                  "text": "TypeScript"
+                },
+                {
+                  "id": "d7312408-254d-40df-9d91-024d5dc7a4d2",
+                  "text": "Vite"
+                },
+                {
+                  "id": "7e154704-cd02-4c28-8623-6e5183b5a17a",
+                  "text": "ECharts"
+                },
+                {
+                  "id": "3bb2cefd-d87e-4509-a8c5-1c971affb25a",
+                  "text": "Element Plus"
+                },
+                {
+                  "id": "e0e6e92a-c55e-4ce9-b485-93aac07730ae",
+                  "text": "Axios"
+                }
+              ]
+            },
+            {
+              "id": "76c5eccc-ed2a-4d96-8e4d-47037ab190e2",
+              "name": "AI 学习实验项目",
+              "date": {
+                "mode": "custom",
+                "text": "2025.01 - 至今"
+              },
+              "role": "个人学习",
+              "overview": "面向个人学习的 AI Agent 与 RAG 实验项目，用于验证文档检索、多轮问答与工具调用。",
+              "features": [
+                {
+                  "id": "aed6777a-6b10-4ec4-8b11-66d7aa09e272",
+                  "text": "文档上传"
+                },
+                {
+                  "id": "19fba498-f94f-431d-a22d-80532f3c99c0",
+                  "text": "切块"
+                },
+                {
+                  "id": "9b6c352b-7daf-4e23-8447-5741ca0dbe57",
+                  "text": "向量检索"
+                },
+                {
+                  "id": "f75f51a5-f102-47ba-ab11-768513209a13",
+                  "text": "RAG 问答"
+                },
+                {
+                  "id": "a3445325-83da-477a-b946-4eae973b4508",
+                  "text": "引用来源返回"
+                }
+              ],
+              "highlights": [
+                {
+                  "id": "f3dac85b-11c2-4ac9-a673-a91e9c2a3199",
+                  "text": "将文档处理拆成提取、切块、向量化、检索、生成多个阶段，便于定位问题"
+                },
+                {
+                  "id": "39c85d69-93a9-4c6e-aa08-421d46931fea",
+                  "text": "设计元数据保证检索结果可追踪"
+                },
+                {
+                  "id": "1516f07c-620a-4a38-899b-d3d85e9280dd",
+                  "text": "理解 SSE 流式输出与多轮上下文管理"
+                }
+              ],
+              "tech": [
+                {
+                  "id": "efb48430-500e-420a-96ac-bfbae584c4f7",
+                  "text": "Node.js"
+                },
+                {
+                  "id": "1f411196-af02-4c2b-a775-86040819772e",
+                  "text": "TypeScript"
+                },
+                {
+                  "id": "0f52a549-6360-4c09-9372-b39554f3854f",
+                  "text": "RAG"
+                },
+                {
+                  "id": "4d433778-0105-4fe3-9a15-0b41ea5540d0",
+                  "text": "Embedding"
+                },
+                {
+                  "id": "6f7c73cd-86c3-446e-ba08-c2f11adb33d0",
+                  "text": "SQLite"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "3d9723bf-5076-499b-89ea-d7740b874955",
+        "title": "专业技能",
+        "type": "capabilities",
+        "data": {
+          "groups": [
+            {
+              "id": "df3adc27-4d29-40b0-bda0-3ae81ba4db28",
+              "title": "前端核心能力",
+              "items": [
+                {
+                  "id": "1e657bcd-cd1e-4104-acfb-0b0b2a92a506",
+                  "name": "Vue2/3 · Composition API",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "2ce49d93-db6e-48e7-ada7-0550951dc3a6",
+                  "name": "React · Next.js",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "c8fba37e-2fb2-490d-a541-8056455b846d",
+                  "name": "TypeScript",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "2348bf2e-e457-4ec5-a684-c8f2d809e5dd",
+                  "name": "TailwindCSS · Sass",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "8898444f-6d9d-463e-a49b-b8fbbcb32059",
+                  "name": "ECharts · AntV",
+                  "evidenceLinks": []
+                }
+              ]
+            },
+            {
+              "id": "743f022c-027f-4f30-bdfa-054376cfad47",
+              "title": "全栈开发能力",
+              "items": [
+                {
+                  "id": "633117ee-72e9-4721-96be-30aa3af7a3a3",
+                  "name": "Node.js",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "bcd3282f-451b-4023-94d9-3b7699db74c2",
+                  "name": "NestJS · Express",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "3489c0de-23f1-48df-ab48-604c73f2359d",
+                  "name": "MySQL · PostgreSQL · SQLite",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "2ee9b72d-a27a-4310-9f53-22b73eaa569b",
+                  "name": "RESTful API · JWT",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "d5bc336f-eee7-42c9-8c2f-7572d4cdf081",
+                  "name": "Linux · Nginx · Docker",
+                  "evidenceLinks": []
+                }
+              ]
+            },
+            {
+              "id": "b0e5e2a2-7269-40ac-b27a-4ab3d6d1ce62",
+              "title": "工程化与质量",
+              "items": [
+                {
+                  "id": "6e486198-dde5-4c10-945b-f9b57601dc68",
+                  "name": "Vite · Webpack",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "2e6f5367-294c-46bd-97b4-a17746d06c62",
+                  "name": "pnpm workspace · Turbo",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "8e898fb9-d3e4-4772-aebe-52f129d9b875",
+                  "name": "GitHub Actions · GitLab CI",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "39578e51-5b82-4ef2-90fe-c3ea2ab6919a",
+                  "name": "Vitest · Jest",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "0bb53c17-60b7-4d7d-8154-47dfa57f0183",
+                  "name": "组件库沉淀",
+                  "evidenceLinks": []
+                }
+              ]
+            },
+            {
+              "id": "4c7156e5-ca57-426a-8ac6-bab5d12abf98",
+              "title": "AI 工程化学习",
+              "items": [
+                {
+                  "id": "c2702b5e-e551-4d76-b8ef-4e143f18c832",
+                  "name": "Claude Code · Cursor",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "86d10c59-fd0a-4b82-ba9e-db7aa334ce0d",
+                  "name": "SSE 流式输出",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "c0da0077-e2d4-42f0-8e0b-19dafbeab31c",
+                  "name": "Agent 工作流",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "2f774e55-440b-49f1-a7ff-be36b82f1f5c",
+                  "name": "Prompt Engineering",
+                  "evidenceLinks": []
+                },
+                {
+                  "id": "090e4007-e833-4db0-9942-dce5ac74a525",
+                  "name": "RAG 基础",
+                  "evidenceLinks": []
+                }
+              ]
+            }
+          ],
+          "ratingScale": {
+            "min": 0,
+            "max": 100,
+            "basis": ""
+          },
+          "dimensions": [
+            {
+              "id": "a841820e-fd0f-4f9a-a982-5f3d60d4f3ae",
+              "label": "前端工程化",
+              "score": 90
+            },
+            {
+              "id": "0797a425-7def-4ba6-a288-70920efebb07",
+              "label": "组件化 / 设计系统",
+              "score": 85
+            },
+            {
+              "id": "e46fc125-5132-42cd-96c7-5bfe7f6b36c5",
+              "label": "Node / BFF",
+              "score": 72
+            },
+            {
+              "id": "8d4e11f6-566f-4f42-9b4f-feca2c9ad5dd",
+              "label": "数据层与缓存",
+              "score": 68
+            },
+            {
+              "id": "10c9f092-7247-4d82-a1d7-165f8cf40408",
+              "label": "AI 应用工程",
+              "score": 60
+            },
+            {
+              "id": "7d5ad345-3d0c-48d0-aa53-a4363250d824",
+              "label": "协作与交付",
+              "score": 88
+            }
+          ]
+        }
+      },
+      {
+        "id": "f2bfe1d2-5adc-4df1-b5d8-0a2c72148b95",
+        "title": "自我评价",
+        "type": "evaluations",
+        "data": {
+          "items": [
+            {
+              "id": "b774eb1a-2227-4b95-abf1-2904107cc3f6",
+              "text": "5 年全栈开发经验，前端为主，兼顾服务端，能独立完成从页面到接口的完整链路"
+            },
+            {
+              "id": "c507f90a-5559-424e-8d70-53df30e7d8f5",
+              "text": "重视组件化、配置驱动与工程化沉淀，倾向把重复需求抽象为可复用能力"
+            },
+            {
+              "id": "d08630fe-30e0-48c4-bf98-ae0bb0794406",
+              "text": "当前学习 AI Agent 应用工程化，关注 RAG、工具调用与流式交互"
+            },
+            {
+              "id": "54af3ae4-cb30-4813-8fd4-39686598b0fa",
+              "text": "务实、注重交付质量，乐于在真实项目中沉淀经验与方法"
+            }
+          ]
+        }
+      }
+    ],
+    "footer": {
+      "note": "感谢您抽出时间阅读这份简历，期待与您进一步交流。"
+    }
+  },
+  "display": {
+    "brand": {},
+    "layout": {
+      "mode": "split",
+      "splitSide": "left",
+      "stickySide": true,
+      "sideWidth": "compact"
+    },
+    "sections": {
+      "order": [
+        "8e3e3d11-0176-413c-9433-c3327676550b",
+        "63d9da73-fd32-4fdc-bfea-52a65cfc0729",
+        "7c71e124-4ac7-4464-a92b-42d251927465",
+        "8b3b05ca-adce-4a8e-8c63-381115a97841",
+        "8a494ba4-ed69-4a38-aa69-35258ae808dd",
+        "3d9723bf-5076-499b-89ea-d7740b874955",
+        "f2bfe1d2-5adc-4df1-b5d8-0a2c72148b95"
+      ],
+      "slot": {
+        "8e3e3d11-0176-413c-9433-c3327676550b": "side",
+        "63d9da73-fd32-4fdc-bfea-52a65cfc0729": "main",
+        "7c71e124-4ac7-4464-a92b-42d251927465": "main",
+        "8b3b05ca-adce-4a8e-8c63-381115a97841": "main",
+        "8a494ba4-ed69-4a38-aa69-35258ae808dd": "main",
+        "3d9723bf-5076-499b-89ea-d7740b874955": "main",
+        "f2bfe1d2-5adc-4df1-b5d8-0a2c72148b95": "main"
+      },
+      "hidden": [],
+      "overrides": {
+        "3d9723bf-5076-499b-89ea-d7740b874955": {
+          "capabilities": {
+            "view": "bar",
+            "dimensionIds": [
+              "a841820e-fd0f-4f9a-a982-5f3d60d4f3ae",
+              "0797a425-7def-4ba6-a288-70920efebb07",
+              "e46fc125-5132-42cd-96c7-5bfe7f6b36c5",
+              "8d4e11f6-566f-4f42-9b4f-feca2c9ad5dd",
+              "10c9f092-7247-4d82-a1d7-165f8cf40408",
+              "7d5ad345-3d0c-48d0-aa53-a4363250d824"
+            ],
+            "previewItemCount": 3
+          }
+        }
+      }
+    },
+    "options": {
+      "showPhone": true,
+      "showEmail": true,
+      "showLocation": true,
+      "showYears": true,
+      "showTechStack": true,
+      "showAchievements": true
+    },
+    "theme": {
+      "id": "blue",
+      "label": "蓝色简约",
+      "mode": "light",
+      "light": {
+        "primary": "#1578d0",
+        "gradientFrom": "#1578d0",
+        "gradientTo": "#3ec064",
+        "surface": "#ffffff",
+        "text": "#0f172a",
+        "muted": "#64748b",
+        "border": "#e2e8f0",
+        "chipBg": "#f1f5f9",
+        "chipText": "#334155"
+      },
+      "dark": {
+        "primary": "#60a5fa",
+        "gradientFrom": "#60a5fa",
+        "gradientTo": "#34d399",
+        "surface": "#111827",
+        "text": "#e5e7eb",
+        "muted": "#94a3b8",
+        "border": "#1f2937",
+        "chipBg": "#1f2937",
+        "chipText": "#e2e8f0"
+      }
+    },
+    "background": {
+      "type": "plain",
+      "textureId": "none",
+      "image": {
+        "url": "",
+        "fit": "cover",
+        "overlay": 30,
+        "blur": 0
+      }
+    },
+    "style": {
+      "id": "minimal"
+    }
+  }
+}
