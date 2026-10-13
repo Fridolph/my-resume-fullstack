@@ -9,6 +9,9 @@ verified_commit: 52cdd3c5386d6b8fa1dbf1a781dd4735c5e40d28
 verified_date: 2026-08-31
 ```
 
+> ⚠️ 上表是**本仓最后一次复验**的结果。此后记录曾观察到母仓 `main` 推进到 `a139058b4397e3f934d320d13d2abac36514d9a1`（见 `.dao/context.md`），
+> 但本窗口**未重新验证**。若协作中依赖母仓定义，请先复验并在下面追加一行，不要直接沿用过期锚点。
+
 ## 最小权威锚点
 
 - `40-人思-关系与内化/00-关系校准/README.md`
@@ -27,6 +30,7 @@ verified_date: 2026-08-31
 - 项目归母记录：`.dao/return-dao.md`
 - 任务运行面：`dao/README.md`
 - 当前关键任务：`dao/CURRENT.md`
+- 项目定位（一句话）：`.dao/inheritance.md` §项目身份 —— **Dao 进行时验证仓：真实实现 my-resume，而非模板演示**
 
 ## 访问失败约定
 

@@ -1,8 +1,10 @@
-# Dao Fullstack Template
+# my-resume-fullstack
 
-可复用的 `pnpm + Turborepo` 全栈模板，面向同时包含用户端、管理端与 API 的 `dao-*` 项目。它内置代码质量、版本与 Changelog 基础设施，并以 `Dao-is-Coding` 作为协作与持续演进的上位范式。
+**`Dao-is-Coding` 的进行时验证仓**：用熟悉的全栈技术栈真实实现 `my-resume`，在业务约束下跑通「先熟后生」的双仓学习闭环。
 
-这个仓是项目验证场，不是 `Dao-is-Coding` 母仓：项目在真实约束下生长；跨项目验证过的规则、流程和经验再回灌母仓。反过来，母仓已验证的规范和 skills 可经评估后同步到项目。
+这个仓**不是** `Dao-is-Coding` 母仓，也**不只是**一个可复用的全栈模板 —— 它是母仓范式在真实业务里的验证场：简历系统（个人能力、风格、编辑、版本发布）、用户与权限、账号与会话都在这里逐模块实装，而不停在范例层面。跨项目验证过的规则、流程和经验再回灌母仓；反过来，母仓已验证的规范和 skills 可经评估后同步到项目。
+
+底座仍沿用 `dao-monorepo-temp` 模板（`pnpm + Turborepo` + Nuxt 4 + NestJS），但底座能力保持**通用可抽离**，业务实现留在应用自身的业务域 layer 与后端模块内 —— 见 [AGENTS.md](./AGENTS.md) §1。
 
 - `apps/web`：Nuxt 4 + Nuxt UI + Tailwind CSS 4
 - `apps/admin`：Nuxt 4 + Nuxt UI + Tailwind CSS 4
@@ -13,13 +15,31 @@
 
 后端目录为 `apps/server`，工作区包名为 `@rs/server`：`pnpm --filter @rs/server dev` 按包名选择项目，也可用 `pnpm --filter ./apps/server dev` 按路径选择。目录从 `apps/api` 重命名而来，现有源码、本地配置和数据库迁移文件一起保留；HTTP 前缀仍为 `/api`。若需回滚，同步恢复目录、包名、锁文件 importer 和文档命令即可，不涉及数据库回滚。
 
-## 当前用途：my-resume 的 Nuxt 实现场
+## 个人能力与本人草稿（DAO-028）
 
-本仓的底座是 `dao-monorepo-temp` 模板；当前用途是**先用熟悉的技术栈把 `my-resume` 的功能与页面逐模块实现出来**（Nuxt 4 + Nuxt UI + layers + `@pinia/colada`，NestJS + PostgreSQL + Redis）。验证过的结论再带回 `my-resume` 仓，用 React + Next.js + Python 重做同一套功能，形成“先熟后生”的学习闭环。
+从需求到交付的逐步指导与真实学习过程见 [DAO-028 学习复盘](./docs/dev/05_全栈简历项目_DAO028学习复盘.md)，可作为后续博客系列的参考；业务事实与候选功能分别标明。
+
+作者入口 `/resume/draft` 使用真实登录；仅管理员角色且拥有 `Resume.Sections:edit` 可编辑本人草稿。公共演示 `/resume` 保留原展示。能力分组、条目、佐证、自评维度可配置，支持排序、文字/条状图/雷达图；评分默认未填写。完整文档通过三条 `/api/resume` 接口读写，2.5 秒自动保存和 revision 条件更新防止窗口间覆盖。
+
+新增目录：`packages/common/src/resume` 承载稳定文档契约和 Zod 校验，`apps/server/src/resume` 承载所有权与持久化；web 的 `capabilities`、`draft` 组件仍位于已有业务 layer。common 复用后端同版本 Zod，前端不依赖 Prisma。回滚前先备份草稿；撤销业务代码后，现有用户与权限表无须更改，新三表的逆迁移必须单独确认。完整设计、验收与限制见 [个人能力专题](./docs/dev/04_简历系统_个人能力字段与内容结构.md)。
+
+临时 PostgreSQL 自动验证入口（需要本机 `initdb`、`pg_ctl`、`curl`、Bash）：
+
+```bash
+bash apps/server/scripts/test-resume-isolated.sh
+```
+
+脚本使用 127.0.0.1:55433 独立数据库、4059 独立 API，执行迁移与真实 HTTP 异常/并发验证，退出时停止并清理实例，不读取项目数据库连接。端口被占用时停止，不连接已有实例。Windows 可在具备 PostgreSQL 工具的 Bash/WSL 中运行。OpenAPI 维护入口 `pnpm --filter @rs/server docs:resume` 输出文档至标准输出；更新文件需审查 diff。
+
+## 项目主线与推进方式
+
+主线是**先用熟悉的技术栈把 `my-resume` 的功能与页面逐模块实现出来**（Nuxt 4 + Nuxt UI + layers + `@pinia/colada`，NestJS + Prisma + PostgreSQL + Redis），再把验证过的结论带回 `my-resume` 仓，用 React + Next.js + Python 重做同一套功能，形成“先熟后生”的学习闭环。
 
 - 推进方式：一个关键任务一张 `dao/tasks/DAO-*.md` 任务卡，只落一个模块或一条闭环；当前任务见 [`dao/CURRENT.md`](./dao/CURRENT.md)，任务边界见 [AGENTS.md](./AGENTS.md)。
 - 底座与业务分层：底座能力（工程骨架、公共组件、校验与工具）保持通用可抽离；`my-resume` 的业务实现放在应用自身的业务域 layer 与后端模块内。
 - 外部蓝图：`my-resume/docs/rs/` 的三份文档（三端职责、数据模型与 PostgreSQL 选型、AI 能力与迁移清理）。
+- 简历业务总设计：[简历系统核心设计](./docs/dev/03_简历系统_核心设计.md) 记录多份简历、模块编排、个人能力、编辑入口、版本发布与分享；后续专题从该入口展开，已采用方向与待确认项分别标注，当前不代表表结构或功能已实装。
+- 简历模块按 [AGENTS.md §3.3](./AGENTS.md#33-单-task-全栈闭环开发模式) 逐 Task 完成设计、后端、前端、联调、验证和交付；首个专题为 [个人能力字段与内容结构](./docs/dev/04_简历系统_个人能力字段与内容结构.md)。
 
 ### 用户创建接口
 
@@ -36,17 +56,17 @@
 ## 工程约定
 
 - 使用 pnpm workspace 与 Turborepo 管理多应用和共享包。
-- 保持模板通用性：业务代码放在应用内；跨应用且稳定的**纯 TS**能力进 `packages/common`，跨应用的**UI 组件**进 `packages/ui`（layer 形式，见 [docs/web/03*Layers*分层约定.md](./docs/web/03_Layers_分层约定.md) §7）。
+- 保持**底座与业务分层**：业务代码放在应用内；跨应用且稳定的**纯 TS**能力进 `packages/common`，跨应用的**UI 组件**进 `packages/ui`（layer 形式，见 [docs/web/03_Layers_分层约定.md](./docs/web/03_Layers_分层约定.md) §7）。
 - 前端默认使用 Nuxt 4、Nuxt UI、Tailwind CSS 4 与 TypeScript；API 默认使用 NestJS、严格类型、统一响应和异常结构。
 - 改动前先明确目标、非目标、风险、涉及文件和验收标准；发现旁支问题应拆成独立 Issue。
 - 环境变量、密钥、数据库连接等敏感配置只放在后端 `.env`，不得提交或暴露给前端；用 `.env.example` 提供脱敏说明。
-- 模板默认在 `main` 小步推进；当并行协作、发布约束或主干稳定性需要更重承载时，再显式选择分支工作流。
+- **分支模型**：`main` 只承载发布与正式版本，**不直接在 `main` 上开发**；日常开发在 `dev`，并从 `dev` 开 `feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…` 短分支，验证完成后合回 `dev`。完整流程见 [docs/dev/01_开发流程_分支与提交.md](./docs/dev/01_开发流程_分支与提交.md)。
 - 完整协作流程、测试要求、skills 与归母规则见 [AGENTS.md](./AGENTS.md)。
 - 前端（Nuxt 4 / Nuxt UI）的命名规则、高频踩坑与 admin 布局模板见 [docs/dev](./docs/README.md)。
 
 ## Dao-is-Coding 开发流程
 
-本模板采用轻量的“判断 → 流转 → 收口 → 沉淀”闭环，而不是额外叠加一套管理工具：
+本项目采用轻量的“判断 → 流转 → 收口 → 沉淀”闭环，而不是额外叠加一套管理工具：
 
 ```text
 任务澄清
@@ -72,7 +92,7 @@
 
 ### 最小任务运行面
 
-对存在协作切换、风险、跨文件影响或阶段性价值的关键任务，本模板用 `dao/` 作为最小运行面：
+对存在协作切换、风险、跨文件影响或阶段性价值的关键任务，本项目用 `dao/` 作为最小运行面：
 
 ```text
 dao/CURRENT.md -> 当前唯一关键任务
@@ -84,7 +104,7 @@ dao/experiments/ -> 尚未验证的 Harness 假设
 
 ## Skills 与 Dao 接入
 
-本模板不把 skills 打包为项目依赖。它们由个人 Codex 环境统一提供，项目只声明何时应使用。
+本项目不把 skills 打包为项目依赖。它们由个人 Codex 环境统一提供，项目只声明何时应使用。
 
 | 类别       | 当前可用能力                                                                                          | 使用方式                                                                  |
 | ---------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
@@ -129,7 +149,7 @@ Dao-is-Coding 母仓
 
 ### 母仓同步
 
-母仓更新不自动覆盖项目。接收一项更新时，先确认其目的和影响，再选择性更新本机 Dao skill 或项目文档，并记录采用的母仓版本/提交及本仓影响。这样既能随时吸收成熟经验，也不会让模板或业务在不知情下漂移。
+母仓更新不自动覆盖项目。接收一项更新时，先确认其目的和影响，再选择性更新本机 Dao skill 或项目文档，并记录采用的母仓版本/提交及本仓影响。这样既能随时吸收成熟经验，也不会让底座或业务在不知情下漂移。
 
 ## 开始使用
 
