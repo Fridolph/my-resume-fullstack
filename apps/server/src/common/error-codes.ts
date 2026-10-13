@@ -17,6 +17,9 @@
  * - 兜底 filter 里按 `HttpStatus` 推断。
  */
 export const API_ERROR_CODES = {
+  RESUME_EDIT_FORBIDDEN: 'Resume.Draft:editForbidden',
+  RESUME_NOT_FOUND: 'Resume.Draft:notFound',
+  RESUME_DRAFT_CONFLICT: 'Resume.Draft:conflict',
   /** 没带 Authorization 头（或不是 Bearer 形式） */
   AUTH_TOKEN_MISSING: 'AUTH.Token:missing',
   /** 带了 token，但验签失败 / 格式不对 */

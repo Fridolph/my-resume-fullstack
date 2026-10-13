@@ -83,6 +83,8 @@ model User {
   updatedAt    DateTime  @updatedAt
 
   roles UserRole[]
+  resumeWorkspace ResumeWorkspace?
+  editedResumeDrafts ResumeDraft[]
 
   @@map("users")
 }
@@ -140,4 +142,40 @@ model UserRole {
 
   @@id([userId, roleId])
   @@map("user_roles")
+}
+
+model ResumeWorkspace {
+  userId String @id @map("user_id")
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  resumes Resume[]
+
+  @@map("resume_workspaces")
+}
+
+model Resume {
+  id String @id @default(cuid())
+  workspaceUserId String @map("workspace_user_id")
+  name String @db.VarChar(80)
+  locale String @db.VarChar(20)
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  workspace ResumeWorkspace @relation(fields: [workspaceUserId], references: [userId], onDelete: Restrict)
+  draft ResumeDraft?
+
+  @@index([workspaceUserId, deletedAt])
+  @@map("resumes")
+}
+
+model ResumeDraft {
+  resumeId String @id @map("resume_id")
+  schemaVersion Int @map("schema_version")
+  document Json @db.JsonB
+  revision Int @default(1)
+  updatedBy String @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Restrict)
+  editor User @relation(fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@map("resume_drafts")
 }

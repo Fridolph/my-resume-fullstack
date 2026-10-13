@@ -1,11 +1,14 @@
 import { ConfigService } from '@nestjs/config'
 import { BadRequestException, StandardSchemaValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
+import type { NestExpressApplication } from '@nestjs/platform-express'
 import { API_ERROR_CODES } from './common/error-codes'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false })
+  app.useBodyParser('json', { limit: '128kb' })
+  app.useBodyParser('urlencoded', { extended: true, limit: '128kb' })
   // 统一从 ConfigService 读配置（已过 `config/env.validation.ts` 的校验），
   // 避免各处直接摸 process.env —— 那样校验形同虚设
   const config = app.get(ConfigService)

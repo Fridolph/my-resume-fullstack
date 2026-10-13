@@ -47,9 +47,7 @@ export class AuthService {
    */
   async login(loginDto: LoginDto) {
     const account = loginDto.account.trim()
-    const accountWhere = account.includes('@')
-      ? { email: account.toLowerCase() }
-      : { username: account.toLowerCase() }
+    const accountWhere = account.includes('@') ? { email: account.toLowerCase() } : { username: account.toLowerCase() }
     const user = await this.prismaService.user.findFirst({
       where: { ...accountWhere, deletedAt: null },
       select: { ...identitySelect, passwordHash: true },
