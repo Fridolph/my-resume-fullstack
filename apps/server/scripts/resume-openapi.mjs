@@ -42,7 +42,7 @@ spec.components.schemas.ResumeDraft = {
     resume: {
       type: 'object',
       required: ['id', 'name', 'locale'],
-      properties: { id: { type: 'string' }, name: { type: 'string' }, locale: { type: 'string' } },
+      properties: { id: { type: 'integer' }, name: { type: 'string' }, locale: { type: 'string' } },
     },
     revision: { type: 'integer', minimum: 1 },
     updatedAt: { type: 'string', format: 'date-time' },

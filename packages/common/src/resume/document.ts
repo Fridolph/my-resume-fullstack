@@ -622,6 +622,20 @@ export const createResumeSchema = z.strictObject({
 })
 
 /**
+ * 简历主键（路由参数形态）。
+ *
+ * `resumes.id` 已从 cuid 文本改为 integer 自增，但 URL 参数天然是字符串，
+ * 所以这里收「纯数字字符串」并转成 number —— 这样 `@Param('id', { schema })` 拿到的就是数字，
+ * 不必在 service 里各自 `Number()`（那种写法遇到 `/resume/abc/draft` 会得到 NaN 直撞数据库）。
+ * 上限取 PostgreSQL integer 的范围，超出在入口就报错。
+ */
+export const resumePrimaryKeySchema = z
+  .string()
+  .regex(/^\d+$/)
+  .transform(value => Number(value))
+  .pipe(z.number().int().positive().max(2147483647))
+
+/**
  * 保存当前草稿的请求体契约，提交整份文档而非局部补丁。
  *
  * expectedRevision 是前端读取的草稿并发版本，取 1～2147483646 的整数，
@@ -677,8 +691,8 @@ export type SaveResumeDraftDto = z.infer<typeof saveResumeDraftSchema>
  * 不说明历史内容已留存。时间使用可通过 JSON 传输的字符串。
  */
 export interface ResumeDraftResponse {
-  /** 简历稳定身份、内部名称与语言，区别于正文中的姓名。 */
-  resume: { id: string; name: string; locale: string }
+  /** 简历稳定身份（integer 自增主键）、内部名称与语言，区别于正文中的姓名。 */
+  resume: { id: number; name: string; locale: string }
   /** 本次读取或成功保存后返回的草稿版本，用于下一次保存的 expectedRevision。 */
   revision: number
   /** 后端序列化的最近更新时间，不用于替代 revision 的并发检查。 */

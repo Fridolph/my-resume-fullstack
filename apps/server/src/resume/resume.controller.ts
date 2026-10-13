@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common'
 import {
   createResumeSchema,
-  resumeIdSchema,
+  resumePrimaryKeySchema,
   saveResumeDraftSchema,
   type CreateResumeDto,
   type SaveResumeDraftDto,
@@ -27,7 +27,7 @@ export class ResumeController {
    * 读取本人完整草稿，含编辑所需全部内容；此接口不是公开展示入口。
    */
   @Get(':id/draft')
-  findDraft(@Param('id', { schema: resumeIdSchema }) id: string, @CurrentUser() currentUser: AuthUser) {
+  findDraft(@Param('id', { schema: resumePrimaryKeySchema }) id: number, @CurrentUser() currentUser: AuthUser) {
     return this.resumeService.findDraft(id, currentUser)
   }
 
@@ -36,7 +36,7 @@ export class ResumeController {
    */
   @Put(':id/draft')
   saveDraft(
-    @Param('id', { schema: resumeIdSchema }) id: string,
+    @Param('id', { schema: resumePrimaryKeySchema }) id: number,
     @Body({ schema: saveResumeDraftSchema }) saveResumeDraftDto: SaveResumeDraftDto,
     @CurrentUser() currentUser: AuthUser,
   ) {

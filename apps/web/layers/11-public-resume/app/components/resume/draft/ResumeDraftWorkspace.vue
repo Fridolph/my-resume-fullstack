@@ -70,7 +70,7 @@ function open(id: string) {
 }
 function reload() {
   if (draft.value && (!dirty.value || window.confirm('重新读取会覆盖本地未保存内容。请先导出备份，是否继续？')))
-    void load(draft.value.resume.id)
+    void load(String(draft.value.resume.id))
 }
 function openId() {
   if (resumeId.value && (!dirty.value || window.confirm('仍有未保存内容，是否切换草稿？'))) void load(resumeId.value)

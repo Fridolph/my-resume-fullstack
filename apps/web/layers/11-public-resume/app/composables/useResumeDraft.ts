@@ -35,7 +35,8 @@ export function useResumeDraft() {
     document.value = structuredClone(response.document)
     status.value = 'saved'
     error.value = ''
-    if (import.meta.client) localStorage.setItem(`my-resume.draft-id.${user.value?.id}`, response.resume.id)
+    // resume.id 现为 integer 自增主键；localStorage 只能存字符串，URL 参数也是字符串，故此处转一下
+    if (import.meta.client) localStorage.setItem(`my-resume.draft-id.${user.value?.id}`, String(response.resume.id))
   }
   function fail(problem: unknown) {
     const normalized = normalizeApiError(problem)
@@ -93,7 +94,7 @@ export function useResumeDraft() {
     status.value = 'saving'
     try {
       const response = await saveRequest({
-        id: draft.value.resume.id,
+        id: String(draft.value.resume.id),
         expectedRevision: draft.value.revision,
         document: requestDocument,
       })

@@ -2294,7 +2294,7 @@
             "required": ["id", "name", "locale"],
             "properties": {
               "id": {
-                "type": "string"
+                "type": "integer"
               },
               "name": {
                 "type": "string"

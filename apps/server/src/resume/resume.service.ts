@@ -37,7 +37,7 @@ export class ResumeService {
     }
   }
 
-  private ownedResume(id: string, currentUser: AuthUser): Prisma.ResumeWhereInput {
+  private ownedResume(id: number, currentUser: AuthUser): Prisma.ResumeWhereInput {
     return { id, workspaceUserId: currentUser.userId, deletedAt: null, workspace: { user: { deletedAt: null } } }
   }
 
@@ -85,7 +85,7 @@ export class ResumeService {
    * 所有权与可用状态进入查询条件，他人、删除和不存在统一 404。
    * 即使超管也不能通过该本人草稿接口读取他人的内容。
    */
-  async findDraft(id: string, currentUser: AuthUser): Promise<ResumeDraftResponse> {
+  async findDraft(id: number, currentUser: AuthUser): Promise<ResumeDraftResponse> {
     const draft = await this.prismaService.resumeDraft.findFirst({
       where: { resume: this.ownedResume(id, currentUser) },
       include: draftInclude,
@@ -99,7 +99,7 @@ export class ResumeService {
    * 文档、版本号和操作者同时提交，事务内读取本次保存结果；失败保持原草稿。
    */
   async saveDraft(
-    id: string,
+    id: number,
     saveResumeDraftDto: SaveResumeDraftDto,
     currentUser: AuthUser,
   ): Promise<ResumeDraftResponse> {

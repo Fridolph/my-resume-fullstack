@@ -56,6 +56,10 @@ datasource db {
 ///
 /// 用户名或邮箱是登录账号；cuid 主键不随昵称修改，角色权限通过关联表恢复。
 ///
+/// ⚠️ 主键类型的取舍：**面向人的实体**（User）保留 cuid —— 它出现在 URL 与外部引用里，
+/// 不可枚举、不泄露数量；**纯内部字典/关联实体**（Role / Permission / Resume / ResumeDraft）
+/// 用 integer 自增，便于人工查找与维护。
+///
 /// ⚠️ 两个刻意的设计：
 /// - **只存 `passwordHash`，不存明文**（也不存"可解密"的形式）：哈希是单向 + 随机盐 + 故意慢，
 ///   盐防彩虹表、慢让暴力破解不划算；
@@ -91,7 +95,7 @@ model User {
 
 /// 角色。role.key 必须与 `src/auth/permission-keys.ts` 的 `ROLE_PERMISSION_PRESETS` 对齐（seed 校验）。
 model Role {
-  id          String   @id @default(cuid())
+  id          Int      @id @default(autoincrement())
   /// 稳定的机器可读标识：`super_admin` / `admin` / `user`
   key         String   @unique
   /// 展示名：`管理员` / `普通用户`
@@ -109,7 +113,7 @@ model Role {
 /// 权限键。**键名定义在代码里**（`src/auth/permission-keys.ts`），这里只承载"关系"。
 /// seed 会按代码常量同步这张表（幂等）。
 model Permission {
-  id          String   @id @default(cuid())
+  id          Int      @id @default(autoincrement())
   /// `<域>.<资源>:<动作>`，例如 `Resume.Profile:view`
   key         String   @unique
   description String?
@@ -122,8 +126,8 @@ model Permission {
 
 /// 角色 ↔ 权限（多对多）
 model RolePermission {
-  roleId       String
-  permissionId String
+  roleId       Int
+  permissionId Int
   role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
@@ -136,7 +140,7 @@ model RolePermission {
 /// 那时改表 + 改所有查询，比一开始就留一张关联表贵得多。多角色时权限**取并集去重**。
 model UserRole {
   userId String
-  roleId String
+  roleId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
@@ -153,7 +157,7 @@ model ResumeWorkspace {
 }
 
 model Resume {
-  id String @id @default(cuid())
+  id Int @id @default(autoincrement())
   workspaceUserId String @map("workspace_user_id")
   name String @db.VarChar(80)
   locale String @db.VarChar(20)
@@ -168,7 +172,8 @@ model Resume {
 }
 
 model ResumeDraft {
-  resumeId String @id @map("resume_id")
+  id Int @id @default(autoincrement())
+  resumeId Int @unique @map("resume_id")
   schemaVersion Int @map("schema_version")
   document Json @db.JsonB
   revision Int @default(1)
