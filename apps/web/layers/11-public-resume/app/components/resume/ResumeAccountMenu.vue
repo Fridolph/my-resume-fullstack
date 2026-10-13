@@ -58,6 +58,8 @@ const menuItems = computed<DropdownMenuItem[][]>(() => {
 
   const tail: DropdownMenuItem[] = []
 
+  tail.push({ label: '我的简历草稿', icon: 'i-lucide-file-pen-line', to: '/resume/draft' })
+
   if (canResetConfig.value) {
     tail.push({
       label: '重置全部配置…',

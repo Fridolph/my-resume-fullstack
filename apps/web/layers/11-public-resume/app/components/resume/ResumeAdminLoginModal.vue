@@ -1,17 +1,19 @@
 <script setup lang="ts">
 /**
- * 管理员登录弹窗（**本地 mock**）。
- *
- * 弹窗自己声明清楚"这不是鉴权"，避免后来者误以为这里提供了保护。
+ * 登录表单通过后端认证，编辑资格由会话权限和接口共同校验。
  */
 const open = defineModel<boolean>('open', { default: false })
-const { signIn, mockHint } = useAuthState()
+const { signIn } = useAuthState()
 
 const form = reactive({ username: '', password: '' })
 const errorMessage = ref('')
+const pending = ref(false)
 
-function submit() {
-  const result = signIn({ username: form.username, password: form.password })
+async function submit() {
+  if (pending.value) return
+  pending.value = true
+  const result = await signIn({ username: form.username, password: form.password })
+  pending.value = false
 
   if (!result.ok) {
     errorMessage.value = result.message
@@ -28,20 +30,18 @@ function submit() {
   <UModal v-model:open="open" title="登录">
     <template #body>
       <div class="space-y-4">
-        <UAlert
-          color="warning"
-          variant="subtle"
-          icon="i-lucide-shield-alert"
-          title="本地 mock 登录，不是鉴权"
-          :description="`${mockHint}。账号密码写在前端、任何人可绕过，仅用于把「游客 / 普通用户 / 管理员」三种身份跑通；接入后端 auth 后会替换掉这里。`"
-        />
-
         <UFormField label="账号" name="username">
-          <UInput v-model="form.username" placeholder="admin" class="w-full" />
+          <UInput v-model="form.username" placeholder="用户名或邮箱" autocomplete="username" class="w-full" />
         </UFormField>
 
         <UFormField label="密码" name="password">
-          <UInput v-model="form.password" type="password" class="w-full" @keyup.enter="submit" />
+          <UInput
+            v-model="form.password"
+            type="password"
+            autocomplete="current-password"
+            class="w-full"
+            @keyup.enter="submit"
+          />
         </UFormField>
 
         <p v-if="errorMessage" class="text-sm text-error">
@@ -53,7 +53,7 @@ function submit() {
     <template #footer>
       <div class="flex w-full justify-end gap-2">
         <UButton color="neutral" variant="ghost" label="取消" @click="open = false" />
-        <UButton icon="i-lucide-log-in" label="登录" @click="submit" />
+        <UButton icon="i-lucide-log-in" label="登录" :loading="pending" @click="submit" />
       </div>
     </template>
   </UModal>

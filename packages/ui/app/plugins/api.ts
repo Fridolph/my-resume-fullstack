@@ -37,78 +37,81 @@ import {
  * SSR 取数用 `useAsyncData(key, fetchXxx)`；缓存型查询用 colada 的 `useQuery`；
  * 两者都调用 `apis/*.ts` 里的函数，实例细节不外泄。
  */
-export default defineNuxtPlugin(nuxtApp => {
-  const tokenRef = useCookie<string | null>(TOKEN_COOKIE_KEY, { default: () => null })
-  const toast = useToast()
-  /** 各端声明自己的登录页（没配就只提示 + 触发 hook，由宿主接管） */
-  const loginPath = String(useRuntimeConfig().public.loginPath || '')
+export default defineNuxtPlugin({
+  name: 'api',
+  setup(nuxtApp) {
+    const tokenRef = useCookie<string | null>(TOKEN_COOKIE_KEY, { default: () => null })
+    const toast = useToast()
+    /** 各端声明自己的登录页（没配就只提示 + 触发 hook，由宿主接管） */
+    const loginPath = String(useRuntimeConfig().public.loginPath || '')
 
-  async function handleApiError(error: NormalizedApiError, level: { silent?: boolean; errorPolicy?: string }) {
-    if (level.silent || level.errorPolicy === 'manual') {
-      return
-    }
-
-    // 需要的人可以监听（按 code / errorCode 分了粒度）
-    const callHook = nuxtApp.callHook as (name: string, ...args: unknown[]) => Promise<void>
-    for (const name of buildApiErrorHookNames(error)) {
-      await callHook(name, error)
-    }
-
-    const policy = resolveApiErrorPolicy(error)
-    if (!policy.notify) {
-      return
-    }
-
-    toast.add({
-      title: resolveApiErrorMessage(error),
-      description: error.traceId ? `traceId: ${error.traceId}` : undefined,
-      color: 'error',
-    })
-
-    if (policy.action === 'redirect-login') {
-      tokenRef.value = null
-      await callHook('api:unauthorized', error)
-
-      // 只在客户端跳转（SSR 阶段请求失败不该把整个渲染带跑）
-      if (loginPath && import.meta.client) {
-        await navigateTo(loginPath)
-      }
-    }
-  }
-
-  const $api = $fetch.create({
-    baseURL: String(useRuntimeConfig().public.apiBase || '').replace(/\/$/, ''),
-
-    onRequest({ options }) {
-      const headers = new Headers(options.headers)
-      Object.entries(buildRequestHeaders({ token: tokenRef.value })).forEach(([key, value]) => {
-        headers.set(key, value)
-      })
-      options.headers = headers
-    },
-
-    async onResponse({ response, options }) {
-      const payload = response._data as { code?: number; data?: unknown } | undefined
-
-      if (response.ok && payload && isApiSuccess(payload)) {
-        response._data = payload.data
+    async function handleApiError(error: NormalizedApiError, level: { silent?: boolean; errorPolicy?: string }) {
+      if (level.silent || level.errorPolicy === 'manual') {
         return
       }
 
-      // ⚠️ 在这里 throw 不会再走 onResponseError，所以两条路径都要处理
-      const error = toNormalizedApiError(payload as never, response.status)
-      await handleApiError(error, options as { silent?: boolean; errorPolicy?: string })
-      throw error
-    },
+      // 需要的人可以监听（按 code / errorCode 分了粒度）
+      const callHook = nuxtApp.callHook as (name: string, ...args: unknown[]) => Promise<void>
+      for (const name of buildApiErrorHookNames(error)) {
+        await callHook(name, error)
+      }
 
-    async onResponseError({ response, options }) {
-      const error = toNormalizedApiError(response?._data as never, response?.status)
-      await handleApiError(error, options as { silent?: boolean; errorPolicy?: string })
-      throw error
-    },
-  })
+      const policy = resolveApiErrorPolicy(error)
+      if (!policy.notify) {
+        return
+      }
 
-  return {
-    provide: { api: $api },
-  }
+      toast.add({
+        title: resolveApiErrorMessage(error),
+        description: error.traceId ? `traceId: ${error.traceId}` : undefined,
+        color: 'error',
+      })
+
+      if (policy.action === 'redirect-login') {
+        tokenRef.value = null
+        await callHook('api:unauthorized', error)
+
+        // 只在客户端跳转（SSR 阶段请求失败不该把整个渲染带跑）
+        if (loginPath && import.meta.client) {
+          await navigateTo(loginPath)
+        }
+      }
+    }
+
+    const $api = $fetch.create({
+      baseURL: String(useRuntimeConfig().public.apiBase || '').replace(/\/$/, ''),
+
+      onRequest({ options }) {
+        const headers = new Headers(options.headers)
+        Object.entries(buildRequestHeaders({ token: tokenRef.value })).forEach(([key, value]) => {
+          headers.set(key, value)
+        })
+        options.headers = headers
+      },
+
+      async onResponse({ response, options }) {
+        const payload = response._data as { code?: number; data?: unknown } | undefined
+
+        if (response.ok && payload && isApiSuccess(payload)) {
+          response._data = payload.data
+          return
+        }
+
+        // ⚠️ 在这里 throw 不会再走 onResponseError，所以两条路径都要处理
+        const error = toNormalizedApiError(payload as never, response.status)
+        await handleApiError(error, options as { silent?: boolean; errorPolicy?: string })
+        throw error
+      },
+
+      async onResponseError({ response, options }) {
+        const error = toNormalizedApiError(response?._data as never, response?.status)
+        await handleApiError(error, options as { silent?: boolean; errorPolicy?: string })
+        throw error
+      },
+    })
+
+    return {
+      provide: { api: $api },
+    }
+  },
 })

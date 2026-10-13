@@ -5,15 +5,18 @@
  * plugin 在 **SSR 与客户端同一处**执行，两边共享同一套恢复逻辑，避免逻辑分叉；
  * 而 `useState` 本身就是"请求级全局态"（每请求独立 + 自动水合），不需要再包一层 Provider。
  *
- * 将来接后端时，把「读 cookie → 请求 session / 权限 → 写 colada 缓存」挂在这里，
- * 其余判断代码（`usePermission` / `PermissionWrapper`）零改动。
+ * 在请求插件完成装配后读取 cookie，通过后端恢复身份与权限。
  */
-export default defineNuxtPlugin(() => {
-  const { hydrate, migrateLegacySession } = useAuthState()
-  const { hydrate: hydrateLocale } = useLocale()
+export default defineNuxtPlugin({
+  name: 'auth',
+  dependsOn: ['api'],
+  async setup() {
+    const { hydrate, signOut } = useAuthState()
+    const { hydrate: hydrateLocale } = useLocale()
 
-  hydrate()
-  hydrateLocale()
-  // 只在客户端生效（内部有 import.meta.client 守卫）
-  migrateLegacySession()
+    hydrateLocale()
+    await hydrate()
+    const hook = useNuxtApp().hook as (name: string, callback: () => void) => void
+    hook('api:unauthorized', signOut)
+  },
 })

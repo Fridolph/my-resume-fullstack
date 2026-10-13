@@ -32,7 +32,7 @@ export interface AuthPermissionItem {
 
 /** 用户信息（后端 `oswUserInfo`；字段以后端为准，这里只声明前端用到的，其余宽松承接） */
 export interface AuthUserInfo {
-  id: number
+  id: number | string
   companyId?: number
   email: string
   phone?: string
@@ -69,4 +69,12 @@ export interface AuthApiResponse {
   data: AuthSessionData | null
   msg: string
   traceId?: string
+}
+
+export interface BackendIdentity {
+  userId: string
+  email: string | null
+  nickname: string | null
+  roleKeys: string[]
+  permissionKeys: string[]
 }

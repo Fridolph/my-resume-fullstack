@@ -112,7 +112,7 @@ export function rolePermissions(role: Role): readonly PermissionKey[] {
 
 /** 后端的 `roleCode` → 前端 `Role`（认不出就当普通用户，不静默升权） */
 export function roleFromCode(roleCode: string | undefined): Role {
-  if (roleCode === 'admin') {
+  if (roleCode === 'admin' || roleCode === 'super_admin') {
     return 'admin'
   }
 
