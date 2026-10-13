@@ -9,7 +9,8 @@ import ResumeAdminLoginModal from '../ResumeAdminLoginModal.vue'
 import CapabilityEditor from '../capabilities/CapabilityEditor.vue'
 import ResumeDraftPreview from './ResumeDraftPreview.vue'
 import ResumeDraftArrangement from './ResumeDraftArrangement.vue'
-const { draft, document, status, error, dirty, canEdit, reauthRequired, create, load, save, backup } = useResumeDraft()
+const { draft, document, status, error, staleNotice, dirty, canEdit, reauthRequired, create, load, save, backup } =
+  useResumeDraft()
 const { isAuthed, restoreError, hydrate, signOut } = useAuthState()
 const { content: legacyContent, loadLocal: loadContent } = useResumeContent()
 const { config: legacyDisplay, loadLocal: loadDisplay } = useResumeDisplay()
@@ -149,6 +150,10 @@ function openId() {
           @click="reload"
         />
       </section>
+      <!-- 本地旧记录失效：不是错误，提示后用户可直接创建（详见 useResumeDraft 的 load()） -->
+      <p v-if="staleNotice" role="status" class="mt-3 rounded border border-default bg-elevated p-3 text-sm text-muted">
+        {{ staleNotice }}
+      </p>
       <p v-if="error" role="alert" class="rounded border border-error p-3 text-error">
         {{ error }}。当前输入保留，可先导出备份。
       </p>
