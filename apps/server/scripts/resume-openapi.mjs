@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { z } from 'zod'
-import { resumeDocumentSchema } from '@rs/common'
+import { resumeDocumentSchema, resumeDraftInputSchema } from '@rs/common'
 
 const spec = JSON.parse(readFileSync(new URL('../../../docs/server/openapi.json', import.meta.url), 'utf8'))
 const ref = name => ({ $ref: `#/components/schemas/${name}` })
@@ -10,6 +10,12 @@ const documentSchema = z.toJSONSchema(resumeDocumentSchema, { target: 'openapi-3
 documentSchema.description =
   '完整 V1 简历；UTF-8 JSON 不超过 100 KiB。ID 全局唯一，恰有一份 profile，order 完整无重复；显隐、栏位、能力组与图表维度引用必须有效。跨字段约束由运行时 Zod 进一步校验。'
 spec.components.schemas.ResumeDocument = documentSchema
+const draftInputSchema = z.toJSONSchema(resumeDraftInputSchema, { target: 'openapi-3.0' })
+draftInputSchema.description =
+  '创建输入的稀疏文档：content.sections 至少 1 项且恰含一个 profile 模块，display 可整体省略；' +
+  '服务端补全缺失字段与六类空模块，并固定写入 schemaVersion=1（输入里的同名值被忽略）。' +
+  '该形状是完整文档的超集，旧客户端提交完整文档同样兼容。'
+spec.components.schemas.ResumeDraftInput = draftInputSchema
 spec.components.schemas.CreateResume = {
   type: 'object',
   additionalProperties: false,
@@ -17,7 +23,7 @@ spec.components.schemas.CreateResume = {
   properties: {
     name: { type: 'string', minLength: 1, maxLength: 80 },
     locale: { type: 'string', minLength: 1, maxLength: 20, pattern: '^[A-Za-z0-9-]+$' },
-    document: ref('ResumeDocument'),
+    document: ref('ResumeDraftInput'),
   },
 }
 spec.components.schemas.SaveResumeDraft = {

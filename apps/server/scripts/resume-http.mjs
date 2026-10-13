@@ -80,6 +80,29 @@ try {
     },
   })
   assert.equal((await request(`/resume/${readerResume.id}/draft`, 'GET', null, readerToken)).status, 200)
+  // 最小输入：只给姓名，服务端应补全为完整文档并固定 schemaVersion=1
+  const minimal = await request(
+    '/resume',
+    'POST',
+    {
+      name: '最小输入',
+      locale: 'zh',
+      document: { content: { sections: [{ type: 'profile', data: { name: '最小求职者' } }] } },
+    },
+    token,
+  )
+  assert.equal(minimal.status, 201)
+  assert.equal(minimal.body.data.document.schemaVersion, 1)
+  assert.equal(minimal.body.data.document.content.sections[0].data.name, '最小求职者')
+  assert.deepEqual(
+    minimal.body.data.document.content.sections.map(section => section.type),
+    ['profile', 'highlights', 'education', 'experience', 'projects', 'capabilities', 'evaluations'],
+  )
+  assert.deepEqual(
+    minimal.body.data.document.display.sections.order,
+    minimal.body.data.document.content.sections.map(section => section.id),
+  )
+
   const created = await request('/resume', 'POST', input, token)
   assert.equal(created.status, 201)
   const id = created.body.data.resume.id
@@ -108,7 +131,9 @@ try {
   assert.deepEqual(read.body.data.document, document)
   await prisma.resume.update({ where: { id }, data: { deletedAt: new Date() } })
   assert.equal((await request(`/resume/${id}/draft`, 'GET', null, token)).status, 404)
-  console.log('PASS: 登录/会话、401、403、所有权404、无效输入400、并发200+409、刷新恢复、软删除404；仅隔离测试库')
+  console.log(
+    'PASS: 登录/会话、401、403、所有权404、无效输入400、并发200+409、刷新恢复、软删除404、最小输入补全；仅隔离测试库',
+  )
 } finally {
   await prisma.$disconnect()
 }

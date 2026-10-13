@@ -1,5 +1,6 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import {
+  buildResumeDocument,
   resumeDocumentSchema,
   type CreateResumeDto,
   type SaveResumeDraftDto,
@@ -46,6 +47,10 @@ export class ResumeService {
    */
   async create(createResumeDto: CreateResumeDto, currentUser: AuthUser): Promise<ResumeDraftResponse> {
     this.assertEditable(currentUser)
+    // 客户端的 document 是稀疏输入：先补全成完整 V1 文档再入库。
+    // schemaVersion 由服务端固定写 1 —— 输入里即使带了同名值也被忽略，不采用客户端提供的版本号。
+    // 补全是纯计算，放在事务外，避免占用事务时间。
+    const fullDocument = buildResumeDocument(createResumeDto.document)
     return this.prismaService.$transaction(async transaction => {
       const user = await transaction.user.findFirst({
         where: { id: currentUser.userId, deletedAt: null },
@@ -60,8 +65,8 @@ export class ResumeService {
           workspaceUserId: user.id,
           draft: {
             create: {
-              schemaVersion: createResumeDto.document.schemaVersion,
-              document: createResumeDto.document,
+              schemaVersion: fullDocument.schemaVersion,
+              document: fullDocument,
               updatedBy: user.id,
             },
           },
