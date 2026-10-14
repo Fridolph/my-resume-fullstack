@@ -4,7 +4,8 @@ import { createResumeSchema, normalizeApiError, resolveApiErrorMessage } from '@
 import { queryKeys } from '~/lib/query-keys'
 import { createResumeApi } from '../../apis/resume'
 import { resumeCreateSections } from '../../config/resume-create-schemas'
-import { createEmptyCreateForm, describeCreateIssues, toCreateResumeDto } from '../../utils/resume-create-form'
+import { createEmptyCreateForm, toCreateResumeDto } from '../../utils/resume-create-form'
+import { describeContractIssues } from '../../utils/schema-issues'
 
 /**
  * 新建简历（`/resume/new`）。
@@ -69,7 +70,7 @@ async function handleSubmit() {
 
   const parsed = createResumeSchema.safeParse(toCreateResumeDto(form))
   if (!parsed.success) {
-    errorMessage.value = describeCreateIssues(parsed.error.issues)
+    errorMessage.value = describeContractIssues(parsed.error.issues)
     return
   }
 

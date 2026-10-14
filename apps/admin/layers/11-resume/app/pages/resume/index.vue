@@ -1,14 +1,21 @@
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
+import { useQueryCache } from '@pinia/colada'
+import { normalizeApiError, resolveApiErrorMessage, type ResumeSummary } from '@rs/common'
+import { queryKeys } from '~/lib/query-keys'
+import { createResumeApi } from '../../apis/resume'
+
 /**
  * 简历概览（`/resume`）。
  *
- * 这一页回答"我有哪些简历"：右上角是新建入口，主体是列表 / 卡片两种呈现。
- * 单份简历的正文编辑在公开站的草稿工作台完成（`/resume/draft`），这里不做正文编辑；
- * 重命名与软删除属 **DAO-029**，所以本轮**不放行内操作的假按钮**。
+ * 这一页回答"我有哪些简历"，并提供两件管理动作：**进编辑页**、**软删除**。
+ * 两种呈现（卡片 / 列表）只是同一份数据的两种排布，操作项完全一致。
  *
- * 布局用后台通用的 `has-sidebar`（主导航 + 页头），**不再叠 settings 那样的二级侧栏**：
- * 概览页只有一个入口层，二级导航只有两项（其中一项就是当前页），加了反而多一层点击。
- * 将来出现 `/resume/:id` 详情、版本历史等兄弟页面时，再决定要不要补回那一层。
+ * 布局用后台通用的 `has-sidebar`，**不叠 settings 那样的二级侧栏**（只有一项入口，加了反而多一层点击）。
+ *
+ * ⚠️ 「查看详情」图标不在这里：详情预览要用公开站的展示层，而那套组件属 web 的 layer
+ * （按分层约定 admin 不能直接引用）。它要先上提到 `packages/ui` 才能接，见 DAO-030 的下一轮计划 ——
+ * 在那之前不放一个点了没去处的按钮。
  */
 definePageMeta({
   layout: 'has-sidebar',
@@ -16,6 +23,10 @@ definePageMeta({
   middleware: 'auth',
 })
 
+const toast = useToast()
+const api = createResumeApi()
+const queryCache = useQueryCache()
+const { signOut } = useAuthState()
 const { summaries, status, error } = useResumeList()
 
 type ResumeViewMode = 'card' | 'list'
@@ -38,7 +49,15 @@ function setViewMode(mode: ResumeViewMode) {
 
 const viewOptions = [
   { value: 'card' as const, icon: 'i-lucide-layout-grid', label: '卡片' },
-  { value: 'list' as const, icon: 'i-lucide-list', label: '列表' },
+  { value: 'list' as const, icon: 'i-lucide-table', label: '列表' },
+]
+
+const columns: TableColumn<ResumeSummary>[] = [
+  { accessorKey: 'name', header: '简历名' },
+  { accessorKey: 'locale', header: '语言' },
+  { accessorKey: 'revision', header: '版本' },
+  { accessorKey: 'updatedAt', header: '最近改动' },
+  { id: 'actions', header: '操作' },
 ]
 
 const isLoading = computed(() => status.value === 'pending')
@@ -62,6 +81,55 @@ function formatUpdatedAt(value: string) {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+// ── 软删除 ───────────────────────────────────────────────────────────
+const deleteOpen = ref(false)
+const deleteTarget = ref<ResumeSummary | null>(null)
+
+function askDelete(item: ResumeSummary) {
+  deleteTarget.value = item
+  deleteOpen.value = true
+}
+
+/**
+ * 二次确认之后才真的删除。
+ *
+ * 后端是**软删除**（只写 `deletedAt`）：所以文案要说清"从列表移除、不是销毁"，
+ * 不能吓唬用户说"永久删除" —— 那与实现不符。
+ * 删完让列表缓存失效，避免返回时还看到已删的那份。
+ */
+async function confirmDelete() {
+  const target = deleteTarget.value
+  if (!target) {
+    return
+  }
+
+  try {
+    await api.remove(target.id)
+    await queryCache.invalidateQueries({ key: queryKeys.resume.list() })
+    toast.add({
+      title: '已删除',
+      description: `「${target.name}」已从列表移除（数据保留，可追溯）。`,
+      color: 'success',
+      icon: 'i-lucide-trash-2',
+    })
+  } catch (problem) {
+    const normalized = normalizeApiError(problem)
+    if (normalized.code === 401) {
+      signOut()
+      await navigateTo('/login')
+      return
+    }
+    toast.add({
+      title: '删除失败',
+      description: resolveApiErrorMessage(normalized),
+      color: 'error',
+      icon: 'i-lucide-circle-alert',
+    })
+  } finally {
+    deleteTarget.value = null
+  }
 }
 </script>
 
@@ -136,21 +204,87 @@ function formatUpdatedAt(value: string) {
 
         <p class="mt-4 truncate font-medium text-highlighted">{{ item.name }}</p>
         <p class="mt-1 text-xs text-muted">{{ item.locale }} · 更新于 {{ formatUpdatedAt(item.updatedAt) }}</p>
+
+        <div class="mt-4 flex items-center gap-1 border-t border-default pt-3">
+          <UButton
+            :to="`/resume/${item.id}/edit`"
+            icon="i-lucide-pencil"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            label="编辑"
+          />
+          <UButton
+            icon="i-lucide-trash-2"
+            size="xs"
+            color="error"
+            variant="ghost"
+            label="删除"
+            @click="askDelete(item)"
+          />
+        </div>
       </UCard>
     </div>
 
-    <!-- 列表视图 -->
-    <div v-else class="divide-y divide-default overflow-hidden rounded-xl border border-default">
-      <div v-for="item in summaries" :key="item.id" class="flex items-center gap-4 px-4 py-3">
-        <UIcon name="i-lucide-file-text" class="size-4 shrink-0 text-muted" />
-
-        <div class="min-w-0 flex-1">
-          <p class="truncate text-sm font-medium text-highlighted">{{ item.name }}</p>
-          <p class="text-xs text-muted">{{ item.locale }} · 更新于 {{ formatUpdatedAt(item.updatedAt) }}</p>
+    <!-- 列表视图（UTable：字段与交互都会继续长，表格比手写行更好扩展） -->
+    <UTable
+      v-else
+      :data="summaries"
+      :columns="columns"
+      :ui="{
+        th: 'text-xs font-medium text-muted',
+        td: 'text-sm',
+      }"
+    >
+      <template #name-cell="{ row }">
+        <div class="flex items-center gap-2">
+          <UIcon name="i-lucide-file-text" class="size-4 shrink-0 text-muted" />
+          <span class="truncate font-medium text-highlighted">{{ row.original.name }}</span>
         </div>
+      </template>
 
-        <UBadge color="neutral" variant="subtle" :label="`rev ${item.revision}`" />
-      </div>
-    </div>
+      <template #locale-cell="{ row }">
+        <UBadge color="neutral" variant="subtle" :label="row.original.locale" />
+      </template>
+
+      <template #revision-cell="{ row }">
+        <span class="text-muted">rev {{ row.original.revision }}</span>
+      </template>
+
+      <template #updatedAt-cell="{ row }">
+        <span class="text-muted">{{ formatUpdatedAt(row.original.updatedAt) }}</span>
+      </template>
+
+      <template #actions-cell="{ row }">
+        <div class="flex items-center justify-end gap-1">
+          <UButton
+            :to="`/resume/${row.original.id}/edit`"
+            icon="i-lucide-pencil"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            :aria-label="`编辑「${row.original.name}」`"
+          />
+          <UButton
+            icon="i-lucide-trash-2"
+            size="xs"
+            color="error"
+            variant="ghost"
+            :aria-label="`删除「${row.original.name}」`"
+            @click="askDelete(row.original)"
+          />
+        </div>
+      </template>
+    </UTable>
+
+    <ModalDeleteConfirm
+      v-model:open="deleteOpen"
+      title="删除这份简历？"
+      :content="`「${deleteTarget?.name ?? ''}」会从列表中移除。内容不会立刻销毁，但本轮没有恢复入口。`"
+      confirm-text="删除"
+      cancel-text="取消"
+      :cooldown="3"
+      :confirm="confirmDelete"
+    />
   </div>
 </template>

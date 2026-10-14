@@ -328,34 +328,3 @@ export function toCreateResumeDto(form: ResumeCreateForm): CreateResumeDto {
     document: { content: { sections } },
   }
 }
-
-/**
- * ZodError.issues 的结构子集 —— 只用结构化类型，避免 admin 直接依赖 zod 包。
- *
- * `path` 用 `PropertyKey`（含 symbol）而不是 `string | number`：zod v4 的 issue path
- * 就是这个类型，窄化会直接拒绝传入（TS2345）。symbol 段在下面的展示里统一 `String()` 化。
- */
-interface IssueLike {
-  path: readonly PropertyKey[]
-  message: string
-}
-
-/**
- * 把契约校验的 issues 转成一段可读文本（取前几条）。
- *
- * 提交前自己跑一遍 `createResumeSchema.safeParse`，是为了把"半截条目"这类问题
- * **在请求之前**说清楚；否则用户只会看到后端一句「请求参数有误」。
- */
-export function describeCreateIssues(issues: readonly IssueLike[]): string {
-  const head = issues.slice(0, 3).map(issue => {
-    const path = issue.path
-      .map(part => String(part))
-      .filter(part => part !== 'content' && part !== 'sections')
-      .join('.')
-    return path ? `${path}：${issue.message}` : issue.message
-  })
-
-  const more = issues.length > head.length ? `（另有 ${issues.length - head.length} 处）` : ''
-
-  return `还有内容不符合契约：${head.join('；')}${more}`
-}
