@@ -8,7 +8,7 @@ import { useAuthState } from './useAuthState'
  * `view` + `edit` → 完整操作。所以每个能力**成对**导出 `canViewXxx` / `canEditXxx`。
  *
  * 数据来源：后端 `permissionList[].permissionPermitKeys`（`flatMap` 合并多组）；
- * 后端没给（游客 / mock 异常）时回退角色预设 —— **永远非空**，否则判断全是 false、页面整片空。
+ * 登录身份仅使用后端权限并叠加游客浏览能力，空权限不会提升为角色预设。
  */
 export function usePermission() {
   const { session, role } = useAuthState()
@@ -16,7 +16,7 @@ export function usePermission() {
   const permissionKeys = computed<readonly string[]>(() => {
     const fromBackend = session.value?.permissionList?.flatMap(item => item.permissionPermitKeys ?? []) ?? []
 
-    return fromBackend.length ? fromBackend : rolePermissions(role.value)
+    return session.value ? [...new Set([...rolePermissions('guest'), ...fromBackend])] : rolePermissions(role.value)
   })
 
   /**

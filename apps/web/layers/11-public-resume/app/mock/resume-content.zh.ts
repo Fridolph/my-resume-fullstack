@@ -6,18 +6,31 @@ import type { ResumeContent } from '#layers/public-resume/app/types/resume'
  * 真图由后端快照提供；这里让 `standard` 的头像与翻牌在本地可预览，
  * 同时也验证「有图用图、无图回退 `avatarText`」两条路径。
  */
-const AVATAR_FRONT =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%231578d0'/%3E%3Ctext x='100' y='124' font-size='84' font-family='sans-serif' fill='%23ffffff' text-anchor='middle'%3E%E5%8E%89%3C/text%3E%3C/svg%3E"
-const AVATAR_BACK =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%232f9e63'/%3E%3Ctext x='100' y='124' font-size='84' font-family='sans-serif' fill='%23ffffff' text-anchor='middle'%3E%E9%9B%A8%3C/text%3E%3C/svg%3E"
+/**
+ * 头像占位。
+ *
+ * ⚠️ 这里**故意留空**，而不是内联 SVG data-URI：DAO-028 收紧后的 `imageUrl`
+ * 只接受 `''` / http(s) 外链 / 站内绝对路径，data-URI 会被 `resumeDocumentSchema`
+ * 拒绝（`invalid_union`）。留空后渲染层会走 `hasAvatarImage === false` → `avatarText`
+ * 的回退分支，视觉效果依然成立。
+ * 将来接入真实图片时，这里填 https 外链或 `/` 开头的站内路径即可。
+ */
+const AVATAR_FRONT = ''
+const AVATAR_BACK = ''
 
 /**
  * 兴趣墙配图占位（同上，内联 SVG data-URI）。
  *
  * `color` 传不带 `#` 的十六进制（data-URI 里 `#` 必须写成 `%23`）。
  */
-const interestShot = (text: string, color: string) =>
-  `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23${color}'/%3E%3Ctext x='100' y='124' font-size='72' font-family='sans-serif' fill='%23ffffff' text-anchor='middle'%3E${encodeURIComponent(text)}%3C/text%3E%3C/svg%3E`
+/**
+ * 兴趣墙配图占位。
+ *
+ * ⚠️ 同 `AVATAR_*`：原先返回内联 SVG data-URI，但契约不接受；现在统一返回空串，
+ * 让兴趣墙走"无图"分支。保留函数签名是为了不动下面十几处调用点 ——
+ * 将来接入真实图片时，只改这一个函数即可。
+ */
+const interestShot = (_text: string, _color: string) => ''
 
 /**
  * 简历内容 mock（中文）。

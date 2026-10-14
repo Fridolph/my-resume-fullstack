@@ -3,9 +3,9 @@
 ## 项目身份
 
 - 项目名称：`my-resume-fullstack`
-- 项目类型：`产品项目 / Dao 分支项目（在 dao-monorepo-temp 模板底座上实现 my-resume 的 Nuxt 版）`
-- 本项目要承载或验证的 Dao 方向：`先用熟悉技术栈（Nuxt 4 + Nuxt UI + layers + @pinia/colada，NestJS + PostgreSQL + Redis）逐模块实现 my-resume 的功能与页面，再把验证过的结论带回 my-resume 仓，用 React + Next.js + Python 重做同一套功能，形成“先熟后生”的双仓学习闭环；同时继续验证 Dao-is-Coding 的任务流转、交接、验证、收口与归母路径。`
-- 当前主承诺：`先立骨架与约定，再逐模块实现；业务留在本项目、底座能力保持可抽离；经验成熟后再考虑回灌 Dao-is-Coding 母仓。`
+- 项目类型：`Dao 进行时验证仓（产品项目）—— 在 dao-monorepo-temp 模板底座上，真实实现 my-resume 的 Nuxt 全栈版；不是单纯的模板仓，也不停在范例层面`
+- 本项目要承载或验证的 Dao 方向：`先用熟悉技术栈（Nuxt 4 + Nuxt UI + layers + @pinia/colada，NestJS + Prisma + PostgreSQL + Redis）逐模块实现 my-resume 的功能与页面，再把验证过的结论带回 my-resume 仓，用 React + Next.js + Python 重做同一套功能，形成“先熟后生”的双仓学习闭环；同时继续验证 Dao-is-Coding 的任务流转、交接、验证、收口与归母路径。`
+- 当前主承诺：`真实业务优先 —— 简历系统与用户/权限逐模块实装；业务留在本项目、底座能力保持可抽离；经验成熟后再考虑回灌 Dao-is-Coding 母仓。`
 
 ## 独立边界
 

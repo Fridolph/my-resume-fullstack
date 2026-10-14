@@ -5,6 +5,7 @@ import { AppController } from './app.controller'
 import { AuthModule } from './auth/auth.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { UserModule } from './user/user.module'
+import { ResumeModule } from './resume/resume.module'
 import { JwtAuthGuard } from './auth/jwt-auth.guard'
 import { ApiExceptionFilter } from './common/api-exception.filter'
 import { ApiResponseInterceptor } from './common/api-response.interceptor'
@@ -38,6 +39,7 @@ import { validateEnv } from './config/env.validation'
     PrismaModule,
     UserModule,
     AuthModule,
+    ResumeModule,
   ],
   controllers: [AppController],
   providers: [

@@ -41,17 +41,19 @@ const avatarSchema = z
  * roleKey 限制为 admin/user，公开注册尚未开放，不能通过本接口创建超管。
  * 格式校验改善输入体验，username/email 唯一性仍由数据库约束保证。
  */
-export const createUserSchema = z.strictObject({
-  username: usernameSchema.optional(),
-  nickname: nicknameSchema.optional(),
-  password: z.string().min(6, '密码至少 6 个字符').max(20, '密码最多 20 个字符'),
-  email: optionalEmailSchema,
-  avatar: avatarSchema.optional(),
-  roleKey: z.enum(['admin', 'user'], { error: '只能创建 admin 或 user' }).default('user'),
-}).refine(input => input.username !== undefined || input.email !== undefined, {
-  message: '用户名和邮箱至少填写一个',
-  path: ['username'],
-})
+export const createUserSchema = z
+  .strictObject({
+    username: usernameSchema.optional(),
+    nickname: nicknameSchema.optional(),
+    password: z.string().min(6, '密码至少 6 个字符').max(20, '密码最多 20 个字符'),
+    email: optionalEmailSchema,
+    avatar: avatarSchema.optional(),
+    roleKey: z.enum(['admin', 'user'], { error: '只能创建 admin 或 user' }).default('user'),
+  })
+  .refine(input => input.username !== undefined || input.email !== undefined, {
+    message: '用户名和邮箱至少填写一个',
+    path: ['username'],
+  })
 
 /**
  * 局部更新展示资料，不接受登录标识、角色或密码。
@@ -60,13 +62,15 @@ export const createUserSchema = z.strictObject({
  * 不从创建 schema 整体 partial：避免把创号专用字段开放给修改接口。
  * 至少提供一个字段，空字符串仍须通过昵称或头像格式校验。
  */
-export const updateUserSchema = z.strictObject({
-  nickname: nicknameSchema.nullable().optional(),
-  avatar: avatarSchema.nullable().optional(),
-}).refine(updateUserDto => updateUserDto.nickname !== undefined || updateUserDto.avatar !== undefined, {
-  message: '至少提供一个需要修改的字段',
-  path: ['nickname'],
-})
+export const updateUserSchema = z
+  .strictObject({
+    nickname: nicknameSchema.nullable().optional(),
+    avatar: avatarSchema.nullable().optional(),
+  })
+  .refine(updateUserDto => updateUserDto.nickname !== undefined || updateUserDto.avatar !== undefined, {
+    message: '至少提供一个需要修改的字段',
+    path: ['nickname'],
+  })
 
 /**
  * 本人修改密码的输入边界；旧密码用于证明当前账号控制权，新密码用于生成新的哈希。

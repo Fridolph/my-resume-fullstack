@@ -87,10 +87,7 @@ export class UserController {
    * 这是超管的会话管理动作，不是代替用户设置密码；目标重新登录仍使用原凭据。
    */
   @Post(':id/force-logout')
-  forceLogout(
-    @Param('id', { schema: userIdSchema }) id: string,
-    @CurrentUser() currentUser: AuthUser,
-  ) {
+  forceLogout(@Param('id', { schema: userIdSchema }) id: string, @CurrentUser() currentUser: AuthUser) {
     return this.userService.forceLogout(id, currentUser)
   }
 
@@ -101,10 +98,7 @@ export class UserController {
    * Controller 不接收请求体，也不接受调用方传入的操作者 ID 或角色。
    */
   @Delete(':id')
-  remove(
-    @Param('id', { schema: userIdSchema }) id: string,
-    @CurrentUser() currentUser: AuthUser,
-  ) {
+  remove(@Param('id', { schema: userIdSchema }) id: string, @CurrentUser() currentUser: AuthUser) {
     return this.userService.remove(id, currentUser)
   }
 }

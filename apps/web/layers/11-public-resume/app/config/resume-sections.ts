@@ -10,6 +10,24 @@ import ResumeHighlightsSection from '#layers/public-resume/app/components/resume
 import ResumeProjectsSection from '#layers/public-resume/app/components/resume/ResumeProjectsSection.vue'
 import ResumeSkillsSection from '#layers/public-resume/app/components/resume/ResumeSkillsSection.vue'
 
+/**
+ * 契约层的模块类型键 → 编辑/展示层的历史键。
+ *
+ * ⚠️ **这不是冗余，请不要删**。两层的键名**有意不同**：
+ * - 契约层（`packages/common` / 数据库 / API）用 `capabilities` —— DAO-028 定的名，
+ *   因为语义已从「字符串技能列表」变成「分组 + 条目 + 自评维度」，改名是必要的；
+ * - 编辑/展示层（本目录的类型、配置、组件、mock）沿用历史的 `skills` ——
+ *   改它要动 `ResumeSectionKey` 类型、区块配置、4 个展示组件与 mock 数据，
+ *   收益不抵风险。
+ *
+ * 两层的桥接**只保留在这一个函数里**：以前这条映射在 `resume-document.ts` 与
+ * `ResumeDraftPreview.vue` 里各写了一遍（其中两处是内联三元），一旦契约再改名
+ * 很容易漏改，而且不会报编译错（`skills` 本身是合法字符串）。
+ */
+export function toLegacySectionKey(type: string): ResumeSectionKey {
+  return (type === 'capabilities' ? 'skills' : type) as ResumeSectionKey
+}
+
 /** 区块定义：决定它叫什么、放哪一栏、默认第几个出现 */
 export interface ResumeSectionDefinition {
   key: ResumeSectionKey

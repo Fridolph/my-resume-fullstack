@@ -15,7 +15,9 @@
     "db:studio": "prisma studio",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test"
+    "test": "pnpm build && node --test src/resume/__tests__/*.test.cjs",
+    "test:resume:http": "node scripts/resume-http.mjs",
+    "docs:resume": "node scripts/resume-openapi.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^12.1.2",

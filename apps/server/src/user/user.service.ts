@@ -1,4 +1,10 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { PERMISSION_KEYS } from '../auth/permission-keys'
 import { API_ERROR_CODES } from '../common/error-codes'
 import type { AuthUser } from '../common/http-context'
