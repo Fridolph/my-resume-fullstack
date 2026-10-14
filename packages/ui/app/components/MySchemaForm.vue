@@ -12,9 +12,12 @@ import MySchemaFieldInput from './MySchemaFieldInput.vue'
  * 各端的字段表各自维护（web 在 `config/resume-editor-schemas.ts`，admin 在简历的创建 / 编辑页 config）；
  * 要加「一段」不用动这里。数组的定位在这里完成，所以调用方不需要知道 `listPath` 怎么写。
  *
- * ⚠️ **删除一条要二次确认**：字段表单里的"删除这一项"是一击即中的破坏性动作，
- * 而条目往往刚被填过、手滑概率高。所以这里的删除按钮只"请求删除"，真正删除要过本组件底部的
- * 确认弹窗（确认 + 防误点倒计时）—— 与列表页删整份简历是同一个道理。
+ * ⚠️ **删除一条要二次确认，但不加倒计时**：字段表单里的"删除这一项"是一击即中的动作，
+ * 而条目往往刚被填过，所以按钮只"请求删除"，真正删除要过本组件底部的确认弹窗。
+ *
+ * 这里**刻意不做防误点倒计时**（列表页删整份简历才有）：两者要的态度不同 ——
+ * 删整份简历是不可逆的"重"操作，值得让人停一下；删一条内容是编辑中的日常整理，
+ * 每次都等几秒只会让人烦躁。少的那一道不是漏做，而是产品取舍。
  */
 const props = defineProps<{
   /** 编辑的根对象（各端自己的内容对象） */
@@ -23,9 +26,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ change: [] }>()
-
-/** 防误点倒计时：删一条内容的破坏面比删整份简历小，2 秒足够挡住手滑，也不至于打断心流 */
-const REMOVE_COOLDOWN_SECONDS = 2
 
 /**
  * 就地改数组项的某个字段并标记改动。
@@ -110,37 +110,12 @@ function moveItem(segment: FormSegmentSchema, index: number, delta: number) {
 
 // ── 删除确认 ─────────────────────────────────────────────────────────
 const removeOpen = ref(false)
-const removeCooldown = ref(0)
 const pendingRemove = ref<{ segment: FormSegmentSchema; index: number; title: string } | null>(null)
-let cooldownTimer: ReturnType<typeof setInterval> | undefined
-
-function stopCooldown() {
-  if (cooldownTimer) {
-    clearInterval(cooldownTimer)
-    cooldownTimer = undefined
-  }
-}
-
-/**
- * 计时器用纯 `setInterval` 实现（不用 `@vueuse/core` 的 `useCountdown`）：
- * `packages/ui` 是**零第三方运行时依赖**的共享层，为两行倒计时引一个依赖不划算。
- */
-function startCooldown() {
-  stopCooldown()
-  removeCooldown.value = REMOVE_COOLDOWN_SECONDS
-  cooldownTimer = setInterval(() => {
-    removeCooldown.value -= 1
-    if (removeCooldown.value <= 0) {
-      stopCooldown()
-    }
-  }, 1000)
-}
 
 function requestRemove(segment: FormSegmentSchema, index: number) {
   const item = itemsOf(segment)?.[index]
   pendingRemove.value = { segment, index, title: itemTitle(segment, item, index) }
   removeOpen.value = true
-  startCooldown()
 }
 
 /** 确认删除：执行移除并关闭弹窗（关闭会触发 `resetRemoveState` 收尾） */
@@ -154,13 +129,10 @@ function confirmRemove() {
   removeOpen.value = false
 }
 
-/** 弹窗关闭（确认或取消都会走到）：清掉待删信息与计时器，避免下次打开时状态残留 */
+/** 弹窗关闭（确认或取消都会走到）：清掉待删信息，避免下次打开时残留上一次的标题 */
 function resetRemoveState() {
   pendingRemove.value = null
-  stopCooldown()
 }
-
-onBeforeUnmount(stopCooldown)
 </script>
 
 <template>
@@ -264,13 +236,7 @@ onBeforeUnmount(stopCooldown)
       <template #footer="{ cancel }">
         <div class="flex w-full items-center justify-end gap-2">
           <UButton color="neutral" variant="ghost" label="取消" @click="cancel" />
-          <UButton
-            color="error"
-            icon="i-lucide-trash-2"
-            :disabled="removeCooldown > 0"
-            :label="removeCooldown > 0 ? `删除 (${removeCooldown})` : '删除'"
-            @click="confirmRemove"
-          />
+          <UButton color="error" icon="i-lucide-trash-2" label="删除" @click="confirmRemove" />
         </div>
       </template>
     </MyModal>
