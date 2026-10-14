@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ResumeFieldGroupSchema } from '#layers/public-resume/app/config/resume-editor-schemas'
-import ResumeFieldInput from './ResumeFieldInput.vue'
+import type { FormSegmentSchema } from '@rs/common'
+import MySchemaFieldInput from './MySchemaFieldInput.vue'
 
 /**
  * 通用字段表单（schema 驱动，支持多段）。
@@ -8,13 +8,13 @@ import ResumeFieldInput from './ResumeFieldInput.vue'
  * 每段要么是 `fields`（按点号路径直接改根对象上的字段，如 `profile.hero.slogans`），
  * 要么是 `list`（编辑根对象上的某个数组，**路径同样支持点号**，如 `profile.links`）。
  *
- * 区块要加字段只改 `config/resume-editor-schemas.ts`；要加「一段」也不用动这里。
+ * 各端的字段表各自维护（web 在 `config/resume-editor-schemas.ts`，admin 在简历创建页的 config）；要加「一段」不用动这里。
  * 数组的定位在这里完成，所以抽屉不需要知道 `listPath` 怎么写。
  */
 const props = defineProps<{
-  /** 编辑的根对象（这里是 `ResumeContent`） */
+  /** 编辑的根对象（这里是各端自己的内容对象） */
   root?: Record<string, unknown>
-  segments: ResumeFieldGroupSchema[]
+  segments: FormSegmentSchema[]
 }>()
 
 const emit = defineEmits<{ change: [] }>()
@@ -54,7 +54,7 @@ function writePath(path: string, value: unknown) {
 }
 
 /** 段内的数组（`list` 模式）：路径可含点号，如 `profile.links` */
-function itemsOf(segment: ResumeFieldGroupSchema): Record<string, unknown>[] | undefined {
+function itemsOf(segment: FormSegmentSchema): Record<string, unknown>[] | undefined {
   if (!segment.listPath) {
     return undefined
   }
@@ -62,17 +62,17 @@ function itemsOf(segment: ResumeFieldGroupSchema): Record<string, unknown>[] | u
   return readPath(segment.listPath) as Record<string, unknown>[] | undefined
 }
 
-function addItem(segment: ResumeFieldGroupSchema) {
+function addItem(segment: FormSegmentSchema) {
   itemsOf(segment)?.push(structuredClone(segment.blank ?? {}))
   emit('change')
 }
 
-function removeItem(segment: ResumeFieldGroupSchema, index: number) {
+function removeItem(segment: FormSegmentSchema, index: number) {
   itemsOf(segment)?.splice(index, 1)
   emit('change')
 }
 
-function moveItem(segment: ResumeFieldGroupSchema, index: number, delta: number) {
+function moveItem(segment: FormSegmentSchema, index: number, delta: number) {
   const list = itemsOf(segment)
   const target = index + delta
   if (!list || target < 0 || target >= list.length) {
@@ -90,11 +90,7 @@ function moveItem(segment: ResumeFieldGroupSchema, index: number, delta: number)
 <template>
   <div class="space-y-8">
     <section v-for="(segment, segmentIndex) in segments" :key="segmentIndex" class="space-y-4">
-      <p
-        v-if="segment.label"
-        class="border-b pb-2 text-sm font-semibold"
-        :style="{ borderColor: 'var(--resume-border)' }"
-      >
+      <p v-if="segment.label" class="border-b border-default pb-2 text-sm font-semibold">
         {{ segment.label }}
       </p>
 
@@ -106,7 +102,7 @@ function moveItem(segment: ResumeFieldGroupSchema, index: number, delta: number)
           :label="field.label"
           :class="field.wide ? 'sm:col-span-2' : ''"
         >
-          <ResumeFieldInput
+          <MySchemaFieldInput
             :field="field"
             :value="readPath(field.path ?? '')"
             @update:value="writePath(field.path ?? '', $event)"
@@ -119,7 +115,11 @@ function moveItem(segment: ResumeFieldGroupSchema, index: number, delta: number)
         <UCard v-for="(item, index) in itemsOf(segment)" :key="index" :ui="{ body: 'space-y-4 p-4 sm:p-4' }">
           <div class="flex items-center justify-between gap-2">
             <p class="truncate text-sm font-medium">
-              {{ segment.titleKey ? String(item[segment.titleKey] ?? `第 ${index + 1} 项`) : `第 ${index + 1} 项` }}
+              {{
+                segment.titleKey
+                  ? String(item[segment.titleKey] ?? `第 ${Number(index) + 1} 项`)
+                  : `第 ${Number(index) + 1} 项`
+              }}
             </p>
             <div class="flex shrink-0 items-center gap-1">
               <UButton
@@ -158,7 +158,7 @@ function moveItem(segment: ResumeFieldGroupSchema, index: number, delta: number)
               :label="field.label"
               :class="field.wide ? 'sm:col-span-2' : ''"
             >
-              <ResumeFieldInput
+              <MySchemaFieldInput
                 :field="field"
                 :value="item[field.key ?? '']"
                 @update:value="setItemValue(item, field.key ?? '', $event)"

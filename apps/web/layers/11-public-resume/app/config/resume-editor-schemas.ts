@@ -1,3 +1,4 @@
+import type { FormFieldSchema, FormFieldType, FormSegmentSchema } from '@rs/common'
 import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
 
 /**
@@ -11,34 +12,15 @@ import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
  * 单一 `mode` 表达不了。
  */
 
-export type ResumeFieldType = 'text' | 'textarea' | 'tags' | 'number'
+/** @deprecated 改用 `@rs/common` 的 `FormFieldType`；保留别名避免大面积改动 */
+export type ResumeFieldType = FormFieldType
 
-export interface ResumeFieldSchema {
-  /** `fields` 模式：相对 ResumeContent 的路径，如 `profile.name` / `profile.hero.slogans` */
-  path?: string
-  /** `list` 模式：数组项上的字段名 */
-  key?: string
-  label: string
-  type: ResumeFieldType
-  /** 占整行（长文本、标签数组用） */
-  wide?: boolean
-  placeholder?: string
-}
+/** @deprecated 改用 `@rs/common` 的 `FormFieldSchema` */
+export type ResumeFieldSchema = FormFieldSchema
 
 /** 编辑表单的一段 */
-export interface ResumeFieldGroupSchema {
-  /** `fields`：直接编辑若干字段；`list`：编辑某个数组 */
-  mode: 'fields' | 'list'
-  /** 段标题（抽屉里显示）；也可以省略 */
-  label?: string
-  /** `list` 模式下数组路径，**支持点号**（如 `profile.links`） */
-  listPath?: string
-  /** `list` 模式下用哪个字段做项标题 */
-  titleKey?: string
-  /** `list` 模式下新增项的模板 */
-  blank?: Record<string, unknown>
-  fields: ResumeFieldSchema[]
-}
+/** @deprecated 改用 `@rs/common` 的 `FormSegmentSchema` */
+export type ResumeFieldGroupSchema = FormSegmentSchema
 
 export interface ResumeSectionEditorSchema {
   segments: ResumeFieldGroupSchema[]

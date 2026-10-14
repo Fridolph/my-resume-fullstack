@@ -3,14 +3,13 @@ import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
 import { resumeEditorSchemas } from '#layers/public-resume/app/config/resume-editor-schemas'
 import { getSectionDefinition } from '#layers/public-resume/app/config/resume-sections'
 import { useResumeContent } from '#layers/public-resume/app/composables/useResumeContent'
-import ResumeSchemaForm from './editors/ResumeSchemaForm.vue'
 
 /**
  * 区块内容编辑抽屉。
  *
  * 只负责「取 schema → 交给通用表单 → 标脏 / 落盘」：
  * 有哪些字段、分几段由 `config/resume-editor-schemas.ts` 决定；
- * 数组定位（含 `profile.links` 这类点号路径）交给 `ResumeSchemaForm`。
+ * 数组定位（含 `profile.links` 这类点号路径）交给 `MySchemaForm`。
  *
  * 内容与布局一样是**自动保存**（防抖落盘，见 useResumeContent），
  * 所以这里不再有「保存」按钮，只显示状态 + 关闭。
@@ -50,7 +49,7 @@ function close() {
     :description="'改动实时反映到预览，并自动保存'"
   >
     <template #body>
-      <ResumeSchemaForm
+      <MySchemaForm
         v-if="schema"
         :root="content as unknown as Record<string, unknown>"
         :segments="schema.segments"

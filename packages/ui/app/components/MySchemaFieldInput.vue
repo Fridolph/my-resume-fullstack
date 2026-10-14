@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeFieldSchema } from '#layers/public-resume/app/config/resume-editor-schemas'
+import type { FormFieldSchema } from '@rs/common'
 
 /**
  * 单个字段的输入控件（按 schema 的类型分发）。
@@ -9,7 +9,7 @@ import type { ResumeFieldSchema } from '#layers/public-resume/app/config/resume-
  * - `tags`：标签数组，回车添加、点标签删除（emit 新数组，保持不可变）
  */
 const props = defineProps<{
-  field: ResumeFieldSchema
+  field: FormFieldSchema
   value: unknown
 }>()
 
