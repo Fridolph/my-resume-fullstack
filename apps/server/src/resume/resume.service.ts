@@ -28,11 +28,17 @@ function toResponse(draft: DraftRecord): ResumeDraftResponse {
 export class ResumeService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  /**
+   * 编辑资格：**两个条件必须同时满足**——角色表达身份层级，权限键表达功能授权。
+   *
+   * 把条件提成命名变量正向表达，是为了避免误读：原来的写法把两个 `!` 条件用 `||` 连起来，
+   * 容易被读成"满足其一即可"，而它的真实含义是 `!(是编辑角色 && 有编辑权限)`。
+   */
   private assertEditable(currentUser: AuthUser) {
-    if (
-      !currentUser.roleKeys.some(role => role === 'admin' || role === 'super_admin') ||
-      !currentUser.permissionKeys.includes(PERMISSION_KEYS.RESUME_SECTIONS_EDIT)
-    ) {
+    const isEditorRole = currentUser.roleKeys.some(role => role === 'admin' || role === 'super_admin')
+    const hasEditPermission = currentUser.permissionKeys.includes(PERMISSION_KEYS.RESUME_SECTIONS_EDIT)
+
+    if (!isEditorRole || !hasEditPermission) {
       throw new ForbiddenException('当前身份没有编辑简历的资格', { errorCode: API_ERROR_CODES.RESUME_EDIT_FORBIDDEN })
     }
   }
