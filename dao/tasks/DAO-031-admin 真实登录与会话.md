@@ -4,10 +4,10 @@
 
 ## 身份
 
-- 状态：`in-progress`（Owner 2026-10-14 确认：**作为 DAO-030 的前置一并做**，不再单独排期）
+- 状态：`review-ready`（2026-10-14：实现完成、机器验证与质量门通过、Owner 观感确认；已提交推送，等与 DAO-030 一同 feature → dev）
 - Owner：`昇哥`
 - 创建日期：`2026-10-14`
-- 分支：与 DAO-030 同分支 `feat/38-admin-resume-create`（Owner 选择本期一起交付）
+- 分支：与 DAO-030 同分支 `feat/38-admin-resume-create`（Owner 选择本期一起交付，已推送）
 - Issue：**待建**（范围扩大自 DAO-030/#38；是否单独建 Issue 等 Owner 定编号）
 - 关联：`DAO-030`（本卡是它的前置）、[`docs/dev/02_身份与权限_设计.md`](../../docs/dev/02_身份与权限_设计.md)、web 侧参照实现 `apps/web/app/{apis/auth.ts,composables/useAuthState.ts}`、后端 `apps/server/src/auth/`
 

@@ -4,10 +4,10 @@
 
 ## 身份
 
-- 状态：`in-progress`（设计已拍板：`docs/admin/02_简历创建页_设计.md`，P1～P4 见其 §8；**第一刀已于 `ad3a0a9` 落地**，见「复用路径（已落地）」）
+- 状态：`review-ready`（2026-10-14：实现完成、机器验证与质量门通过、**Owner 观感确认"这么改没问题"**；admin 侧已提交并推送，等 feature → dev 集成）
 - Owner：`昇哥`
 - 创建日期：`2026-10-14`
-- 分支：`feat/38-admin-resume-create`（基于 `dev` 的 `c2c3723`；第一刀 `ad3a0a9` 已推送，未合 dev）
+- 分支：`feat/38-admin-resume-create`（基于 `dev` 的 `c2c3723`；已推送，未合 dev）
 - Issue：[#38](https://github.com/Fridolph/my-resume-fullstack/issues/38)
 - 关联：`docs/admin/02_简历创建页_设计.md`（**唯一设计源**）、`docs/dev/07_简历系统_最小创建输入与默认补全.md`（#36 稀疏输入）、`DAO-029`（简历 CRUD，分工见下）、`DAO-028`（已 done，简历三表与接口由它建立）
 
