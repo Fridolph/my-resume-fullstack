@@ -96,16 +96,25 @@
 
 | 类型   | 命令 / 样本 / 链接 | 结果 | 仍未验证的边界 |
 | ------ | ------------------ | ---- | -------------- |
-| 机器验 | `pnpm typecheck` / `pnpm lint`（第一刀，`ad3a0a9`） | 6/6 通过；lint 0 warnings / 0 errors | 父页与创建页尚未实现，未跑 build / test |
-| 结构验 | Git rename 识别 R094 / R082，确认搬迁未改逻辑 | 通过 | — |
-| 意图验 | 浏览器实测 web `/resume/draft` 模块编辑抽屉：100 个输入控件、label 齐全、0 console error | 通过（第一刀） | **本期新页面（父页 / 侧栏 / `/resume/new`）的桌面与移动端验收未做** |
+| 机器验 | `pnpm typecheck` / `pnpm lint`（第一刀，`ad3a0a9`） | 6/6 通过；lint 0 warnings / 0 errors | — |
+| 机器验 | `pnpm format:check` / `lint` / `typecheck` / `test` / `build`（本刀） | 通过 | — |
+| 机器验 | 编译并直接运行 `utils/resume-create-form.ts`（esbuild + node）：13 项断言全过 —— 转换产物通过 `createResumeSchema`、空条目/空链接/空公司被丢弃、日期转 `custom`、成果转 `textItems`、能力默认量尺 5 且维度留空、自我评价 trim 后过滤空行 | **13/13 通过** | — |
+| 结构验 | `POST /api/resume`（最小输入：只有 profile）→ 服务端补全 | 200，返回完整 7 区块文档、`schemaVersion: 1`、`display.sections.order` 与区块数一致 | — |
+| 结构验 | 无 cookie 访问 `/resume`、`/resume/new` → **302 /login**；带 cookie → **200** 且 SSR HTML 含侧栏两项、7 个区块标题、上传占位卡、空态文案 | 通过 | — |
+| 意图验 | 浏览器实点：侧栏跳转、增删条目、标签回车、提交按钮 → toast → 跳转、移动端布局 | **未执行** —— 本机沙箱下 Chromium 无法启动（写 profile 路径被拒），自动化浏览器验证做不了 | **父页 / 侧栏 / 创建页的桌面与移动端观感与手感需 Owner 实看**（见「交接」的验收清单） |
 
 ## 交接
 
-- 已完成：设计拍板并落档（`docs/admin/02`）；与 DAO-029 的分工厘清；**第一刀：共享 schema 表单上提（`ad3a0a9`，已推送未合 dev）**
-- 当前状态：`in-progress`
+- 已完成：设计拍板并落档（`docs/admin/02`）；与 DAO-029 的分工厘清；**第一刀：共享 schema 表单上提（`ad3a0a9`）**；**本刀**：`/resume` 父页 + 二级侧栏 + `config/resume-navigation.ts`、`/resume/new` 七区块大表单（含增删条目、标签输入、稀疏提交、契约自检）、上传占位卡片；前置 DAO-031（admin 真实登录）已同时交付
+- 当前状态：`in-progress`（代码与机器验证完成，等 Owner 的观感验收）
 - 阻塞：无
-- 下一步第一刀：`/resume` 父页 + 二级侧栏（仿 `layers/13-settings` 的 `settings.vue` + `settings-navigation.ts`）
+- 下一步第一刀：Owner 验收（下方清单）→ 按其反馈微调 → 本地提交
+- **Owner 验收清单**：
+  1. 打开 <http://localhost:4047/login>，用本地演示账号 `super` / `super!` 登录（字段是**用户名或邮箱**）；
+  2. 登录后刷新页面，确认仍是登录态；侧栏底部显示「超管」；点它 → Sign out → 回到登录页；
+  3. 进入「简历」域：左侧二级侧栏（所有简历 / 新建简历）与高亮；`/resume` 是空态 + 新建入口；
+  4. `/resume/new`：填写姓名后点「创建简历」应成功（顶部提示 + 回到 `/resume`）；只点「新增一项」不填内容则不会被提交；把某条链接的 URL 留空后再提交，应看到「还不能创建」的提示而不是后端报错；
+  5. 桌面与移动端各看一遍密度与手感（移动端表单会落成单列）。
 - 文档锚点：`docs/admin/02_简历创建页_设计.md`、`docs/dev/07_简历系统_最小创建输入与默认补全.md`
 - 集成锚点：`待 feature -> dev`
 
