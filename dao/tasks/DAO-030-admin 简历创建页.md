@@ -124,11 +124,15 @@ Owner 在首轮验收前给了四条反馈，据此**调整了本卡范围**（�
 | 结构验 | 无 cookie 访问 `/resume`、`/resume/new` → **302 /login**；带 cookie → **200**（SSR） | 通过 | — |
 | 结构验 | `GET /api/resume`：带 token 返回本人未删除简历（`id / name / locale / revision / updatedAt`）；无 token → **401**；被软删除的测试简历**不出现**在列表里 | 通过 | — |
 | 结构验 | 反馈后 `/resume` 的 SSR HTML：渲染真实简历名 / `rev 1` / 「更新于」/「新建简历」入口；**无** `placeholder="Search"`、**无**假头像 `AD`、**无**二级侧栏「所有简历」、**无**旧空态文案 | 全部符合 | — |
+| 结构验 | Owner 第二轮反馈（layout）后：`/resume` 与 `/resume/new` 的 SSR HTML **含 `has-sidebar` 主导航（Dashboard / Comps）与 sticky 页头**、`<h1>简历</h1>` 正常；仍无二级侧栏、无页头搜索 | 通过 | — |
 | 意图验 | 浏览器实点：视图切换（卡片 ⇄ 列表）与记忆、增删条目、标签回车、提交 → toast → 跳转、移动端布局 | **未执行** —— 本机沙箱下 Chromium 无法启动（写 profile / crashpad 路径被拒），自动化浏览器验证做不了 | **概览页两档呈现、创建页表单、页头观感需 Owner 实看**（见「交接」的验收清单） |
 
-> ⚠️ 一次真实的构建失败与修复，记在这里以免下次重犯：`AdminHeader.vue` 一度出现**两个 `<template>` 块**
-> （替换 script 块时把模板也写进了 new_string，原有模板未删），`typecheck` 与 dev 都不报，
-> **只有 `nuxt build` 会报 `Single file component can contain only one <template> element`**。
+> ⚠️ 两次「只有 build / 只有跑起来才暴露」的错误，记在这里以免重犯：
+> 1. `AdminHeader.vue` 一度出现**两个 `<template>` 块**（替换 script 块时把模板也写进了 new_string，原有模板未删），
+>    `typecheck` 与 dev 都不报，**只有 `nuxt build` 报** `Single file component can contain only one <template> element`；
+> 2. 删掉父页 `resume.vue` 后，`/resume` 与 `/resume/new` **漏了 `layout: 'has-sidebar'`**，
+>    变成裸渲染（无主导航、无页头）—— `typecheck` 与构建都不会报这种"少了一层壳"的问题，
+>    **只有真的打开页面/检查渲染结果才看得出来**。教训：删父页时，要把它承担的"壳"显式交回子页。
 > 教训：改 SFC 时一次只动一个块；`build` 是这类错误的唯一机器出口，不能省。
 
 ## 交接
