@@ -2,7 +2,8 @@
 import type { AuthFormField } from '@nuxt/ui'
 
 export interface LoginCredentials {
-  email: string
+  /** 用户名或邮箱 —— 后端按是否含 `@` 选择查询字段 */
+  account: string
   password: string
 }
 
@@ -30,11 +31,11 @@ const emit = defineEmits<{
 
 const fields: AuthFormField[] = [
   {
-    name: 'email',
-    type: 'email',
-    label: 'Email',
-    placeholder: 'you@example.com',
-    leadingIcon: 'i-lucide-mail',
+    name: 'account',
+    type: 'text',
+    label: 'Username or email',
+    placeholder: 'super 或 you@example.com',
+    leadingIcon: 'i-lucide-user-round',
     size: 'lg',
     required: true,
   },

@@ -59,9 +59,18 @@ async function handleConfirm() {
   }
 }
 
-onMounted(() => {
-  if (props.cooldown > 0) start()
-})
+// 每次打开都重新倒计时。
+//
+// 之前只在 `onMounted` 里 `start()`：组件常驻在页面里时它只会跑一次，
+// 于是第二次打开就是"倒计时早已结束"，确认按钮立即可点 —— 防误点名不副实。
+// `immediate: true` 兼顾 `useOverlay` 的用法（那种场景下挂载即打开）。
+watch(
+  open,
+  value => {
+    if (value && props.cooldown > 0) start()
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

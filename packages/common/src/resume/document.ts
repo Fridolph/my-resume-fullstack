@@ -72,6 +72,14 @@ export const resumeDateSchema = z
   })
 
 /**
+ * 从日期契约推导的类型。
+ *
+ * 供前端做只读展示或形状判断时使用（比如 admin 编辑页把日期渲染成一行摘要，
+ * 而不在表单里编辑它）；类型标注不等于已校验。
+ */
+export type ResumeDate = z.infer<typeof resumeDateSchema>
+
+/**
  * 基本信息模块的头图字段。
  *
  * 独立成具名 schema，是为了让「创建输入的稀疏 profile」能复用同一形状（用 `.partial()` 放宽），
@@ -593,15 +601,37 @@ export function buildResumeDocument(input: ResumeDraftInput): ResumeDocument {
  * 归属用户、简历主键与初始 revision 由后端确定，不允许客户端通过额外字段指定。
  * 两表创建是否原子成功由后端事务保证，不由 schema 保证。
  */
+/**
+ * 语言标识：1～20 位字母、数字或连字符，不做完整语言标签规范验证。
+ *
+ * 抽成具名 schema，是为了让「创建」与「列表」共用同一份定义 ——
+ * 抄两遍就会漂移（一侧收紧后，列表展示与创建校验就对不上了）。
+ */
+export const resumeLocaleSchema = z
+  .string()
+  .min(1)
+  .max(20)
+  .regex(/^[A-Za-z0-9-]+$/)
+
 export const createResumeSchema = z.strictObject({
   name: resumeNameSchema,
-  locale: z
-    .string()
-    .min(1)
-    .max(20)
-    .regex(/^[A-Za-z0-9-]+$/),
+  locale: resumeLocaleSchema,
   document: resumeDraftInputSchema,
 })
+
+/**
+ * 重命名简历的请求体契约。
+ *
+ * 只允许改**内部名称**（`resumes.name`）：它是用户给自己看的标识，与正文里的姓名无关。
+ * 用 `strictObject` 拒绝客户端顺手带上 `id` / `locale` / `document` —— 那些各有各的接口，
+ * 混进同一个 PATCH 会让"改个名字"变成一次隐式的整体覆盖。
+ */
+export const renameResumeSchema = z.strictObject({ name: resumeNameSchema })
+
+/**
+ * 从重命名请求推导的 DTO 类型。
+ */
+export type RenameResumeDto = z.infer<typeof renameResumeSchema>
 
 /**
  * 简历主键（路由参数形态）。
@@ -682,3 +712,29 @@ export interface ResumeDraftResponse {
   /** 当前完整 V1 文档，不是 Prisma 模型或发布快照。 */
   document: ResumeDocument
 }
+
+/**
+ * 简历列表项（概览页用）。
+ *
+ * 只列**列表展示必需**的字段：简历身份、内部名称与语言、草稿版本与最近更新时间。
+ *
+ * 有意**不返回 document**：列表里逐条解析完整正文既浪费带宽，也会让概览页
+ * 耦合正文契约；正文仍由 `/resume/:id/draft` 提供（那是编辑入口，不是列表入口）。
+ *
+ * revision 与 updatedAt 都取自**草稿表**：它们表达"内容改到第几版 / 什么时候改的"，
+ * 比简历主体的 `updated_at` 更贴近用户感知，语义也与草稿接口保持一致，不新造含义。
+ */
+export const resumeSummarySchema = z.strictObject({
+  id: z.number().int().positive(),
+  name: resumeNameSchema,
+  locale: resumeLocaleSchema,
+  revision: z.number().int().positive(),
+  updatedAt: z.string(),
+})
+
+/**
+ * 从简历列表项 schema 推导的类型。
+ *
+ * 类型标注不等于已校验：外部数据仍须调用 `resumeSummarySchema.parse`。
+ */
+export type ResumeSummary = z.infer<typeof resumeSummarySchema>

@@ -1,77 +1,290 @@
 <script setup lang="ts">
+import type { TableColumn } from '@nuxt/ui'
+import { useQueryCache } from '@pinia/colada'
+import { normalizeApiError, resolveApiErrorMessage, type ResumeSummary } from '@rs/common'
+import { queryKeys } from '~/lib/query-keys'
+import { createResumeApi } from '../../apis/resume'
+
+/**
+ * 简历概览（`/resume`）。
+ *
+ * 这一页回答"我有哪些简历"，并提供两件管理动作：**进编辑页**、**软删除**。
+ * 两种呈现（卡片 / 列表）只是同一份数据的两种排布，操作项完全一致。
+ *
+ * 布局用后台通用的 `has-sidebar`，**不叠 settings 那样的二级侧栏**（只有一项入口，加了反而多一层点击）。
+ *
+ * ⚠️ 「查看详情」图标不在这里：详情预览要用公开站的展示层，而那套组件属 web 的 layer
+ * （按分层约定 admin 不能直接引用）。它要先上提到 `packages/ui` 才能接，见 DAO-030 的下一轮计划 ——
+ * 在那之前不放一个点了没去处的按钮。
+ */
 definePageMeta({
   layout: 'has-sidebar',
   title: '简历',
+  middleware: 'auth',
 })
 
-/**
- * 简历域入口（骨架）。
- *
- * 本页当前只承担两件事：
- * 1. 验证 `layers/11-resume` 被 Nuxt 正常发现、导航与布局生效；
- * 2. 声明后续要落在这个域里的模块，避免功能散落到别处。
- */
-const plannedModules = [
-  {
-    label: '草稿编辑',
-    description: '按 draft 编辑简历内容（去字段级 locale，多份草稿）',
-    icon: 'i-lucide-pencil-line',
-    status: 'planned',
-  },
-  {
-    label: '版面布局',
-    description: '选择与调整简历版式，决定各区块的呈现顺序',
-    icon: 'i-lucide-layout-template',
-    status: 'planned',
-  },
-  {
-    label: '主题',
-    description: '配色与排版主题，影响公开站的呈现',
-    icon: 'i-lucide-palette',
-    status: 'planned',
-  },
-  {
-    label: '版本与对比',
-    description: '草稿版本列表与差异对比',
-    icon: 'i-lucide-git-compare',
-    status: 'planned',
-  },
+const toast = useToast()
+const api = createResumeApi()
+const queryCache = useQueryCache()
+const { signOut } = useAuthState()
+const { summaries, status, error } = useResumeList()
+
+type ResumeViewMode = 'card' | 'list'
+
+/** 视图偏好记在本地：切一次就记住，下次进来保持（与 GS 的项目列表同一套做法） */
+const VIEW_STORAGE_KEY = 'admin.resume-view'
+const viewMode = ref<ResumeViewMode>('card')
+
+onMounted(() => {
+  const saved = localStorage.getItem(VIEW_STORAGE_KEY)
+  if (saved === 'card' || saved === 'list') {
+    viewMode.value = saved
+  }
+})
+
+function setViewMode(mode: ResumeViewMode) {
+  viewMode.value = mode
+  localStorage.setItem(VIEW_STORAGE_KEY, mode)
+}
+
+const viewOptions = [
+  { value: 'card' as const, icon: 'i-lucide-layout-grid', label: '卡片' },
+  { value: 'list' as const, icon: 'i-lucide-table', label: '列表' },
 ]
 
-const statusMeta: Record<string, { label: string; color: 'neutral' | 'warning' }> = {
-  planned: { label: '待开发', color: 'warning' },
-  ready: { label: '可用', color: 'neutral' },
+const columns: TableColumn<ResumeSummary>[] = [
+  { accessorKey: 'name', header: '简历名' },
+  { accessorKey: 'locale', header: '语言' },
+  { accessorKey: 'revision', header: '版本' },
+  { accessorKey: 'updatedAt', header: '最近改动' },
+  { id: 'actions', header: '操作' },
+]
+
+const isLoading = computed(() => status.value === 'pending')
+const hasError = computed(() => status.value === 'error')
+const isEmpty = computed(() => status.value === 'success' && summaries.value.length === 0)
+
+/**
+ * 显式给出日期格式，不用 `toLocaleString()` 的默认选项：
+ * 默认值在 SSR（Node）与浏览器之间可能不同步，会造成 hydration 警告。
+ */
+function formatUpdatedAt(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return '—'
+  }
+
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+// ── 软删除 ───────────────────────────────────────────────────────────
+const deleteOpen = ref(false)
+const deleteTarget = ref<ResumeSummary | null>(null)
+
+function askDelete(item: ResumeSummary) {
+  deleteTarget.value = item
+  deleteOpen.value = true
+}
+
+/**
+ * 二次确认之后才真的删除。
+ *
+ * 后端是**软删除**（只写 `deletedAt`）：所以文案要说清"从列表移除、不是销毁"，
+ * 不能吓唬用户说"永久删除" —— 那与实现不符。
+ * 删完让列表缓存失效，避免返回时还看到已删的那份。
+ */
+async function confirmDelete() {
+  const target = deleteTarget.value
+  if (!target) {
+    return
+  }
+
+  try {
+    await api.remove(target.id)
+    await queryCache.invalidateQueries({ key: queryKeys.resume.list() })
+    toast.add({
+      title: '已删除',
+      description: `「${target.name}」已从列表移除（数据保留，可追溯）。`,
+      color: 'success',
+      icon: 'i-lucide-trash-2',
+    })
+  } catch (problem) {
+    const normalized = normalizeApiError(problem)
+    if (normalized.code === 401) {
+      signOut()
+      await navigateTo('/login')
+      return
+    }
+    toast.add({
+      title: '删除失败',
+      description: resolveApiErrorMessage(normalized),
+      color: 'error',
+      icon: 'i-lucide-circle-alert',
+    })
+  } finally {
+    deleteTarget.value = null
+  }
 }
 </script>
 
 <template>
-  <div class="content-pad space-y-6">
-    <section>
-      <h2 class="text-xl font-semibold tracking-tight text-highlighted">简历</h2>
-      <p class="mt-2 max-w-2xl text-sm leading-6 text-muted">
-        简历编辑域的骨架页。数据层已接 Pinia Colada，业务模块按里程碑逐个落地。
+  <div class="space-y-6">
+    <header class="flex flex-wrap items-center justify-between gap-4">
+      <!-- 页面标题由布局的页头按 `route.meta.title` 渲染，这里不再重复写一遍，直接给说明与操作 -->
+      <p class="max-w-2xl text-sm leading-6 text-muted">
+        这里是你名下的简历。新建后可在公开站的草稿工作台继续补充内容与展示配置。
       </p>
-    </section>
 
-    <section class="grid gap-4 md:grid-cols-2">
-      <UCard v-for="item in plannedModules" :key="item.label" :ui="{ body: 'p-5 sm:p-5' }">
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex gap-3">
-            <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-              <UIcon :name="item.icon" class="size-5" />
-            </span>
-            <div>
-              <p class="font-medium text-highlighted">{{ item.label }}</p>
-              <p class="mt-1 text-sm text-muted">{{ item.description }}</p>
-            </div>
-          </div>
-          <UBadge
-            :color="statusMeta[item.status]?.color ?? 'neutral'"
-            variant="subtle"
-            :label="statusMeta[item.status]?.label ?? item.status"
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-0.5 rounded-lg border border-default p-0.5">
+          <UButton
+            v-for="option in viewOptions"
+            :key="option.value"
+            :icon="option.icon"
+            size="xs"
+            :color="viewMode === option.value ? 'primary' : 'neutral'"
+            :variant="viewMode === option.value ? 'soft' : 'ghost'"
+            :aria-label="`${option.label}视图`"
+            :aria-pressed="viewMode === option.value"
+            @click="setViewMode(option.value)"
+          />
+        </div>
+
+        <UButton to="/resume/new" icon="i-lucide-plus" label="新建简历" />
+      </div>
+    </header>
+
+    <!-- 加载中 -->
+    <div v-if="isLoading" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <UCard v-for="index in 3" :key="index" :ui="{ body: 'p-5 sm:p-5' }">
+        <USkeleton class="h-4 w-2/3" />
+        <USkeleton class="mt-3 h-3 w-1/2" />
+      </UCard>
+    </div>
+
+    <!-- 失败：请求层已按策略提示过，这里给就地重试的入口 -->
+    <UAlert
+      v-else-if="hasError"
+      color="error"
+      variant="subtle"
+      icon="i-lucide-circle-alert"
+      title="简历列表加载失败"
+      :description="error?.message ?? '请稍后重试'"
+    />
+
+    <!-- 空态 -->
+    <UCard v-else-if="isEmpty" :ui="{ body: 'p-10 sm:p-10' }">
+      <div class="flex flex-col items-center gap-3 text-center">
+        <span class="grid size-12 place-items-center rounded-2xl bg-elevated text-muted">
+          <UIcon name="i-lucide-file-plus-2" class="size-6" />
+        </span>
+        <p class="text-sm font-medium text-highlighted">还没有简历</p>
+        <p class="max-w-md text-sm text-muted">
+          从空白开始填一份：只填姓名也能创建，服务端会补成结构完整的草稿，其余内容随时再补。
+        </p>
+        <UButton class="mt-1" to="/resume/new" icon="i-lucide-plus" label="新建简历" />
+      </div>
+    </UCard>
+
+    <!-- 卡片视图 -->
+    <div v-else-if="viewMode === 'card'" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <UCard v-for="item in summaries" :key="item.id" :ui="{ body: 'p-5 sm:p-5' }">
+        <div class="flex items-start justify-between gap-3">
+          <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+            <UIcon name="i-lucide-file-text" class="size-5" />
+          </span>
+          <UBadge color="neutral" variant="subtle" :label="`rev ${item.revision}`" />
+        </div>
+
+        <p class="mt-4 truncate font-medium text-highlighted">{{ item.name }}</p>
+        <p class="mt-1 text-xs text-muted">{{ item.locale }} · 更新于 {{ formatUpdatedAt(item.updatedAt) }}</p>
+
+        <div class="mt-4 flex items-center gap-1 border-t border-default pt-3">
+          <UButton
+            :to="`/resume/${item.id}/edit`"
+            icon="i-lucide-pencil"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            label="编辑"
+          />
+          <UButton
+            icon="i-lucide-trash-2"
+            size="xs"
+            color="error"
+            variant="ghost"
+            label="删除"
+            @click="askDelete(item)"
           />
         </div>
       </UCard>
-    </section>
+    </div>
+
+    <!-- 列表视图（UTable：字段与交互都会继续长，表格比手写行更好扩展） -->
+    <UTable
+      v-else
+      :data="summaries"
+      :columns="columns"
+      :ui="{
+        th: 'text-xs font-medium text-muted',
+        td: 'text-sm',
+      }"
+    >
+      <template #name-cell="{ row }">
+        <div class="flex items-center gap-2">
+          <UIcon name="i-lucide-file-text" class="size-4 shrink-0 text-muted" />
+          <span class="truncate font-medium text-highlighted">{{ row.original.name }}</span>
+        </div>
+      </template>
+
+      <template #locale-cell="{ row }">
+        <UBadge color="neutral" variant="subtle" :label="row.original.locale" />
+      </template>
+
+      <template #revision-cell="{ row }">
+        <span class="text-muted">rev {{ row.original.revision }}</span>
+      </template>
+
+      <template #updatedAt-cell="{ row }">
+        <span class="text-muted">{{ formatUpdatedAt(row.original.updatedAt) }}</span>
+      </template>
+
+      <template #actions-cell="{ row }">
+        <div class="flex items-center justify-end gap-1">
+          <UButton
+            :to="`/resume/${row.original.id}/edit`"
+            icon="i-lucide-pencil"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            :aria-label="`编辑「${row.original.name}」`"
+          />
+          <UButton
+            icon="i-lucide-trash-2"
+            size="xs"
+            color="error"
+            variant="ghost"
+            :aria-label="`删除「${row.original.name}」`"
+            @click="askDelete(row.original)"
+          />
+        </div>
+      </template>
+    </UTable>
+
+    <ModalDeleteConfirm
+      v-model:open="deleteOpen"
+      title="删除这份简历？"
+      :content="`「${deleteTarget?.name ?? ''}」会从列表中移除。内容不会立刻销毁，但本轮没有恢复入口。`"
+      confirm-text="删除"
+      cancel-text="取消"
+      :cooldown="3"
+      :confirm="confirmDelete"
+    />
   </div>
 </template>

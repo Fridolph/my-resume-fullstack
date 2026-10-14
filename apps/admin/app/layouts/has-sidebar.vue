@@ -18,6 +18,14 @@ const sidebarOpen = ref(true)
 const sidebarCollapsed = ref(false)
 
 const pageTitle = computed(() => (typeof route.meta.title === 'string' ? route.meta.title : 'Dashboard'))
+
+/**
+ * 页头搜索**默认关闭**，页面用 `definePageMeta({ headerSearch: true })` 打开。
+ *
+ * 布局与页面之间没有直接 props 通道，`route.meta` 是 Nuxt 里约定的那条路 ——
+ * 这样"某个页面要不要搜索"由那个页面自己声明，不用在布局里维护一份页面清单。
+ */
+const showHeaderSearch = computed(() => route.meta.headerSearch === true)
 </script>
 
 <template>
@@ -38,7 +46,7 @@ const pageTitle = computed(() => (typeof route.meta.title === 'string' ? route.m
       }"
     >
       <template #header>
-        <AdminHeader :title="pageTitle" />
+        <AdminHeader :title="pageTitle" :show-search="showHeaderSearch" />
       </template>
 
       <template #body>

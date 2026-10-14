@@ -3,33 +3,51 @@ import type { LoginCredentials } from '../components/auth/LoginForm.vue'
 
 definePageMeta({
   layout: false,
+  // 已登录用户不该停在登录页
+  middleware: 'guest',
 })
 
-const toast = useToast()
+const route = useRoute()
+const { signIn } = useAuthState()
+
 const pending = ref(false)
 const statusMessage = ref('')
 
 /**
- * 演示登录：暂不接后端 API。
- * 正式接入时，把这里替换为你的 auth mutation（如 useMutation / $fetch 登录接口）。
+ * 登录后回到"来处"。
+ *
+ * `auth` 中间件把人踢到 `/login` 时会带上 `?redirect=原路径`，
+ * 登录成功后直接回那里，而不是一律丢回首页 —— 否则用户每次都要重新点一遍。
+ * 只接受站内绝对路径，避免把 `//evil.com` 这类值当成跳转目标。
+ */
+const redirectTo = computed(() => {
+  const target = route.query.redirect
+  if (typeof target === 'string' && target.startsWith('/') && !target.startsWith('//')) {
+    return target
+  }
+
+  return '/'
+})
+
+/**
+ * 用真实账号登录（`POST /api/auth/login`）。
+ *
+ * 失败信息落在表单的 `error` 区，不飘全局 toast：账号密码这类错误贴着输入框更好读。
+ * 身份与权限键由 `useAuthState` 写入，页面不必自己存。
  */
 async function handleSubmit(credentials: LoginCredentials) {
   pending.value = true
   statusMessage.value = ''
 
-  // 模拟一次登录请求耗时，让 loading 态可见。
-  await new Promise(resolve => setTimeout(resolve, 600))
-
-  toast.add({
-    title: 'Signed in (demo)',
-    description: `Welcome back, ${credentials.email}.`,
-    color: 'success',
-    icon: 'i-lucide-circle-check',
-  })
-
+  const result = await signIn(credentials)
   pending.value = false
 
-  await navigateTo('/')
+  if (!result.ok) {
+    statusMessage.value = result.message
+    return
+  }
+
+  await navigateTo(redirectTo.value)
 }
 </script>
 
