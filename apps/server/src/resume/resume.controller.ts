@@ -24,6 +24,17 @@ export class ResumeController {
   }
 
   /**
+   * 列出**本人**未删除的简历（概览页）。
+   *
+   * 与 `GET :id/draft` 的分工：这里回答"我有哪些简历"，那条回答"某一份的正文"。
+   * 身份取自 Guard，不接受客户端指定归属；普通用户也能读自己的列表（不需要编辑资格）。
+   */
+  @Get()
+  list(@CurrentUser() currentUser: AuthUser) {
+    return this.resumeService.list(currentUser)
+  }
+
+  /**
    * 读取本人完整草稿，含编辑所需全部内容；此接口不是公开展示入口。
    */
   @Get(':id/draft')

@@ -593,13 +593,21 @@ export function buildResumeDocument(input: ResumeDraftInput): ResumeDocument {
  * 归属用户、简历主键与初始 revision 由后端确定，不允许客户端通过额外字段指定。
  * 两表创建是否原子成功由后端事务保证，不由 schema 保证。
  */
+/**
+ * 语言标识：1～20 位字母、数字或连字符，不做完整语言标签规范验证。
+ *
+ * 抽成具名 schema，是为了让「创建」与「列表」共用同一份定义 ——
+ * 抄两遍就会漂移（一侧收紧后，列表展示与创建校验就对不上了）。
+ */
+export const resumeLocaleSchema = z
+  .string()
+  .min(1)
+  .max(20)
+  .regex(/^[A-Za-z0-9-]+$/)
+
 export const createResumeSchema = z.strictObject({
   name: resumeNameSchema,
-  locale: z
-    .string()
-    .min(1)
-    .max(20)
-    .regex(/^[A-Za-z0-9-]+$/),
+  locale: resumeLocaleSchema,
   document: resumeDraftInputSchema,
 })
 
@@ -682,3 +690,29 @@ export interface ResumeDraftResponse {
   /** 当前完整 V1 文档，不是 Prisma 模型或发布快照。 */
   document: ResumeDocument
 }
+
+/**
+ * 简历列表项（概览页用）。
+ *
+ * 只列**列表展示必需**的字段：简历身份、内部名称与语言、草稿版本与最近更新时间。
+ *
+ * 有意**不返回 document**：列表里逐条解析完整正文既浪费带宽，也会让概览页
+ * 耦合正文契约；正文仍由 `/resume/:id/draft` 提供（那是编辑入口，不是列表入口）。
+ *
+ * revision 与 updatedAt 都取自**草稿表**：它们表达"内容改到第几版 / 什么时候改的"，
+ * 比简历主体的 `updated_at` 更贴近用户感知，语义也与草稿接口保持一致，不新造含义。
+ */
+export const resumeSummarySchema = z.strictObject({
+  id: z.number().int().positive(),
+  name: resumeNameSchema,
+  locale: resumeLocaleSchema,
+  revision: z.number().int().positive(),
+  updatedAt: z.string(),
+})
+
+/**
+ * 从简历列表项 schema 推导的类型。
+ *
+ * 类型标注不等于已校验：外部数据仍须调用 `resumeSummarySchema.parse`。
+ */
+export type ResumeSummary = z.infer<typeof resumeSummarySchema>

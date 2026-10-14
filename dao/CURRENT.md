@@ -1,6 +1,6 @@
 # 当前关键任务
 
-- [`DAO-030` admin 简历创建页](./tasks/DAO-030-admin%20简历创建页.md) —— `in-progress`：设计已拍板（[`docs/admin/02`](../docs/admin/02_简历创建页_设计.md)，P1～P4）；第一刀「共享表单上提」已落地 `ad3a0a9`，**本刀已实现 `/resume` 父页 + 二级侧栏 + `/resume/new` 七区块大表单 + 上传占位**，机器验证 13/13 与质量门通过，**等 Owner 桌面/移动端观感验收**（清单见卡的「交接」）。与 DAO-029 的分工见卡内（**新建归本卡**，列表 / 重命名 / 软删除归 DAO-029）。
+- [`DAO-030` admin 简历创建页](./tasks/DAO-030-admin%20简历创建页.md) —— `in-progress`：第一刀「共享表单上提」`ad3a0a9`；第二刀 `/resume/new` 七区块大表单；**第三刀（Owner 反馈后）`/resume` 改为概览页**（卡片/列表两档 + 本地记忆 + 新建入口）、**新增 `GET /api/resume` 列表接口**与 `resumeSummarySchema`、移除二级侧栏、页头搜索改为按页面配置。机器验证与质量门通过，**等 Owner 观感验收**（清单见卡的「交接」）。⚠️ 范围已调整：**列表归本卡**，DAO-029 只剩重命名 / 软删除。
 - [`DAO-031` admin 真实登录与会话](./tasks/DAO-031-admin%20真实登录与会话.md) —— `in-progress`（DAO-030 的前置，2026-10-14 Owner 确认一并做）：已接 `POST /api/auth/login` + `/auth/info` 恢复身份与权限键 + `auth` / `guest` 中间件 + 登录页与用户区改造。两卡同分支 `feat/38-admin-resume-create`。
 
 任务卡仍是状态、目标、验证与交接的唯一事实源；本文件只指向当前任务，不复制目标、状态或证据。

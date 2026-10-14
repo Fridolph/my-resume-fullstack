@@ -5,6 +5,7 @@ import {
   type CreateResumeDto,
   type SaveResumeDraftDto,
   type ResumeDraftResponse,
+  type ResumeSummary,
 } from '@rs/common'
 import type { Prisma } from '../generated/prisma/client'
 import type { AuthUser } from '../common/http-context'
@@ -85,6 +86,54 @@ export class ResumeService {
       })
       return toResponse(draft)
     })
+  }
+
+  /**
+   * 列出**本人**未删除的简历，供概览页展示。
+   *
+   * 只取列表展示所需字段，**不取 document**：列表页不该为了显示标题去解析每份完整正文；
+   * 需要正文时走 `findDraft`（那是编辑入口，不是列表入口）。
+   *
+   * 越权语义与单条接口一致：查询条件里带 `workspaceUserId`，所以"别人的简历"不是被过滤掉，
+   * 而是根本不在结果集里 —— 不需要额外权限判断，也不该为超管另开一条读他人列表的口子。
+   *
+   * 排序按**简历创建时间倒序**（新建的在前，符合"刚建完想看它"的直觉）；
+   * `draft.updatedAt` 只用于展示"最近改动"，不参与排序。
+   *
+   * 查询条件要求草稿存在（`draft: { isNot: null }`）：create 在同一事务里建简历与初始草稿，
+   * "有简历必有草稿"是数据不变量；真出现无草稿的脏数据，宁可让它不出现，
+   * 也不用猜测出来的 revision 把它伪装成正常简历返回。
+   */
+  async list(currentUser: AuthUser): Promise<ResumeSummary[]> {
+    const resumes = await this.prismaService.resume.findMany({
+      where: {
+        workspaceUserId: currentUser.userId,
+        deletedAt: null,
+        workspace: { user: { deletedAt: null } },
+        draft: { isNot: null },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        locale: true,
+        draft: { select: { revision: true, updatedAt: true } },
+      },
+    })
+
+    const items: ResumeSummary[] = []
+    for (const resume of resumes) {
+      if (!resume.draft) continue
+      items.push({
+        id: resume.id,
+        name: resume.name,
+        locale: resume.locale,
+        revision: resume.draft.revision,
+        updatedAt: resume.draft.updatedAt.toISOString(),
+      })
+    }
+
+    return items
   }
 
   /**
