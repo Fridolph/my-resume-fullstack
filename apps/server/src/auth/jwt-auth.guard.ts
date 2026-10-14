@@ -48,12 +48,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     info: unknown,
     context: ExecutionContext,
   ): TUser {
-    if (error) {
-      throw error
-    }
-    if (user) {
-      return user
-    }
+    if (error) throw error
+
+    if (user) return user
 
     const request = context.switchToHttp().getRequest<Request>()
     if (!ExtractJwt.fromAuthHeaderAsBearerToken()(request)) {

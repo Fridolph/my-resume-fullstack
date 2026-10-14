@@ -513,28 +513,10 @@ function emptySection(type: (typeof OPTIONAL_SECTION_TYPES)[number], id: string,
  * @throws 输入缺少 profile 时抛错（正常由 resumeDraftInputSchema 提前拦下）。
  */
 export function buildResumeDocument(input: ResumeDraftInput): ResumeDocument {
-  // 先收集用户已给的 ID：契约要求文档内唯一，生成新 ID 时据此查重
-  const usedIds = new Set<string>()
-  const collectIds = (value: unknown): void => {
-    if (Array.isArray(value)) {
-      value.forEach(collectIds)
-      return
-    }
-    if (!value || typeof value !== 'object') return
-    for (const [key, item] of Object.entries(value)) {
-      if (key === 'id' && typeof item === 'string') usedIds.add(item)
-      else collectIds(item)
-    }
-  }
-  collectIds(input.content.sections)
-
-  // uuid 实际不会撞，但仍显式查重，避免「文档内唯一」只停留在注释上
-  const nextId = (): string => {
-    let id = globalThis.crypto.randomUUID()
-    while (usedIds.has(id)) id = globalThis.crypto.randomUUID()
-    usedIds.add(id)
-    return id
-  }
+  // ID 生成：crypto.randomUUID() 是 v4 UUID，文档内 ID 量级（最多几百个）下碰撞概率可忽略，
+  // 所以这里不做查重。「文档 ID 重复」的兜底由本函数末尾的 resumeDocumentSchema.parse 负责；
+  // 而「输入自带重复 ID」属于输入校验的职责（见 resumeDraftInputSchema 的文档内 ID 规则）。
+  const nextId = (): string => globalThis.crypto.randomUUID()
 
   const rawProfile = input.content.sections.find(section => section.type === 'profile')
   if (!rawProfile) throw new Error('缺少基本信息模块（type: profile），无法补全')
