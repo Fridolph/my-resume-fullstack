@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`review-ready`（2026-10-14：实现完成、机器验证与质量门通过、**Owner 观感确认"这么改没问题"**；admin 侧已提交并推送，等 feature → dev 集成）
+- 状态：`done` —— 概览页 / 创建页 / 列表接口均落地，Owner 观感确认（2026-10-14 随 [22aeb8b] merge 合入 `dev`）
 - Owner：`昇哥`
 - 创建日期：`2026-10-14`
 - 分支：`feat/38-admin-resume-create`（基于 `dev` 的 `c2c3723`；已推送，未合 dev）

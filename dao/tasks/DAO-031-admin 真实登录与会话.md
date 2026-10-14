@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`review-ready`（2026-10-14：实现完成、机器验证与质量门通过、Owner 观感确认；已提交推送，等与 DAO-030 一同 feature → dev）
+- 状态：`done` —— 真实登录与会话落地，Owner 观感确认（2026-10-14 随 [22aeb8b] merge 合入 `dev`）
 - Owner：`昇哥`
 - 创建日期：`2026-10-14`
 - 分支：与 DAO-030 同分支 `feat/38-admin-resume-create`（Owner 选择本期一起交付，已推送）
