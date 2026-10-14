@@ -9,8 +9,16 @@
  * 但都编排成这两个类型描述的「段」，从而复用同一套渲染与增删/上下移逻辑。
  */
 
-/** 单个字段的输入控件类型 */
-export type FormFieldType = 'text' | 'textarea' | 'tags' | 'number'
+/**
+ * 单个字段的输入控件类型。
+ *
+ * - `text` / `textarea` / `number`：标量，直接读写；
+ * - `tags`：**字符串数组**（`string[]`），用于"一组短文本"；
+ * - `textItems`：**契约里的文字条目数组**（`[{ id, text }]`，见 `resume/document.ts` 的 `textItem`）。
+ *   与 `tags` 的区别不在交互（都是回车添加、点标签删除），而在**值的形状**：
+ *   契约要求每条文字带稳定 id，组件负责生成与保留，页面不必自己包一层转换。
+ */
+export type FormFieldType = 'text' | 'textarea' | 'tags' | 'number' | 'textItems'
 
 export interface FormFieldSchema {
   /** `fields` 模式：相对根对象的路径，如 `profile.name` / `profile.hero.slogans` */

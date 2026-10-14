@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common'
 import {
   createResumeSchema,
+  renameResumeSchema,
   resumePrimaryKeySchema,
   saveResumeDraftSchema,
   type CreateResumeDto,
+  type RenameResumeDto,
   type SaveResumeDraftDto,
 } from '@rs/common'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
@@ -52,5 +54,28 @@ export class ResumeController {
     @CurrentUser() currentUser: AuthUser,
   ) {
     return this.resumeService.saveDraft(id, saveResumeDraftDto, currentUser)
+  }
+
+  /**
+   * 重命名本人简历（只改内部名称，不动正文）。
+   *
+   * 用 PATCH 而不是 PUT：这是一处局部修改，不是整份资源的替换；
+   * 请求体由 `renameResumeSchema` 收窄到只有一个 `name`。
+   */
+  @Patch(':id')
+  rename(
+    @Param('id', { schema: resumePrimaryKeySchema }) id: number,
+    @Body({ schema: renameResumeSchema }) renameResumeDto: RenameResumeDto,
+    @CurrentUser() currentUser: AuthUser,
+  ) {
+    return this.resumeService.rename(id, renameResumeDto, currentUser)
+  }
+
+  /**
+   * 软删除本人简历：数据保留、列表不再出现；本轮不提供恢复入口。
+   */
+  @Delete(':id')
+  remove(@Param('id', { schema: resumePrimaryKeySchema }) id: number, @CurrentUser() currentUser: AuthUser) {
+    return this.resumeService.remove(id, currentUser)
   }
 }

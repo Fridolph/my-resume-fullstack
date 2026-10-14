@@ -72,6 +72,14 @@ export const resumeDateSchema = z
   })
 
 /**
+ * 从日期契约推导的类型。
+ *
+ * 供前端做只读展示或形状判断时使用（比如 admin 编辑页把日期渲染成一行摘要，
+ * 而不在表单里编辑它）；类型标注不等于已校验。
+ */
+export type ResumeDate = z.infer<typeof resumeDateSchema>
+
+/**
  * 基本信息模块的头图字段。
  *
  * 独立成具名 schema，是为了让「创建输入的稀疏 profile」能复用同一形状（用 `.partial()` 放宽），
@@ -610,6 +618,20 @@ export const createResumeSchema = z.strictObject({
   locale: resumeLocaleSchema,
   document: resumeDraftInputSchema,
 })
+
+/**
+ * 重命名简历的请求体契约。
+ *
+ * 只允许改**内部名称**（`resumes.name`）：它是用户给自己看的标识，与正文里的姓名无关。
+ * 用 `strictObject` 拒绝客户端顺手带上 `id` / `locale` / `document` —— 那些各有各的接口，
+ * 混进同一个 PATCH 会让"改个名字"变成一次隐式的整体覆盖。
+ */
+export const renameResumeSchema = z.strictObject({ name: resumeNameSchema })
+
+/**
+ * 从重命名请求推导的 DTO 类型。
+ */
+export type RenameResumeDto = z.infer<typeof renameResumeSchema>
 
 /**
  * 简历主键（路由参数形态）。

@@ -165,6 +165,13 @@ function moveItem(segment: FormSegmentSchema, index: number, delta: number) {
               />
             </UFormField>
           </div>
+
+          <!--
+            只读附加信息：给"这一项里有、但表单类型表达不了"的内容留个位置
+            （例如契约里的结构化日期，或尚未支持编辑的嵌套字段）。页面自己决定渲染什么，
+            这里不预设形状 —— 不传插槽就等于没有。
+          -->
+          <slot name="list-item-extra" :item="item" :index="index" />
         </UCard>
 
         <UButton size="sm" variant="outline" icon="i-lucide-plus" label="新增一项" @click="addItem(segment)" />

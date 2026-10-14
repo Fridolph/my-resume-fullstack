@@ -4,6 +4,7 @@ import {
   resumeDocumentSchema,
   type CreateResumeDto,
   type SaveResumeDraftDto,
+  type RenameResumeDto,
   type ResumeDraftResponse,
   type ResumeSummary,
 } from '@rs/common'
@@ -186,5 +187,55 @@ export class ResumeService {
       const draft = await transaction.resumeDraft.findUniqueOrThrow({ where: { resumeId: id }, include: draftInclude })
       return toResponse(draft)
     })
+  }
+
+  /**
+   * 重命名本人简历（只改内部名称，不动正文）。
+   *
+   * 复用 `ownedResume` 作为更新条件：他人、已删除、不存在都落进"更新 0 行"这一种结果，
+   * 统一按 404 返回，不泄露某份简历是否存在。
+   *
+   * **这里不需要 revision**：名字是单字段整体覆盖，最后写入者生效即可 ——
+   * 它不会像整份文档那样把别人的改动整段抹掉，为它加版本号只会让调用方多背一个并发概念。
+   */
+  async rename(
+    id: number,
+    renameResumeDto: RenameResumeDto,
+    currentUser: AuthUser,
+  ): Promise<{ id: number; name: string }> {
+    this.assertEditable(currentUser)
+
+    const updated = await this.prismaService.resume.updateMany({
+      where: this.ownedResume(id, currentUser),
+      data: { name: renameResumeDto.name },
+    })
+    if (updated.count !== 1) {
+      throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+    }
+
+    return { id, name: renameResumeDto.name }
+  }
+
+  /**
+   * 软删除本人简历。
+   *
+   * 只写 `deletedAt`，不做物理删除：草稿是用户内容的唯一副本，误删必须可追溯
+   * （DAO-029 已确认口径：删除后列表不再出现、数据可追溯；本轮不提供恢复入口）。
+   *
+   * 再删一次同一份会 404 —— 因为 `ownedResume` 里带着 `deletedAt: null`，
+   * 语义是"已经没有这份可删的简历了"，而不是悄悄返回成功。
+   */
+  async remove(id: number, currentUser: AuthUser): Promise<{ id: number }> {
+    this.assertEditable(currentUser)
+
+    const removed = await this.prismaService.resume.updateMany({
+      where: this.ownedResume(id, currentUser),
+      data: { deletedAt: new Date() },
+    })
+    if (removed.count !== 1) {
+      throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+    }
+
+    return { id }
   }
 }
