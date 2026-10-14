@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FormSegmentSchema } from '@rs/common'
+import MyModal from './MyModal.vue'
 import MySchemaFieldInput from './MySchemaFieldInput.vue'
 
 /**
@@ -8,16 +9,23 @@ import MySchemaFieldInput from './MySchemaFieldInput.vue'
  * 每段要么是 `fields`（按点号路径直接改根对象上的字段，如 `profile.hero.slogans`），
  * 要么是 `list`（编辑根对象上的某个数组，**路径同样支持点号**，如 `profile.links`）。
  *
- * 各端的字段表各自维护（web 在 `config/resume-editor-schemas.ts`，admin 在简历创建页的 config）；要加「一段」不用动这里。
- * 数组的定位在这里完成，所以抽屉不需要知道 `listPath` 怎么写。
+ * 各端的字段表各自维护（web 在 `config/resume-editor-schemas.ts`，admin 在简历的创建 / 编辑页 config）；
+ * 要加「一段」不用动这里。数组的定位在这里完成，所以调用方不需要知道 `listPath` 怎么写。
+ *
+ * ⚠️ **删除一条要二次确认**：字段表单里的"删除这一项"是一击即中的破坏性动作，
+ * 而条目往往刚被填过、手滑概率高。所以这里的删除按钮只"请求删除"，真正删除要过本组件底部的
+ * 确认弹窗（确认 + 防误点倒计时）—— 与列表页删整份简历是同一个道理。
  */
 const props = defineProps<{
-  /** 编辑的根对象（这里是各端自己的内容对象） */
+  /** 编辑的根对象（各端自己的内容对象） */
   root?: Record<string, unknown>
   segments: FormSegmentSchema[]
 }>()
 
 const emit = defineEmits<{ change: [] }>()
+
+/** 防误点倒计时：删一条内容的破坏面比删整份简历小，2 秒足够挡住手滑，也不至于打断心流 */
+const REMOVE_COOLDOWN_SECONDS = 2
 
 /**
  * 就地改数组项的某个字段并标记改动。
@@ -62,11 +70,25 @@ function itemsOf(segment: FormSegmentSchema): Record<string, unknown>[] | undefi
   return readPath(segment.listPath) as Record<string, unknown>[] | undefined
 }
 
+/** 条目标题：优先用 `titleKey` 指定的字段，没有就退化成"第 N 项" */
+function itemTitle(segment: FormSegmentSchema, item: Record<string, unknown> | undefined, index: number): string {
+  const fallback = `第 ${Number(index) + 1} 项`
+  if (!segment.titleKey || !item) {
+    return fallback
+  }
+
+  const title = String(item[segment.titleKey] ?? '').trim()
+  return title === '' ? fallback : title
+}
+
 function addItem(segment: FormSegmentSchema) {
   itemsOf(segment)?.push(structuredClone(segment.blank ?? {}))
   emit('change')
 }
 
+/**
+ * 真正的删除。只在确认弹窗里调用 —— 模板里的按钮走 `requestRemove`。
+ */
 function removeItem(segment: FormSegmentSchema, index: number) {
   itemsOf(segment)?.splice(index, 1)
   emit('change')
@@ -85,6 +107,60 @@ function moveItem(segment: FormSegmentSchema, index: number, delta: number) {
   }
   emit('change')
 }
+
+// ── 删除确认 ─────────────────────────────────────────────────────────
+const removeOpen = ref(false)
+const removeCooldown = ref(0)
+const pendingRemove = ref<{ segment: FormSegmentSchema; index: number; title: string } | null>(null)
+let cooldownTimer: ReturnType<typeof setInterval> | undefined
+
+function stopCooldown() {
+  if (cooldownTimer) {
+    clearInterval(cooldownTimer)
+    cooldownTimer = undefined
+  }
+}
+
+/**
+ * 计时器用纯 `setInterval` 实现（不用 `@vueuse/core` 的 `useCountdown`）：
+ * `packages/ui` 是**零第三方运行时依赖**的共享层，为两行倒计时引一个依赖不划算。
+ */
+function startCooldown() {
+  stopCooldown()
+  removeCooldown.value = REMOVE_COOLDOWN_SECONDS
+  cooldownTimer = setInterval(() => {
+    removeCooldown.value -= 1
+    if (removeCooldown.value <= 0) {
+      stopCooldown()
+    }
+  }, 1000)
+}
+
+function requestRemove(segment: FormSegmentSchema, index: number) {
+  const item = itemsOf(segment)?.[index]
+  pendingRemove.value = { segment, index, title: itemTitle(segment, item, index) }
+  removeOpen.value = true
+  startCooldown()
+}
+
+/** 确认删除：执行移除并关闭弹窗（关闭会触发 `resetRemoveState` 收尾） */
+function confirmRemove() {
+  const pending = pendingRemove.value
+  if (!pending) {
+    return
+  }
+
+  removeItem(pending.segment, pending.index)
+  removeOpen.value = false
+}
+
+/** 弹窗关闭（确认或取消都会走到）：清掉待删信息与计时器，避免下次打开时状态残留 */
+function resetRemoveState() {
+  pendingRemove.value = null
+  stopCooldown()
+}
+
+onBeforeUnmount(stopCooldown)
 </script>
 
 <template>
@@ -114,13 +190,7 @@ function moveItem(segment: FormSegmentSchema, index: number, delta: number) {
       <template v-else>
         <UCard v-for="(item, index) in itemsOf(segment)" :key="index" :ui="{ body: 'space-y-4 p-4 sm:p-4' }">
           <div class="flex items-center justify-between gap-2">
-            <p class="truncate text-sm font-medium">
-              {{
-                segment.titleKey
-                  ? String(item[segment.titleKey] ?? `第 ${Number(index) + 1} 项`)
-                  : `第 ${Number(index) + 1} 项`
-              }}
-            </p>
+            <p class="truncate text-sm font-medium">{{ itemTitle(segment, item, index) }}</p>
             <div class="flex shrink-0 items-center gap-1">
               <UButton
                 size="xs"
@@ -146,7 +216,7 @@ function moveItem(segment: FormSegmentSchema, index: number, delta: number) {
                 variant="ghost"
                 icon="i-lucide-trash-2"
                 aria-label="删除这一项"
-                @click="removeItem(segment, index)"
+                @click="requestRemove(segment, index)"
               />
             </div>
           </div>
@@ -177,5 +247,32 @@ function moveItem(segment: FormSegmentSchema, index: number, delta: number) {
         <UButton size="sm" variant="outline" icon="i-lucide-plus" label="新增一项" @click="addItem(segment)" />
       </template>
     </section>
+
+    <!--
+      删除确认：整个表单共用一个弹窗（状态里记着"要删哪一段的第几项"）。
+      `MyModal` 顺带把移动端处理好了 —— 窄屏自动退化成抽屉。
+    -->
+    <MyModal
+      v-model:open="removeOpen"
+      title="删除这一项？"
+      :description="`「${pendingRemove?.title ?? ''}」会从这一段里移除。`"
+      :dismissible="false"
+      @close="resetRemoveState"
+    >
+      <p class="text-sm text-muted">这一步只影响当前编辑的内容，保存后才会写入；取消则原样保留。</p>
+
+      <template #footer="{ cancel }">
+        <div class="flex w-full items-center justify-end gap-2">
+          <UButton color="neutral" variant="ghost" label="取消" @click="cancel" />
+          <UButton
+            color="error"
+            icon="i-lucide-trash-2"
+            :disabled="removeCooldown > 0"
+            :label="removeCooldown > 0 ? `删除 (${removeCooldown})` : '删除'"
+            @click="confirmRemove"
+          />
+        </div>
+      </template>
+    </MyModal>
   </div>
 </template>
