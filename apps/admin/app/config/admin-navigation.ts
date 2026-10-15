@@ -29,8 +29,9 @@ export const adminNavigation: AdminNavigationItem[] = [
     children: [
       { label: 'Overlay / Modal (shared)', to: '/comps/overlay' },
       { label: 'Full screen gallery (shared)', to: '/comps/full-screen-modal' },
+      { label: 'Icon', to: '/comps/icon' },
+      { label: 'Breakpoints', to: '/comps/breakpoints' },
       { label: 'Loaders', to: '/comps/loaders' },
-      { label: 'Text editor', to: '/comps/text-editor' },
       { label: 'Upload', to: '/comps/upload' },
       { label: 'Sort list', to: '/comps/sort-list' },
       { label: 'Sortable bar', to: '/comps/sortable-bar' },

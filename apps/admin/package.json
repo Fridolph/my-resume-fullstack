@@ -19,24 +19,10 @@
     "@rive-app/webgl2": "^2.44.1",
     "@rs/common": "workspace:*",
     "@rs/utils": "workspace:*",
-    "@tiptap/core": "3.30.5",
-    "@tiptap/extension-code-block-lowlight": "3.30.5",
-    "@tiptap/extension-emoji": "3.30.5",
-    "@tiptap/extension-horizontal-rule": "3.30.5",
-    "@tiptap/extension-link": "3.30.5",
-    "@tiptap/extension-list": "3.30.5",
-    "@tiptap/extension-subscript": "3.30.5",
-    "@tiptap/extension-superscript": "3.30.5",
-    "@tiptap/extension-table": "3.30.5",
-    "@tiptap/extension-text-align": "3.30.5",
-    "@tiptap/extension-text-style": "3.30.5",
-    "@tiptap/vue-3": "3.30.5",
     "@vueuse/core": "^14.4.0",
     "@vueuse/integrations": "^14.4.0",
     "a-calc": "^3.0.2",
-    "highlight.js": "^11.12.0",
     "libphonenumber-js": "^1.13.14",
-    "lowlight": "^3.3.0",
     "nuxt": "^4.2.2",
     "pinia": "^4.0.3",
     "radashi": "^12.9.6",
@@ -50,6 +36,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
-    "vue-tsc": "^3.1.5"
+    "vue-tsc": "^3.1.5",
+    "@iconify-json/ri": "^1.2.7"
   }
 }
