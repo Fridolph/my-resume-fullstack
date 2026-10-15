@@ -39,6 +39,10 @@ const interestShot = (_text: string, _color: string) => ''
  * 接后端后，这份数据由「已发布快照」接口替代，形状保持一致即可直接替换。
  */
 export const resumeContentMockZh: ResumeContent = {
+  sections: [],
+
+  custom: [],
+
   profile: {
     name: '厉飞雨',
     headline: '全栈开发 / 前端方向',

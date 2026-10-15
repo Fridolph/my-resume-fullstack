@@ -237,6 +237,8 @@ export const resumeEditorSchemas: Record<ResumeSectionKey, ResumeSectionEditorSc
       },
     ],
   },
+  // 自定义模块没有固定字段表单 —— 它的编辑界面按 view 分派（下一步做），这里先占位
+  custom: { segments: [] },
   evaluations: {
     segments: [
       {

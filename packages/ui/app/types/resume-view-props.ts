@@ -1,5 +1,6 @@
 import type {
   ResumeSectionKey,
+  ResumeSectionSummary,
   ResumeContent,
   ResumeDisplayOptions,
   ResumeThemeConfig,
@@ -30,7 +31,8 @@ export interface ResumeSectionBodyProps {
 }
 
 export interface ResumeSectionProps {
-  section: { key: ResumeSectionKey; label: string; icon: string }
+  /** `id` 是文档内的实例身份 —— 自定义模块靠它区分同 view 的多个实例 */
+  section: ResumeSectionSummary
   content: ResumeContent
   options: ResumeDisplayOptions
   theme: ResumeThemeConfig

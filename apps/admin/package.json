@@ -20,6 +20,7 @@
     "@rs/common": "workspace:*",
     "@rs/utils": "workspace:*",
     "@tiptap/core": "^3.0.0",
+    "@tiptap/html": "^3.0.0",
     "@tiptap/pm": "^3.0.0",
     "@tiptap/starter-kit": "^3.0.0",
     "@tiptap/vue-3": "^3.0.0",

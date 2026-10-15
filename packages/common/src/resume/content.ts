@@ -31,6 +31,7 @@ export type ResumeSectionKey =
   | 'projects'
   | 'skills'
   | 'evaluations'
+  | 'custom'
 
 /** 展示布局模式：通栏 / 左右 / 三栏 */
 export type ResumeLayoutMode = 'single' | 'split' | 'threeColumn'
@@ -209,8 +210,47 @@ export interface ResumeSkillGroup {
 }
 
 /** 简历内容（后端公开快照的形状；本卡用 mock 提供） */
+/**
+ * 文档里的区块清单（按文档顺序）。
+ *
+ * 为什么要单独列一份：区块在**契约里由 `id` 标识**（`display.sections.order` 存的就是 id），
+ * 而展示层按**类型**取内容（`content.skills` 等）。两者之间缺一个"由 id 查回 key / 标签 / 图标"
+ * 的连接 —— 就是它。自定义模块尤其需要：同一种 view 可以有多个实例，只有 id 能区分。
+ */
+export interface ResumeSectionSummary {
+  id: string
+  key: ResumeSectionKey
+  label: string
+  icon: string
+}
+
+/** 自定义模块的展示方式（与契约 `resumeCustomViewSchema` 同集合） */
+export type ResumeCustomView = 'textList' | 'tagCloud' | 'timeline' | 'richText'
+
+/**
+ * 一个自定义模块的**展示数据**。
+ *
+ * 与其它区块不同，自定义模块是**多实例** —— 同一个 view 可以有多个模块，各自的标题与内容都不同。
+ * 所以它按**实例 id** 组织（`ResumeContent.custom` 是数组），渲染时由 `section.id` 找到自己那一份；
+ * 其它区块仍是「一类一份内容」（`content.skills` 等）。
+ */
+export interface ResumeCustomSection {
+  id: string
+  view: ResumeCustomView
+  /** textList / tagCloud 的条目文本 */
+  items: string[]
+  /** timeline 的条目（`time` 已转成显示用文本） */
+  timeline: { id: string; time: string; title: string; description?: string }[]
+  /** richText 的 TipTap JSON（渲染用 generateHTML，不落 HTML） */
+  document?: { type: 'doc'; content: Record<string, unknown>[] }
+}
+
 export interface ResumeContent {
+  /** 文档里的区块清单（含 id），排布与渲染靠它寻址 */
+  sections: ResumeSectionSummary[]
   profile: ResumeProfile
+  /** 自定义模块（多实例，按 id 找） */
+  custom: ResumeCustomSection[]
   highlights: ResumeHighlight[]
   education: ResumeEducationItem[]
   experience: ResumeExperienceItem[]
@@ -376,7 +416,8 @@ export interface ResumeSectionBodyProps {
 }
 
 export interface ResumeSectionProps {
-  section: { key: ResumeSectionKey; label: string; icon: string }
+  /** `id` 是文档内的实例身份 —— 自定义模块靠它区分同 view 的多个实例 */
+  section: { id: string; key: ResumeSectionKey; label: string; icon: string }
   content: ResumeContent
   options: ResumeDisplayOptions
   theme: ResumeThemeConfig

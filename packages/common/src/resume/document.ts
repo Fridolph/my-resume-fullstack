@@ -145,6 +145,39 @@ const profileData = z.strictObject({
  * 模块 id、title、type、data 必填，description、icon 可省略；条目数组的顺序
  * 表示模块内部内容顺序，模块间顺序由 display.sections.order 表示。
  */
+/** 自定义模块的展示方式 —— **有限枚举**：放开成任意字符串就得为"未知 view"兜底，库里也会进脏数据。 */
+export const resumeCustomViewSchema = z.enum(['textList', 'tagCloud', 'timeline', 'richText'])
+
+/** 时间轴条目：复用契约里已有的日期表达（custom 文本 / structured 起止） */
+const timelineItem = z.strictObject({
+  id: resumeIdSchema,
+  time: resumeDateSchema,
+  title: resumeNameSchema,
+  description: resumeDescriptionSchema.optional(),
+})
+
+/**
+ * 自定义模块的内容 —— 因为 `richText` 的**数据形状与其它三种不同**，按 `view` 分叉。
+ *
+ * `richText` 存 **TipTap 的 JSON**（不是 HTML）：存 HTML 就得在公开页 `v-html` 渲染，
+ * 那是真实的 XSS 面；存 JSON 后用 TipTap 的 `generateHTML` 渲染，节点类型由 schema 收口。
+ * 外层严格（`type: 'doc'` + 顶层数组 + 数量上限），节点细节交给 TipTap schema。
+ */
+const customSectionData = z.discriminatedUnion('view', [
+  z.strictObject({ view: z.literal('textList'), items: z.array(textItem).min(1).max(50) }),
+  z.strictObject({ view: z.literal('tagCloud'), items: z.array(textItem).min(1).max(50) }),
+  z.strictObject({ view: z.literal('timeline'), items: z.array(timelineItem).min(1).max(50) }),
+  z.strictObject({
+    view: z.literal('richText'),
+    content: z.strictObject({
+      type: z.literal('doc'),
+      // 节点细节交给 TipTap schema：这里只约束「是个 doc、顶层是节点数组、有上限」。
+      // 刻意不写成递归类型 —— 那会让 TS 在下游报 TS2589（类型实例化过深）。
+      content: z.array(z.record(z.string(), z.unknown())).max(200),
+    }),
+  }),
+])
+
 export const resumeSectionSchema = z.discriminatedUnion('type', [
   z.strictObject({ ...base, type: z.literal('profile'), data: profileData }),
   z.strictObject({
@@ -213,6 +246,8 @@ export const resumeSectionSchema = z.discriminatedUnion('type', [
   }),
   z.strictObject({ ...base, type: z.literal('capabilities'), data: capabilityDataSchema }),
   z.strictObject({ ...base, type: z.literal('evaluations'), data: z.strictObject({ items: textItems }) }),
+  // 自定义模块：多实例（同一份文档可有多个），身份靠 `base.id`；展示方式由 data.view 决定
+  z.strictObject({ ...base, type: z.literal('custom'), data: customSectionData }),
 ])
 
 /** 六位十六进制颜色值。 */

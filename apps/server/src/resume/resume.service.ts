@@ -82,7 +82,9 @@ export class ResumeService {
           draft: {
             create: {
               schemaVersion: fullDocument.schemaVersion,
-              document: fullDocument,
+              // 断言：文档已由 `resumeDocumentSchema` 校验过，运行时就是可序列化的 JSON；
+              // 但 `richText` 的内容形状刻意写成浅类型（`unknown`），TS 才需要这一步
+              document: fullDocument as unknown as Prisma.InputJsonValue,
               updatedBy: user.id,
             },
           },
@@ -180,7 +182,7 @@ export class ResumeService {
           resume: this.ownedResume(id, currentUser),
         },
         data: {
-          document: saveResumeDraftDto.document,
+          document: saveResumeDraftDto.document as unknown as Prisma.InputJsonValue,
           schemaVersion: saveResumeDraftDto.document.schemaVersion,
           revision: { increment: 1 },
           updatedBy: currentUser.userId,

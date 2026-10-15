@@ -2,6 +2,7 @@ import type { ResumeSectionKey } from '@rs/common'
 import type { Component } from 'vue'
 
 import CapabilitySection from '../components/resume/CapabilitySection.vue'
+import CustomSection from '../components/resume/CustomSection.vue'
 import ResumeEducationSection from '../components/resume/ResumeEducationSection.vue'
 import ResumeEvaluationsSection from '../components/resume/ResumeEvaluationsSection.vue'
 import ResumeExperienceSection from '../components/resume/ResumeExperienceSection.vue'
@@ -27,4 +28,5 @@ export const resumeSectionComponents: Record<ResumeSectionKey, Component> = {
   projects: ResumeProjectsSection,
   skills: ResumeSkillsSection,
   evaluations: ResumeEvaluationsSection,
+  custom: CustomSection,
 }

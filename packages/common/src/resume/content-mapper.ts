@@ -16,7 +16,7 @@
 import { resumeDocumentSchema, type ResumeDocument, type ResumeSection } from './document.js'
 import { type CapabilityData } from './capabilities.js'
 import type { ResumeContent, ResumeDisplayConfig, ResumeSectionKey, ResumeSlotKey } from './content.js'
-import { resumeSectionDefinitions, toLegacySectionKey } from './sections.js'
+import { getSectionDefinition, resumeSectionDefinitions, toLegacySectionKey } from './sections.js'
 
 const titles = {
   profile: '基本信息',
@@ -171,6 +171,18 @@ export function toResumeContent(document: ResumeDocument, target?: ResumeSection
       | undefined
   const profileData = profile.data
   return {
+    // 清单按文档顺序生成：label / icon 取共享的区块定义（未定义的类型用 type 兜底）
+    sections: sections.map(section => {
+      const key = toLegacySectionKey(section.type)
+      const definition = getSectionDefinition(key)
+
+      return {
+        id: section.id,
+        key,
+        label: definition?.label ?? section.title,
+        icon: definition?.icon ?? 'i-lucide-file-text',
+      }
+    }),
     profile: {
       ...profileData,
       hero: { ...profileData.hero, slogans: profileData.hero.slogans.map(item => item.text) },
@@ -202,6 +214,26 @@ export function toResumeContent(document: ResumeDocument, target?: ResumeSection
         items: group.items.map(item => item.name),
       })) ?? [],
     evaluations: pick('evaluations')?.data.items.map(item => item.text) ?? [],
+    // 自定义模块是**多实例**，不能用 pick（它按 type 取第一个）；这里按文档顺序全取，
+    // 渲染时再由 section.id 找到自己那一份。时间轴条目统一转成显示文本（与其它区块一致）。
+    custom: sections
+      .filter(section => section.type === 'custom')
+      .map(section => ({
+        id: section.id,
+        view: section.data.view,
+        items:
+          'items' in section.data && section.data.view !== 'timeline' ? section.data.items.map(item => item.text) : [],
+        timeline:
+          section.data.view === 'timeline'
+            ? section.data.items.map(item => ({
+                id: item.id,
+                time: period(item.time),
+                title: item.title,
+                description: item.description,
+              }))
+            : [],
+        document: section.data.view === 'richText' ? section.data.content : undefined,
+      })),
     footerNote: document.content.footer.note,
   }
 }

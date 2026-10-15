@@ -95,6 +95,15 @@ export const resumeSectionDefinitions: ResumeSectionDefinition[] = [
     defaultSlot: 'rail',
     defaultOrder: 6,
   },
+  {
+    // 自定义模块：**一个 key 对应多个实例**（用户可建多条），身份靠各自的 section.id，
+    // 所以它是唯一一个「同样的 key 在排布里出现多次」的区块。
+    key: 'custom',
+    label: '自定义模块',
+    icon: 'i-lucide-shapes',
+    defaultSlot: 'main',
+    defaultOrder: 7,
+  },
 ]
 
 export function getSectionDefinition(key: ResumeSectionKey): ResumeSectionDefinition | undefined {
