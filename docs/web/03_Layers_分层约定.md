@@ -123,7 +123,8 @@ web 与 admin 都要用的 Vue 组件放 `packages/ui`。它是 **Nuxt layer**�
 ### 8.2 `packages/ui` 的依赖规则
 
 - `vue` 走 **peerDependencies + devDependencies**：不重复安装，同时让 `packages/ui` 目录内能解析到类型
-- **不允许业务库 / 重量级引擎**（`sortablejs`、`tiptap`、图表引擎…）—— 需要时由使用方（宿主）安装并注入
+- **允许 Vue 生态基础库**（`@vueuse/core` 等）作为 `dependencies` —— 它算"Vue 标准库的延伸"，不是业务库
+- **重量级引擎 / 业务库**（`sortablejs`、`tiptap`、图表引擎…）**不允许**：由使用方（宿主）安装并注入
 - ui 组件**能用**：框架层自动导入（`UModal` / `useToast`）、**同层**自动导入（`packages/ui/app/{components,composables,utils}`）
 - ui 组件**不能依赖某一端独有的自动导入**（如 admin 的 `usePdfPage`）：ui 会被**两端同时编译与检查**
 - ui 组件**不能 import 宿主的具名模块**（`~/types/x`、`~/apis/x`）：要么把该能力一起上提，要么改为注入
