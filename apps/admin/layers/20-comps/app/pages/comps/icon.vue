@@ -43,11 +43,17 @@ const SIZE_CLASS: Record<(typeof SIZES)[number], string> = {
   <div class="content-pad">
     <h1 class="text-xl font-semibold tracking-tight text-highlighted">Icon</h1>
     <p class="mt-2 max-w-3xl text-sm leading-6 text-muted">
-      图标用法（<code class="rounded bg-elevated px-1.5 py-0.5 text-xs">UIcon</code>）：<code class="rounded bg-elevated px-1.5 py-0.5 text-xs">i-lucide-*</code>、
-      <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">i-ri-*</code>、任意 iconify 集、
-      以及<strong>本地 svg</strong>（<code class="rounded bg-elevated px-1.5 py-0.5 text-xs">i-local:*</code>）
-      都能用。⚠️ 尺寸类要写全（<code>size-4</code> 而不是 <code>w-4</code>，否则图标会被拉变形），
-      可访问性也要自己加 —— <strong>装饰图标给 <code>aria-hidden="true"</code></strong>，语义图标才给 <code>role="img"</code> + <code>aria-label</code>。
+      图标用法（<code class="rounded bg-elevated px-1.5 py-0.5 text-xs">UIcon</code>）：<code
+        class="rounded bg-elevated px-1.5 py-0.5 text-xs"
+        >i-lucide-*</code
+      >、 <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">i-ri-*</code>、任意 iconify 集、 以及<strong
+        >本地 svg</strong
+      >（<code class="rounded bg-elevated px-1.5 py-0.5 text-xs">i-local:*</code>） 都能用。⚠️ 尺寸类要写全（<code
+        >size-4</code
+      >
+      而不是 <code>w-4</code>，否则图标会被拉变形）， 可访问性也要自己加 ——
+      <strong>装饰图标给 <code>aria-hidden="true"</code></strong
+      >，语义图标才给 <code>role="img"</code> + <code>aria-label</code>。
     </p>
 
     <div class="mt-6 space-y-8">
@@ -84,7 +90,8 @@ const SIZE_CLASS: Record<(typeof SIZES)[number], string> = {
       <section class="rounded-lg border border-default bg-default p-4">
         <h2 class="text-sm font-semibold text-highlighted">尺寸档位</h2>
         <p class="mt-1 text-xs text-muted">
-          <code>xs</code> 12px · <code>sm</code> 14px · <code>md</code> 16px（默认）· <code>lg</code> 20px · <code>xl</code> 24px
+          <code>xs</code> 12px · <code>sm</code> 14px · <code>md</code> 16px（默认）· <code>lg</code> 20px ·
+          <code>xl</code> 24px
         </p>
         <div class="mt-4 flex flex-wrap items-end gap-5">
           <span v-for="s in SIZES" :key="s" class="flex flex-col items-center gap-2">
@@ -98,13 +105,15 @@ const SIZE_CLASS: Record<(typeof SIZES)[number], string> = {
         <h2 class="text-sm font-semibold text-highlighted">怎么再加一套图标</h2>
         <ol class="mt-2 list-decimal space-y-1 pl-5 text-xs leading-5 text-muted">
           <li>
-            <strong>iconify 集</strong>：<code>pnpm --filter @template/admin add -D @iconify-json/&lt;集名&gt;</code>
-            —— 装完就能写 <code>i-&lt;集名&gt;-&lt;图标&gt;</code>，<strong>不用改代码</strong>
-            （集清单在 <a class="text-primary underline" href="https://icones.netlify.app" target="_blank" rel="noreferrer">icones.netlify.app</a>）
+            <strong>iconify 集</strong>：<code>pnpm --filter @template/admin add -D @iconify-json/&lt;集名&gt;</code> ——
+            装完就能写 <code>i-&lt;集名&gt;-&lt;图标&gt;</code>，<strong>不用改代码</strong> （集清单在
+            <a class="text-primary underline" href="https://icones.netlify.app" target="_blank" rel="noreferrer"
+              >icones.netlify.app</a
+            >）
           </li>
           <li>
-            <strong>本地 svg</strong>：把文件放到 <code>app/assets/icons/</code>（可再分目录），
-            文件名即图标名 → <code>i-local:&lt;文件名&gt;</code>
+            <strong>本地 svg</strong>：把文件放到 <code>app/assets/icons/</code>（可再分目录）， 文件名即图标名 →
+            <code>i-local:&lt;文件名&gt;</code>
           </li>
         </ol>
       </section>

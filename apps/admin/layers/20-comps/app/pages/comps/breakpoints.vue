@@ -60,8 +60,10 @@ const activeIndex = computed(() => {
     -->
     <ClientOnly>
       <p class="mt-2 max-w-3xl text-sm leading-6 text-muted">
-        当前视口宽度：<strong class="text-highlighted">{{ width }}px</strong> ·
-        命中档位：<strong class="text-primary">{{ activeIndex >= 0 ? BREAKPOINTS[activeIndex]!.key : '（低于最小档）' }}</strong>
+        当前视口宽度：<strong class="text-highlighted">{{ width }}px</strong> · 命中档位：<strong
+          class="text-primary"
+          >{{ activeIndex >= 0 ? BREAKPOINTS[activeIndex]!.key : '（低于最小档）' }}</strong
+        >
         <span v-if="activeIndex >= 0" class="text-muted">（≥ {{ BREAKPOINTS[activeIndex]!.px }}px）</span>
       </p>
       <template #fallback>
@@ -89,13 +91,21 @@ const activeIndex = computed(() => {
             :class="isClient && i === activeIndex ? 'bg-primary/5' : ''"
           >
             <td class="px-4 py-2">
-              <code class="text-xs" :class="i === activeIndex ? 'font-semibold text-primary' : 'text-muted'">{{ bp.key }}:</code>
+              <code class="text-xs" :class="i === activeIndex ? 'font-semibold text-primary' : 'text-muted'"
+                >{{ bp.key }}:</code
+              >
             </td>
             <td class="px-4 py-2 text-muted">{{ bp.px }}px</td>
             <td class="px-4 py-2 text-muted">{{ bp.note }}</td>
             <td class="px-4 py-2">
               <ClientOnly>
-                <UIcon v-if="i === activeIndex" name="i-lucide-circle-check" class="size-4 shrink-0 text-primary" role="img" aria-label="当前生效" />
+                <UIcon
+                  v-if="i === activeIndex"
+                  name="i-lucide-circle-check"
+                  class="size-4 shrink-0 text-primary"
+                  role="img"
+                  aria-label="当前生效"
+                />
                 <span v-else class="text-xs text-dimmed">—</span>
               </ClientOnly>
             </td>
@@ -118,20 +128,37 @@ const activeIndex = computed(() => {
         <span class="hidden md:block lg:hidden text-muted">· <code>md:</code> 生效</span>
         <span class="hidden lg:block xl:hidden text-muted">· <code>lg:</code> 生效</span>
         <span class="hidden xl:block note:hidden text-muted">· <code>xl:</code> 生效</span>
-        <span class="hidden note:block 2xl:hidden font-semibold text-primary">· <code>note:</code> 生效 ← <strong>这一档 Tailwind 默认没有</strong></span>
+        <span class="hidden note:block 2xl:hidden font-semibold text-primary"
+          >· <code>note:</code> 生效 ← <strong>这一档 Tailwind 默认没有</strong></span
+        >
         <span class="hidden 2xl:block 3xl:hidden font-semibold text-primary">· <code>2xl:</code> 生效</span>
-        <span class="hidden 3xl:block 4xl:hidden font-semibold text-primary">· <code>3xl:</code> 生效 ← <strong>这一档 Tailwind 默认没有</strong></span>
-        <span class="hidden 4xl:block font-semibold text-primary">· <code>4xl:</code> 生效 ← <strong>这一档 Tailwind 默认没有</strong></span>
+        <span class="hidden 3xl:block 4xl:hidden font-semibold text-primary"
+          >· <code>3xl:</code> 生效 ← <strong>这一档 Tailwind 默认没有</strong></span
+        >
+        <span class="hidden 4xl:block font-semibold text-primary"
+          >· <code>4xl:</code> 生效 ← <strong>这一档 Tailwind 默认没有</strong></span
+        >
       </div>
     </section>
 
     <section class="mt-6 rounded-lg border border-default bg-default p-4">
       <h2 class="text-sm font-semibold text-highlighted">⚠️ 这次的改动会影响现有写法</h2>
       <ul class="mt-2 list-disc space-y-1 pl-4 text-xs leading-5 text-muted">
-        <li><code>sm</code> 从 640 → <strong>576</strong>、<code>2xl</code> 从 1536 → <strong>1440</strong>（<code>xl</code> 保持 1280）</li>
+        <li>
+          <code>sm</code> 从 640 → <strong>576</strong>、<code>2xl</code> 从 1536 → <strong>1440</strong>（<code
+            >xl</code
+          >
+          保持 1280）
+        </li>
         <li><code>md</code> / <code>lg</code> / <code>xl</code> 数值与 Tailwind 默认一致或不变（768 / 1024 / 1280）</li>
-        <li>新增 <code>xs:</code> / <code>note:</code> / <code>3xl:</code> / <code>4xl:</code> 四档 —— 其中 <code>note:</code> / <code>3xl:</code> 就是填 1366–1600 那个空档</li>
-        <li>语义不变（都是 min-width / 移动端优先），所以<strong>不需要重写现有类名</strong>，但视觉切换点会变，需要过一遍关键页</li>
+        <li>
+          新增 <code>xs:</code> / <code>note:</code> / <code>3xl:</code> / <code>4xl:</code> 四档 —— 其中
+          <code>note:</code> / <code>3xl:</code> 就是填 1366–1600 那个空档
+        </li>
+        <li>
+          语义不变（都是 min-width /
+          移动端优先），所以<strong>不需要重写现有类名</strong>，但视觉切换点会变，需要过一遍关键页
+        </li>
       </ul>
     </section>
   </div>

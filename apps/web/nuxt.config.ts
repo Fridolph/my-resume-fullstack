@@ -9,11 +9,8 @@ export default defineNuxtConfig({
   //   其他 iconify 集  装一个 @iconify-json/<集名> 就能用 i-<集名>-*
   //   i-local:*       app/assets/icons/*.svg 里的本地图标（文件名即图标名）
   icon: {
-    customCollections: [
-      { prefix: 'local', dir: './app/assets/icons' },
-    ],
+    customCollections: [{ prefix: 'local', dir: './app/assets/icons' }],
   },
-
 
   // 跨 app 共享 UI 组件（Nuxt layer，见 packages/ui/README.md）
   extends: ['../../packages/ui'],
