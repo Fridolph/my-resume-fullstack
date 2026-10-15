@@ -164,9 +164,13 @@ const timelineItem = z.strictObject({
  * 外层严格（`type: 'doc'` + 顶层数组 + 数量上限），节点细节交给 TipTap schema。
  */
 const customSectionData = z.discriminatedUnion('view', [
-  z.strictObject({ view: z.literal('textList'), items: z.array(textItem).min(1).max(50) }),
-  z.strictObject({ view: z.literal('tagCloud'), items: z.array(textItem).min(1).max(50) }),
-  z.strictObject({ view: z.literal('timeline'), items: z.array(timelineItem).min(1).max(50) }),
+  // ⚠️ 三种"条目式" view 都**允许空数组**：草稿是自动保存的，用户新建一个模块后
+  //    还没来得及填内容（或刚切换展示方式）就是空的 —— 若在这里卡 `min(1)`，
+  //    整个文档会校验失败、保存回报错，用户却看不出哪一步错了（实测踩到过）。
+  //    "不留空壳"交给界面（空模块不占版面）与用户自己删除，不用校验拦。
+  z.strictObject({ view: z.literal('textList'), items: z.array(textItem).max(50) }),
+  z.strictObject({ view: z.literal('tagCloud'), items: z.array(textItem).max(50) }),
+  z.strictObject({ view: z.literal('timeline'), items: z.array(timelineItem).max(50) }),
   z.strictObject({
     view: z.literal('richText'),
     content: z.strictObject({
@@ -765,6 +769,8 @@ export const resumeSummarySchema = z.strictObject({
   locale: resumeLocaleSchema,
   revision: z.number().int().positive(),
   updatedAt: z.string(),
+  /** 是否为「默认展示」的简历（每个用户至多一份） */
+  isDefault: z.boolean(),
 })
 
 /**

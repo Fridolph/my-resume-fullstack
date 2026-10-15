@@ -168,6 +168,9 @@ model Resume {
   workspaceUserId String @map("workspace_user_id")
   name String @db.VarChar(80)
   locale String @db.VarChar(20)
+  /// 「默认展示」的简历：访客/首页看的就是它。**每个用户至多一份** —— 互斥由服务端在同一事务里保证
+  /// （没有加 partial unique index：Prisma schema 表达不了，硬加会让 `migrate dev` 每次都报漂移）
+  isDefault Boolean @default(false) @map("is_default")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   workspace ResumeWorkspace @relation(fields: [workspaceUserId], references: [userId], onDelete: Restrict)

@@ -36,6 +36,60 @@ export class ResumeService {
    * 把条件提成命名变量正向表达，是为了避免误读：原来的写法把两个 `!` 条件用 `||` 连起来，
    * 容易被读成"满足其一即可"，而它的真实含义是 `!(是编辑角色 && 有编辑权限)`。
    */
+  /**
+   * 把某人一份简历设为「默认展示」，并**取消他其他简历的默认**。
+   *
+   * 互斥在同一个事务里完成：先清后置。没有加数据库唯一约束（`WHERE is_default` 的部分唯一索引
+   * 在 Prisma schema 里表达不了，硬加会让 `migrate dev` 每次报漂移），所以这里用事务把窗口收窄 ——
+   * 同一用户并发调用极小概率仍可能出现两份默认，代价只是"首页取到其中一份"，
+   * 用户再点一次即可收敛；相对地，唯一索引会带来的长期漂移成本更麻烦。
+   *
+   * 返回**更新后的完整列表**，让前端一次拿到互斥结果，不用再猜另一份现在是 true 还是 false。
+   */
+  async setDefault(id: number, currentUser: AuthUser): Promise<ResumeSummary[]> {
+    this.assertEditable(currentUser)
+
+    await this.prismaService.$transaction(async transaction => {
+      const target = await transaction.resume.findFirst({
+        where: this.ownedResume(id, currentUser),
+        select: { id: true },
+      })
+      if (!target) {
+        throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+      }
+
+      await transaction.resume.updateMany({
+        where: { workspaceUserId: currentUser.userId, isDefault: true, id: { not: id } },
+        data: { isDefault: false },
+      })
+      await transaction.resume.update({ where: { id }, data: { isDefault: true } })
+    })
+
+    return this.list(currentUser)
+  }
+
+  /**
+   * 取「默认展示」简历的草稿 —— 首页（`/`）用它决定直接展示哪一份。
+   *
+   * 没设默认时**不隐式挑一份**（比如最近更新的）：那会让"展示哪一份"变得不可预期，
+   * 前端拿到 404 就引导用户去列表页自己选，选完在这里设默认。
+   */
+  async findDefault(currentUser: AuthUser): Promise<ResumeDraftResponse> {
+    const resume = await this.prismaService.resume.findFirst({
+      where: {
+        workspaceUserId: currentUser.userId,
+        isDefault: true,
+        workspace: { user: { deletedAt: null } },
+      },
+      select: { id: true },
+    })
+    if (!resume) {
+      throw new NotFoundException('还没有设为默认展示的简历', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+    }
+
+    return this.findDraft(resume.id, currentUser)
+  }
+
   private assertEditable(currentUser: AuthUser) {
     const isEditorRole = currentUser.roleKeys.some(role => role === 'admin' || role === 'super_admin')
     const hasEditPermission = currentUser.permissionKeys.includes(PERMISSION_KEYS.RESUME_SECTIONS_EDIT)
@@ -127,6 +181,7 @@ export class ResumeService {
         id: true,
         name: true,
         locale: true,
+        isDefault: true,
         draft: { select: { revision: true, updatedAt: true } },
       },
     })
@@ -140,6 +195,7 @@ export class ResumeService {
         locale: resume.locale,
         revision: resume.draft.revision,
         updatedAt: resume.draft.updatedAt.toISOString(),
+        isDefault: resume.isDefault,
       })
     }
 

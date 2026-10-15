@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { normalizeApiError, resolveApiErrorMessage } from '@rs/common'
 import { fetchHealth } from '~/apis/health'
+import { createResumeDraftApi } from '#layers/public-resume/app/apis/resume-draft'
 
 definePageMeta({
   title: 'my-resume',
@@ -18,6 +19,28 @@ const {
   status,
   refresh: refreshHealthData,
 } = await useAsyncData('health', fetchHealth)
+
+/**
+ * 已登录时：直接进「默认展示」的那一份简历。
+ *
+ * 这是 Owner 要的入口行为 —— `/` 对**作者本人**应该就是他选定的那份简历（拿到就能预览/编辑），
+ * 而不是一个导航页。没设默认时**不隐式挑一份**（比如最近更新的）：那样"看哪一份"会变得不可预期，
+ * 改造后的行为是留在本页并给出指向列表页的引导，由他自己选。
+ *
+ * 未登录 / 取不到默认 → 保持原来的公开入口页（导航 + 后端状态），不影响访客。
+ */
+const resumeApi = createResumeDraftApi()
+const { isAuthed } = useAuthState()
+
+const { data: defaultResume } = await useAsyncData(
+  'home-default-resume',
+  () => (isAuthed.value ? resumeApi.findDefault().catch(() => null) : Promise.resolve(null)),
+  { watch: [isAuthed] },
+)
+
+if (defaultResume.value) {
+  await navigateTo(`/resume/draft/${defaultResume.value.resume.id}`, { redirectCode: 302 })
+}
 
 const apiStatusLabel = computed(() => {
   if (status.value === 'pending') {

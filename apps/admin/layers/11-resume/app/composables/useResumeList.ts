@@ -18,7 +18,7 @@ import { createResumeApi } from '../apis/resume'
 export function useResumeList() {
   const api = createResumeApi()
 
-  const { data, status, error } = useQuery({
+  const { data, status, error, refresh } = useQuery({
     key: queryKeys.resume.list,
     query: () => api.list(),
   })
@@ -27,5 +27,7 @@ export function useResumeList() {
     summaries: computed(() => data.value ?? []),
     status,
     error,
+    /** 手动刷新（改完默认简历后重新取列表；服务端会返回互斥结果，但缓存仍以重新拉取为准） */
+    refresh,
   }
 }

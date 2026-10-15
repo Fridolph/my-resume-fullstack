@@ -27,7 +27,7 @@ const toast = useToast()
 const api = createResumeApi()
 const queryCache = useQueryCache()
 const { signOut } = useAuthState()
-const { summaries, status, error } = useResumeList()
+const { summaries, status, error, refresh } = useResumeList()
 
 type ResumeViewMode = 'card' | 'list'
 
@@ -86,6 +86,21 @@ function formatUpdatedAt(value: string) {
 // ── 删除（物理删除，无恢复入口）──────────────────────────────────────
 const deleteOpen = ref(false)
 const deleteTarget = ref<ResumeSummary | null>(null)
+
+/**
+ * 设为默认展示。
+ *
+ * 接口返回**更新后的完整列表**（互斥结果由服务端在一事务里算好），所以这里整体替换，
+ * 不用本地猜"另一份现在是 true 还是 false" —— 少一处可能与服务端不一致的判断。
+ */
+async function setDefault(id: number) {
+  try {
+    await api.setDefault(id)
+    await refresh()
+  } catch (problem) {
+    toast.add({ title: '设置失败', description: resolveApiErrorMessage(normalizeApiError(problem)), color: 'error' })
+  }
+}
 
 /** 卡片整卡可点 → 进只读详情（键盘用户走标题链接，这里只是鼠标增强） */
 async function openDetail(id: number) {
@@ -213,15 +228,29 @@ async function confirmDelete() {
           <UBadge color="neutral" variant="subtle" :label="`rev ${item.revision}`" />
         </div>
 
-        <NuxtLink
-          :to="`/resume/${item.id}`"
-          class="mt-4 block truncate font-medium text-highlighted hover:text-primary"
-        >
-          {{ item.name }}
-        </NuxtLink>
+        <div class="mt-4 flex items-center gap-1.5">
+          <UIcon
+            v-if="item.isDefault"
+            name="i-lucide-star"
+            class="size-4 shrink-0 text-primary"
+            aria-label="默认展示"
+          />
+          <NuxtLink :to="`/resume/${item.id}`" class="truncate font-medium text-highlighted hover:text-primary">
+            {{ item.name }}
+          </NuxtLink>
+        </div>
         <p class="mt-1 text-xs text-muted">{{ item.locale }} · 更新于 {{ formatUpdatedAt(item.updatedAt) }}</p>
 
         <div class="mt-4 flex items-center gap-1 border-t border-default pt-3">
+          <UButton
+            icon="i-lucide-star"
+            size="xs"
+            color="neutral"
+            :variant="item.isDefault ? 'soft' : 'ghost'"
+            :disabled="item.isDefault"
+            :label="item.isDefault ? '默认展示' : '设为默认'"
+            @click.stop="setDefault(item.id)"
+          />
           <UButton
             :to="`/resume/${item.id}`"
             icon="i-lucide-eye"
@@ -285,6 +314,16 @@ async function confirmDelete() {
 
       <template #actions-cell="{ row }">
         <div class="flex items-center justify-end gap-1">
+          <UButton
+            icon="i-lucide-star"
+            size="xs"
+            color="neutral"
+            :variant="row.original.isDefault ? 'soft' : 'ghost'"
+            :disabled="row.original.isDefault"
+            :aria-label="row.original.isDefault ? '已是默认展示' : `把「${row.original.name}」设为默认展示`"
+            :title="row.original.isDefault ? '已是默认展示' : '设为默认展示'"
+            @click="setDefault(row.original.id)"
+          />
           <UButton
             :to="`/resume/${row.original.id}`"
             icon="i-lucide-eye"

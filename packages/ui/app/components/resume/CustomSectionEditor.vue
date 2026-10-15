@@ -56,19 +56,26 @@ function removeTimelineItem(index: number) {
       <USelect v-model="draft.view" :items="VIEW_OPTIONS" value-key="value" class="w-full" />
     </UFormField>
 
-    <!-- 富文本：TipTap JSON -->
+    <!-- 富文本：TipTap JSON。
+         ⚠️ 必须包 `ClientOnly`：`UEditor` 建立在 TipTap 上，初始化要读 DOM；
+         服务端渲染阶段挂载会失败，表现就是"富文本区域一片空白、点不动"。 -->
     <UFormField v-if="draft.view === 'richText'" label="内容" hint="支持加粗、列表、链接等">
-      <UEditor
-        :model-value="draft.document"
-        content-type="json"
-        placeholder="写点什么…"
-        class="w-full"
-        @update:model-value="
-          value => {
-            draft.document = value as ResumeCustomSectionDraft['document']
-          }
-        "
-      />
+      <ClientOnly>
+        <UEditor
+          :model-value="draft.document"
+          content-type="json"
+          placeholder="写点什么…"
+          class="w-full"
+          @update:model-value="
+            value => {
+              draft.document = value as ResumeCustomSectionDraft['document']
+            }
+          "
+        />
+        <template #fallback>
+          <div class="rounded-lg border border-default p-4 text-sm text-muted">编辑器加载中…</div>
+        </template>
+      </ClientOnly>
     </UFormField>
 
     <!-- 时间轴：结构化条目 -->

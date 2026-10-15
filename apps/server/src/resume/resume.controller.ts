@@ -39,6 +39,17 @@ export class ResumeController {
   /**
    * 读取本人完整草稿，含编辑所需全部内容；此接口不是公开展示入口。
    */
+  /**
+   * 默认展示的简历草稿（首页用）。
+   *
+   * ⚠️ 必须声明在 `@Get(':id/draft')` **之前**：NestJS 按声明顺序匹配，
+   * 否则 `default` 会被当成 `:id` 去做数字校验而 400。
+   */
+  @Get('default')
+  findDefault(@CurrentUser() currentUser: AuthUser) {
+    return this.resumeService.findDefault(currentUser)
+  }
+
   @Get(':id/draft')
   findDraft(@Param('id', { schema: resumePrimaryKeySchema }) id: number, @CurrentUser() currentUser: AuthUser) {
     return this.resumeService.findDraft(id, currentUser)
@@ -75,6 +86,12 @@ export class ResumeController {
    * 删除本人简历（**物理删除**）：简历与其草稿一并消失，没有恢复入口 ——
    * 所以前端必须保留二次确认（见 DAO-033 的口径说明）。
    */
+  /** 设为默认展示（互斥：会取消本人其他简历的默认），返回更新后的完整列表 */
+  @Patch(':id/default')
+  setDefault(@Param('id', { schema: resumePrimaryKeySchema }) id: number, @CurrentUser() currentUser: AuthUser) {
+    return this.resumeService.setDefault(id, currentUser)
+  }
+
   @Delete(':id')
   remove(@Param('id', { schema: resumePrimaryKeySchema }) id: number, @CurrentUser() currentUser: AuthUser) {
     return this.resumeService.remove(id, currentUser)

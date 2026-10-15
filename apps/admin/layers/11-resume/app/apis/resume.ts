@@ -22,6 +22,9 @@ export function createResumeApi() {
       $api<ResumeDraftResponse>('/resume', { method: 'POST', body: input, silent: true, retry: 0 }),
 
     /** 读取本人草稿（完整文档 + 当前 revision），编辑页的入口数据 */
+    /** 设为默认展示（互斥：会取消本人其他简历的默认），返回更新后的完整列表 */
+    setDefault: (id: number) =>
+      $api<ResumeSummary[]>(`/resume/${id}/default`, { method: 'PATCH', silent: true, retry: 0 }),
     getDraft: (id: number) => $api<ResumeDraftResponse>(`/resume/${id}/draft`, { silent: true, retry: 0 }),
 
     /**
