@@ -51,6 +51,11 @@
       "types": "./dist/zodFunc.d.ts",
       "import": "./dist/zodFunc.js",
       "default": "./dist/zodFunc.js"
+    },
+    "./file-upload": {
+      "types": "./dist/file-upload.d.ts",
+      "import": "./dist/file-upload.js",
+      "default": "./dist/file-upload.js"
     }
   },
   "scripts": {
