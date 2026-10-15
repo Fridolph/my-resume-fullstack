@@ -9,7 +9,12 @@
     "lint": "echo \"layer 的 lint 由根 oxlint 覆盖\""
   },
   "dependencies": {
+    "@nuxt/ui": "^4.3.0",
     "@rs/common": "workspace:*",
+    "@tiptap/core": "^3.0.0",
+    "@tiptap/pm": "^3.0.0",
+    "@tiptap/starter-kit": "^3.0.0",
+    "@tiptap/vue-3": "^3.0.0",
     "@vueuse/core": "^14.4.0",
     "@vueuse/integrations": "^14.4.0"
   },

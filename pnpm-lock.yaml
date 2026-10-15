@@ -27,7 +27,7 @@ importers:
   apps/admin:
     dependencies:
       '@nuxt/ui':
-        specifier: ^4.2.1
+        specifier: ^4.3.0
         version: 4.11.0(d6151fd8faf5698d2d9825824a35b956)
       '@pinia/colada':
         specifier: ^1.4.7
@@ -47,6 +47,18 @@ importers:
       '@rs/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@tiptap/core':
+        specifier: ^3.0.0
+        version: 3.30.5(@tiptap/pm@3.30.5)
+      '@tiptap/pm':
+        specifier: ^3.0.0
+        version: 3.30.5
+      '@tiptap/starter-kit':
+        specifier: ^3.0.0
+        version: 3.30.5
+      '@tiptap/vue-3':
+        specifier: ^3.0.0
+        version: 3.30.5(@floating-ui/dom@1.8.0)(@tiptap/core@3.30.5(@tiptap/pm@3.30.5))(@tiptap/pm@3.30.5)(vue@3.5.42(typescript@5.9.3))
       '@vueuse/core':
         specifier: ^14.4.0
         version: 14.4.0(vue@3.5.42(typescript@5.9.3))
@@ -179,7 +191,7 @@ importers:
   apps/web:
     dependencies:
       '@nuxt/ui':
-        specifier: ^4.2.1
+        specifier: ^4.3.0
         version: 4.11.0(39745efdfdc90ad55c53a5144c61192a)
       '@pinia/colada':
         specifier: ^1.4.7
@@ -193,6 +205,18 @@ importers:
       '@rs/common':
         specifier: workspace:*
         version: link:../../packages/common
+      '@tiptap/core':
+        specifier: ^3.0.0
+        version: 3.30.5(@tiptap/pm@3.30.5)
+      '@tiptap/pm':
+        specifier: ^3.0.0
+        version: 3.30.5
+      '@tiptap/starter-kit':
+        specifier: ^3.0.0
+        version: 3.30.5
+      '@tiptap/vue-3':
+        specifier: ^3.0.0
+        version: 3.30.5(@floating-ui/dom@1.8.0)(@tiptap/core@3.30.5(@tiptap/pm@3.30.5))(@tiptap/pm@3.30.5)(vue@3.5.42(typescript@5.9.3))
       nuxt:
         specifier: ^4.2.2
         version: 4.5.2(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@electric-sql/pglite@0.4.3)(@oxc-project/types@0.147.0)(@parcel/watcher@2.6.0)(@pinia/colada@1.4.7(pinia@4.0.3(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.42(typescript@5.9.3)))(vue@3.5.42(typescript@5.9.3)))(@types/node@22.20.1)(@vue/compiler-sfc@3.5.42)(db0@0.3.4(@electric-sql/pglite@0.4.3)(mysql2@3.15.3))(esbuild@0.28.2)(ioredis@5.11.1)(lightningcss@1.33.0)(magicast@0.5.4)(mysql2@3.15.3)(oxlint@1.80.0)(pinia@4.0.3(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.42(typescript@5.9.3)))(rolldown@1.2.6)(rollup-plugin-visualizer@7.1.1(rolldown@1.2.6)(rollup@4.63.1))(rollup@4.63.1)(terser@5.51.2)(tsx@4.23.15)(typescript@5.9.3)(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))(vue-tsc@3.3.11(typescript@5.9.3))(webpack@5.106.2(esbuild@0.28.2)(lightningcss@1.33.0))
@@ -237,9 +261,24 @@ importers:
 
   packages/ui:
     dependencies:
+      '@nuxt/ui':
+        specifier: ^4.3.0
+        version: 4.11.0(39745efdfdc90ad55c53a5144c61192a)
       '@rs/common':
         specifier: workspace:*
         version: link:../common
+      '@tiptap/core':
+        specifier: ^3.0.0
+        version: 3.30.5(@tiptap/pm@3.30.5)
+      '@tiptap/pm':
+        specifier: ^3.0.0
+        version: 3.30.5
+      '@tiptap/starter-kit':
+        specifier: ^3.0.0
+        version: 3.30.5
+      '@tiptap/vue-3':
+        specifier: ^3.0.0
+        version: 3.30.5(@floating-ui/dom@1.8.0)(@tiptap/core@3.30.5(@tiptap/pm@3.30.5))(@tiptap/pm@3.30.5)(vue@3.5.42(typescript@5.9.3))
       '@vueuse/core':
         specifier: ^14.4.0
         version: 14.4.0(vue@3.5.42(typescript@5.9.3))
