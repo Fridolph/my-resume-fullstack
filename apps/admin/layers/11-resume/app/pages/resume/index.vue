@@ -138,7 +138,7 @@ async function confirmDelete() {
     <header class="flex flex-wrap items-center justify-between gap-4">
       <!-- 页面标题由布局的页头按 `route.meta.title` 渲染，这里不再重复写一遍，直接给说明与操作 -->
       <p class="max-w-2xl text-sm leading-6 text-muted">
-        这里是你名下的简历。新建后可在公开站的草稿工作台继续补充内容与展示配置。
+        这里是你名下的简历：点标题看只读预览，进编辑页改内容。新建后也可在公开站的草稿工作台继续补充。
       </p>
 
       <div class="flex items-center gap-2">
@@ -202,10 +202,23 @@ async function confirmDelete() {
           <UBadge color="neutral" variant="subtle" :label="`rev ${item.revision}`" />
         </div>
 
-        <p class="mt-4 truncate font-medium text-highlighted">{{ item.name }}</p>
+        <NuxtLink
+          :to="`/resume/${item.id}`"
+          class="mt-4 block truncate font-medium text-highlighted hover:text-primary"
+        >
+          {{ item.name }}
+        </NuxtLink>
         <p class="mt-1 text-xs text-muted">{{ item.locale }} · 更新于 {{ formatUpdatedAt(item.updatedAt) }}</p>
 
         <div class="mt-4 flex items-center gap-1 border-t border-default pt-3">
+          <UButton
+            :to="`/resume/${item.id}`"
+            icon="i-lucide-eye"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            label="查看"
+          />
           <UButton
             :to="`/resume/${item.id}/edit`"
             icon="i-lucide-pencil"
@@ -257,6 +270,14 @@ async function confirmDelete() {
 
       <template #actions-cell="{ row }">
         <div class="flex items-center justify-end gap-1">
+          <UButton
+            :to="`/resume/${row.original.id}`"
+            icon="i-lucide-eye"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            :aria-label="`查看「${row.original.name}」`"
+          />
           <UButton
             :to="`/resume/${row.original.id}/edit`"
             icon="i-lucide-pencil"

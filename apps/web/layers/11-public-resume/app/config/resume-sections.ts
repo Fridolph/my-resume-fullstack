@@ -20,12 +20,5 @@ import ResumeSkillsSection from '#layers/ui/app/components/resume/ResumeSkillsSe
 export { getSectionDefinition, resumeSectionDefinitions, toLegacySectionKey } from '@rs/common'
 export type { ResumeSectionDefinition } from '@rs/common'
 
-export const resumeSectionComponents: Record<ResumeSectionKey, Component> = {
-  profile: ResumeHeroCard,
-  highlights: ResumeHighlightsSection,
-  education: ResumeEducationSection,
-  experience: ResumeExperienceSection,
-  projects: ResumeProjectsSection,
-  skills: ResumeSkillsSection,
-  evaluations: ResumeEvaluationsSection,
-}
+// 组件注册表已随展示组件上提到 `packages/ui`（DAO-034 批 2）；这里转发，保持 web 内部引用不变。
+export { resumeSectionComponents } from '#layers/ui/app/config/resume-section-components'

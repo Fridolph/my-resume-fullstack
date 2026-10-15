@@ -15,8 +15,8 @@
 
 import { resumeDocumentSchema, type ResumeDocument, type ResumeSection } from './document.js'
 import { type CapabilityData } from './capabilities.js'
-import type { ResumeContent, ResumeDisplayConfig } from './content.js'
-import { toLegacySectionKey } from './sections.js'
+import type { ResumeContent, ResumeDisplayConfig, ResumeSectionKey, ResumeSlotKey } from './content.js'
+import { resumeSectionDefinitions, toLegacySectionKey } from './sections.js'
 
 const titles = {
   profile: '基本信息',
@@ -204,4 +204,53 @@ export function toResumeContent(document: ResumeDocument, target?: ResumeSection
     evaluations: pick('evaluations')?.data.items.map(item => item.text) ?? [],
     footerNote: document.content.footer.note,
   }
+}
+
+/**
+ * 把**文档里的展示配置**（`document.display`）转成展示层使用的 `ResumeDisplayConfig`。
+ *
+ * 两者形状相近但不是同一个东西 —— 关键差异在 `sections`：
+ * - 契约用**文档内 id** 标识模块（`order: id[]`、`slot: Record<id, …>`、`hidden: id[]`），
+ *   因为文档里的 id 是权威身份；
+ * - 展示层用**区块 key**（`order: ResumeSectionKey[]`，即 `profile` / `skills`…），
+ *   因为渲染时按"区块种类"找组件，而 id 每次创建都不同。
+ *
+ * 所以这里做的是 id → key 的翻译，并把契约里有、展示层没列的 id 丢掉；
+ * 没被配置列出的区块按注册表默认顺序补齐（与 `useResumeLayout` 的补齐规则一致）。
+ *
+ * ⚠️ 已知未做：契约的 `sections.overrides`（目前只存能力模块的展示视图）在展示层没有对应字段，
+ * 本函数**不搬运它** —— 详情页当前用能力模块的默认视图。要支持"按文档指定的视图渲染"时，
+ * 需要在 `ResumeDisplayConfig` 上补一个字段（属后续工作）。
+ */
+export function toResumeDisplayConfig(document: ResumeDocument): ResumeDisplayConfig {
+  const sections = document.content.sections
+  const keyById = new Map(sections.map(section => [section.id, toLegacySectionKey(section.type)]))
+  const display = document.display
+
+  const toKey = (id: string): ResumeSectionKey | undefined => keyById.get(id)
+
+  const configured = display.sections.order.map(toKey).filter((key): key is ResumeSectionKey => key !== undefined)
+
+  const rest = resumeSectionDefinitions
+    .filter(item => !configured.includes(item.key))
+    .sort((a, b) => a.defaultOrder - b.defaultOrder)
+    .map(item => item.key)
+
+  const slot: Partial<Record<ResumeSectionKey, ResumeSlotKey>> = {}
+  for (const [id, value] of Object.entries(display.sections.slot)) {
+    const key = toKey(id)
+    if (key) slot[key] = value
+  }
+
+  const hidden = display.sections.hidden.map(toKey).filter((key): key is ResumeSectionKey => key !== undefined)
+
+  return {
+    brand: display.brand,
+    layout: display.layout,
+    options: display.options,
+    theme: display.theme,
+    background: display.background,
+    style: display.style,
+    sections: { order: [...configured, ...rest], slot, hidden },
+  } as ResumeDisplayConfig
 }
