@@ -10,6 +10,8 @@
 
 - [`DAO-036` 通用上传端点](./tasks/DAO-036-通用上传端点.md) —— `planned`（等排期）：admin 的 4 个 upload 组件依赖 `POST /api/masterData/file/multipleUpload`，**实测 404**（模板遗留路径），且这些组件**没有任何调用点**。Owner 定：先把上传接口做出来，再按契约把 Upload 组件与业务一并补上（纯函数已收进 `@rs/utils`）。
 
+- [`DAO-037` 简历自定义模块](./tasks/DAO-037-简历自定义模块.md) —— `designed`（待 Owner 确认三点后开工）：把编排能力开放给用户 —— 自建模块（标题 + 展示方式 + 内容）并与预设模块一起拖拽编排。**关键结论**：契约的 `display.sections.order` 本来就是 **id**、每个 section 也本来就带 `id`，所以契约只做加法（新增 `custom` 分支），真正的改动是**排布的寻址单位从 key 变成 id**（展示层）。
+
 ## 已定的下一轮顺序（Owner 2026-10-14）
 
 | 顺序 | 任务 | 内容 |
