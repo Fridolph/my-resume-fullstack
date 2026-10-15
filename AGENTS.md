@@ -93,6 +93,32 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
   - **推送远端**仍按 Owner 显式指示执行：**本地提交 ≠ 已发布**，二者不混为一谈。
 - 提交前至少执行 `pnpm format:check`、`pnpm lint`、`pnpm typecheck`、`pnpm test` 和受影响范围的构建；若项目尚无测试，说明缺口而不是伪造测试。
 
+### 4.6 共享层归属判据（三层）
+
+新增"想给两端共用"的东西前，先判它属于哪一层：
+
+| 判据 | 落点 |
+| --- | --- |
+| 能脱离 Vue / Nuxt 运行（类型、校验、算法、常量） | `packages/common`（`@rs/common`） |
+| 碰 Vue 或 Nuxt UI，但**不含业务语义** | `packages/ui` |
+| 含业务语义（业务域类型、业务组件） | 各端自己的 layer；**两端都要**才上提 |
+| 应用专属外壳（页面、布局、导航） | `apps/*/app` |
+
+配套规则（都是实际踩出来的，不要绕过）：
+
+- `packages/ui` **只描述"能做什么"，不判断"谁可以做"**：能力经 props / slots / composable 注入
+  （`MySchemaForm` 的 `list-item-extra`、`MyModal` 的 `footer`、插件的 `$api`）。
+- `packages/ui` 的 dependencies 只放 Vue 生态基础库（`@vueuse/*`）；**重量级引擎走 peer** 由宿主提供
+  （如 `sortablejs`）；`vue` 走 peer + dev。
+- ui 组件里含 **Tailwind 类名字面量**的，必须能被宿主的 `@source` 扫到；
+  纯 TS 包（common / utils）**不要放类名** —— 不会被扫描，生成不出样式。
+- 组件的 props 类型**在 ui 内定义**：`defineProps<整个外部类型>()` 指向 `@rs/common` 会在 dev 崩
+  （SFC 编译器不展开包的 re-export 链，只有 dev 报错）；layer 的 `alias` 也**不合并到宿主**。
+- 迁移时**保留调用面**（原处留一行 re-export），搬移保持纯位移、零调用点改动，清理留给后续。
+- 纯前端换算与通用工具放 `@rs/utils`；**与具体接口/后端约定绑定的**（表单字段名、响应解包、端点路径）
+  留在业务侧 —— 共享层不认接口。
+- 分层理由与本次踩坑的完整记录见 [`docs/web/03_Layers_分层约定.md`](./docs/web/03_Layers_分层约定.md) §8。
+
 ## 5. Skills：使用、安装与边界
 
 Skill 是个人 Codex 环境能力，不是本模板的运行时依赖；不要把全局 skill 复制进项目，也不要让业务代码依赖某个 skill 路径。

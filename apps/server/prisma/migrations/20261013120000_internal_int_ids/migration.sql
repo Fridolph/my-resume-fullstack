@@ -59,7 +59,7 @@ ALTER TABLE "roles" RENAME COLUMN "new_id" TO "id";
 ALTER TABLE "roles" ALTER COLUMN "id" SET NOT NULL;
 ALTER TABLE "roles" ADD CONSTRAINT "roles_pkey" PRIMARY KEY ("id");
 CREATE SEQUENCE "roles_id_seq" OWNED BY "roles"."id";
-SELECT setval('roles_id_seq', (SELECT COALESCE(MAX("id"), 0) FROM "roles"));
+SELECT setval('roles_id_seq', GREATEST(COALESCE(MAX("id"), 0), 1), COALESCE(MAX("id"), 0) > 0) FROM "roles";
 ALTER TABLE "roles" ALTER COLUMN "id" SET DEFAULT nextval('roles_id_seq');
 
 ALTER TABLE "permissions" DROP COLUMN "id";
@@ -67,7 +67,7 @@ ALTER TABLE "permissions" RENAME COLUMN "new_id" TO "id";
 ALTER TABLE "permissions" ALTER COLUMN "id" SET NOT NULL;
 ALTER TABLE "permissions" ADD CONSTRAINT "permissions_pkey" PRIMARY KEY ("id");
 CREATE SEQUENCE "permissions_id_seq" OWNED BY "permissions"."id";
-SELECT setval('permissions_id_seq', (SELECT COALESCE(MAX("id"), 0) FROM "permissions"));
+SELECT setval('permissions_id_seq', GREATEST(COALESCE(MAX("id"), 0), 1), COALESCE(MAX("id"), 0) > 0) FROM "permissions";
 ALTER TABLE "permissions" ALTER COLUMN "id" SET DEFAULT nextval('permissions_id_seq');
 
 ALTER TABLE "resumes" DROP COLUMN "id";
@@ -75,7 +75,7 @@ ALTER TABLE "resumes" RENAME COLUMN "new_id" TO "id";
 ALTER TABLE "resumes" ALTER COLUMN "id" SET NOT NULL;
 ALTER TABLE "resumes" ADD CONSTRAINT "resumes_pkey" PRIMARY KEY ("id");
 CREATE SEQUENCE "resumes_id_seq" OWNED BY "resumes"."id";
-SELECT setval('resumes_id_seq', (SELECT COALESCE(MAX("id"), 0) FROM "resumes"));
+SELECT setval('resumes_id_seq', GREATEST(COALESCE(MAX("id"), 0), 1), COALESCE(MAX("id"), 0) > 0) FROM "resumes";
 ALTER TABLE "resumes" ALTER COLUMN "id" SET DEFAULT nextval('resumes_id_seq');
 
 -- ═══════════════════════════════════════════════════════════════════════
