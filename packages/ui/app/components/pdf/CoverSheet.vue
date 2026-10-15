@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { PdfAlign, PdfCoverConfig, PdfTextVertical } from '~/types/pdf'
+import type { PdfAlign, PdfCoverConfig, PdfTextVertical } from '@rs/common'
 
 /**
  * PdfCoverSheet —— 配置驱动的封面页。

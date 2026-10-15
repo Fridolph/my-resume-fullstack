@@ -1,4 +1,4 @@
-import type { PdfExportPayload } from '~/types/pdf'
+import type { PdfExportPayload } from '@rs/common'
 import { requestPdfExport } from '~/apis/pdf'
 
 export type PdfExportStatus = 'idle' | 'pending' | 'success' | 'error'

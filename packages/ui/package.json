@@ -2,7 +2,7 @@
   "name": "@rs/ui",
   "version": "0.1.0",
   "private": true,
-  "description": "跨 app 共享的 Vue / Nuxt UI 组件（Nuxt layer 形式，源码级共享、零构建、零运行时依赖）",
+  "description": "跨 app 共享的 Vue / Nuxt UI 组件与前端工具（Nuxt layer 形式，源码级共享、零构建）。依赖由宿主提供（vue 走 peer，不重复安装）。",
   "type": "module",
   "scripts": {
     "typecheck": "echo \"layer 由宿主 app 的 typecheck 覆盖（apps/web、apps/admin）\"",
@@ -10,5 +10,11 @@
   },
   "dependencies": {
     "@rs/common": "workspace:*"
+  },
+  "devDependencies": {
+    "vue": "^3.5.22"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.22"
   }
 }

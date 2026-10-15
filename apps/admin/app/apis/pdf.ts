@@ -1,4 +1,4 @@
-import type { PdfExportPayload } from '~/types/pdf'
+import type { PdfExportPayload } from '@rs/common'
 
 /**
  * 后端 PDF 导出接口。

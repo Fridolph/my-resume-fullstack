@@ -1,4 +1,4 @@
-import type { PdfDocConfig } from '~/types/pdf'
+import type { PdfDocConfig } from '@rs/common'
 
 /**
  * PDF 文档配置：抽屉（Drawer）里的编辑态 + 页面渲染用的生效态。

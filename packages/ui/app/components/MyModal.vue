@@ -150,8 +150,14 @@ const forwarded = computed(() => FORWARD_SLOTS.filter(name => name in slots))
   >
     <slot name="trigger" />
 
+    <!--
+      批量转发自己声明的 slot。`as any` 是有意的：6 个 slot 的参数类型各不相同
+      （`footer` 要 close/confirm/cancel，`content` 不要），而这里是**透传** ——
+      运行时由内层组件的 slot 决定，类型系统表达不了"对每个 slot 都成立"。
+      断言只在这一处；`defineSlots` 的声明保持精确，使用方仍有提示。
+    -->
     <template v-for="name in forwarded" :key="name" #[name]="slotProps">
-      <slot :name="name" v-bind="{ ...slotProps, close }" />
+      <slot :name="name as keyof typeof slots" v-bind="{ ...slotProps, close } as any" />
     </template>
 
     <template #body>
@@ -197,8 +203,14 @@ const forwarded = computed(() => FORWARD_SLOTS.filter(name => name in slots))
       <slot name="trigger" />
     </template>
 
+    <!--
+      批量转发自己声明的 slot。`as any` 是有意的：6 个 slot 的参数类型各不相同
+      （`footer` 要 close/confirm/cancel，`content` 不要），而这里是**透传** ——
+      运行时由内层组件的 slot 决定，类型系统表达不了"对每个 slot 都成立"。
+      断言只在这一处；`defineSlots` 的声明保持精确，使用方仍有提示。
+    -->
     <template v-for="name in forwarded" :key="name" #[name]="slotProps">
-      <slot :name="name" v-bind="slotProps" />
+      <slot :name="name as keyof typeof slots" v-bind="slotProps" />
     </template>
 
     <template #default="slotProps">
