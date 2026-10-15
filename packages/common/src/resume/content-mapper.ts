@@ -15,7 +15,15 @@
 
 import { resumeDocumentSchema, type ResumeDocument, type ResumeSection } from './document.js'
 import { type CapabilityData } from './capabilities.js'
-import type { ResumeContent, ResumeDisplayConfig, ResumeSectionKey, ResumeSlotKey } from './content.js'
+import type {
+  ResumeContent,
+  ResumeCustomSection,
+  ResumeCustomSectionDraft,
+  ResumeCustomView,
+  ResumeDisplayConfig,
+  ResumeSectionKey,
+  ResumeSlotKey,
+} from './content.js'
 import { getSectionDefinition, resumeSectionDefinitions, toLegacySectionKey } from './sections.js'
 
 const titles = {
@@ -225,6 +233,8 @@ export function toResumeContent(document: ResumeDocument, target?: ResumeSection
       .filter(section => section.type === 'custom')
       .map(section => ({
         id: section.id,
+        title: section.title,
+        description: section.description,
         view: section.data.view,
         items:
           'items' in section.data && section.data.view !== 'timeline' ? section.data.items.map(item => item.text) : [],
@@ -275,4 +285,79 @@ export function toResumeDisplayConfig(document: ResumeDocument): ResumeDisplayCo
       hidden: [...document.display.sections.hidden],
     },
   } as ResumeDisplayConfig
+}
+
+/**
+ * 自定义模块的**编辑态草稿**。
+ *
+ * 编辑界面用的形状，和契约刻意不同：
+ * - `items` / `timeline[].time` 都是**纯字符串**（编辑时就是"一行一条"／一段文本），
+ *   而契约里它们带 `id`、时间还要走 `resumeDateSchema` 的两种模式；
+ * - `description` 在编辑态一律是字符串（空串 = 没填），契约里是可选的。
+ *
+ * 两者靠下面的一对函数往返。放在 common 是因为 web 与 admin 的编辑界面都要用，
+ * 各写一份必然漂移（这个仓库已经因为这类重复吃过亏）。
+ */
+/** 契约/展示态的实例 → 编辑态草稿 */
+export function toCustomSectionDraft(section: ResumeCustomSection): ResumeCustomSectionDraft {
+  return {
+    title: section.title,
+    description: section.description ?? '',
+    view: section.view,
+    items: [...section.items],
+    timeline: section.timeline.map(item => ({
+      time: item.time,
+      title: item.title,
+      description: item.description ?? '',
+    })),
+    document: section.document,
+  }
+}
+
+/**
+ * 编辑态草稿 → 契约里的 `custom` 区块。
+ *
+ * - `base` 传入现有区块时**保留它的 id**（编辑语义）；新增时不传，这里生成新 id；
+ * - 空文本会被丢掉（去掉空行 / 空标题的条目），避免存进一堆空壳；
+ * - `timeline` 的文本时间存成 `resumeDateSchema` 的 **custom 模式**（编辑界面只让填文本，
+ *   结构化日期是"教育 / 工作经历"那种场景才需要的表达）。
+ */
+export function fromCustomSectionDraft(
+  draft: ResumeCustomSectionDraft,
+  base?: { id: string; icon?: string },
+): ResumeSection {
+  const nextId = (): string => globalThis.crypto.randomUUID()
+
+  const shared = {
+    id: base?.id ?? nextId(),
+    type: 'custom' as const,
+    title: draft.title.trim() || '自定义模块',
+    description: draft.description.trim() || undefined,
+    icon: base?.icon,
+  }
+  const texts = <Item extends { id: string }>(previous: Item[] = []) =>
+    draft.items.filter(text => text.trim()).map((text, index) => ({ id: previous[index]?.id ?? nextId(), text }))
+
+  switch (draft.view) {
+    case 'textList':
+    case 'tagCloud':
+      return { ...shared, data: { view: draft.view, items: texts() } }
+    case 'timeline':
+      return {
+        ...shared,
+        data: {
+          view: 'timeline',
+          items: draft.timeline
+            .filter(item => item.title.trim())
+            .map(item => ({
+              id: nextId(),
+              time: { mode: 'custom' as const, text: item.time.trim() },
+              title: item.title.trim(),
+              description: item.description.trim() || undefined,
+            })),
+        },
+      }
+    case 'richText':
+      return { ...shared, data: { view: 'richText', content: draft.document ?? { type: 'doc', content: [] } } }
+  }
 }

@@ -234,6 +234,18 @@ export interface ResumeSectionSummary {
   description?: string
 }
 
+export interface ResumeCustomSectionDraft {
+  title: string
+  description: string
+  view: ResumeCustomView
+  /** textList / tagCloud：一行一条 */
+  items: string[]
+  /** timeline：一项一行；`time` 是用户输入的文本 */
+  timeline: { time: string; title: string; description: string }[]
+  /** richText：TipTap JSON（`view` 为 richText 时使用） */
+  document?: { type: 'doc'; content: Record<string, unknown>[] }
+}
+
 /** 自定义模块的展示方式（与契约 `resumeCustomViewSchema` 同集合） */
 export type ResumeCustomView = 'textList' | 'tagCloud' | 'timeline' | 'richText'
 
@@ -246,6 +258,10 @@ export type ResumeCustomView = 'textList' | 'tagCloud' | 'timeline' | 'richText'
  */
 export interface ResumeCustomSection {
   id: string
+  /** 用户自己填的模块名（「自定义模块」只是新增时的默认模板，不是它的名字） */
+  title: string
+  /** 用户自己填的描述 */
+  description?: string
   view: ResumeCustomView
   /** textList / tagCloud 的条目文本 */
   items: string[]
