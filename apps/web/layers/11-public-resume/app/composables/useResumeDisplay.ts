@@ -245,23 +245,23 @@ export function useResumeDisplay() {
 
   // ── 区块编排 ──────────────────────────────────────────
   /** 显隐开关（设置面板用） */
-  function toggleSection(key: ResumeSectionKey) {
-    const index = config.value.sections.hidden.indexOf(key)
+  function toggleSection(id: string) {
+    const index = config.value.sections.hidden.indexOf(id)
     if (index >= 0) {
       config.value.sections.hidden.splice(index, 1)
     } else {
-      config.value.sections.hidden.push(key)
+      config.value.sections.hidden.push(id)
     }
   }
 
   /** 显式设置显隐（托盘拖拽用） */
-  function setHidden(key: ResumeSectionKey, hidden: boolean) {
+  function setHidden(id: string, hidden: boolean) {
     const list = config.value.sections.hidden
-    const index = list.indexOf(key)
+    const index = list.indexOf(id)
     if (hidden && index < 0) {
-      config.value.sections.hidden = [...list, key]
+      config.value.sections.hidden = [...list, id]
     } else if (!hidden && index >= 0) {
-      config.value.sections.hidden = list.filter(item => item !== key)
+      config.value.sections.hidden = list.filter(item => item !== id)
     }
   }
 
@@ -269,30 +269,31 @@ export function useResumeDisplay() {
    * 拖拽落地的唯一入口：栏位之间、进出托盘都是同一套「锚点」语义。
    *
    * - 落到**托盘** → 加入 `hidden`，**不改 order**（拖回来时还在原位置附近）
-   * - 落到**栏位** → 取消隐藏 + 写 `slot`，并把 key 插到 `anchorKey` 之前（无锚点 = 末尾）
+   * - 落到**栏位** → 取消隐藏 + 写 `slot`，并把该项插到 `anchorId` 之前（无锚点 = 末尾）
    *
-   * `anchorKey` 由调用方用**渲染数据**算出（不读 DOM）：拖拽期间数据不变，
+   * 单位是 **section id**（不是区块 key）：自定义模块是多实例，key 区分不开它们。
+   * `anchorId` 由调用方用**渲染数据**算出（不读 DOM）：拖拽期间数据不变，
    * 所以「目标栏去掉自身后的数组」的 `newIndex` 项就是落点之后的那一项。
    */
   function applyDrop(input: {
-    key: ResumeSectionKey
+    id: string
     to: ResumeDropTarget
     /** 落在它之前的那一项；为空表示落在该容器末尾 */
-    anchorKey?: ResumeSectionKey
+    anchorId?: string
   }) {
-    const { key, to, anchorKey } = input
+    const { id, to, anchorId } = input
 
     if (to === 'tray') {
-      setHidden(key, true)
+      setHidden(id, true)
       return
     }
 
-    setHidden(key, false)
-    config.value.sections.slot = { ...config.value.sections.slot, [key]: to }
+    setHidden(id, false)
+    config.value.sections.slot = { ...config.value.sections.slot, [id]: to }
 
-    const order = config.value.sections.order.filter(item => item !== key)
-    const anchorIndex = anchorKey ? order.indexOf(anchorKey) : -1
-    order.splice(anchorIndex >= 0 ? anchorIndex : order.length, 0, key)
+    const order = config.value.sections.order.filter(item => item !== id)
+    const anchorIndex = anchorId ? order.indexOf(anchorId) : -1
+    order.splice(anchorIndex >= 0 ? anchorIndex : order.length, 0, id)
     config.value.sections.order = order
   }
 
@@ -302,24 +303,24 @@ export function useResumeDisplay() {
    * 分栏是「order + slot」派生出来的，所以由调用方传入该栏当前的渲染顺序，
    * store 不重复实现分栏逻辑；只交换这两项在全局 order 中的位置，其余项不动。
    */
-  function moveWithin(slotKeys: ResumeSectionKey[], key: ResumeSectionKey, delta: number) {
-    const index = slotKeys.indexOf(key)
+  function moveWithin(slotIds: string[], id: string, delta: number) {
+    const index = slotIds.indexOf(id)
     const targetIndex = index + delta
-    const targetKey = slotKeys[targetIndex]
+    const targetId = slotIds[targetIndex]
 
-    if (index < 0 || !targetKey) {
+    if (index < 0 || !targetId) {
       return
     }
 
     const order = [...config.value.sections.order]
-    const a = order.indexOf(key)
-    const b = order.indexOf(targetKey)
+    const a = order.indexOf(id)
+    const b = order.indexOf(targetId)
     if (a < 0 || b < 0) {
       return
     }
 
-    order[a] = targetKey
-    order[b] = key
+    order[a] = targetId
+    order[b] = id
     config.value.sections.order = order
   }
 

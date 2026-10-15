@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
-import { resumeSectionDefinitions } from '#layers/public-resume/app/config/resume-sections'
 import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
+import { useResumeContent } from '#layers/public-resume/app/composables/useResumeContent'
 import ResumeSettingsGroup from './ResumeSettingsGroup.vue'
 
 /**
@@ -19,15 +18,18 @@ import ResumeSettingsGroup from './ResumeSettingsGroup.vue'
  * （否则用户会以为界面坏了，那比直接禁用更糟）。
  */
 const { config, toggleSection } = useResumeDisplay()
+// 开关按**文档清单**列（自定义模块是多实例，每个实例一个独立开关），
+// 名字取清单项的 label —— 自定义模块就是用户填的 title
+const { content } = useResumeContent()
 const { canEditSections, canInteractSections } = usePermission()
 
 const toast = useToast()
 
-function isVisible(key: ResumeSectionKey) {
-  return !config.value.sections.hidden.includes(key)
+function isVisible(id: string) {
+  return !config.value.sections.hidden.includes(id)
 }
 
-function onToggle(key: ResumeSectionKey) {
+function onToggle(id: string) {
   if (!canEditSections.value) {
     toast.add({
       title: '需要管理员权限',
@@ -37,7 +39,7 @@ function onToggle(key: ResumeSectionKey) {
     return
   }
 
-  toggleSection(key)
+  toggleSection(id)
 }
 </script>
 
@@ -50,21 +52,21 @@ function onToggle(key: ResumeSectionKey) {
   >
     <ul class="grid gap-1">
       <li
-        v-for="definition in resumeSectionDefinitions"
-        :key="definition.key"
+        v-for="item in content.sections"
+        :key="item.id"
         class="flex items-center justify-between gap-3 rounded-lg border px-2.5 py-1.5"
         :style="{ borderColor: 'var(--resume-border)' }"
       >
         <span class="flex min-w-0 items-center gap-2">
-          <UIcon :name="definition.icon" class="resume-accent size-4 shrink-0" />
-          <span class="resume-text truncate text-sm">{{ definition.label }}</span>
+          <UIcon :name="item.icon" class="resume-accent size-4 shrink-0" />
+          <span class="resume-text truncate text-sm">{{ item.label }}</span>
         </span>
 
         <USwitch
           size="xs"
-          :model-value="isVisible(definition.key)"
-          :aria-label="`显示「${definition.label}」`"
-          @update:model-value="onToggle(definition.key)"
+          :model-value="isVisible(item.id)"
+          :aria-label="`显示「${item.label}」`"
+          @update:model-value="onToggle(item.id)"
         />
       </li>
     </ul>

@@ -29,15 +29,17 @@ const content = computed(() => toResumeContent(props.document))
 const config = computed(() => toResumeDisplayConfig(props.document))
 
 /** 只读：`editable=false`，空栏不渲染（与公开站一致） */
-const { columns, showsSlot, gridClass, columnClass } = useResumeLayout(config, false)
+const { columns, showsSlot, gridClass, columnClass, summaryOf } = useResumeLayout(
+  config,
+  () => content.value.sections,
+  false,
+)
 
 const SLOT_ORDER = ['side', 'main', 'rail'] as const
 
-/** 每个区块组件要的 `section` 形状（key / label / icon）来自注册表的定义 */
-function sectionOf(key: ResumeSectionKey) {
-  const definition = getSectionDefinition(key)
-
-  return { key, label: definition?.label ?? key, icon: definition?.icon ?? 'i-lucide-file-text' }
+/** 栏位里的每一项现在是 **section id**，用清单查回 `section`（自定义模块多实例靠它区分） */
+function summaryOfId(id: string) {
+  return summaryOf(id)
 }
 </script>
 
@@ -53,10 +55,10 @@ function sectionOf(key: ResumeSectionKey) {
       <template v-for="slot in SLOT_ORDER" :key="slot">
         <div v-if="showsSlot(slot)" class="space-y-6" :class="columnClass(slot)">
           <component
-            :is="resumeSectionComponents[key]"
-            v-for="key in columns[slot]"
-            :key="key"
-            :section="sectionOf(key)"
+            :is="resumeSectionComponents[summaryOfId(id)?.key ?? 'profile']"
+            v-for="id in columns[slot]"
+            :key="id"
+            :section="summaryOfId(id)!"
             :content="content"
             :options="config.options"
             :theme="config.theme"

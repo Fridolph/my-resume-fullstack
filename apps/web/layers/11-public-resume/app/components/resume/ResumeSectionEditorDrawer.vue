@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { ResumeSectionKey } from '#layers/public-resume/app/types/resume'
 import { resumeEditorSchemas } from '#layers/public-resume/app/config/resume-editor-schemas'
-import { getSectionDefinition } from '#layers/public-resume/app/config/resume-sections'
 import { useResumeContent } from '#layers/public-resume/app/composables/useResumeContent'
 
 /**
@@ -15,14 +13,14 @@ import { useResumeContent } from '#layers/public-resume/app/composables/useResum
  * 所以这里不再有「保存」按钮，只显示状态 + 关闭。
  */
 const open = defineModel<boolean>('open', { default: false })
-const props = defineProps<{ sectionKey: ResumeSectionKey | null }>()
+const props = defineProps<{ sectionId: string | null }>()
 
 const { content, touch, saveState, savedAt, flushSave } = useResumeContent()
 
-const schema = computed(() => (props.sectionKey ? resumeEditorSchemas[props.sectionKey] : null))
-const title = computed(() =>
-  props.sectionKey ? (getSectionDefinition(props.sectionKey)?.label ?? props.sectionKey) : '',
-)
+/** 由 id 从清单取回区块：它的 `key` 决定用哪份字段表单，`label` 就是标题（自定义模块 = 用户填的 title） */
+const target = computed(() => content.value.sections.find(item => item.id === props.sectionId))
+const schema = computed(() => (target.value ? resumeEditorSchemas[target.value.key] : null))
+const title = computed(() => target.value?.label ?? '')
 
 const statusText = computed(() => {
   if (saveState.value === 'pending') {

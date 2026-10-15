@@ -175,12 +175,17 @@ export function toResumeContent(document: ResumeDocument, target?: ResumeSection
     sections: sections.map(section => {
       const key = toLegacySectionKey(section.type)
       const definition = getSectionDefinition(key)
+      // 自定义模块**没有固定名字**：它的显示名与图标一律取实例自己的字段
+      // （「自定义模块」这个词只是新增时的默认模板，不是它的名字）。
+      // 预设模块则相反 —— 名字来自共享定义，用户不通过 title 改它。
+      const isCustom = section.type === 'custom'
 
       return {
         id: section.id,
         key,
-        label: definition?.label ?? section.title,
-        icon: definition?.icon ?? 'i-lucide-file-text',
+        label: isCustom ? section.title : (definition?.label ?? section.title),
+        icon: isCustom ? (section.icon ?? 'i-lucide-shapes') : (definition?.icon ?? 'i-lucide-file-text'),
+        description: section.description,
       }
     }),
     profile: {
@@ -255,34 +260,19 @@ export function toResumeContent(document: ResumeDocument, target?: ResumeSection
  * 需要在 `ResumeDisplayConfig` 上补一个字段（属后续工作）。
  */
 export function toResumeDisplayConfig(document: ResumeDocument): ResumeDisplayConfig {
-  const sections = document.content.sections
-  const keyById = new Map(sections.map(section => [section.id, toLegacySectionKey(section.type)]))
-  const display = document.display
-
-  const toKey = (id: string): ResumeSectionKey | undefined => keyById.get(id)
-
-  const configured = display.sections.order.map(toKey).filter((key): key is ResumeSectionKey => key !== undefined)
-
-  const rest = resumeSectionDefinitions
-    .filter(item => !configured.includes(item.key))
-    .sort((a, b) => a.defaultOrder - b.defaultOrder)
-    .map(item => item.key)
-
-  const slot: Partial<Record<ResumeSectionKey, ResumeSlotKey>> = {}
-  for (const [id, value] of Object.entries(display.sections.slot)) {
-    const key = toKey(id)
-    if (key) slot[key] = value
-  }
-
-  const hidden = display.sections.hidden.map(toKey).filter((key): key is ResumeSectionKey => key !== undefined)
-
   return {
-    brand: display.brand,
-    layout: display.layout,
-    options: display.options,
-    theme: display.theme,
-    background: display.background,
-    style: display.style,
-    sections: { order: [...configured, ...rest], slot, hidden },
+    brand: document.display.brand,
+    layout: document.display.layout,
+    options: document.display.options,
+    theme: document.display.theme,
+    background: document.display.background,
+    style: document.display.style,
+    // 排布**直通**：契约与展示层现在用同一套寻址（section id），不需要再翻译成区块 key。
+    // 补齐「配置没列出的区块」由 `useResumeLayout` 用文档清单完成。
+    sections: {
+      order: [...document.display.sections.order],
+      slot: { ...document.display.sections.slot },
+      hidden: [...document.display.sections.hidden],
+    },
   } as ResumeDisplayConfig
 }

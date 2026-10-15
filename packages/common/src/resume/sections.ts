@@ -96,8 +96,9 @@ export const resumeSectionDefinitions: ResumeSectionDefinition[] = [
     defaultOrder: 6,
   },
   {
-    // 自定义模块：**一个 key 对应多个实例**（用户可建多条），身份靠各自的 section.id，
-    // 所以它是唯一一个「同样的 key 在排布里出现多次」的区块。
+    // ⚠️ 这条**不是**某个模块的名字，而是「新增自定义模块」时的**默认模板**：
+    // 只提供默认栏位 / 默认顺序 / 默认图标。自定义模块是**多实例**（用户可建多条），
+    // 身份靠各自的 `section.id`，**显示名一律取实例自己的 `title`**（见 content-mapper 的清单生成）。
     key: 'custom',
     label: '自定义模块',
     icon: 'i-lucide-shapes',

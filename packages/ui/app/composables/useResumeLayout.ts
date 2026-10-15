@@ -1,9 +1,8 @@
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import {
   getSectionDefinition,
-  resumeSectionDefinitions,
   type ResumeDisplayConfig,
-  type ResumeSectionKey,
+  type ResumeSectionSummary,
   type ResumeSlotKey,
 } from '@rs/common'
 
@@ -25,40 +24,59 @@ export const RESUME_SLOT_ORDER: ResumeSlotKey[] = ['side', 'main', 'rail']
 
 export function useResumeLayout(
   config: MaybeRefOrGetter<ResumeDisplayConfig>,
+  sections: MaybeRefOrGetter<ResumeSectionSummary[]>,
   editable: MaybeRefOrGetter<boolean> = false,
 ) {
   const cfg = computed(() => toValue(config))
+  const list = computed(() => toValue(sections))
   const isEditable = computed(() => toValue(editable) === true)
 
-  /** 区块归属：配置覆盖 > 注册表默认 */
-  function slotOf(key: ResumeSectionKey): ResumeSlotKey {
-    return cfg.value.sections.slot[key] ?? getSectionDefinition(key)?.defaultSlot ?? 'main'
+  /** 由 id 找回区块（清单来自 `content.sections`）—— 自定义模块的多个实例靠它区分 */
+  function summaryOf(id: string): ResumeSectionSummary | undefined {
+    return list.value.find(item => item.id === id)
   }
 
-  /** 最终顺序 = 配置顺序 + 未列出的按默认顺序补齐，再过滤隐藏项 */
-  const orderedKeys = computed(() => {
-    const configured = cfg.value.sections.order.filter(key => getSectionDefinition(key))
-    const rest = resumeSectionDefinitions
-      .filter(item => !configured.includes(item.key))
-      .sort((a, b) => a.defaultOrder - b.defaultOrder)
-      .map(item => item.key)
+  /** 区块归属：配置覆盖 > 注册表默认 */
+  function slotOf(id: string): ResumeSlotKey {
+    const summary = summaryOf(id)
 
-    return [...configured, ...rest].filter(key => !cfg.value.sections.hidden.includes(key))
+    return cfg.value.sections.slot[id] ?? getSectionDefinition(summary?.key ?? 'profile')?.defaultSlot ?? 'main'
+  }
+
+  /**
+   * 最终顺序 = 配置顺序（只保留清单里真实存在的）+ 清单中未列出的按默认顺序补齐，再过滤隐藏项。
+   *
+   * 「补齐」的基准是**文档清单**而不是全局注册表：新增了自定义模块、但配置里还没写它时，
+   * 它也应该出现在页面上（而不是消失）。
+   */
+  const orderedIds = computed(() => {
+    const known = list.value.map(item => item.id)
+    const configured = cfg.value.sections.order.filter(id => known.includes(id))
+    const rest = list.value
+      .filter(item => !configured.includes(item.id))
+      .sort((a, b) => orderOf(a) - orderOf(b))
+      .map(item => item.id)
+
+    return [...configured, ...rest].filter(id => !cfg.value.sections.hidden.includes(id))
   })
+
+  function orderOf(summary: ResumeSectionSummary): number {
+    return getSectionDefinition(summary.key)?.defaultOrder ?? 99
+  }
 
   /** 按布局模式分栏：single 全并入 main；split 把 rail 并入 main */
   const columns = computed(() => {
     const mode = cfg.value.layout.mode
-    const buckets: Record<ResumeSlotKey, ResumeSectionKey[]> = { side: [], main: [], rail: [] }
+    const buckets: Record<ResumeSlotKey, string[]> = { side: [], main: [], rail: [] }
 
-    for (const key of orderedKeys.value) {
-      let slot = slotOf(key)
+    for (const id of orderedIds.value) {
+      let slot = slotOf(id)
       if (mode === 'single') {
         slot = 'main'
       } else if (mode === 'split' && slot === 'rail') {
         slot = 'main'
       }
-      buckets[slot].push(key)
+      buckets[slot].push(id)
     }
 
     return buckets
@@ -77,7 +95,7 @@ export function useResumeLayout(
   })
 
   /** 托盘里的模块（编辑态用） */
-  const trayKeys = computed(() => cfg.value.sections.hidden.filter(key => getSectionDefinition(key)))
+  const trayKeys = computed(() => cfg.value.sections.hidden.filter(id => list.value.some(item => item.id === id)))
 
   /**
    * 是否渲染某一栏。
@@ -145,5 +163,5 @@ export function useResumeLayout(
     return classes.join(' ')
   }
 
-  return { orderedKeys, columns, activeSlots, trayKeys, showsSlot, gridClass, columnClass, slotOf }
+  return { orderedIds, columns, activeSlots, trayKeys, showsSlot, gridClass, columnClass, slotOf, summaryOf }
 }

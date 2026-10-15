@@ -5,14 +5,14 @@ import type {
   ResumeContent,
   ResumeDisplayConfig,
   ResumeDropTarget,
-  ResumeSectionKey,
+  ResumeSectionSummary,
   ResumeSlotKey,
 } from '#layers/public-resume/app/types/resume'
-import { getSectionDefinition, resumeSectionDefinitions } from '#layers/public-resume/app/config/resume-sections'
 import { useResumeActiveSection } from '#layers/public-resume/app/composables/useResumeActiveSection'
 import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
 import { RESUME_SLOT_ORDER as SLOT_ORDER, useResumeLayout } from '#layers/ui/app/composables/useResumeLayout'
 import ResumeBackgroundLayer from '#layers/ui/app/components/resume/ResumeBackgroundLayer.vue'
+import { getSectionDefinition } from '#layers/public-resume/app/config/resume-sections'
 import ResumeColumn from './ResumeColumn.vue'
 import ResumeSectionTray from './ResumeSectionTray.vue'
 
@@ -34,7 +34,7 @@ const props = defineProps<{
   editable?: boolean
 }>()
 
-const emit = defineEmits<{ hide: [key: ResumeSectionKey]; edit: [key: ResumeSectionKey] }>()
+const emit = defineEmits<{ hide: [id: string]; edit: [id: string] }>()
 
 const { applyDrop, moveWithin } = useResumeDisplay()
 const { observe, stop: stopActiveSection } = useResumeActiveSection()
@@ -48,10 +48,16 @@ const dragging = ref(false)
  * 它是**纯读**逻辑，公开站、草稿工作台与 admin 的只读详情页都要用；
  * 而本组件剩下的是**编辑交互**（拖拽 / 托盘 / 上移下移），依赖 sortablejs，留在 web。
  */
-const { columns, showsSlot, gridClass, columnClass, trayKeys, activeSlots } = useResumeLayout(
+const { columns, showsSlot, gridClass, columnClass, trayKeys, activeSlots, summaryOf } = useResumeLayout(
   () => props.config,
+  () => props.content.sections,
   () => props.editable === true,
 )
+
+/** 把 id 列表映射成清单项（栏位与托盘都用它渲染） */
+function summariesOf(ids: string[]): ResumeSectionSummary[] {
+  return ids.map(id => summaryOf(id)).filter((item): item is ResumeSectionSummary => item !== undefined)
+}
 // ── 拖拽（仅客户端、仅编辑态）──────────────────────────
 let instances: Sortable[] = []
 
@@ -73,8 +79,8 @@ function dropElement(target: ResumeDropTarget) {
  * （旧实现读 `item.nextElementSibling`，而 sortablejs 已经改过 DOM、Vue 随后又要重排，
  * 属于"两个人改同一块 DOM"，容易错位。）
  */
-function resolveAnchor(key: ResumeSectionKey, to: ResumeDropTarget, evt: SortableEvent) {
-  const list = (to === 'tray' ? trayKeys.value : columns.value[to]).filter(item => item !== key)
+function resolveAnchor(id: string, to: ResumeDropTarget, evt: SortableEvent) {
+  const list = (to === 'tray' ? trayKeys.value : columns.value[to]).filter(item => item !== id)
   return list[evt.newIndex ?? list.length]
 }
 
@@ -112,14 +118,14 @@ async function initSortables() {
         onEnd(evt: SortableEvent) {
           dragging.value = false
 
-          const item = evt.item as HTMLElement
-          const key = item.dataset.sectionKey as ResumeSectionKey | undefined
-          if (!key) {
+          const el = evt.item as HTMLElement
+          const id = el.dataset.sectionId
+          if (!id) {
             return
           }
 
           const to = ((evt.to as HTMLElement).dataset.slot ?? target) as ResumeDropTarget
-          applyDrop({ key, to, anchorKey: resolveAnchor(key, to, evt) })
+          applyDrop({ id, to, anchorId: resolveAnchor(id, to, evt) })
         },
       }),
     )
@@ -127,14 +133,16 @@ async function initSortables() {
 }
 
 /** 栏内上移 / 下移：与拖拽共用同一份分栏结果 */
-function handleMove(slot: ResumeSlotKey, key: ResumeSectionKey, delta: number) {
-  moveWithin(columns.value[slot], key, delta)
+function handleMove(slot: ResumeSlotKey, id: string, delta: number) {
+  moveWithin(columns.value[slot], id, delta)
 }
 
 /** 托盘「点回」：恢复到注册表默认栏位；该栏在当前布局下无效时落到 main */
-function handleRestore(key: ResumeSectionKey) {
-  const preferred = getSectionDefinition(key)?.defaultSlot ?? 'main'
-  applyDrop({ key, to: activeSlots.value.includes(preferred) ? preferred : 'main' })
+function handleRestore(id: string) {
+  const preferred = summaryOf(id)?.key ?? 'profile'
+  const definition = getSectionDefinition(preferred)
+  const slot = definition?.defaultSlot ?? 'main'
+  applyDrop({ id, to: activeSlots.value.includes(slot) ? slot : 'main' })
 }
 
 // 正文当前区块（供页面头部显示模块名）
@@ -188,7 +196,7 @@ watch(
         <div v-if="showsSlot(slot)" :class="columnClass(slot)">
           <ResumeColumn
             :slot-key="slot"
-            :keys="columns[slot]"
+            :items="summariesOf(columns[slot])"
             :content="content"
             :options="config.options"
             :theme="config.theme"
@@ -204,7 +212,7 @@ watch(
 
     <!-- 未使用模块托盘：编辑态才有意义 -->
     <div v-if="editable" class="content-max mt-6 px-4 sm:px-6">
-      <ResumeSectionTray :keys="trayKeys" @restore="handleRestore" />
+      <ResumeSectionTray :items="summariesOf(trayKeys)" @restore="handleRestore" />
     </div>
   </div>
 </template>

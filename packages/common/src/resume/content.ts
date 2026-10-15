@@ -67,10 +67,17 @@ export interface ResumeLayoutConfig {
  * - `slot`：覆盖注册表里的默认归属（跨栏拖拽改这里）
  * - `hidden`：整体隐藏
  */
+/**
+ * 排布配置。
+ *
+ * ⚠️ 寻址单位是 **section id（文档内实例身份）**，不是区块类型 key —— 因为自定义模块是**多实例**：
+ * 同一份简历里可以有好几条 `custom`，只有 id 能把它们区分开（用 key 的话它们会挤成同一个）。
+ * 这与契约的 `display.sections` 完全一致（那边本来就是 id），`toResumeDisplayConfig` 因此可以直通。
+ */
 export interface ResumeSectionsConfig {
-  order: ResumeSectionKey[]
-  slot: Partial<Record<ResumeSectionKey, ResumeSlotKey>>
-  hidden: ResumeSectionKey[]
+  order: string[]
+  slot: Partial<Record<string, ResumeSlotKey>>
+  hidden: string[]
 }
 
 /** 基本信息里的联系方式条目（由展示选项决定是否出现） */
@@ -220,8 +227,11 @@ export interface ResumeSkillGroup {
 export interface ResumeSectionSummary {
   id: string
   key: ResumeSectionKey
+  /** 显示名：预设取共享定义，自定义模块取**实例自己的 title** */
   label: string
   icon: string
+  /** 可选描述（自定义模块由用户填写） */
+  description?: string
 }
 
 /** 自定义模块的展示方式（与契约 `resumeCustomViewSchema` 同集合） */

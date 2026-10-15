@@ -48,10 +48,10 @@ const {
 // 权限判断来自宿主 app 的 usePermission（自动导入）；页面不直接碰权限键字符串。
 // `canResetConfig` 交给身份菜单内部判断（危险操作不该对无权者可见），页面只关心"能看"与"能用 AI"。
 const { canViewDisplay, canEditSections, canUseAiChat } = usePermission()
-const { activeKey } = useResumeActiveSection()
+const { activeId } = useResumeActiveSection()
 
 const editorOpen = ref(false)
-const editingKey = ref<ResumeSectionKey | null>(null)
+const editingId = ref<string | null>(null)
 
 /** 编辑模式：有编辑权限的人可以切到"读者视角"预览（★ 它只是视图开关，不改变权限本身） */
 const editMode = ref(true)
@@ -70,8 +70,8 @@ const brand = computed(() => ({
   description: config.value.brand.description ?? content.value.profile.headline,
 }))
 
-/** 头部中区：滚动正文时显示当前模块名 */
-const activeSectionTitle = computed(() => (activeKey.value ? (getSectionDefinition(activeKey.value)?.label ?? '') : ''))
+/** 头部中区：滚动正文时显示当前模块名（跟踪的是 section id → 用文档清单查出显示名，自定义模块即用户填的 title） */
+const activeSectionTitle = computed(() => content.value.sections.find(item => item.id === activeId.value)?.label ?? '')
 
 /**
  * 保存状态提示。
@@ -245,8 +245,8 @@ onMounted(() => {
 
 watch(canEdit, value => setEditable(value), { immediate: true })
 
-function openEditor(key: ResumeSectionKey) {
-  editingKey.value = key
+function openEditor(id: string) {
+  editingId.value = id
   editorOpen.value = true
 }
 
@@ -360,6 +360,6 @@ function resetAll() {
     </UModal>
 
     <ResumeSettingsDrawer v-model:open="settingsOpen" />
-    <ResumeSectionEditorDrawer v-model:open="editorOpen" :section-key="editingKey" />
+    <ResumeSectionEditorDrawer v-model:open="editorOpen" :section-id="editingId" />
   </div>
 </template>
