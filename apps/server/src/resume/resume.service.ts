@@ -131,7 +131,6 @@ export class ResumeService {
 
     const items: ResumeSummary[] = []
     for (const resume of resumes) {
-      // where 里已保证 draft 存在；这里只是为了让 TS 收窄类型
       if (!resume.draft) continue
       items.push({
         id: resume.id,
