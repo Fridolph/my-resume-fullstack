@@ -8,7 +8,7 @@ import { createResumeApi } from '../../apis/resume'
 /**
  * 简历概览（`/resume`）。
  *
- * 这一页回答"我有哪些简历"，并提供两件管理动作：**进编辑页**、**软删除**。
+ * 这一页回答"我有哪些简历"，并提供两件管理动作：**进编辑页**、**删除**。
  * 两种呈现（卡片 / 列表）只是同一份数据的两种排布，操作项完全一致。
  *
  * 布局用后台通用的 `has-sidebar`，**不叠 settings 那样的二级侧栏**（只有一项入口，加了反而多一层点击）。
@@ -83,7 +83,7 @@ function formatUpdatedAt(value: string) {
   })
 }
 
-// ── 软删除 ───────────────────────────────────────────────────────────
+// ── 删除（物理删除，无恢复入口）──────────────────────────────────────
 const deleteOpen = ref(false)
 const deleteTarget = ref<ResumeSummary | null>(null)
 
@@ -95,8 +95,8 @@ function askDelete(item: ResumeSummary) {
 /**
  * 二次确认之后才真的删除。
  *
- * 后端是**软删除**（只写 `deletedAt`）：所以文案要说清"从列表移除、不是销毁"，
- * 不能吓唬用户说"永久删除" —— 那与实现不符。
+ * 后端是**物理删除**（简历不留软删痕迹，见 DAO-033）：所以文案必须如实说"无法恢复"，
+ * 不能含糊成"从列表移除" —— 那会让用户以为还能找回来。
  * 删完让列表缓存失效，避免返回时还看到已删的那份。
  */
 async function confirmDelete() {
@@ -110,7 +110,7 @@ async function confirmDelete() {
     await queryCache.invalidateQueries({ key: queryKeys.resume.list() })
     toast.add({
       title: '已删除',
-      description: `「${target.name}」已从列表移除（数据保留，可追溯）。`,
+      description: `「${target.name}」及其内容已删除。`,
       color: 'success',
       icon: 'i-lucide-trash-2',
     })
@@ -280,7 +280,7 @@ async function confirmDelete() {
     <ModalDeleteConfirm
       v-model:open="deleteOpen"
       title="删除这份简历？"
-      :content="`「${deleteTarget?.name ?? ''}」会从列表中移除。内容不会立刻销毁，但本轮没有恢复入口。`"
+      :content="`「${deleteTarget?.name ?? ''}」及其全部内容会被永久删除，无法恢复。`"
       confirm-text="删除"
       cancel-text="取消"
       :cooldown="3"

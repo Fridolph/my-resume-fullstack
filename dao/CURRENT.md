@@ -1,18 +1,17 @@
 # 当前关键任务
 
-**当前无进行中的关键任务**：DAO-029 / DAO-030 / DAO-031 / DAO-032 四条线均已 `done`，随 `22aeb8b` 合入 `dev`。
-下一轮开工时在这里指向新的任务卡。
+- [`DAO-033` 简历删除改为硬删除](./tasks/DAO-033-简历删除改为硬删除.md) —— `in-progress`：`Resume` 去掉软删字段、草稿外键改 `onDelete: Cascade`、迁移清理历史软删数据（**已应用到本地库**：`resumes` 24 → 3、`drafts` 24 → 3），Service / 测试 / 文案 / seed 同步。机器验证 8/8 + 质量门全绿，等 Owner 观感确认。
 
 任务卡仍是状态、目标、验证与交接的唯一事实源；本文件只指向当前任务，不复制目标、状态或证据。
 
 > `done` 的卡（DAO-001~004、006~016、**028**、**029**、**030**、**031**、**032**）**不再列在本表**，避免指针膨胀；
 > 历史、验证证据与收口记录见各自任务卡，集成锚点在卡的「交接」区。
 
-## 下一轮候选（尚未开工，等 Owner 定顺序）
+## 下一轮候选（等 Owner 定顺序）
 
 | 候选 | 内容 | 依据 |
 | --- | --- | --- |
-| **展示层上提** | 把 web 展示域（`ResumePageContainer` + 各 section + 三档风格 + `toResumeContent` / `importResumeDocument`）整体上提到 `packages/ui` + `packages/common`，两端共用 | Owner 2026-10-14 定：详情预览要先做这一步（独立一轮） |
+| **展示层上提** | 把 web 展示域（`ResumePageContainer` + 各 section + 三档风格 + `toResumeContent` / `importResumeDocument`）提到 `packages/ui` + `packages/common`，两端共用 | Owner 2026-10-14 定：详情预览要先做这一步 |
 | **`/resume/:id` 详情页** | 用上提后的展示层做只读预览；同时补列表的「查看」图标与卡片点击 | 依赖上一项 |
-| **Issue #39 自定义模块** | 契约 `custom` 分支 + `view` 枚举（`textList` / `richText` / `tagCloud`）+ 编辑 UI + web 展示渲染注册表 | Owner 2026-10-14 定：单独一轮做 |
-| DAO-026 / DAO-027 等旧卡 | 后端交付流程、简历系统核心设计的收尾（状态偏旧，需要时再核） | 见各卡 |
+| **Issue #39 自定义模块** | 契约 `custom` 分支 + `view` 枚举 + 编辑 UI + web 展示渲染注册表 | Owner 2026-10-14 定：单独一轮 |
+| **Issue #42 之外的发现** | DAO-033 记录的历史迁移缺陷（`setval(..., 0)` 让空库重放失败）建议单独开 Issue | DAO-033「发现」一节 |

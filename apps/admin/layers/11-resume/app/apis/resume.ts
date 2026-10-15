@@ -3,7 +3,7 @@ import type { CreateResumeDto, ResumeDraftResponse, SaveResumeDraftDto, ResumeSu
 /**
  * 简历主体的读写接口（admin 侧）。
  *
- * 覆盖：列表 / 创建 / 读取草稿 / 保存草稿 / 重命名 / 软删除。
+ * 覆盖：列表 / 创建 / 读取草稿 / 保存草稿 / 重命名 / 删除（物理删除，无恢复入口）。
  * 仍缺**详情预览**（`/resume/:id`）—— 它要等展示层上提到共享层后再接（见 DAO-030 的下一轮计划），
  * 这里先不铺没人调的接口。web 侧另有 `resume-draft.ts`（读写本人草稿），
  * 两者用途不同（admin 管简历主体 + 内容编辑、web 负责公开展示），不合并。

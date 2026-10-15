@@ -72,7 +72,8 @@ export class ResumeController {
   }
 
   /**
-   * 软删除本人简历：数据保留、列表不再出现；本轮不提供恢复入口。
+   * 删除本人简历（**物理删除**）：简历与其草稿一并消失，没有恢复入口 ——
+   * 所以前端必须保留二次确认（见 DAO-033 的口径说明）。
    */
   @Delete(':id')
   remove(@Param('id', { schema: resumePrimaryKeySchema }) id: number, @CurrentUser() currentUser: AuthUser) {
