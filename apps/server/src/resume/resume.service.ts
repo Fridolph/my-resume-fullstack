@@ -45,8 +45,16 @@ export class ResumeService {
     }
   }
 
+  /**
+   * 本人简历的可访问条件。
+   *
+   * 只约束**所有权**与"简历主人是否还在"：
+   * 简历本身没有软删字段（删除即物理删除，见 `Resume` 模型与 DAO-033），
+   * 所以这里不需要 `deletedAt: null`；而 `workspace.user.deletedAt` 仍要查 ——
+   * 用户是软删的，被删账号的简历不该继续被读写。
+   */
   private ownedResume(id: number, currentUser: AuthUser): Prisma.ResumeWhereInput {
-    return { id, workspaceUserId: currentUser.userId, deletedAt: null, workspace: { user: { deletedAt: null } } }
+    return { id, workspaceUserId: currentUser.userId, workspace: { user: { deletedAt: null } } }
   }
 
   /**
@@ -109,7 +117,6 @@ export class ResumeService {
     const resumes = await this.prismaService.resume.findMany({
       where: {
         workspaceUserId: currentUser.userId,
-        deletedAt: null,
         workspace: { user: { deletedAt: null } },
         draft: { isNot: null },
       },
@@ -217,20 +224,24 @@ export class ResumeService {
   }
 
   /**
-   * 软删除本人简历。
+   * 删除本人简历（**物理删除**，不是打标记）。
    *
-   * 只写 `deletedAt`，不做物理删除：草稿是用户内容的唯一副本，误删必须可追溯
-   * （DAO-029 已确认口径：删除后列表不再出现、数据可追溯；本轮不提供恢复入口）。
+   * 与账号不同，简历不留软删痕迹：正文是用户自己生成的内容，删掉就是不要了 ——
+   * 软删只会让库里持续积累看不见的简历与草稿（本卡实测：24 份里 21 份是历史软删积压），
+   * 属于污染而不是保护。需要留痕的是账号（`User` 仍有 `deletedAt`）。
    *
-   * 再删一次同一份会 404 —— 因为 `ownedResume` 里带着 `deletedAt: null`，
-   * 语义是"已经没有这份可删的简历了"，而不是悄悄返回成功。
+   * 草稿由其外键 `onDelete: Cascade` 一并删除，所以这里只有一条 DELETE ——
+   * 不会出现"简历删了、草稿还在"的中间态，也不必在应用层写两步清理。
+   *
+   * 用 `deleteMany` 而不是 `delete`：前者把"不存在 / 不是我的 / 主人已删"都收敛成
+   * `count === 0`，正好对应统一的 404 口径；`delete` 会抛 Prisma 的 P2025，那属于把
+   * 数据库异常当业务分支用。**重复删除仍然是 404**，不会静默成功。
    */
   async remove(id: number, currentUser: AuthUser): Promise<{ id: number }> {
     this.assertEditable(currentUser)
 
-    const removed = await this.prismaService.resume.updateMany({
+    const removed = await this.prismaService.resume.deleteMany({
       where: this.ownedResume(id, currentUser),
-      data: { deletedAt: new Date() },
     })
     if (removed.count !== 1) {
       throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })

@@ -107,13 +107,13 @@ async function main() {
   })
 
   // ④ 示例简历：给超管一份可直接读取/编辑的草稿
-  //    - 幂等：已存在未删除的简历就跳过，**不覆盖**任何已有内容（可能已被人工编辑过）
-  //    - 全部软删除时才会重新造一份，避免"删了却再也造不出来"
+  //    - 幂等：已存在简历就跳过，**不覆盖**任何已有内容（可能已被人工编辑过）
+  //    - 简历是硬删（DAO-033）：删掉就是没了，再次 seed 会重新造一份
   //    - document 取自 web 的真实 mock（见 packages/common/test/fixtures/resume-content.json），
   //      读取时再过一次 resumeDocumentSchema 校验，保证写库的一定是合法文档
   const superAdmin = await prisma.user.findUniqueOrThrow({ where: { username: 'super' }, select: { id: true } })
   const existingResume = await prisma.resume.findFirst({
-    where: { workspaceUserId: superAdmin.id, deletedAt: null },
+    where: { workspaceUserId: superAdmin.id },
     select: { id: true, name: true },
   })
 

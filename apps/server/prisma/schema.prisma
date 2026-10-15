@@ -156,18 +156,24 @@ model ResumeWorkspace {
   @@map("resume_workspaces")
 }
 
+/// 简历主体。
+///
+/// **删除是物理删除**（没有 `deletedAt`）：简历正文是用户自己生成的内容，删掉就是不要了 ——
+/// 留着软删标记只会让库里持续积累看不见的简历与草稿，形成污染。
+/// 需要留痕的是**账号**（`User` 仍有 `deletedAt`：审计、恢复、责任边界），不是简历。
+///
+/// ⚠️ 删一份简历会**级联删掉它的草稿**（见 `ResumeDraft.resume`），所以删除入口必须保留二次确认。
 model Resume {
   id Int @id @default(autoincrement())
   workspaceUserId String @map("workspace_user_id")
   name String @db.VarChar(80)
   locale String @db.VarChar(20)
-  deletedAt DateTime? @map("deleted_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   workspace ResumeWorkspace @relation(fields: [workspaceUserId], references: [userId], onDelete: Restrict)
   draft ResumeDraft?
 
-  @@index([workspaceUserId, deletedAt])
+  @@index([workspaceUserId])
   @@map("resumes")
 }
 
@@ -179,7 +185,7 @@ model ResumeDraft {
   revision Int @default(1)
   updatedBy String @map("updated_by")
   updatedAt DateTime @updatedAt @map("updated_at")
-  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Restrict)
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   editor User @relation(fields: [updatedBy], references: [id], onDelete: Restrict)
 
   @@map("resume_drafts")
