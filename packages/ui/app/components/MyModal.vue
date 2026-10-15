@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import MyDrawer from './MyDrawer.vue'
-import { cn } from '#layers/ui/app/lib/cn'
 import { useNarrowScreen } from '#layers/ui/app/composables/useNarrowScreen'
 
 /**

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { cn } from '#layers/ui/app/lib/cn'
-
 /**
  * MyDrawer —— 共享抽屉（`packages/ui`）
  *

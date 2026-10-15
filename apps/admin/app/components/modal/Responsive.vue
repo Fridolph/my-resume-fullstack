@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useMediaQuery } from '@vueuse/core'
-import { cn } from '~/utils/cn'
 
 /**
  * ModalResponsive —— 响应式对话框（参考 greensketch modal/Responsive.vue）
