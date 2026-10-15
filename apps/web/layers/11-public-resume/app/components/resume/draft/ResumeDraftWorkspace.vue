@@ -11,8 +11,10 @@ import CapabilityEditor from '../capabilities/CapabilityEditor.vue'
 import CustomSectionEditor from '#layers/ui/app/components/resume/CustomSectionEditor.vue'
 import ResumeDraftPreview from './ResumeDraftPreview.vue'
 import ResumeDraftArrangement from './ResumeDraftArrangement.vue'
+const props = defineProps<{ initialId?: string | null }>()
+
 const { draft, document, status, error, staleNotice, dirty, canEdit, reauthRequired, create, load, save, backup } =
-  useResumeDraft()
+  useResumeDraft(() => props.initialId ?? null)
 const { isAuthed, restoreError, hydrate, signOut } = useAuthState()
 const { content: legacyContent, loadLocal: loadContent } = useResumeContent()
 const { config: legacyDisplay, loadLocal: loadDisplay } = useResumeDisplay()

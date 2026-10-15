@@ -1,10 +1,17 @@
-import { computed, ref, watch, onBeforeUnmount } from 'vue'
+import { computed, ref, toValue, watch, onBeforeUnmount, type MaybeRefOrGetter } from 'vue'
 import { useMutation } from '@pinia/colada'
 import { onBeforeRouteLeave } from 'vue-router'
 import { normalizeApiError, resumeDocumentSchema, type ResumeDocument, type ResumeDraftResponse } from '@rs/common'
 import { createResumeDraftApi } from '#layers/public-resume/app/apis/resume-draft'
 
-export function useResumeDraft() {
+/**
+ * 草稿工作台的状态。
+ *
+ * `initialId`：URL 里指定的简历 id（`/resume/draft/:id`）。
+ * - 有值时**以它为准**（用户明确选了这一份），按 `manual` 处理 —— 找不到就如实报错；
+ * - 没值时回退到 localStorage 记的"上次编辑的那份"（`stored`，404 宽容处理）。
+ */
+export function useResumeDraft(initialId?: MaybeRefOrGetter<string | null>) {
   const api = createResumeDraftApi()
   const { user, isAuthed, isAdmin, session } = useAuthState()
   const { canEditSections } = usePermission()
@@ -222,6 +229,11 @@ export function useResumeDraft() {
     if (value) reauthRequired.value = false
   })
   onMounted(() => {
+    // URL 指定了 id 就加载它，否则走 localStorage 的自动恢复
+    const wanted = toValue(initialId ?? null)
+    if (wanted) {
+      void load(wanted)
+    }
     window.addEventListener('beforeunload', beforeUnload)
     restoreSelected()
   })
