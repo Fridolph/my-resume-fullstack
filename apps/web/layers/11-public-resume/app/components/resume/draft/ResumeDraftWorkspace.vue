@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { CapabilitySection, CapabilityView } from '@rs/common'
+import type { CapabilitySection, CapabilityView, ResumeCustomSectionDraft } from '@rs/common'
+import { fromCustomSectionDraft, toCustomSectionDraft } from '@rs/common'
 import { useResumeDraft } from '#layers/public-resume/app/composables/useResumeDraft'
 import { createDemoResumeDocument, importResumeDocument } from '#layers/public-resume/app/utils/resume-document'
 import { capabilitySample } from '#layers/public-resume/app/config/capability-sample'
@@ -7,6 +8,7 @@ import { useResumeContent } from '#layers/public-resume/app/composables/useResum
 import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
 import ResumeAdminLoginModal from '../ResumeAdminLoginModal.vue'
 import CapabilityEditor from '../capabilities/CapabilityEditor.vue'
+import CustomSectionEditor from '#layers/ui/app/components/resume/CustomSectionEditor.vue'
 import ResumeDraftPreview from './ResumeDraftPreview.vue'
 import ResumeDraftArrangement from './ResumeDraftArrangement.vue'
 const { draft, document, status, error, staleNotice, dirty, canEdit, reauthRequired, create, load, save, backup } =
@@ -59,6 +61,12 @@ async function createDraft(importLocal = false) {
 }
 function open(id: string) {
   if (!document.value) return
+  // 自定义模块走自己的编辑器，其余（目前只有能力模块）走字段表单
+  const target = document.value.content.sections.find(item => item.id === id)
+  if (target?.type === 'custom') {
+    openCustom(id)
+    return
+  }
   const section = document.value.content.sections.find(item => item.id === id && item.type === 'capabilities')
   if (!section || section.type !== 'capabilities') return
   if (!document.value.display.sections.overrides[id]?.capabilities) {
@@ -69,6 +77,59 @@ function open(id: string) {
   selectedId.value = id
   editorOpen.value = true
 }
+// ── 自定义模块：新增 / 编辑 / 删除 ──────────────────────────
+// 三者都直接改 `document`（草稿工作台是"改完自动保存"，没有单独的提交动作）。
+const customOpen = ref(false)
+const customId = ref<string | null>(null)
+const customDraft = ref<ResumeCustomSectionDraft | null>(null)
+
+/** 从草稿区改回文档：编辑器每次改动都写回，触发自动保存 */
+watch(
+  customDraft,
+  value => {
+    if (!value || !customId.value || !document.value) return
+    const index = document.value.content.sections.findIndex(item => item.id === customId.value)
+    if (index < 0) return
+    document.value.content.sections[index] = fromCustomSectionDraft(value, {
+      id: customId.value,
+      icon: document.value.content.sections[index]!.icon,
+    })
+  },
+  { deep: true },
+)
+
+function addCustom() {
+  if (!document.value) return
+  const id = globalThis.crypto.randomUUID()
+  document.value.content.sections.push(
+    fromCustomSectionDraft({ title: '新模块', description: '', view: 'richText', items: [], timeline: [] }, { id }),
+  )
+  // 同时进排布（否则它会"存在但看不见"）：排在最后、落主栏
+  document.value.display.sections.order.push(id)
+  document.value.display.sections.slot[id] = 'main'
+  openCustom(id)
+}
+
+function openCustom(id: string) {
+  const section = document.value?.content.sections.find(item => item.id === id)
+  if (!section || section.type !== 'custom') return
+  customId.value = id
+  customDraft.value = toCustomSectionDraft(section)
+  customOpen.value = true
+}
+
+/** 删除：预设模块不可删（编排面板也不渲染入口），这里再守一道 */
+function removeCustom(id: string) {
+  const section = document.value?.content.sections.find(item => item.id === id)
+  if (!document.value || section?.type !== 'custom') return
+  if (!window.confirm(`删除「${section.title}」？该模块的内容会一并移除。`)) return
+  document.value.content.sections = document.value.content.sections.filter(item => item.id !== id)
+  // 排布里也要清掉，否则会留下指向不存在区块的 id
+  document.value.display.sections.order = document.value.display.sections.order.filter(item => item !== id)
+  document.value.display.sections.hidden = document.value.display.sections.hidden.filter(item => item !== id)
+  delete document.value.display.sections.slot[id]
+}
+
 function reload() {
   if (draft.value && (!dirty.value || window.confirm('重新读取会覆盖本地未保存内容。请先导出备份，是否继续？')))
     void load(String(draft.value.resume.id))
@@ -181,6 +242,8 @@ function openId() {
           v-if="canEdit && !previewOnly && status !== 'loading'"
           v-model="document"
           @edit="open"
+          @add="addCustom"
+          @remove="removeCustom"
         />
         <ResumeDraftPreview :document="document" />
       </template>
@@ -201,6 +264,18 @@ function openId() {
       ><template #footer
         ><span class="mr-auto text-xs">{{ labels[status] }}</span
         ><UButton label="关闭" color="neutral" @click="editorOpen = false" /></template
+    ></UModal>
+
+    <!-- 自定义模块编辑器：标题 / 描述 / 展示方式 / 内容（改动即时写回文档并自动保存） -->
+    <UModal
+      v-model:open="customOpen"
+      :title="`编辑「${customDraft?.title || '自定义模块'}」`"
+      description="改动会写回文档并自动保存"
+      :ui="{ content: 'max-w-3xl' }"
+      ><template #body><CustomSectionEditor v-if="customDraft" v-model="customDraft" /></template
+      ><template #footer
+        ><span class="mr-auto text-xs">{{ labels[status] }}</span
+        ><UButton label="完成" color="neutral" @click="customOpen = false" /></template
     ></UModal>
   </main>
 </template>

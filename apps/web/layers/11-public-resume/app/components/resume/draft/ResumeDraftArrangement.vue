@@ -2,7 +2,24 @@
 import type { ResumeDocument } from '@rs/common'
 import { useResumeReorder } from '#layers/public-resume/app/composables/useResumeReorder'
 const document = defineModel<ResumeDocument>({ required: true })
-const emit = defineEmits<{ edit: [id: string] }>()
+const emit = defineEmits<{
+  /** 打开某个区块的编辑界面（目前只有能力模块与自定义模块有） */
+  edit: [id: string]
+  /** 新增一条自定义模块 */
+  add: []
+  /** 删除一条自定义模块（**预设模块不提供删除**，这里也不渲染） */
+  remove: [id: string]
+}>()
+
+/** 预设模块不可删：只有自定义模块渲染删除入口（规则由界面保证，见 DAO-037） */
+function isCustom(section: { type: string }) {
+  return section.type === 'custom'
+}
+
+/** 有编辑界面的区块类型 */
+function canEdit(section: { type: string }) {
+  return section.type === 'custom' || section.type === 'capabilities'
+}
 const ordered = computed(() =>
   document.value.display.sections.order.flatMap(id =>
     document.value.content.sections.filter(section => section.id === id),
@@ -31,7 +48,10 @@ function toggle(id: string) {
 
 <template>
   <section class="space-y-3 rounded-xl border p-4">
-    <h2 class="font-semibold">模块编排</h2>
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h2 class="font-semibold">模块编排</h2>
+      <UButton icon="i-lucide-plus" size="sm" variant="soft" label="添加自定义模块" @click="emit('add')" />
+    </div>
     <div class="flex flex-wrap gap-3">
       <label class="grid gap-1 text-sm"
         >布局<select v-model="document.display.layout.mode" class="rounded border p-2">
@@ -79,7 +99,22 @@ function toggle(id: string) {
           variant="ghost"
           @click="toggle(section.id)"
         />
-        <UButton v-if="section.type === 'capabilities'" label="编辑能力" @click="emit('edit', section.id)" />
+        <UButton
+          v-if="canEdit(section)"
+          :label="isCustom(section) ? '编辑' : '编辑能力'"
+          size="sm"
+          color="neutral"
+          variant="soft"
+          @click="emit('edit', section.id)"
+        />
+        <UButton
+          v-if="isCustom(section)"
+          label="删除"
+          size="sm"
+          color="error"
+          variant="ghost"
+          @click="emit('remove', section.id)"
+        />
       </div>
     </div>
   </section>

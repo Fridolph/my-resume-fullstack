@@ -17,7 +17,6 @@ import { resumeDocumentSchema, type ResumeDocument, type ResumeSection } from '.
 import { type CapabilityData } from './capabilities.js'
 import type {
   ResumeContent,
-  ResumeCustomSection,
   ResumeCustomSectionDraft,
   ResumeCustomView,
   ResumeDisplayConfig,
@@ -298,19 +297,33 @@ export function toResumeDisplayConfig(document: ResumeDocument): ResumeDisplayCo
  * 两者靠下面的一对函数往返。放在 common 是因为 web 与 admin 的编辑界面都要用，
  * 各写一份必然漂移（这个仓库已经因为这类重复吃过亏）。
  */
-/** 契约/展示态的实例 → 编辑态草稿 */
-export function toCustomSectionDraft(section: ResumeCustomSection): ResumeCustomSectionDraft {
+/** 契约里 `custom` 分支的区块类型 */
+export type ResumeCustomSectionNode = Extract<ResumeSection, { type: 'custom' }>
+
+/**
+ * 契约的 custom 区块 → 编辑态草稿。
+ *
+ * 收的是**契约形状**而不是展示态：编辑界面握着的就是文档里的那一份，
+ * 让草稿转换直接对上契约，省掉"先转展示态再转回来"的绕路。
+ */
+export function toCustomSectionDraft(section: ResumeCustomSectionNode): ResumeCustomSectionDraft {
+  const data = section.data
+
   return {
     title: section.title,
     description: section.description ?? '',
-    view: section.view,
-    items: [...section.items],
-    timeline: section.timeline.map(item => ({
-      time: item.time,
-      title: item.title,
-      description: item.description ?? '',
-    })),
-    document: section.document,
+    view: data.view,
+    items: 'items' in data && data.view !== 'timeline' ? data.items.map(item => item.text) : [],
+    timeline:
+      data.view === 'timeline'
+        ? data.items.map(item => ({
+            // 结构化日期在编辑界面里显示成一行文本；存回时统一走 custom 模式
+            time: item.time.mode === 'custom' ? item.time.text : `${item.time.start} ~ ${item.time.end ?? '至今'}`,
+            title: item.title,
+            description: item.description ?? '',
+          }))
+        : [],
+    document: data.view === 'richText' ? data.content : undefined,
   }
 }
 
