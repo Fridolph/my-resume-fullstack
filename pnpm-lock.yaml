@@ -44,6 +44,9 @@ importers:
       '@rs/common':
         specifier: workspace:*
         version: link:../../packages/common
+      '@rs/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@tiptap/core':
         specifier: 3.30.5
         version: 3.30.5(@tiptap/pm@3.30.5)
@@ -289,6 +292,25 @@ importers:
       vue:
         specifier: ^3.5.22
         version: 3.5.42(typescript@5.9.3)
+
+  packages/utils:
+    dependencies:
+      a-calc:
+        specifier: ^3.0.2
+        version: 3.0.2(zod@4.6.5)
+      libphonenumber-js:
+        specifier: ^1.13.14
+        version: 1.13.14
+      radashi:
+        specifier: ^12.9.6
+        version: 12.9.6
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
 packages:
 
