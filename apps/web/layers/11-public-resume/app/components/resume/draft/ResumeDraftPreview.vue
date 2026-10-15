@@ -6,8 +6,8 @@ import {
   toLegacySectionKey,
 } from '#layers/public-resume/app/config/resume-sections'
 import { toResumeContent } from '#layers/public-resume/app/utils/resume-document'
-import CapabilitySection from '../capabilities/CapabilitySection.vue'
-import ResumeBackgroundLayer from '../ResumeBackgroundLayer.vue'
+import CapabilitySection from '#layers/ui/app/components/resume/CapabilitySection.vue'
+import ResumeBackgroundLayer from '#layers/ui/app/components/resume/ResumeBackgroundLayer.vue'
 const props = defineProps<{ document: ResumeDocument }>()
 const sections = computed(() =>
   props.document.display.sections.order.flatMap(id =>

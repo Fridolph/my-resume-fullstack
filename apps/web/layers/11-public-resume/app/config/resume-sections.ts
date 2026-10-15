@@ -1,13 +1,13 @@
 import type { Component } from 'vue'
 import type { ResumeSectionKey } from '@rs/common'
 
-import ResumeEducationSection from '#layers/public-resume/app/components/resume/ResumeEducationSection.vue'
-import ResumeEvaluationsSection from '#layers/public-resume/app/components/resume/ResumeEvaluationsSection.vue'
-import ResumeExperienceSection from '#layers/public-resume/app/components/resume/ResumeExperienceSection.vue'
-import ResumeHeroCard from '#layers/public-resume/app/components/resume/ResumeHeroCard.vue'
-import ResumeHighlightsSection from '#layers/public-resume/app/components/resume/ResumeHighlightsSection.vue'
-import ResumeProjectsSection from '#layers/public-resume/app/components/resume/ResumeProjectsSection.vue'
-import ResumeSkillsSection from '#layers/public-resume/app/components/resume/ResumeSkillsSection.vue'
+import ResumeEducationSection from '#layers/ui/app/components/resume/ResumeEducationSection.vue'
+import ResumeEvaluationsSection from '#layers/ui/app/components/resume/ResumeEvaluationsSection.vue'
+import ResumeExperienceSection from '#layers/ui/app/components/resume/ResumeExperienceSection.vue'
+import ResumeHeroCard from '#layers/ui/app/components/resume/ResumeHeroCard.vue'
+import ResumeHighlightsSection from '#layers/ui/app/components/resume/ResumeHighlightsSection.vue'
+import ResumeProjectsSection from '#layers/ui/app/components/resume/ResumeProjectsSection.vue'
+import ResumeSkillsSection from '#layers/ui/app/components/resume/ResumeSkillsSection.vue'
 
 /**
  * 区块定义与键名桥接（`resumeSectionDefinitions` / `getSectionDefinition` / `toLegacySectionKey`）

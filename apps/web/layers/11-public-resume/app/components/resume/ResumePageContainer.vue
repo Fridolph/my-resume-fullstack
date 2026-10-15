@@ -12,7 +12,7 @@ import { getSectionDefinition, resumeSectionDefinitions } from '#layers/public-r
 import { useResumeActiveSection } from '#layers/public-resume/app/composables/useResumeActiveSection'
 import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
 import { RESUME_SLOT_ORDER as SLOT_ORDER, useResumeLayout } from '#layers/ui/app/composables/useResumeLayout'
-import ResumeBackgroundLayer from './ResumeBackgroundLayer.vue'
+import ResumeBackgroundLayer from '#layers/ui/app/components/resume/ResumeBackgroundLayer.vue'
 import ResumeColumn from './ResumeColumn.vue'
 import ResumeSectionTray from './ResumeSectionTray.vue'
 
