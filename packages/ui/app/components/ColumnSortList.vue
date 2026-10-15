@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnDraftItem } from '~/types/column-sort'
+import type { ColumnDraftItem } from '../types/column-sort'
 import { moveArrayElement, useSortable } from '@vueuse/integrations/useSortable'
 
 /**

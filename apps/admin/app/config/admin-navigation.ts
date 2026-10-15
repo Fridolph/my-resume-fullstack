@@ -30,8 +30,6 @@ export const adminNavigation: AdminNavigationItem[] = [
       { label: 'Overlay / Modal (shared)', to: '/comps/overlay' },
       { label: 'Full screen gallery (shared)', to: '/comps/full-screen-modal' },
       { label: 'Loaders', to: '/comps/loaders' },
-      { label: 'Tour', to: '/comps/tour' },
-      { label: 'Tour spotlight', to: '/comps/tour-light' },
       { label: 'Text editor', to: '/comps/text-editor' },
       { label: 'Upload', to: '/comps/upload' },
       { label: 'Sort list', to: '/comps/sort-list' },

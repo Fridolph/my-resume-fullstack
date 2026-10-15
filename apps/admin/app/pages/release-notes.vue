@@ -31,7 +31,6 @@ const releases: Release[] = [
       'Comps component library at /comps/* with a sidebar index.',
       'Modal: ModalConfirm, ModalResponsive (modal ≥768px / drawer on mobile), ModalForbidden.',
       'Loaders: LoadersColorSpin region loader.',
-      'Tour: TourSpotlight / TourSpotlightStep + useSpotlightTour spotlight walkthrough.',
       'Text editor: Tiptap-based TextEditor (work in progress).',
       'Uploads: useFileUploader / useUploadFile + Files / UploadCell / UploadPDF / UploadProd, with file validation and an Alova XHR upload plugin (progress + abort).',
       'Request layer: utils/request.ts (AbortError detection); api.d.ts / file.d.ts types.',
