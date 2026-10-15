@@ -1,11 +1,15 @@
+import { resumeQueryKeys } from '#layers/ui/app/utils/query-keys'
+
 /**
- * Query key 规范（Pinia Colada）。
+ * web 侧可用的 query key。
  *
- * 结构 `[scope, ...segments]`，`scope` 与业务域同名（`resume` / `aiTalk`…）。
- * 只在本文件集中声明，便于按前缀批量失效。
+ * 简历域的 key 定义在**共享层**（`packages/ui/app/utils/query-keys.ts`）——
+ * 两端查同一份资源必须用同一个 key，否则缓存失效会静默对不上。
+ * 目前 web 的简历读写走 `useMutation`（无缓存 key），这里先把共享 key 挂上，
+ * 等 web 也有"列表/详情"这类缓存型查询时直接可用。
  *
- * 目前为空：心跳属于"每次都要最新"的一类，已改走 `useAsyncData`（不进缓存）；
- * 首个**缓存型**查询（简历查看 / 用户信息 / 授权信息）落地时在这里声明。
  * 规范见 docs/web/04_数据层_约定.md。
  */
-export const queryKeys = {}
+export const queryKeys = {
+  resume: resumeQueryKeys,
+}

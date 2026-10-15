@@ -1,13 +1,12 @@
 import { isApiSuccess } from '@rs/common'
+
+// 纯换算已收到 `@rs/utils`（DAO-035）；表单组装与响应解包仍留在这里 —— 它们与后端约定绑定。
+// 下面先 import（本文件自己要用），再对外转发（调用方不必知道它搬了家）。
+import { toFileUploadProgress, type FileUploadProgress } from '@rs/utils/file-upload'
+export { toFileUploadProgress, type FileUploadProgress } from '@rs/utils/file-upload'
 import type { UploadedFile } from '~/types/file'
 
 /** 上传进度；`percent` 为 0–100 的整数 */
-export interface FileUploadProgress {
-  loaded: number
-  total: number
-  percent: number
-}
-
 /** 独立请求 `uploadFiles` 的选项 */
 export interface UploadFilesOptions {
   /** 接口 query contentType，默认 1 */
@@ -29,12 +28,6 @@ interface UploadResponsePayload {
 const DEFAULT_CONTENT_TYPE = 1
 /** 批量上传接口路径 */
 const UPLOAD_PATH = '/masterData/file/multipleUpload'
-
-export function toFileUploadProgress(loaded: number, total: number): FileUploadProgress {
-  const safeTotal = total > 0 ? total : 0
-  const percent = safeTotal > 0 ? Math.min(100, Math.round((loaded / safeTotal) * 100)) : 0
-  return { loaded, total: safeTotal, percent }
-}
 
 /** 把 File / File[] 收成接口要求的 FormData（字段名 `files`）；已是 FormData 则原样返回 */
 export function toUploadFormData(input: FormData | File | File[]): FormData {

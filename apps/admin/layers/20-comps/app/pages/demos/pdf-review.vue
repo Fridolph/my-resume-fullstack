@@ -2,7 +2,7 @@
 import { normalizeApiError, resolveApiErrorMessage } from '@rs/common'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { TableColumn } from '@nuxt/ui'
-import type { PdfAlign, PdfCoverImageMode, PdfTextVertical } from '~/types/pdf'
+import type { PdfAlign, PdfCoverImageMode, PdfTextVertical } from '@rs/common'
 import * as z from 'zod'
 
 /**

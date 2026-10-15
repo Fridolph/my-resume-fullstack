@@ -11,7 +11,8 @@ import type {
 import { getSectionDefinition, resumeSectionDefinitions } from '#layers/public-resume/app/config/resume-sections'
 import { useResumeActiveSection } from '#layers/public-resume/app/composables/useResumeActiveSection'
 import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
-import ResumeBackgroundLayer from './ResumeBackgroundLayer.vue'
+import { RESUME_SLOT_ORDER as SLOT_ORDER, useResumeLayout } from '#layers/ui/app/composables/useResumeLayout'
+import ResumeBackgroundLayer from '#layers/ui/app/components/resume/ResumeBackgroundLayer.vue'
 import ResumeColumn from './ResumeColumn.vue'
 import ResumeSectionTray from './ResumeSectionTray.vue'
 
@@ -42,125 +43,15 @@ const containerRef = useTemplateRef<HTMLElement>('containerRef')
 /** 拖拽进行中：用于给所有可落区域描边（见 resume.css） */
 const dragging = ref(false)
 
-/** 三个栏位的固定 DOM 顺序（移动端单列时也按这个顺序阅读） */
-const SLOT_ORDER: ResumeSlotKey[] = ['side', 'main', 'rail']
-
-/** 区块归属：配置覆盖 > 注册表默认 */
-function slotOf(key: ResumeSectionKey): ResumeSlotKey {
-  return props.config.sections.slot[key] ?? getSectionDefinition(key)?.defaultSlot ?? 'main'
-}
-
-/** 最终顺序 = 配置顺序 + 未列出的按默认顺序补齐，再过滤隐藏项 */
-const orderedKeys = computed(() => {
-  const configured = props.config.sections.order.filter(key => getSectionDefinition(key))
-  const rest = resumeSectionDefinitions
-    .filter(item => !configured.includes(item.key))
-    .sort((a, b) => a.defaultOrder - b.defaultOrder)
-    .map(item => item.key)
-
-  return [...configured, ...rest].filter(key => !props.config.sections.hidden.includes(key))
-})
-
-/** 按布局模式分栏：single 全并入 main；split 把 rail 并入 main */
-const columns = computed(() => {
-  const mode = props.config.layout.mode
-  const buckets: Record<ResumeSlotKey, ResumeSectionKey[]> = { side: [], main: [], rail: [] }
-
-  for (const key of orderedKeys.value) {
-    let slot = slotOf(key)
-    if (mode === 'single') {
-      slot = 'main'
-    } else if (mode === 'split' && slot === 'rail') {
-      slot = 'main'
-    }
-    buckets[slot].push(key)
-  }
-
-  return buckets
-})
-
-/** 当前布局下**有效**的栏位：single 只有 main，split 没有 rail（rail 并入 main） */
-const activeSlots = computed<ResumeSlotKey[]>(() => {
-  const mode = props.config.layout.mode
-  if (mode === 'threeColumn') {
-    return ['side', 'main', 'rail']
-  }
-  if (mode === 'split') {
-    return ['side', 'main']
-  }
-  return ['main']
-})
-
-/** 托盘里的模块（编辑态） */
-const trayKeys = computed(() => props.config.sections.hidden.filter(key => getSectionDefinition(key)))
-
 /**
- * 是否渲染某一栏。
- *
- * 非编辑态：空栏不渲染（布局自然塌陷，与公开站一致）；
- * 编辑态：**有效**栏位即使为空也渲染，作为可落区域。
+ * 排布计算（区块分栏 / 有效栏位 / 栅格与栏位类名）已抽到 `packages/ui` 的 `useResumeLayout`：
+ * 它是**纯读**逻辑，公开站、草稿工作台与 admin 的只读详情页都要用；
+ * 而本组件剩下的是**编辑交互**（拖拽 / 托盘 / 上移下移），依赖 sortablejs，留在 web。
  */
-function showsSlot(slot: ResumeSlotKey) {
-  return columns.value[slot].length > 0 || (props.editable === true && activeSlots.value.includes(slot))
-}
-
-/**
- * 栅格类必须是**字面量**：Tailwind 扫描源码里的静态字符串，
- * 拼接出来的类名不会生成样式。
- *
- * split 的两档宽度对齐旧站（旧站固定 `lg:320px / xl:360px`）：
- * `compact` ≈ 旧站观感，`wide` 再各宽一档。
- */
-const gridClass = computed(() => {
-  const { mode, splitSide, sideWidth } = props.config.layout
-  const hasSide = showsSlot('side')
-  const hasRail = showsSlot('rail')
-  const wide = sideWidth === 'wide'
-
-  // 三栏：左右两栏固定 300px（原来按 1fr/4fr 比例，宽屏下左右太窄），中间吃掉剩余
-  if (mode === 'threeColumn') {
-    if (hasSide && hasRail) {
-      return 'lg:grid-cols-[300px_minmax(0,1fr)_300px]'
-    }
-    if (hasSide) {
-      return 'lg:grid-cols-[300px_minmax(0,1fr)]'
-    }
-    if (hasRail) {
-      return 'lg:grid-cols-[minmax(0,1fr)_300px]'
-    }
-    return 'lg:grid-cols-1'
-  }
-
-  if (mode === 'split' && hasSide) {
-    if (splitSide === 'right') {
-      return wide
-        ? 'lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px]'
-        : 'lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px]'
-    }
-    return wide
-      ? 'lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[420px_minmax(0,1fr)]'
-      : 'lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]'
-  }
-
-  return 'lg:grid-cols-1'
-})
-
-/** 信息栏与右栏跟随滚动；主内容列不跟随，但通栏时要限宽 */
-function columnClass(slot: ResumeSlotKey) {
-  const classes: string[] = []
-
-  if (props.config.layout.stickySide && slot !== 'main') {
-    classes.push('lg:sticky lg:top-20 lg:self-start')
-  }
-
-  // 通栏模式：正文单独限宽并居中 —— 1920 容器下不限制的话单行会接近 1800px，难读
-  if (props.config.layout.mode === 'single' && slot === 'main') {
-    classes.push('lg:mx-auto lg:max-w-4xl')
-  }
-
-  return classes.join(' ')
-}
-
+const { columns, showsSlot, gridClass, columnClass, trayKeys, activeSlots } = useResumeLayout(
+  () => props.config,
+  () => props.editable === true,
+)
 // ── 拖拽（仅客户端、仅编辑态）──────────────────────────
 let instances: Sortable[] = []
 

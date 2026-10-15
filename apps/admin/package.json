@@ -18,6 +18,7 @@
     "@pinia/nuxt": "^1.0.2",
     "@rive-app/webgl2": "^2.44.1",
     "@rs/common": "workspace:*",
+    "@rs/utils": "workspace:*",
     "@tiptap/core": "3.30.5",
     "@tiptap/extension-code-block-lowlight": "3.30.5",
     "@tiptap/extension-emoji": "3.30.5",

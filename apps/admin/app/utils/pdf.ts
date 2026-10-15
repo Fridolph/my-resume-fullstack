@@ -1,15 +1,6 @@
-/** 将数组按每页条数切分，用于 PDF 明细自动分页 */
-export function chunkByPage<T>(items: T[], perPage: number): T[][] {
-  if (items.length === 0) {
-    return []
-  }
-  if (perPage <= 0) {
-    return [items]
-  }
-
-  const pages: T[][] = []
-  for (let i = 0; i < items.length; i += perPage) {
-    pages.push(items.slice(i, i + perPage))
-  }
-  return pages
-}
+/**
+ * ⚠️ 已上提到 `@rs/utils`（DAO-035）。本文件只是**转发层**：
+ * admin 的 `app/utils/**` 参与 Nuxt 自动导入，直接删掉会让所有隐式调用失效，
+ * 而转发能让调用点一行不改。新代码请直接从 `@rs/utils` 引入。
+ */
+export * from '@rs/utils/pdf'
