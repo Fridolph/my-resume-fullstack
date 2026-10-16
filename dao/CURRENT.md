@@ -15,6 +15,22 @@
 
 - [`DAO-036` 通用上传端点](./tasks/DAO-036-通用上传端点.md) —— `planned`（等排期）：admin 的 4 个 upload 组件依赖 `POST /api/masterData/file/multipleUpload`，**实测 404**（模板遗留路径），且这些组件**没有任何调用点**。
 
+## 可观测性（2026-10-16 新立，对应 #52 / #53）
+
+| 卡 | Issue | 内容 | 状态 |
+| --- | --- | --- | --- |
+| [`DAO-042` 可观测性](./tasks/DAO-042-可观测性-nestjs-pino.md) | [#52](https://github.com/Fridolph/my-resume-fullstack/issues/52) | 接入 `nestjs-pino` v5 + 统一请求 ID + 脱敏（**审计不做**） | `designed`（依赖已确认，可开工）|
+| [`DAO-043` 审计表](./tasks/DAO-043-审计表.md) | [#53](https://github.com/Fridolph/my-resume-fullstack/issues/53) | 关键操作审计表（创建 / 发布 / 删除 / 权限变更） | `planned`（**等 Owner 答四个产品决定**）|
+
+**为什么拆两卡**：审计涉及 Prisma schema 变更 + 迁移，按 `AGENTS.md` §3.3「一个任务卡只落一条闭环」
+不与日志接入混一轮；且"保留多久 / 谁可查 / 删号如何处理"是产品决定，不是工程顺手能定的。
+
+**DAO-042 的核心风险**（写进卡里作为主内容，不是附录）：
+既有 `TraceIdMiddleware` 生成的 ID 已流向**日志 + 响应头 + 响应体**三处，
+接入 Pino 时若让它自己 `genReqId` 会立刻分叉 —— 必须选一条权威路径并用断言验证，
+**不能靠"注册顺序应该没问题"**。另两处：Bearer 与 Cookie 两种载体都要脱敏；
+`PUT /resume/:id/draft` 的请求体就是整份简历，**字段白名单**优于"先记后脱敏"。
+
 ## 本轮新立的三张卡（2026-10-16，对应三个 Issue）
 
 | 卡 | Issue | 内容 | 状态 |
