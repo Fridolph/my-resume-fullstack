@@ -1,4 +1,4 @@
-# 【DAO-042】可观测性第一阶段：接入 nestjs-pino + 统一请求 ID + 脱敏
+# 【DAO-044】可观测性第一阶段：接入 nestjs-pino + 统一请求 ID + 脱敏
 
 > 任务卡是这一关键事件的唯一事实源。只写改变下一步判断的事实；不要复制聊天记录或原始终端输出。
 
@@ -6,16 +6,17 @@
 
 - 状态：`designed`（依赖变更已获 Owner 确认，可开工）
 - Owner：`昇哥（2026-10-16：感觉少了些什么…发现没有日志系统…按照建议执行，开 DAO-042 卡）`
+  ⚠️ 原编号 DAO-042，与并行窗口的 `DAO-042-Nuxt配置底座化.md` 撞号，本卡改为 **DAO-044**（043 留给该窗口）
 - 创建日期：`2026-10-16`
 - 分支：待建 `feat/52-nestjs-pino`
 - Issue：[#52](https://github.com/Fridolph/my-resume-fullstack/issues/52)
-- 关联：`DAO-043`（审计表，#53）、`common/trace-id.middleware.ts`
+- 关联：`DAO-045`（审计表，#53）、`common/trace-id.middleware.ts`
 
 ## 目标与边界
 
 - 目标：让**每次请求可追踪、关键修改可追责、日志不泄露用户内容**的前半段（可追踪 + 不泄露）落地。
 - 范围：`apps/server` 的日志接入与请求 ID 归并；配置与启动方式调整。
-- 非目标：审计表（→ DAO-043）· ES / 完整 OTel / 分布式追踪 · 日志入 PG · 自研 Logger 框架 · 全量 SQL 日志。
+- 非目标：审计表（→ DAO-045）· ES / 完整 OTel / 分布式追踪 · 日志入 PG · 自研 Logger 框架 · 全量 SQL 日志。
 
 ## 现状（已核实，非推测）
 
