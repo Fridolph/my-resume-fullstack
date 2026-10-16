@@ -39,6 +39,9 @@ export const PERMISSION_KEYS = {
   SETTINGS_USERS_CREATE: 'Settings.Users:create',
   SETTINGS_USERS_EDIT: 'Settings.Users:edit',
   SETTINGS_USERS_DELETE: 'Settings.Users:delete',
+
+  // ── 审计（Owner 2026-10-16 定：**仅超管可查**）──
+  AUDIT_LOG_VIEW: 'Audit.Log:view',
 } as const
 
 export type PermissionKey = (typeof PERMISSION_KEYS)[keyof typeof PERMISSION_KEYS]
@@ -55,7 +58,11 @@ export const ALL_PERMISSION_KEYS: readonly PermissionKey[] = Object.values(PERMI
  */
 export const ROLE_PERMISSION_PRESETS = {
   user: [PERMISSION_KEYS.RESUME_PROFILE_VIEW, PERMISSION_KEYS.RESUME_DISPLAY_EDIT, PERMISSION_KEYS.AI_TALK_CHAT_CREATE],
-  admin: ALL_PERMISSION_KEYS.filter(key => key !== PERMISSION_KEYS.SETTINGS_USERS_CREATE),
+  // admin **刻意不含** AUDIT_LOG_VIEW：审计的查阅权集中在超管，
+  // 避免"多个角色都能看审计"把责任边界摊薄（也让审计本身更难被质疑）。
+  admin: ALL_PERMISSION_KEYS.filter(
+    key => key !== PERMISSION_KEYS.SETTINGS_USERS_CREATE && key !== PERMISSION_KEYS.AUDIT_LOG_VIEW,
+  ),
   super_admin: ALL_PERMISSION_KEYS,
 } as const
 

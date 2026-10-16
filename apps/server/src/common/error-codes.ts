@@ -18,6 +18,7 @@
  */
 export const API_ERROR_CODES = {
   RESUME_EDIT_FORBIDDEN: 'Resume.Draft:editForbidden',
+  AUDIT_VIEW_FORBIDDEN: 'Audit.Log:viewForbidden',
   RESUME_NOT_FOUND: 'Resume.Draft:notFound',
   RESUME_DRAFT_CONFLICT: 'Resume.Draft:conflict',
   /** 没带 Authorization 头（或不是 Bearer 形式） */
