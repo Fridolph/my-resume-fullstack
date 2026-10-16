@@ -61,7 +61,9 @@ bash apps/server/scripts/test-resume-isolated.sh
 - 前端默认使用 Nuxt 4、Nuxt UI、Tailwind CSS 4 与 TypeScript；API 默认使用 NestJS、严格类型、统一响应和异常结构。
 - 改动前先明确目标、非目标、风险、涉及文件和验收标准；发现旁支问题应拆成独立 Issue。
 - 环境变量、密钥、数据库连接等敏感配置只放在后端 `.env`，不得提交或暴露给前端；用 `.env.example` 提供脱敏说明。
-- **分支模型**：`main` 只承载发布与正式版本，**不直接在 `main` 上开发**；日常开发在 `dev`，并从 `dev` 开 `feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…` 短分支，验证完成后合回 `dev`。完整流程见 [docs/dev/01_开发流程_分支与提交.md](./docs/dev/01_开发流程_分支与提交.md)。
+- **分支模型**：`main` 只承载发布与正式版本，**不直接在 `main` 上开发**；日常开发在 `dev`，并从 `dev` 开 `feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…` 短分支，验证完成后合回 `dev`。
+  **推送分界**：`dev` 与从 `dev` 检出的开发分支由 **AI 自行判断并推送**；`main`（含 `dev → main`）与发版归 Owner —— 闸门设在 `main` / 发版，不设在"推送"这个动作上（见 [AGENTS.md](./AGENTS.md) §4）。
+  完整流程见 [docs/dev/01_开发流程_分支与提交.md](./docs/dev/01_开发流程_分支与提交.md)。
 - 完整协作流程、测试要求、skills 与归母规则见 [AGENTS.md](./AGENTS.md)。
 - 前端（Nuxt 4 / Nuxt UI）的命名规则、高频踩坑与 admin 布局模板见 [docs/dev](./docs/README.md)。
 
@@ -222,7 +224,11 @@ docs: document local development workflow
 
 `release-it` + `@release-it/conventional-changelog` 根据这些提交生成 `CHANGELOG.md`、更新根 `package.json`
 的版本号，并创建对应的 Git commit 与 tag。**它不会推送、也不会发布 npm**（`.release-it.json` 里显式关掉了）——
-推送是单独一步，符合本仓"本地提交 ≠ 已发布"。
+发布产物的推送是单独一步，且归 Owner。
+
+> **推送的分界**（[AGENTS.md](./AGENTS.md) §4）：`dev` 与从 `dev` 检出的开发分支由 **AI 自行判断并推送**；
+> **`main`（含 `dev → main`）与发版（tag / release）归 Owner**。闸门设在 `main` / 发版，
+> 不设在"推送"这个动作上 —— `dev` 是**开发流程记录**，只有 `main` / tag 才代表"已发布"。
 
 发版还会**一并更新 release notes 页面**：`after:bump` 钩子跑 `scripts/sync-release-notes.mjs`，
 把 `CHANGELOG.md` 同步进 `packages/common/src/ui/release-notes.ts`（admin 的 `release-notes.vue` 读它）。
