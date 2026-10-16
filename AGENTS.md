@@ -197,6 +197,11 @@ Skill 是个人 Codex 环境能力，不是本模板的运行时依赖；不要�
 
 - 文档以中文为主，除“怎么做”外，还应记录关键决策的背景、取舍与结论。
 - 日常提交使用 Conventional Commits：`<type>(<scope>): <description>`，常用 `feat`、`fix`、`docs`、`test`、`refactor`、`chore`。
+- **`dev → main` 走 PR**（Owner 操作）：PR 的 squash commit message 用 Dao Commit 格式。
+  这样"集成锚点"与"可审阅记录"是同一件东西。
+  ⚠️ 教训：本仓首次 `dev → main` 是直接推送的，事后**无法补 PR** ——
+  等 push 完成，`main` 与 `dev` 树已一致，PR 的 diff 为空、只剩形式。
+  要留 PR 记录就必须**在推送前**开，而不是事后补。
 - 使用 `release-it` + `@release-it/conventional-changelog` 在稳定发布节点生成版本提交、Git tag 与 `CHANGELOG.md`；
   发布前必须确保工作区干净（`requireCleanWorkingDirectory`）且质量检查通过。
   ⚠️ 配置里的 `requireBranch: main` 意味着**发版命令只能在 `main` 上跑** ——
