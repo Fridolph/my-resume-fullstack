@@ -16,12 +16,13 @@ import { AUDIT_ACTIONS } from '@rs/common'
  * 这条测试把"忘"变成"红"：往 `AUDIT_ACTIONS` 加一个动作却没有接线，
  * 就必须显式把它写进下面的 `PENDING` 清单 —— **从"忘了"变成"有意识地欠着"**。
  */
-const PENDING = new Set([
-  // 账号与权限域尚未接线（按 AGENTS.md「一卡一闭环」，留作独立 Issue）
-  'userCreate',
-  'userDelete',
-  'roleChange',
-])
+/**
+ * 待接线清单 —— **现在是空的**（Issue #56 把账号与权限域的三个动作接完了）。
+ *
+ * 保留这个空集合而不是删掉这套机制：下一个新增的动作要欠着，就得先被写在这里，
+ * 而"清单只减不增"那条测试会拦住"接了线却忘了移除"。
+ */
+const PENDING = new Set<string>([])
 
 // ⚠️ 不用 `import.meta.url`：本包 tsconfig 是 `module: commonjs`，用它会报 TS1343。
 // vitest 的工作目录就是包根（apps/server），所以 `process.cwd()` 是稳的。

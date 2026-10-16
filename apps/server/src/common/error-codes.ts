@@ -69,6 +69,10 @@ export const API_ERROR_CODES = {
   USER_FORCE_LOGOUT_FORBIDDEN: 'Users.Session:forceLogoutForbidden',
   /** 强制下线目标受到保护。 */
   USER_FORCE_LOGOUT_PROTECTED: 'Users.Session:forceLogoutProtected',
+  /** 操作者无权变更目标用户的角色。 */
+  USER_ROLE_CHANGE_FORBIDDEN: 'Users.Role:changeForbidden',
+  /** 角色变更目标受到保护（自己或超级管理员）。 */
+  USER_ROLE_CHANGE_PROTECTED: 'Users.Role:changeProtected',
   /** 通用唯一约束冲突。 */
   COMMON_UNIQUE_CONFLICT: 'Common.Conflict:unique',
   /** 通用关联数据冲突。 */

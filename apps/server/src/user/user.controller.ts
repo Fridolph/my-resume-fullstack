@@ -2,17 +2,20 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } f
 import {
   createUserSchema,
   changePasswordSchema,
+  changeUserRolesSchema,
   listUserSchema,
   updateUserSchema,
   userIdSchema,
   type CreateUserDto,
   type ChangePasswordDto,
+  type ChangeUserRolesDto,
   type UpdateUserDto,
   type UsersDto,
 } from './dto/user.schema'
 import { UserService } from './user.service'
 import { UserCreationGuard } from './user-creation.guard'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import { TraceId } from '../common/decorators/trace-id.decorator'
 import type { AuthUser } from '../common/http-context'
 
 /**
@@ -44,11 +47,18 @@ export class UserController {
    * 全局 JWT Guard 认证、UserCreationGuard 授权，再由 schema 校验创号输入。
    * Controller 只负责 HTTP 接入，角色查询、哈希与原子写入由 Service 完成。
    * POST 保留 201，返回数据由全局响应 Interceptor 包装，不拼另一套响应。
+   *
+   * 这里显式取 `@CurrentUser()` 与 `@TraceId()`：审计要记**是谁**、**哪次请求**做的。
+   * 二者都来自服务端上下文（`req.user` / `req.traceId`），不接受客户端传入。
    */
   @Post()
   @UseGuards(UserCreationGuard)
-  create(@Body({ schema: createUserSchema }) createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto)
+  create(
+    @Body({ schema: createUserSchema }) createUserDto: CreateUserDto,
+    @CurrentUser() currentUser: AuthUser,
+    @TraceId() traceId: string,
+  ) {
+    return this.userService.create(createUserDto, currentUser, { requestId: traceId })
   }
 
   /**
@@ -92,13 +102,34 @@ export class UserController {
   }
 
   /**
+   * 变更用户角色（**传完整角色集合**）。
+   *
+   * 权限、目标保护与"无变化不写审计"的判断都在 Service；
+   * Controller 只把操作者与请求 id 交给它，不做第二套授权。
+   */
+  @Patch(':id/roles')
+  changeRoles(
+    @Param('id', { schema: userIdSchema }) id: string,
+    @Body({ schema: changeUserRolesSchema }) changeUserRolesDto: ChangeUserRolesDto,
+    @CurrentUser() currentUser: AuthUser,
+    @TraceId() traceId: string,
+  ) {
+    return this.userService.changeRoles(id, changeUserRolesDto, currentUser, { requestId: traceId })
+  }
+
+  /**
    * 软删除用户。
    *
    * 当前身份由全局 JWT Guard 从数据库恢复，Service 再检查超管角色、删除权限和目标保护规则。
    * Controller 不接收请求体，也不接受调用方传入的操作者 ID 或角色。
+   * `@TraceId()` 让这条审计能与那次请求的访问日志对上。
    */
   @Delete(':id')
-  remove(@Param('id', { schema: userIdSchema }) id: string, @CurrentUser() currentUser: AuthUser) {
-    return this.userService.remove(id, currentUser)
+  remove(
+    @Param('id', { schema: userIdSchema }) id: string,
+    @CurrentUser() currentUser: AuthUser,
+    @TraceId() traceId: string,
+  ) {
+    return this.userService.remove(id, currentUser, { requestId: traceId })
   }
 }

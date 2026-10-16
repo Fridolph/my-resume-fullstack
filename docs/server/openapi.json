@@ -340,6 +340,61 @@
         }
       }
     },
+    "/user/{id}/roles": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "目标用户 cuid"
+        }
+      ],
+      "patch": {
+        "tags": ["User"],
+        "summary": "超管变更用户角色",
+        "description": "仅 super_admin 且具备 Settings.Users:edit。请求体是**完整角色集合**（不是增量），服务端排序去重后整体替换 user_roles。目标不能是自己或超管；roleKeys 只允许 admin/user（超管身份不能经接口授予）。集合无变化时不写审计。",
+        "operationId": "changeUserRoles",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeUserRolesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ChangedUserRolesSuccess"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/UserNotFoundError"
+          },
+          "409": {
+            "$ref": "#/components/responses/StateConflictError"
+          }
+        }
+      }
+    },
     "/resume": {
       "get": {
         "tags": ["Resume"],
@@ -862,6 +917,41 @@
             "minLength": 6,
             "maxLength": 20,
             "format": "password"
+          }
+        }
+      },
+      "ChangeUserRolesRequest": {
+        "type": "object",
+        "description": "完整角色集合：重放同一请求是幂等的，服务端不需要从 diff 反推是增还是减。",
+        "additionalProperties": false,
+        "required": ["roleKeys"],
+        "properties": {
+          "roleKeys": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 2,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": ["admin", "user"]
+            }
+          }
+        }
+      },
+      "ChangedUserRoles": {
+        "type": "object",
+        "description": "变更后的角色键集合（服务端排序去重后的实际结果）。",
+        "required": ["id", "roleKeys"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "roleKeys": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["admin", "user"]
+            }
           }
         }
       },
@@ -4906,6 +4996,28 @@
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/IdResult"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "ChangedUserRolesSuccess": {
+        "description": "角色已变更（无变化时同样返回变更后的集合）",
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ChangedUserRoles"
                     }
                   }
                 }

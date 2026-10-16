@@ -80,6 +80,63 @@ export interface ResumeSetDefaultAudit {
   requestId?: string | null
 }
 
+/**
+ * 账号与权限域三个动作的审计入参。
+ *
+ * ## 为什么这三个动作的 `resourceId` 都是"**被操作的那个用户**"
+ *
+ * Owner 2026-10-16 定的方案 A：审计记录的主体是**人**，不是配置。
+ * 追责时最自然的问题是"**用户 X 的权限被谁在什么时候改过**" ——
+ * 把 `resourceId` 指向被授权者，一次 `(resourceType, resourceId, occurredAt)` 查询就能回答它。
+ * `actorId` 仍然指向操作者，两者是两个不同的人，不要混。
+ *
+ * ## 为什么 `nickname` 必填
+ *
+ * `User` 是软删除，`resourceId` 现在还能 join 回账号；但审计行必须**自包含** ——
+ * 将来账号真被物理清理后（GDPR 式的删除请求），这张表仍要能读懂"当时改的是谁"。
+ * 与 `actorSnapshot` 只存昵称同一口径：快照不冗余采集 PII（邮箱 / 手机号）。
+ */
+export interface UserCreationAudit {
+  /** 新建用户的 id */
+  userId: string
+  /** 展示名（可能为 null —— 创号时昵称本来就是可选的） */
+  nickname: string | null
+  /** 创号时实际分配到的角色键 */
+  roleKeys: string[]
+  requestId?: string | null
+}
+
+/** 删除账号时要记录的信息；`roleKeys` 是**删除之前**的角色集合 */
+export interface UserDeletionAudit {
+  userId: string
+  nickname: string | null
+  roleKeys: string[]
+  requestId?: string | null
+}
+
+/**
+ * 角色 / 权限变更时要记录的信息。
+ *
+ * `before` / `after` 记的是**角色键集合**，而不是权限键集合。
+ *
+ * 理由：角色键是**稳定标识**，而"某个角色当时拥有哪些权限"会随
+ * `ROLE_PERMISSION_PRESETS` 调整而变化。把权限集合写进审计，
+ * 记下的是**当时的定义**、不是当时的实际能力，事后读反而误导。
+ *
+ * 两端都记完整集合（而非只记增删）：追责常需要"变更后到底拥有什么"，
+ * 只记 diff 会把完整态留在历史的别处，读一条记录还原不出来。
+ */
+export interface RoleChangeAudit {
+  /** **被授权者**的 id（方案 A：资源是人） */
+  userId: string
+  nickname: string | null
+  /** 变更前的角色键集合（已排序去重） */
+  before: string[]
+  /** 变更后的角色键集合（已排序去重） */
+  after: string[]
+  requestId?: string | null
+}
+
 /** 查询审计记录的条件（超管专用） */
 export interface AuditQuery {
   actorId?: string
@@ -201,6 +258,63 @@ export class AuditService {
       resourceId: String(input.resumeId),
       resourceSnapshot: { name: input.name },
       metadata: { previousDefaultId: input.previousDefaultId },
+      requestId: input.requestId,
+    })
+  }
+
+  /** 记录"创建账号"（准入动作，强一致） */
+  async recordUserCreation(
+    transaction: Prisma.TransactionClient,
+    actor: AuthUser,
+    input: UserCreationAudit,
+  ): Promise<void> {
+    await this.record(transaction, actor, {
+      action: AUDIT_ACTIONS.userCreate,
+      resourceType: AUDIT_RESOURCE_TYPES.user,
+      resourceId: input.userId,
+      resourceSnapshot: { nickname: input.nickname },
+      // 创号时角色是入参、也是结果 —— 记"实际分配到的"而不是"请求里要的"，
+      // 两者在角色被 seed 改写等情况下可能不同，审计要以落库的为准。
+      metadata: { roleKeys: input.roleKeys },
+      requestId: input.requestId,
+    })
+  }
+
+  /** 记录"删除账号"（影响一个人能否访问系统，强一致） */
+  async recordUserDeletion(
+    transaction: Prisma.TransactionClient,
+    actor: AuthUser,
+    input: UserDeletionAudit,
+  ): Promise<void> {
+    await this.record(transaction, actor, {
+      action: AUDIT_ACTIONS.userDelete,
+      resourceType: AUDIT_RESOURCE_TYPES.user,
+      resourceId: input.userId,
+      resourceSnapshot: { nickname: input.nickname },
+      metadata: { roleKeys: input.roleKeys },
+      requestId: input.requestId,
+    })
+  }
+
+  /**
+   * 记录"角色变更"（责任最重：它改变"谁能做什么"）。
+   *
+   * ⚠️ **一次变更 = 一条审计**（Owner 2026-10-16 定）。
+   * 若将来出现"批量授权 N 个用户"，调用方要为**每个受影响用户各调用一次**，
+   * 而不是写一条带用户列表的聚合记录 —— 审计的查询入口是"某个用户的历史"，
+   * 聚合记录会让单个人的历史查不到，正好废掉这条表的主索引。
+   */
+  async recordRoleChange(
+    transaction: Prisma.TransactionClient,
+    actor: AuthUser,
+    input: RoleChangeAudit,
+  ): Promise<void> {
+    await this.record(transaction, actor, {
+      action: AUDIT_ACTIONS.roleChange,
+      resourceType: AUDIT_RESOURCE_TYPES.user,
+      resourceId: input.userId,
+      resourceSnapshot: { nickname: input.nickname },
+      metadata: { before: input.before, after: input.after },
       requestId: input.requestId,
     })
   }

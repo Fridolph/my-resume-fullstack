@@ -82,7 +82,26 @@ export const changePasswordSchema = z.strictObject({
   newPassword: z.string({ error: '新密码必须是字符串' }).min(6, '新密码至少 6 个字符').max(20, '新密码最多 20 个字符'),
 })
 
+/**
+ * 超管调整某个用户的角色集合。
+ *
+ * **传的是完整集合，不是增量**：`before` / `after` 都能直接从请求与当前状态得到，
+ * 不需要服务端去猜"这两个键是加还是减"；重放同一请求也是幂等的。
+ *
+ * `roleKeys` 限制为 admin/user —— 与 `createUserSchema` 同口径：
+ * 超管身份不能经由接口授予（改超管的角色也被服务端拒绝），否则一个被窃取的超管会话
+ * 就能给自己或同伙复制出更多超管，而"谁能提权"的边界会彻底失守。
+ * 至少保留一个角色：空集合等于把人锁在系统外面，属于删除语义而非改角色。
+ */
+export const changeUserRolesSchema = z.strictObject({
+  roleKeys: z
+    .array(z.enum(['admin', 'user'], { error: '角色只能是 admin 或 user' }), { error: 'roleKeys 必须是数组' })
+    .min(1, '至少要保留一个角色')
+    .max(2, '角色集合最多两项'),
+})
+
 export type UsersDto = z.infer<typeof listUserSchema>
 export type CreateUserDto = z.infer<typeof createUserSchema>
 export type UpdateUserDto = z.infer<typeof updateUserSchema>
 export type ChangePasswordDto = z.infer<typeof changePasswordSchema>
+export type ChangeUserRolesDto = z.infer<typeof changeUserRolesSchema>

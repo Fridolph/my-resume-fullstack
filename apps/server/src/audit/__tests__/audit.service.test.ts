@@ -156,3 +156,75 @@ test('recordResumeCreation：名字走 resourceSnapshot，locale 走 metadata', 
   assert.deepEqual(data.metadata, { locale: 'zh' })
   assert.equal(data.requestId, 'req-abc')
 })
+
+test('recordUserCreation：resourceId 是**新建用户**，角色走 metadata', async () => {
+  const { service, transaction, txCreates } = createService({})
+  await service.recordUserCreation(transaction as never, actor, {
+    userId: 'u-77',
+    nickname: '厉飞雨',
+    roleKeys: ['admin'],
+    requestId: 'req-new',
+  })
+
+  const { data } = txCreates[0] as { data: Record<string, unknown> }
+  assert.equal(data.action, 'user.create')
+  // 方案 A：资源是"被操作的人"，不是操作者（actorId 已经在 record 里固定成 u-8）
+  assert.equal(data.resourceType, 'user')
+  assert.equal(data.resourceId, 'u-77')
+  assert.notEqual(data.resourceId, data.actorId)
+  assert.deepEqual(data.resourceSnapshot, { nickname: '厉飞雨' })
+  assert.deepEqual(data.metadata, { roleKeys: ['admin'] })
+})
+
+test('recordUserDeletion：快照自包含（昵称 + 删除前的角色集合）', async () => {
+  const { service, transaction, txCreates } = createService({})
+  await service.recordUserDeletion(transaction as never, actor, {
+    userId: 'u-88',
+    nickname: '韩立',
+    roleKeys: ['user', 'admin'],
+  })
+
+  const { data } = txCreates[0] as { data: Record<string, unknown> }
+  assert.equal(data.action, 'user.delete')
+  assert.equal(data.resourceId, 'u-88')
+  assert.deepEqual(data.resourceSnapshot, { nickname: '韩立' })
+  assert.deepEqual(data.metadata, { roleKeys: ['user', 'admin'] })
+  assert.equal(data.requestId, null)
+  // 快照里不得出现邮箱 / 手机号一类的 PII（验收标准第 3 条）
+  assert.equal('email' in (data.resourceSnapshot as object), false)
+})
+
+test('recordRoleChange：before / after 两端都落库，且不含 PII', async () => {
+  const { service, transaction, txCreates } = createService({})
+  await service.recordRoleChange(transaction as never, actor, {
+    userId: 'u-99',
+    nickname: '南宫婉',
+    before: ['user'],
+    after: ['admin', 'user'],
+    requestId: 'req-role',
+    // 即使调用方塞进白名单之外的字段，也会被 pickAuditMetadata 裁掉
+    ...({ metadata: { permissionKeys: ['Audit.Log:view'] } } as object),
+  })
+
+  const { data } = txCreates[0] as { data: Record<string, unknown> }
+  assert.equal(data.action, 'role.change')
+  assert.equal(data.resourceType, 'user')
+  assert.equal(data.resourceId, 'u-99')
+  assert.deepEqual(data.resourceSnapshot, { nickname: '南宫婉' })
+  // 记的是**角色键集合**：权限随预设漂移，写进审计会失真
+  assert.deepEqual(data.metadata, { before: ['user'], after: ['admin', 'user'] })
+  assert.equal(data.requestId, 'req-role')
+})
+
+test('recordRoleChange：昵称为空时也照写（快照与 PII 的取舍不因缺字段而变）', async () => {
+  const { service, transaction, txCreates } = createService({})
+  await service.recordRoleChange(transaction as never, actor, {
+    userId: 'u-100',
+    nickname: null,
+    before: ['user'],
+    after: ['admin'],
+  })
+
+  const { data } = txCreates[0] as { data: Record<string, unknown> }
+  assert.deepEqual(data.resourceSnapshot, { nickname: null })
+})

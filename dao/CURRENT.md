@@ -1,6 +1,7 @@
 # 当前关键任务
 
-- [`DAO-038` 公开站展示与发布](./tasks/DAO-038-公开站展示与发布.md) —— `self-tested`（**当前主线**；已实现并机器验证，待 Owner 桌面/移动端意图验收）：`/` 公开默认简历、`/resume/:id` 公开指定简历、作者侧整体迁到 `/my-resumes`、后端两个 `@Public()` 只读接口。**发布口径**：本轮"发布 = 能在 web 端被访问"，`isDefault`（★）即信号，**不做快照**。同轮附带：web 富文本工具栏、admin 自定义模块 CURD、admin 基础模块折叠面板。
+- [`DAO-046` 账号与权限域审计](./tasks/DAO-046-账号与权限域审计.md) —— `self-tested`（**当前主线**，Issue [#56](https://github.com/Fridolph/my-resume-fullstack/issues/56)）：`user.create` / `user.delete` / `role.change` 三条审计接线，覆盖率测试的 `PENDING` 清单**清零**。`role.change` 当时没有业务入口，同轮补了 `PATCH /api/user/:id/roles`（完整集合入参 + 事务内先锁用户行）。待 Owner 复核接口语义后合回 `dev`。
+- [`DAO-038` 公开站展示与发布](./tasks/DAO-038-公开站展示与发布.md) —— `self-tested`（**待 Owner 意图验收**；已实现并机器验证，待 Owner 桌面/移动端意图验收）：`/` 公开默认简历、`/resume/:id` 公开指定简历、作者侧整体迁到 `/my-resumes`、后端两个 `@Public()` 只读接口。**发布口径**：本轮"发布 = 能在 web 端被访问"，`isDefault`（★）即信号，**不做快照**。同轮附带：web 富文本工具栏、admin 自定义模块 CURD、admin 基础模块折叠面板。
 
 任务卡仍是状态、目标、验证与交接的唯一事实源；本文件只指向当前任务，不复制目标、状态或证据。
 
