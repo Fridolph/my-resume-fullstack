@@ -33,7 +33,7 @@ import { validateEnv } from './config/env.validation'
  * ## 关于 traceId 的执行顺序
  *
  * `LoggerModule` 与 `TraceIdMiddleware` 都会碰请求 ID，**但"谁先执行"不是契约** ——
- * 两者都调幂等的 `ensureTraceId`（见 `common/trace-id.ts`）：谁先到谁生成，后到的读到同一个值。
+ * 两者都调幂等的 `ensureTraceId`（见 `common/trace-id.middleware.ts`）：谁先到谁生成，后到的读到同一个值。
  * 所以这里**不需要**靠注册顺序来保证一致性，也没有第二个生成处。
  *
  * ## ⚠️ `LoggerModule` 只在根模块注册一次

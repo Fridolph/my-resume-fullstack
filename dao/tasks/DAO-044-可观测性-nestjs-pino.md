@@ -82,7 +82,7 @@ Bearer 与 Cookie 两种载体都在用，两处都要脱敏。
 ## 交接
 
 - 已完成：现状核实 · 版本定档 · 风险识别 · 验收与测试计划 · 依赖影响与回滚 · Owner 确认 ·
-  **接线实现**（`common/trace-id.ts` 的幂等 `ensureTraceId` / `common/logging.config.ts` 的白名单序列化 +
+  **接线实现**（`common/trace-id.middleware.ts` 的幂等 `ensureTraceId` / `common/logging.config.ts` 的白名单序列化 +
   `redact` 兜底 / `app.module.ts` 的 `LoggerModule.forRootAsync` / `main.ts` 的 `bufferLogs` + `useLogger` /
   `LOG_LEVEL` 环境变量）/ **12 个新增单测** / **隔离环境 8 条验收全通过** /
   文档 [`docs/server/09_日志系统_nestjs-pino_设计.md`](../../docs/server/09_日志系统_nestjs-pino_设计.md)

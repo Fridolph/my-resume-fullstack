@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ensureTraceId, type TraceIdCarrier } from '../trace-id'
+import { ensureTraceId, type TraceIdCarrier } from '../trace-id.middleware'
 
 /**
  * `ensureTraceId` 的单元测试。

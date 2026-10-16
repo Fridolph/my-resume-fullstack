@@ -1,5 +1,5 @@
 import type { Options } from 'pino-http'
-import { ensureTraceId } from './trace-id'
+import { ensureTraceId } from './trace-id.middleware'
 
 /** 构建 pino 配置所需的环境值（由 `ConfigService` 注入，不在这里摸 `process.env`） */
 export interface LoggingSettings {

@@ -206,7 +206,7 @@ app.useLogger(app.get(Logger))   // 此后 new Logger() 与 pino 是同一个出
 **实际落地的是第三条** —— 它把"顺序"从契约里彻底去掉：
 
 ```ts
-// common/trace-id.ts —— 全仓唯一的生成处，且**幂等**
+// common/trace-id.middleware.ts —— 全仓唯一的生成处，且**幂等**
 export function ensureTraceId(req: TraceIdCarrier): string {
   if (req.traceId) return req.traceId                 // 后到的直接读到同一个值
   const incoming = req.headers['x-request-id']
