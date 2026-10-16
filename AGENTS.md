@@ -17,6 +17,17 @@
   撞卡号、并让 `git add` 把别人的在制品一起提交。做法：
   `git worktree add ../<repo>-worktrees/<branch> <branch>`，各会话在自己的目录里改与提交，
   完成后 `git worktree remove`。**共享目录里不要用目录级 `git add <dir>`** —— 只逐文件精确暂存。
+- ⚠️ **worktree 选址的三条现实约束**（2026-10-16 实测，都真实失败过；原约定里的
+  `../<repo>-worktrees/<branch>` 在本环境**不可用**）：
+  1. **仓库外建不了**：文件沙箱只允许写工作区内，`git worktree add ../…` 报
+     `Operation not permitted`。
+  2. **嵌套在仓库内会让 pnpm 崩**：如 `.local/worktrees/…`（虽然 `.local` 已被忽略、
+     也不会污染 `git status`），`pnpm add` 会因与父仓库的 store / `node_modules`
+     冲突而失败（`ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY`）。
+     纯 `pnpm install` 尚可，但 `add` / `remove` 不行。
+  3. **放 `/tmp` 会被系统回收**：实测同一会话内目录就被清掉过一次，`node_modules` 白装。
+  **结论**：本环境用 `/tmp/<短名>`，**开工前先确认目录还在**（`ls` 一下）；
+  被回收就按上面的引导序列重建（约 1 分钟）。若将来沙箱放宽，回到 `../<repo>-worktrees/<branch>`。
 - **新 worktree 必须走引导序列**，否则 `typecheck` 会报一堆"模块找不到"的假错误
   （本轮实测 49 个，全都不是代码问题）：
   1. `pnpm install --frozen-lockfile`（`node_modules` 不跨 worktree 共享）
