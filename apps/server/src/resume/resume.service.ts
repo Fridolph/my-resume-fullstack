@@ -12,7 +12,6 @@ import type { Prisma } from '../generated/prisma/client'
 import type { AuthUser } from '../common/http-context'
 import { API_ERROR_CODES } from '../common/error-codes'
 import { PERMISSION_KEYS } from '../auth/permission-keys'
-import { AUDIT_ACTIONS, AUDIT_RESOURCE_TYPES } from '@rs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { AuditService, type AuditContext } from '../audit/audit.service'
 
@@ -76,12 +75,10 @@ export class ResumeService {
       })
       await transaction.resume.update({ where: { id }, data: { isDefault: true } })
 
-      await this.auditService.record(transaction, currentUser, {
-        action: AUDIT_ACTIONS.resumeSetDefault,
-        resourceType: AUDIT_RESOURCE_TYPES.resume,
-        resourceId: String(id),
-        resourceSnapshot: { name: target.name },
-        metadata: { previousDefaultId: previous?.id },
+      await this.auditService.recordResumeSetDefault(transaction, currentUser, {
+        resumeId: id,
+        name: target.name,
+        previousDefaultId: previous?.id,
         requestId: context.requestId,
       })
     })
@@ -388,16 +385,12 @@ export class ResumeService {
         throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
       }
 
-      await this.auditService.record(transaction, currentUser, {
-        action: AUDIT_ACTIONS.resumeDelete,
-        resourceType: AUDIT_RESOURCE_TYPES.resume,
-        resourceId: String(id),
-        resourceSnapshot: { name: target.name },
-        metadata: {
-          revision: target.draft?.revision,
-          sectionCount: countResumeSections(target.draft?.document),
-          wasDefault: target.isDefault,
-        },
+      await this.auditService.recordResumeDeletion(transaction, currentUser, {
+        resumeId: id,
+        name: target.name,
+        revision: target.draft?.revision,
+        sectionCount: countResumeSections(target.draft?.document),
+        wasDefault: target.isDefault,
         requestId: context.requestId,
       })
 

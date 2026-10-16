@@ -103,3 +103,38 @@ test('record：requestId 缺省落 null（保持列有值语义一致）', async
   const { data } = txCreates[0] as { data: Record<string, unknown> }
   assert.equal(data.requestId, null)
 })
+
+test('recordResumeDeletion：语义化 helper 映射到正确的 action 与 metadata', async () => {
+  const { service, transaction, txCreates } = createService({})
+  await service.recordResumeDeletion(transaction as never, actor, {
+    resumeId: 7,
+    name: '我的求职简历',
+    revision: 9,
+    sectionCount: 3,
+    wasDefault: true,
+    requestId: 'req-abc',
+  })
+
+  const { data } = txCreates[0] as { data: Record<string, unknown> }
+  assert.equal(data.action, 'resume.delete')
+  assert.equal(data.resourceType, 'resume')
+  assert.equal(data.resourceId, '7', 'id 必须转成字符串（Users 是 cuid、Resumes 是整数）')
+  assert.deepEqual(data.resourceSnapshot, { name: '我的求职简历' })
+  assert.deepEqual(data.metadata, { revision: 9, sectionCount: 3, wasDefault: true })
+  assert.equal(data.requestId, 'req-abc')
+})
+
+test('recordResumeSetDefault：记录**被顶掉的那一份**（变更前的状态）', async () => {
+  const { service, transaction, txCreates } = createService({})
+  await service.recordResumeSetDefault(transaction as never, actor, {
+    resumeId: 7,
+    name: '我的求职简历',
+    previousDefaultId: 3,
+  })
+
+  const { data } = txCreates[0] as { data: Record<string, unknown> }
+  assert.equal(data.action, 'resume.set_default')
+  assert.deepEqual(data.metadata, { previousDefaultId: 3 })
+  // 没传 requestId 时落 null，而不是缺字段
+  assert.equal(data.requestId, null)
+})

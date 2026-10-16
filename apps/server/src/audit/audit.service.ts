@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { pickAuditMetadata, type AuditAction, type AuditResourceType } from '@rs/common'
+import {
+  AUDIT_ACTIONS,
+  AUDIT_RESOURCE_TYPES,
+  pickAuditMetadata,
+  type AuditAction,
+  type AuditResourceType,
+} from '@rs/common'
 import type { Prisma } from '../generated/prisma/client'
 import type { AuthUser } from '../common/http-context'
 import { PrismaService } from '../prisma/prisma.service'
@@ -24,6 +30,39 @@ export interface AuditRecordInput {
  * Service 手上只有 `AuthUser`，拿不到 `req.traceId`。
  */
 export interface AuditContext {
+  requestId?: string | null
+}
+
+/**
+ * 删除简历时要记录的信息。
+ *
+ * ## 为什么把"三行 record 调用"收成这个方法
+ *
+ * 不是为了少写几行，而是**把"必须提供的快照"变成类型要求**：
+ * `name` / `wasDefault` 是必填字段 —— 漏了编译不过。
+ * 之前靠自觉传 `metadata`，最坏情况是"审计写了，但没有可判断的信息"，而这种缺失**不报错**。
+ *
+ * 快照全部取自**删除之前**的读取结果（见 `ResumeService.remove` 的执行顺序）。
+ */
+export interface ResumeDeletionAudit {
+  resumeId: number
+  /** 删除**之前**的简历名 */
+  name: string
+  /** 删除前的草稿版本号；没有草稿时为 undefined */
+  revision?: number
+  /** 删除前的模块数；读不到文档时为 undefined */
+  sectionCount?: number
+  /** 删除前是否为「默认展示」 */
+  wasDefault: boolean
+  requestId?: string | null
+}
+
+/** 设为默认展示时要记录的信息 */
+export interface ResumeSetDefaultAudit {
+  resumeId: number
+  name: string
+  /** **被顶掉的那一份**（原来设为默认的简历 id）；之前没有默认时为 undefined */
+  previousDefaultId?: number
   requestId?: string | null
 }
 
@@ -89,6 +128,47 @@ export class AuditService {
         // 唯一强制执行点：白名单之外一律丢弃；全被裁掉时落 NULL 而不是 {}
         metadata: pickAuditMetadata(input.action, input.metadata) as Prisma.InputJsonValue | undefined,
       },
+    })
+  }
+
+  /**
+   * 记录"删除简历"。
+   *
+   * 语义化方法的好处不在少写几行，而在**签名即契约**：
+   * 快照字段必填 → 调用方必须先把删除前的信息读出来，想省掉这步就编译不过。
+   */
+  async recordResumeDeletion(
+    transaction: Prisma.TransactionClient,
+    actor: AuthUser,
+    input: ResumeDeletionAudit,
+  ): Promise<void> {
+    await this.record(transaction, actor, {
+      action: AUDIT_ACTIONS.resumeDelete,
+      resourceType: AUDIT_RESOURCE_TYPES.resume,
+      resourceId: String(input.resumeId),
+      resourceSnapshot: { name: input.name },
+      metadata: {
+        revision: input.revision,
+        sectionCount: input.sectionCount,
+        wasDefault: input.wasDefault,
+      },
+      requestId: input.requestId,
+    })
+  }
+
+  /** 记录"设为默认展示"。刻意记**被顶掉的那一份** —— 变更前的状态无法从当前数据反推 */
+  async recordResumeSetDefault(
+    transaction: Prisma.TransactionClient,
+    actor: AuthUser,
+    input: ResumeSetDefaultAudit,
+  ): Promise<void> {
+    await this.record(transaction, actor, {
+      action: AUDIT_ACTIONS.resumeSetDefault,
+      resourceType: AUDIT_RESOURCE_TYPES.resume,
+      resourceId: String(input.resumeId),
+      resourceSnapshot: { name: input.name },
+      metadata: { previousDefaultId: input.previousDefaultId },
+      requestId: input.requestId,
     })
   }
 

@@ -31,8 +31,15 @@ const auditRecords: unknown[] = []
 function createService(fake: object): ResumeService {
   auditRecords.length = 0
   const auditService = {
+    // 记录"调了哪个方法"
     record: async (...args: unknown[]) => {
-      auditRecords.push(args)
+      auditRecords.push(['record', ...args])
+    },
+    recordResumeDeletion: async (...args: unknown[]) => {
+      auditRecords.push(['recordResumeDeletion', ...args])
+    },
+    recordResumeSetDefault: async (...args: unknown[]) => {
+      auditRecords.push(['recordResumeSetDefault', ...args])
     },
   }
   return new ResumeService(fake as unknown as PrismaServiceDouble, auditService as unknown as AuditServiceDouble)
@@ -155,15 +162,17 @@ test('删除走物理删除：先读快照 → deleteMany → **同一事务内*
   assert.equal('data' in calls[0], false)
 
   assert.equal(auditRecords.length, 1, '删除必须留下审计')
-  const [txArg, , input] = auditRecords[0] as [unknown, AuthUser, any]
+  // 断言的是**语义方法**的契约；"helper → record 的字段映射"由 audit.service.test.ts 覆盖
+  const [method, txArg, , input] = auditRecords[0] as [string, unknown, AuthUser, any]
+  assert.equal(method, 'recordResumeDeletion')
   assert.equal(txArg, tx, '必须复用业务事务客户端，而不是另开连接 —— 否则强一致不成立')
-  assert.equal(input.action, 'resume.delete')
-  assert.equal(input.resourceType, 'resume')
-  assert.equal(input.resourceId, '7')
+  assert.equal(input.resumeId, 7)
+  assert.equal(input.name, '我的求职简历')
   assert.equal(input.requestId, 'req-abc')
-  assert.deepEqual(input.resourceSnapshot, { name: '我的求职简历' })
   // 这三个字段回答的是"删掉的是一份已完成的简历，还是一个空壳"
-  assert.deepEqual(input.metadata, { revision: 9, sectionCount: 3, wasDefault: true })
+  assert.equal(input.revision, 9)
+  assert.equal(input.sectionCount, 3)
+  assert.equal(input.wasDefault, true)
 })
 
 test('删除：快照读不到就不删、也不写审计（统一 404）', async () => {
