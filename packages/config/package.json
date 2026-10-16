@@ -1,0 +1,26 @@
+{
+  "name": "@rs/config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "跨应用共享的 Nuxt 构建基线（纯函数配置工厂、零构建、源码级共享）。只放与业务无关的部分：业务 alias 与业务模块由各 app 自己声明。",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests=false"
+  },
+  "dependencies": {
+    "@nuxt/ui": "^4.3.0",
+    "@pinia/colada-nuxt": "^1.2.0",
+    "@pinia/nuxt": "^1.0.2",
+    "defu": "^6.1.7",
+    "nuxt": "^4.2.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
+}

@@ -10,6 +10,7 @@
 - `apps/admin`：Nuxt 4 + Nuxt UI + Tailwind CSS 4
 - `apps/server`：NestJS API，提供 `/api/health` 心跳接口
 - `packages/common`：统一响应结构与错误结构（纯 TS，需构建）
+- `packages/config`：`apps/web` 与 `apps/admin` 共用的 **Nuxt 构建基线**（`@rs/config`，纯函数配置工厂、零构建）
 - `packages/ui`：跨 web / admin 共享的 UI 组件（Nuxt layer，零构建、自动导入；见 [packages/ui/README.md](./packages/ui/README.md)）
 - 根目录：Oxlint、Oxfmt、Standard Version 与协作规范
 

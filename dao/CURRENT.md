@@ -31,6 +31,15 @@
 **不能靠"注册顺序应该没问题"**。另两处：Bearer 与 Cookie 两种载体都要脱敏；
 `PUT /resume/:id/draft` 的请求体就是整份简历，**字段白名单**优于"先记后脱敏"。
 
+## Nuxt 配置底座化（2026-10-16，本窗口 / #51）
+
+| 卡 | Issue | 内容 | 状态 |
+| --- | --- | --- | --- |
+| [`DAO-042` Nuxt 配置底座化](./tasks/DAO-042-Nuxt配置底座化.md) | [#51](https://github.com/Fridolph/my-resume-fullstack/issues/51) | 抽出 `@rs/config` 共享构建基线（A）+ 页面私有组件（B1）+ 构建运行时基线（C） | `in-progress`（A + C 已实现并机器验证；B1 待做）|
+
+**本轮在独立 worktree 中开发**（`AGENTS.md` §1 的多会话约定）：
+`../my-resume-fullstack-worktrees/feat/51-rs-config`，分支 `feat/51-rs-config`。
+
 ## 本轮新立的三张卡（2026-10-16，对应三个 Issue）
 
 | 卡 | Issue | 内容 | 状态 |

@@ -17,6 +17,7 @@
     "@pinia/colada-nuxt": "^1.2.0",
     "@pinia/nuxt": "^1.0.2",
     "@rs/common": "workspace:*",
+    "@rs/config": "workspace:*",
     "@tiptap/core": "^3.0.0",
     "@tiptap/html": "^3.0.0",
     "@tiptap/pm": "^3.0.0",

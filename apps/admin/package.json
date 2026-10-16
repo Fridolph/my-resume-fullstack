@@ -18,6 +18,7 @@
     "@pinia/nuxt": "^1.0.2",
     "@rive-app/webgl2": "^2.44.1",
     "@rs/common": "workspace:*",
+    "@rs/config": "workspace:*",
     "@rs/utils": "workspace:*",
     "@tiptap/core": "^3.0.0",
     "@tiptap/html": "^3.0.0",

@@ -4,20 +4,26 @@
 
 ## 身份
 
-- 状态：`designed`
+- 状态：`in-progress`（A + C 已实现并机器验证；B1 待做）
 - Owner：`昇哥（2026-10-16：参考我另一个项目 greensketch-website 的 nuxt.config.ts 对本仓进行优化；后续也希望本仓成为我的 Nuxt monorepo 基础脚手架）`
 - 创建日期：`2026-10-16`
-- 分支：`feat/51-nuxt-config-base`
+- 分支：`feat/51-rs-config`
+  - ⚠️ **本轮按 Owner 2026-10-16 的多会话约定在独立 worktree 中开发**（见 `AGENTS.md` §1）：
+    工作目录 `/Users/fri/Desktop/personal/my-resume-fullstack-worktrees/feat/51-rs-config`。
+    不能在共享目录里开发 —— 本卡第一次建卡时就发生过"另一个会话在共享目录 `git add` 把本卡卷进它的提交"。
+  - 分支名用 `rs-config` 而非 `nuxt-config-base`：后者在共享目录里被另一个会话占用过；
+    合回 `dev` 后可统一。
 - Issue：[#51](https://github.com/Fridolph/my-resume-fullstack/issues/51)
-- 关联：`AGENTS.md` §1（底座保持通用可抽离）/ §4.6（三层归属判据）、[`docs/web/03_Layers_分层约定.md`](../../docs/web/03_Layers_分层约定.md)
+- 关联：`AGENTS.md` §1（底座保持通用可抽离 + 多会话 worktree 约定）/ §4.6（三层归属判据）、[`docs/web/03_Layers_分层约定.md`](../../docs/web/03_Layers_分层约定.md)、`DAO-044` / `DAO-045`（并行窗口的两张卡，本卡的编号冲突即由它们让出）
 
 ## 状态轨迹
 
 每次迁移只写“为什么能过这一门”的最少依据，不写流水日志。
 
-| 迁移                  | 依据                                                                                                            | 确认者 | 日期       |
-| --------------------- | --------------------------------------------------------------------------------------------------------------- | ------ | ---------- |
-| `planned -> designed` | Owner 已定范围（A+B1+C）与形态（纯函数包）；重复量已量化：两端各 73 行、逐行 diff 仅 15 行，其中 26 行注释逐字相同 | 昇哥   | 2026-10-16 |
+| 迁移                      | 依据                                                                                                            | 确认者 | 日期       |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------- | ------ | ---------- |
+| `planned -> designed`     | Owner 已定范围（A+B1+C）与形态（纯函数包）；重复量已量化：两端各 73 行、逐行 diff 仅 15 行，其中 26 行注释逐字相同 | 昇哥   | 2026-10-16 |
+| `designed -> in-progress` | go/no-go 探针通过：`@rs/config` 的 `exports` 直指 `./src/index.ts`，两端 `nuxt prepare` 成功 —— jiti 能转译 workspace 内的 TS，**退路 A/B 都不需要** | AI（机器验证） | 2026-10-16 |
 
 ## Grill：开工前对齐
 
@@ -65,8 +71,10 @@
 | 包名用 `@rs/config`（而非 `@rs/nuxt-base`）         | Owner 目标是「Nuxt monorepo 基础脚手架」，tsconfig / oxlint / tailwind 基线未来都要有落点，一次命名到位，避免二次改名                                  | 昇哥             | 2026-10-16 |
 | 用纯函数包，不用 Nuxt layer                         | layer 会同时承担「页面/组件/样式」与「构建基线」两种职责，违反 §4.6 三层判据；配置工厂不碰 Vue/Nuxt UI，属「能脱离运行时」那一层                        | 昇哥（选定形态） | 2026-10-16 |
 | 业务 alias（`#rs/resume-content`）留在各 app        | 它是展示域契约，塞进通用底座等于让底座认识业务。底座只负责合并 `overrides.alias`                                                                      | AI               | 2026-10-16 |
-| B1 用 `pathPrefix: true`                            | 避免同名冲突；**不移植** greensketch 的 `RE_COMPONENTS` 名称归一闪（那是它自己的命名约定）。代价是组件名偏长，先接受并写进文档，等首个真实用例再复议 | AI（可复议）     | 2026-10-16 |
+| B1 用 `pathPrefix: true`                            | 避免同名冲突；**不移植** greensketch 的 `RE_COMPONENTS` 名称归一（那是它自己的命名约定）。代价是组件名偏长，先接受并写进文档，等首个真实用例再复议 | AI（可复议）     | 2026-10-16 |
 | 两端 Tiptap 注释合并为一份                          | 两端讲的是同一个坑（`@tiptap/pm` 无根导出 / `prosemirror-*` 需 `@nuxt/ui >` 前缀），保留信息更全的一版                                             | AI               | 2026-10-16 |
+| **模块提供的配置键只能"局部放弃静态校验"**          | `NuxtConfig` **没有索引签名**，且 `icon`（由 `@nuxt/icon`）、`routeRules`（由 `@nuxt/nitro-server` 的 `augments`）都**不在 `@nuxt/schema` 核心**里，而是由内部包/模块 `declare module` 增强 —— 这些类型不是任何可 import 的单一入口。故用 `AUGMENTED_OPTIONS` 这一个显式白名单收口，其余键仍完整受类型检查；加错键不会有编译错误，已写进代码注释警示 | AI（实测得出）   | 2026-10-16 |
+| `$production` / `$development` 需 `RsNuxtConfigInput` | 它们是 **c12** 的 `C12InputConfig` 键（`$test`/`$development`/`$production`/`$env`），不在 `NuxtConfig` 上。**只在类型层加宽**，运行时 Nuxt/c12 本来就支持这些分段键                        | AI（实测得出）   | 2026-10-16 |
 
 ## 确认门与续跑（按需）
 
@@ -81,11 +89,17 @@
 
 只保留可复查摘要；原始日志、截图与长输出请链接到外部位置。
 
-| 类型   | 命令 / 样本 / 链接 | 结果 | 仍未验证的边界 |
-| ------ | ------------------ | ---- | -------------- |
-| 机器验 |                    |      |                |
-| 结构验 |                    |      |                |
-| 意图验 |                    |      |                |
+| 类型                 | 命令 / 样本 / 链接                                                                                | 结果                                                                                                                                                            | 仍未验证的边界                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 机器验（go/no-go）   | 建 `packages/config` → 两端 `nuxt prepare`                                                         | **通过**：jiti 直接转译 `exports` 指向的 `src/*.ts`，无需预构建 —— **退路 A（dist）与退路 B（layer）都不需要**                                                       | —                                                                           |
+| 机器验（类型）       | `pnpm typecheck`（turbo）                                                                          | **9/9 通过**（含新增的 `@rs/config`）                                                                                                                            | —                                                                           |
+| 机器验（质量门）     | `pnpm check`（`release-notes:check` → `format:check` → `lint` → `typecheck` → `test`）              | **全绿**；`@rs/config` 自带 **8 个单测**（专门保护"无 git / 无 package.json / JSON 损坏 / 非法 ref"下的降级行为）                                                  | —                                                                           |
+| 机器验（C·安全头）   | `curl -sI http://localhost:4051/`                                                                  | 含 `x-frame-options: SAMEORIGIN` 与 `content-security-policy: frame-ancestors 'self'`                                                                            | —                                                                           |
+| 机器验（C·版本注入） | SSR payload                                                                                        | `apiBase:"http://localhost:4049/api",version:"0.1.0",commit:"22081ea"`；**commit 与 HEAD 一致**                                                                  | —                                                                           |
+| 机器验（C·生产）     | `pnpm --filter @rs/web build` + 统计 `.output/public` 下 `*.map`                                    | 构建成功（Σ 10.5 MB），**`.map` 计数 = 0** —— `$production` 分段实测生效                                                                                          | —                                                                           |
+| 机器验（回归）       | web dev 干净启动（4051 → 200）                                                                     | `optimizeDeps` 9 条**全部可解析**（有任一条解析不到，Vite 会直接启动失败）                                                                                        | ⚠️ **富文本编辑器单实例行为未在浏览器验证**；依据是"配置逐字搬移、零改动"，非新证据 |
+| 结构验               | 两端 `nuxt.config.ts` 行数                                                                         | web **73 → 29 行**；admin **73 → 37 行**；26 行 Tiptap 注释从"两份"变"一份"                                                                                       | —                                                                           |
+| 意图验               | —                                                                                                  | **未执行**                                                                                                                                                       | 需 Owner 实看；本卡基本无观感变化，主要是工程结构                            |
 
 ## 交接
 
