@@ -1,0 +1,72 @@
+{
+  "$schema": "https://unpkg.com/release-it@latest/schema/release-it.json",
+  "git": {
+    "commitMessage": "chore(release): ${version}",
+    "tagName": "v${version}",
+    "tagAnnotation": "Release v${version}",
+    "requireCleanWorkingDirectory": true,
+    "requireBranch": "main",
+    "push": false
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "release": false
+  },
+  "hooks": {
+    "after:bump": "node scripts/sync-release-notes.mjs",
+    "after:release": "echo \"已生成 v${version} 的 CHANGELOG 与 release-notes 数据；推送需另行执行 git push --follow-tags\""
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          {
+            "type": "feat",
+            "section": "Features"
+          },
+          {
+            "type": "fix",
+            "section": "Bug Fixes"
+          },
+          {
+            "type": "perf",
+            "section": "Performance"
+          },
+          {
+            "type": "revert",
+            "section": "Reverts"
+          },
+          {
+            "type": "docs",
+            "section": "Documentation"
+          },
+          {
+            "type": "refactor",
+            "section": "Code Refactoring"
+          },
+          {
+            "type": "test",
+            "section": "Tests"
+          },
+          {
+            "type": "build",
+            "section": "Build System"
+          },
+          {
+            "type": "ci",
+            "section": "Continuous Integration"
+          },
+          {
+            "type": "chore",
+            "section": "Chores"
+          }
+        ]
+      },
+      "infile": "CHANGELOG.md",
+      "header": "# Changelog\n\n本文件由 `release-it` + `@release-it/conventional-changelog` 依据 Conventional Commits 自动生成。\n⚠️ 同步产物：`packages/common/src/ui/release-notes.ts`（admin 的 release notes 页读它）。\n"
+    }
+  }
+}

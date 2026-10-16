@@ -91,7 +91,14 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
   - **UI 与交互**（视觉 / 布局 / 动效 / 手感）：机器验证只证明"没坏"，不证明"对"。改动先留在工作区并说明"看哪里、看什么"，**经 Owner 实看确认后**再提交；未确认前不要用 squash / 合并带进 `dev`。
   - **其余**（后端 / 共享契约 / 文档 / 构建配置等可机器验证的部分）：**自测通过即可在当前分支本地提交**，不必逐次确认 —— 一个 task 补充完善且 `typecheck` / `lint` / 实测通过，就该落成提交，别把改动攒在工作区。
   - **推送远端**仍按 Owner 显式指示执行：**本地提交 ≠ 已发布**，二者不混为一谈。
-- 提交前至少执行 `pnpm format:check`、`pnpm lint`、`pnpm typecheck`、`pnpm test` 和受影响范围的构建；若项目尚无测试，说明缺口而不是伪造测试。
+- 提交前至少执行 `pnpm check`（= `release-notes:check` → `format:check` → `lint` → `typecheck` → `test`）
+  和受影响范围的构建；若项目尚无测试，说明缺口而不是伪造测试。
+- **`test` 必须能区分"通过"与"没有测试"**：三个包的脚本都带 `--passWithNoTests=false`。
+  历史上用 `node --test` 时，测试文件被删光仍以 0 退出（实测 `# tests 0 / # pass 0`，Turbo 报 3/3 successful）——
+  质量门"全绿"却什么也没验证。
+- **`release-notes:check`** 校验 `CHANGELOG.md` 与 `packages/common/src/ui/release-notes.ts` 是否同步
+  （后者由 `scripts/sync-release-notes.mjs` 生成，发版时挂在 `release-it` 的 `after:bump` 钩子上）。
+  发版后忘了同步，这道门会红，而不是让 release notes 页面悄悄停在旧版本。
 
 ### 4.6 共享层归属判据（三层）
 
@@ -179,5 +186,13 @@ Skill 是个人 Codex 环境能力，不是本模板的运行时依赖；不要�
 
 - 文档以中文为主，除“怎么做”外，还应记录关键决策的背景、取舍与结论。
 - 日常提交使用 Conventional Commits：`<type>(<scope>): <description>`，常用 `feat`、`fix`、`docs`、`test`、`refactor`、`chore`。
-- 使用 `standard-version` 在稳定发布节点生成版本提交、Git tag 与 `CHANGELOG.md`；发布前必须确保工作区干净且质量检查通过。
-- `standard-version` 只管理版本与 Changelog，不执行 npm 发布。详细脚本和操作步骤见 README。
+- 使用 `release-it` + `@release-it/conventional-changelog` 在稳定发布节点生成版本提交、Git tag 与 `CHANGELOG.md`；
+  发布前必须确保工作区干净（`requireCleanWorkingDirectory`）且质量检查通过。
+- **安全默认**：`.release-it.json` 里 `git.push: false`、`npm.publish: false`、`github.release: false`；
+  `requireBranch: main`。发版只在本机改文件与打 tag，**推送是单独一步**（本仓"本地提交 ≠ 已发布"）。
+  ⚠️ `release-it` 的默认行为包含推送，所以这几项必须显式关掉。
+- **发版会一并更新 release notes 页面**（Owner 2026-10-16 的约定）：`after:bump` 钩子跑
+  `scripts/sync-release-notes.mjs`，把 `CHANGELOG.md` 同步进 `packages/common/src/ui/release-notes.ts`
+  （admin 的 `release-notes.vue` 读它）。数据在共享包、页面只渲染 —— 发版工具**不需要改 `.vue` 源码**。
+- `CHANGELOG.md` 与那份数据的一致性由 `pnpm release-notes:check` 把关（已纳入 `pnpm check`）。
+- 详细脚本与操作步骤见 README。

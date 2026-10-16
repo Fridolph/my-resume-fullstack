@@ -219,12 +219,17 @@ fix(api): return validation errors consistently
 docs: document local development workflow
 ```
 
-`standard-version` 根据这些提交生成 `CHANGELOG.md`、更新根 `package.json` 的版本号，并创建对应的 Git commit 与 tag；它不会发布 npm 包。
+`release-it` + `@release-it/conventional-changelog` 根据这些提交生成 `CHANGELOG.md`、更新根 `package.json`
+的版本号，并创建对应的 Git commit 与 tag。**它不会推送、也不会发布 npm**（`.release-it.json` 里显式关掉了）——
+推送是单独一步，符合本仓"本地提交 ≠ 已发布"。
 
-发布前请确保处于稳定发布分支、工作区干净，并完成质量检查。先预览变更：
+发版还会**一并更新 release notes 页面**：`after:bump` 钩子跑 `scripts/sync-release-notes.mjs`，
+把 `CHANGELOG.md` 同步进 `packages/common/src/ui/release-notes.ts`（admin 的 `release-notes.vue` 读它）。
+
+发布前请确保**在 `main` 分支、工作区干净**（两道闸都会拦），并完成 `pnpm check`。先预览：
 
 ```bash
-pnpm exec standard-version --dry-run
+pnpm release:dry
 ```
 
 确认后选择一个版本级别：
