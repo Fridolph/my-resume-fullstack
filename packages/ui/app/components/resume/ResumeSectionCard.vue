@@ -14,7 +14,7 @@ import type { ResumeStyleId } from '@rs/common'
  */
 const props = withDefaults(
   defineProps<{
-    section: { key: string; label: string; icon: string }
+    section: { key: string; label: string; icon: string; description?: string }
     /** 是否展示标题行（左侧信息栏的 profile 卡片用自己的排版） */
     showHeader?: boolean
     /** 风格变体：只决定标题结构，其余视觉参数来自变量 */
@@ -89,6 +89,10 @@ const header = computed(() => HEADER_STYLE[props.variant])
         :style="{ background: 'linear-gradient(90deg, var(--resume-border), transparent)' }"
       />
     </header>
+    <!-- 模块描述（自定义模块的可选字段）。
+         独立于标题行之外渲染：它是「这个模块在讲什么」的一句话，属正文层级而不是标题的一部分；
+         预设模块的 `description` 通常是空的，因此这里只在有值时占位。 -->
+    <p v-if="section.description" class="resume-muted mb-3 text-xs leading-5">{{ section.description }}</p>
     <div class="resume-text space-y-3 text-sm leading-6">
       <slot />
     </div>
