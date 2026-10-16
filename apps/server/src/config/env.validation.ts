@@ -28,6 +28,10 @@ export interface EnvConfig {
   DATABASE_URL: string
   /** 日志最小级别阈值；默认 `info`（见 LOG_LEVELS） */
   LOG_LEVEL: LogLevel
+  /** 是否把日志**同时**写入本地文件；未配置时 development 默认开、其余环境默认关 */
+  LOG_FILE_ENABLED: boolean
+  /** 本地日志目录（相对进程工作目录）；默认 `logs` */
+  LOG_FILE_DIR: string
 }
 
 const NODE_ENVS = ['development', 'test', 'production'] as const
@@ -90,6 +94,25 @@ export function validateEnv(raw: Record<string, unknown>): EnvConfig {
     errors.push(`LOG_LEVEL 只能是 ${LOG_LEVELS.join(' / ')}，当前是 "${String(raw.LOG_LEVEL ?? '')}"`)
   }
 
+  // 本地日志文件：**默认跟随环境** —— development 开（便于查阅排查），其余关。
+  // 关掉的理由不是"不需要"，而是生产环境通常已由平台采集 stdout，再写一份本地文件
+  // 容易出现"两份日志、保留策略不一致"，反而更难判断哪份是准的。
+  // 自托管 / 无采集器时用 `LOG_FILE_ENABLED=true` 显式打开。
+  const fileEnabledRaw = raw.LOG_FILE_ENABLED
+  let logFileEnabled = nodeEnv === 'development'
+  if (fileEnabledRaw !== undefined && String(fileEnabledRaw).trim() !== '') {
+    const normalized = String(fileEnabledRaw).trim().toLowerCase()
+    if (['true', '1', 'yes'].includes(normalized)) {
+      logFileEnabled = true
+    } else if (['false', '0', 'no'].includes(normalized)) {
+      logFileEnabled = false
+    } else {
+      errors.push(`LOG_FILE_ENABLED 只能是 true / false，当前是 "${String(fileEnabledRaw)}"`)
+    }
+  }
+
+  const logFileDir = String(raw.LOG_FILE_DIR ?? 'logs').trim() || 'logs'
+
   if (errors.length > 0) {
     throw new Error(`环境变量校验失败：\n  - ${errors.join('\n  - ')}`)
   }
@@ -101,5 +124,7 @@ export function validateEnv(raw: Record<string, unknown>): EnvConfig {
     JWT_EXPIRES_IN: jwtExpiresIn as ExpiresInLiteral,
     DATABASE_URL: databaseUrl,
     LOG_LEVEL: logLevel as LogLevel,
+    LOG_FILE_ENABLED: logFileEnabled,
+    LOG_FILE_DIR: logFileDir,
   }
 }

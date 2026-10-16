@@ -1,3 +1,4 @@
+import { join } from 'node:path'
 import type { Options } from 'pino-http'
 import { ensureTraceId } from './trace-id.middleware'
 
@@ -6,7 +7,47 @@ export interface LoggingSettings {
   readonly nodeEnv: string
   /** 最小级别阈值：`trace` / `debug` / `info` / `warn` / `error` / `fatal` */
   readonly level: string
+  /**
+   * 是否把日志**同时**写入本地文件。缺省 `false`。
+   *
+   * 为什么默认关：生产环境通常由平台采集 stdout，再写一份本地文件会出现
+   * "两份日志、保留策略不一致"，排查时反而分不清哪份是准的。
+   * 自托管 / 无采集器时显式打开（见 `LOG_FILE_ENABLED`）。
+   */
+  readonly fileEnabled?: boolean
+  /** 本地日志目录（相对进程工作目录）；缺省 `logs` */
+  readonly fileDir?: string
 }
+
+/**
+ * 单个 pino transport 目标。自带最小结构类型，不引 pino 的内部类型 ——
+ * 这里只用到 `target` 与 `options` 两个字段，结构兼容即可。
+ */
+interface TransportTarget {
+  target: string
+  options: Record<string, unknown>
+}
+
+/**
+ * 本地文件日志的轮转参数。
+ *
+ * **必须轮转**：不轮转的日志文件在长期运行的 dev server 上是磁盘炸弹。
+ * 这里按**大小**轮转（10 MB × 保留 10 个 ≈ 上限 100 MB），
+ * 足以覆盖近期排查窗口，且行为可预测。
+ *
+ * 为何不同时按天轮转：`pino-roll` 同时给 `size` 与 `frequency` 的行为在各版本间不一致，
+ * 出错时表现是"启动即静默不写文件" —— 这类沉默失败比"少一个维度的轮转"更难查。
+ * 需要按天查阅时再加，并配一条断言它的测试。
+ */
+const FILE_ROTATION = {
+  /** 触发轮转的单文件大小上限 */
+  size: '10m',
+  /** 保留的轮转文件个数 */
+  limit: { count: 10 },
+  /** 目录不存在时创建 */
+  mkdir: true,
+  extension: '.log',
+} as const
 
 /** 探活接口不记访问日志：它每秒被调一次，记下来只会淹没真日志 */
 const SILENT_PATHS = new Set(['/api/health', '/health'])
@@ -80,6 +121,9 @@ const SYNTHETIC_STATUS_ERROR = /^failed with status code \d+$/
  */
 export function buildPinoHttpOptions(settings: LoggingSettings): Options {
   const isLocalDev = settings.nodeEnv === 'development'
+  const fileEnabled = settings.fileEnabled === true
+  const fileDir = settings.fileDir?.trim() || 'logs'
+  const targets = buildTransportTargets({ isLocalDev, fileEnabled, fileDir })
 
   return {
     level: settings.level,
@@ -129,19 +173,61 @@ export function buildPinoHttpOptions(settings: LoggingSettings): Options {
       censor: '[REDACTED]',
     },
 
-    // 只有本地开发上 pino-pretty（渲染器）：生产与测试都必须保持 NDJSON ——
-    // 采集器要吃"一行一事件"的 JSON，而验收脚本也要靠 JSON 做字段断言
-    ...(isLocalDev
-      ? {
-          transport: {
-            target: 'pino-pretty',
-            options: {
-              singleLine: true,
-              translateTime: 'SYS:HH:MM:ss.l',
-              ignore: 'pid,hostname',
-            },
-          },
-        }
-      : {}),
+    // 没有任何 target 时**不要写 transport** —— pino 会走默认的 stdout，
+    // 而写一个空的 `targets: []` 会让它什么都不输出（静默丢日志）
+    ...(targets.length > 0 ? { transport: { targets } } : {}),
   }
+}
+
+/**
+ * 组装 pino 的 transport 目标列表（顺序即输出顺序）。
+ *
+ * 三条规则，缺一条都会出问题：
+ *
+ * 1. **本地开发用 `pino-pretty`（渲染器）**：给人看的彩色单行。
+ *    生产与测试**必须保持 NDJSON** —— 采集器要吃"一行一事件"的 JSON，
+ *    验收脚本也要靠 JSON 做字段断言。
+ * 2. **一旦显式写了 `targets`，stdout 就不再自动出现**：所以"生产 + 文件日志"这种情况
+ *    必须显式补一个 `pino/file` 且 `destination: 1`（1 = stdout），否则日志只进文件、
+ *    平台采集不到 —— 表现是"线上突然没日志了"。
+ *    反过来，**不开文件日志时不要写 transport**：那会退化成"多写一个等价目标"，
+ *    让配置看起来做了事、实际什么都没改变（本文件最初就是这么写错的，被既有测试抓到）。
+ * 3. **文件始终写 NDJSON**（不接 prettier）：文件是要被 `grep` / `jq` 处理的，
+ *    彩色转义与人类可读格式只会碍事。
+ */
+function buildTransportTargets(input: {
+  isLocalDev: boolean
+  fileEnabled: boolean
+  fileDir: string
+}): TransportTarget[] {
+  const targets: TransportTarget[] = []
+
+  if (input.isLocalDev) {
+    targets.push({
+      target: 'pino-pretty',
+      options: {
+        singleLine: true,
+        translateTime: 'SYS:HH:MM:ss.l',
+        ignore: 'pid,hostname',
+      },
+    })
+  } else if (input.fileEnabled) {
+    // 只有"确实需要 targets"时才显式补 stdout（见上面规则 2）。
+    // 不开文件日志时**保持不写 transport** —— 那才是 pino 的默认 stdout，
+    // 多写一个等价目标只会让配置看起来做了一件事，实际什么也没改变。
+    targets.push({ target: 'pino/file', options: { destination: 1 } })
+  }
+
+  if (input.fileEnabled) {
+    targets.push({
+      target: 'pino-roll',
+      options: {
+        // `pino-roll` 会在 file 后追加序号与扩展名，如 `server.1.log`
+        file: join(input.fileDir, 'server'),
+        ...FILE_ROTATION,
+      },
+    })
+  }
+
+  return targets
 }

@@ -55,9 +55,12 @@ import { validateEnv } from './config/env.validation'
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         pinoHttp: buildPinoHttpOptions({
-          // 已过 validateEnv，这两个键一定有值；`?? ` 只是给类型收窄用
+          // 已过 validateEnv，这几个键一定有值；`?? ` 只是给类型收窄用
           nodeEnv: config.get<string>('NODE_ENV') ?? 'development',
           level: config.get<string>('LOG_LEVEL') ?? 'info',
+          // 本地文件日志：默认跟随环境（development 开），可用 LOG_FILE_ENABLED 覆盖
+          fileEnabled: config.get<boolean>('LOG_FILE_ENABLED') ?? false,
+          fileDir: config.get<string>('LOG_FILE_DIR') ?? 'logs',
         }),
       }),
     }),

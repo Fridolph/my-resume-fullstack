@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { Options as PinoHttpOptions } from 'pino-http'
 import { buildPinoHttpOptions } from '../logging.config'
 
 /**
@@ -110,5 +111,60 @@ describe('环境相关：只有本地开发上 pino-pretty', () => {
     expect(paths).toContain('req.headers.authorization')
     expect(paths).toContain('req.headers.cookie')
     expect(paths).toContain('res.headers["set-cookie"]')
+  })
+})
+
+/**
+ * 取 transport 的 targets。
+ *
+ * `options.transport` 在 pino 里是 `TransportSingleOptions | TransportMultiOptions | TransportPipelineOptions`
+ * 的联合，直接 `.targets` 过不了类型检查。这里显式收窄到 multi 形态 ——
+ * 测试只关心"有哪些目标"，用断言比给整个 pino 类型补守卫更划算。
+ */
+function targetsOf(options: PinoHttpOptions): { target: string; options?: Record<string, unknown> }[] {
+  const transport = options.transport as
+    | { targets?: { target: string; options?: Record<string, unknown> }[] }
+    | undefined
+  return transport?.targets ?? []
+}
+
+describe('本地文件日志：落盘、轮转与 stdout 不丢', () => {
+  it('默认不写文件（fileEnabled 缺省 false）', () => {
+    const options = buildPinoHttpOptions({ nodeEnv: 'production', level: 'info' })
+    // 生产且未开文件 → 不写 transport，走 pino 默认 stdout
+    expect(options).not.toHaveProperty('transport')
+  })
+
+  it('开启文件后，development 同时输出到 prettier 与文件', () => {
+    const options = buildPinoHttpOptions({
+      nodeEnv: 'development',
+      level: 'info',
+      fileEnabled: true,
+      fileDir: 'logs',
+    })
+    const targets = targetsOf(options)
+    expect(targets.map(target => target.target)).toEqual(['pino-pretty', 'pino-roll'])
+    expect(targets[1]?.options).toMatchObject({ file: 'logs/server', size: '10m', limit: { count: 10 } })
+  })
+
+  it('⚠️ 生产开启文件时必须显式补 stdout，否则采集器收不到日志', () => {
+    const options = buildPinoHttpOptions({
+      nodeEnv: 'production',
+      level: 'info',
+      fileEnabled: true,
+      fileDir: 'logs',
+    })
+    const targets = targetsOf(options)
+    // 显式写了 targets 之后 stdout 不再自动出现，所以这里必须有一个指向 fd 1 的目标
+    expect(targets[0]).toMatchObject({ target: 'pino/file', options: { destination: 1 } })
+    expect(targets.map(target => target.target)).toEqual(['pino/file', 'pino-roll'])
+  })
+
+  it('文件目录缺省为 logs，且文件写入永不经过 prettier', () => {
+    const options = buildPinoHttpOptions({ nodeEnv: 'test', level: 'info', fileEnabled: true })
+    const targets = targetsOf(options)
+    expect(targets.at(-1)?.options).toMatchObject({ file: 'logs/server' })
+    // 落盘的是 NDJSON：任何 prettier 目标都不得排在文件目标上
+    expect(targets.some(target => target.target === 'pino-pretty')).toBe(false)
   })
 })
