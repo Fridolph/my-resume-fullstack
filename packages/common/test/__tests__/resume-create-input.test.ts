@@ -1,12 +1,13 @@
-import test from 'node:test'
+import { test } from 'vitest'
 import assert from 'node:assert/strict'
+// 直接指向源码入口：测试不再依赖 dist 构建产物，未构建也能跑
 import {
   buildResumeDocument,
   createResumeSchema,
   resumeDocumentSchema,
   resumeDraftInputSchema,
-} from '../../dist/index.js'
-import { resumeFixture } from '../fixtures/resume.mjs'
+} from '../../src/index.js'
+import { resumeFixture } from '../fixtures/resume.js'
 
 /**
  * 创建输入（稀疏）与默认补全。

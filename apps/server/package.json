@@ -15,7 +15,7 @@
     "db:studio": "prisma studio",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "test": "pnpm build && node --test src/resume/__tests__/*.test.cjs",
+    "test": "vitest run --passWithNoTests=false",
     "test:resume:http": "node scripts/resume-http.mjs",
     "docs:resume": "node scripts/resume-openapi.mjs"
   },
@@ -45,6 +45,7 @@
     "dotenv": "^18.0.6",
     "prisma": "7.10.0",
     "tsx": "^4.23.15",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
   }
 }

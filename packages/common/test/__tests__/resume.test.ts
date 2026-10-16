@@ -1,13 +1,14 @@
-import test from 'node:test'
+import { test } from 'vitest'
 import assert from 'node:assert/strict'
+// 直接指向源码入口：测试不再依赖 dist 构建产物，未构建也能跑
 import {
   resumeDocumentSchema,
   resumeDateSchema,
   changeCapabilityScale,
   saveResumeDraftSchema,
   resumeIdSchema,
-} from '../../dist/index.js'
-import { resumeFixture } from '../fixtures/resume.mjs'
+} from '../../src/index.js'
+import { resumeFixture } from '../fixtures/resume.js'
 
 test('简历 ID 兼容 cuid 与 UUID，仍拒绝过长或不合法的标识', () => {
   assert.ok(resumeIdSchema.safeParse('cmabcdefghijklmnopqrstuvw').success)
