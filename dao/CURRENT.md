@@ -1,29 +1,34 @@
 # 当前关键任务
 
-- [`DAO-034` 简历展示层上提](./tasks/DAO-034-简历展示层上提.md) —— `in-progress`：**批 1 已完成**（展示域类型 / 文档⇄内容映射 / 区块定义 → `@rs/common`）；**批 2 待做**（纯展示组件 → `packages/ui`，卡里记了要先拆的三个坑）。
-- [`DAO-035` 共享层治理](./tasks/DAO-035-共享层治理.md) —— `in-progress`：**第一批「清重复」已完成**（`cn` 移到 `ui/app/utils` 走自动导入、`query-keys` 简历域 key 收敛到共享层），并查明一条重要边界：**Vue 的 `defineProps<整个外部类型>()` 无法跟随包的 re-export 链**（只有 dev 的 SFC 编译会报，已用 alias 修）。待做：抽 admin 通用组件、utils 落点、判据入文档。
+- [`DAO-038` 公开站展示与发布](./tasks/DAO-038-公开站展示与发布.md) —— `self-tested`（**当前主线**；已实现并机器验证，待 Owner 桌面/移动端意图验收）：`/` 公开默认简历、`/resume/:id` 公开指定简历、作者侧整体迁到 `/my-resumes`、后端两个 `@Public()` 只读接口。**发布口径**：本轮"发布 = 能在 web 端被访问"，`isDefault`（★）即信号，**不做快照**。同轮附带：web 富文本工具栏、admin 自定义模块 CURD、admin 基础模块折叠面板。
 
 任务卡仍是状态、目标、验证与交接的唯一事实源；本文件只指向当前任务，不复制目标、状态或证据。
 
 > `done` 的卡（DAO-001~004、006~016、**028**、**029**、**030**、**031**、**032**、**033**）**不再列在本表**，避免指针膨胀；
 > 历史、验证证据与收口记录见各自任务卡，集成锚点在卡的「交接」区。
 
-- [`DAO-036` 通用上传端点](./tasks/DAO-036-通用上传端点.md) —— `planned`（等排期）：admin 的 4 个 upload 组件依赖 `POST /api/masterData/file/multipleUpload`，**实测 404**（模板遗留路径），且这些组件**没有任何调用点**。Owner 定：先把上传接口做出来，再按契约把 Upload 组件与业务一并补上（纯函数已收进 `@rs/utils`）。
+- [`DAO-037` 简历自定义模块](./tasks/DAO-037-简历自定义模块.md) —— `in-progress`：契约 `custom` 分支 / 排布寻址 key→id / 编辑器上提 `packages/ui` / **web 接入** / **admin 接入（CURD + 折叠面板）**均已完成并验证。剩：**人工验收**，以及卡里「已知缺陷」中的工具栏 `bold` 不可见与含自定义模块页的 hydration 告警。
 
-- [`DAO-037` 简历自定义模块](./tasks/DAO-037-简历自定义模块.md) —— `designed`（待 Owner 确认三点后开工）：把编排能力开放给用户 —— 自建模块（标题 + 展示方式 + 内容）并与预设模块一起拖拽编排。**关键结论**：契约的 `display.sections.order` 本来就是 **id**、每个 section 也本来就带 `id`，所以契约只做加法（新增 `custom` 分支），真正的改动是**排布的寻址单位从 key 变成 id**（展示层）。
+- [`DAO-034` 简历展示层上提](./tasks/DAO-034-简历展示层上提.md) —— `review-ready`（批 1 + 批 2 均已完成）。DAO-038 的公开页**直接复用本卡成果**（`ResumePageContainer` + 注册表）。
 
-- [`DAO-038` 公开站展示与发布](./tasks/DAO-038-公开站展示与发布.md) —— `planned`（等 Owner 拍板 URL 形态与发布模型）：访客看谁的哪一份简历。作者侧的"看哪一份"已由 `/resume` 列表页（用户自己选）回答，访客侧尚无路径。
+- [`DAO-035` 共享层治理](./tasks/DAO-035-共享层治理.md) —— `in-progress`：清理与搬移已完成。DAO-038 又新增一个共享项：`packages/ui/app/composables/useResumeThemeVariables.ts`（主题变量计算，消掉"预览简化版 / 公开页完整版"两份分叉）。
 
-## 已定的下一轮顺序（Owner 2026-10-14）
+- [`DAO-036` 通用上传端点](./tasks/DAO-036-通用上传端点.md) —— `planned`（等排期）：admin 的 4 个 upload 组件依赖 `POST /api/masterData/file/multipleUpload`，**实测 404**（模板遗留路径），且这些组件**没有任何调用点**。
 
-| 顺序 | 任务 | 内容 |
-| --- | --- | --- |
-| ① | **展示层上提** | 把 web 展示域（`ResumePageContainer` + 各 section + 三档风格 + `toResumeContent` / `importResumeDocument`）提到 `packages/ui` + `packages/common`，两端共用 |
-| ② | **`/resume/:id` 详情页** | 用上提后的展示层做只读预览；同时补列表的「查看」图标与卡片点击 |
-| ③ | Issue #39 自定义模块 | 契约 `custom` 分支 + `view` 枚举 + 编辑 UI + web 展示渲染注册表 |
+## 待 Owner 处理
 
-## 待 Owner 处理的两笔
+- **意图验收（DAO-038 / DAO-037）**：公开页观感（桌面 + 移动端 + 深色）、`/my-resumes` 迁移后的手感、admin 折叠面板与工具栏是否够用。
+- **集成锚点**：两次 feature → dev（`22aeb8b`、`da41e78`）仍未定锚（Dao Commit 卦象由人定）。
+- **DAO-033 的发现**：历史迁移的 `setval(..., 0)` 早已由 `c43db00` 修复（见 DAO028 复盘 §18.4），此条可直接结掉。
 
-- **集成锚点**：两次 feature → dev（`22aeb8b`、`da41e78`）都还没定锚（Dao Commit 卦象由人定）
-- **DAO-033 的发现**：历史迁移 `20261013120000_internal_int_ids` 的 `setval(..., 0)` 让空库重放失败、
-  `migrate dev` 在新环境不可用 —— 建议单独开 Issue
+## 质量门的一个真实缺口（2026-10-15 实测）
+
+`apps/server` 的 Service 单元测试文件被删除后，`pnpm test` 输出 `# tests 0 / # pass 0`，
+Turbo 仍报 **3/3 successful** —— **测试为零也会"全绿"**。要么恢复该测试，要么让测试脚本在
+无匹配文件时失败。详见 DAO028 复盘 §18.5「质量门失效」。
+
+## 公开站上线前的两笔（DAO-038 遗留）
+
+1. **不存在的简历仍返回 HTTP 200**（页面已正确显示空态，`setResponseStatus(404)` 未生效）。
+2. **公开页页头缺失**：品牌 / 移动端操作区还没做；旧 mock 链（`useResumeContent`、
+   `ResumePageHeader`、`ResumeAccountMenu` 等）已无引用，属半迁移状态，待一并清理。
