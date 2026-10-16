@@ -10,6 +10,10 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/__tests__/**/*.test.ts'],
+    // ⚠️ 排除需要真实数据库的集成测试：`*.integration.test.ts` 会被上面的 `*.test.ts` 匹配到，
+    // 不排除的话 `pnpm test` 就会开始依赖数据库 —— 那会毁掉"单元测试可离线跑"这条性质。
+    // 集成测试用 `test:audit:db`（自己的配置）单独跑。
+    exclude: ['**/node_modules/**', '**/*.integration.test.ts'],
     passWithNoTests: false,
   },
 })
