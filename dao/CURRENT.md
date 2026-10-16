@@ -20,7 +20,7 @@
 | 卡 | Issue | 内容 | 状态 |
 | --- | --- | --- | --- |
 | [`DAO-044` 可观测性](./tasks/DAO-044-可观测性-nestjs-pino.md) | [#52](https://github.com/Fridolph/my-resume-fullstack/issues/52) | 接入 `nestjs-pino` v5 + 统一请求 ID + 脱敏（**审计不做**） | ✅ `done`（**已从本表移出**，见下）|
-| [`DAO-045` 审计表](./tasks/DAO-045-审计表.md) | [#53](https://github.com/Fridolph/my-resume-fullstack/issues/53) | 关键操作审计表（创建 / 发布 / 删除 / 权限变更） | `planned`（**等 Owner 答四个产品决定**）|
+| [`DAO-045` 审计表](./tasks/DAO-045-审计表.md) | [#53](https://github.com/Fridolph/my-resume-fullstack/issues/53) | 关键操作审计表（删除简历 / 设为默认已接线） | ✅ `done`（账号与权限域另开）|
 
 **为什么拆两卡**：审计涉及 Prisma schema 变更 + 迁移，按 `AGENTS.md` §3.3「一个任务卡只落一条闭环」
 不与日志接入混一轮；且"保留多久 / 谁可查 / 删号如何处理"是产品决定，不是工程顺手能定的。
