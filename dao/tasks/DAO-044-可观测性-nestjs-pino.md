@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`designed`（依赖变更已获 Owner 确认，可开工）
+- 状态：`self-tested`（2026-10-16：接线完成，卡里 8 条验收**全部通过**；合入 `dev` 后转 `done`）
 - Owner：`昇哥（2026-10-16：感觉少了些什么…发现没有日志系统…按照建议执行，开 DAO-042 卡）`
   ⚠️ 原编号 DAO-042，与并行窗口的 `DAO-042-Nuxt配置底座化.md` 撞号，本卡改为 **DAO-044**（043 留给该窗口）
 - 创建日期：`2026-10-16`
@@ -81,18 +81,45 @@ Bearer 与 Cookie 两种载体都在用，两处都要脱敏。
 
 ## 交接
 
-- 已完成：现状核实 · 版本定档 · 风险识别 · 验收与测试计划 · 依赖影响与回滚 · Owner 确认
-- 当前状态：`designed`
+- 已完成：现状核实 · 版本定档 · 风险识别 · 验收与测试计划 · 依赖影响与回滚 · Owner 确认 ·
+  **接线实现**（`common/trace-id.ts` 的幂等 `ensureTraceId` / `common/logging.config.ts` 的白名单序列化 +
+  `redact` 兜底 / `app.module.ts` 的 `LoggerModule.forRootAsync` / `main.ts` 的 `bufferLogs` + `useLogger` /
+  `LOG_LEVEL` 环境变量）/ **12 个新增单测** / **隔离环境 8 条验收全通过** /
+  文档 [`docs/server/09_日志系统_nestjs-pino_设计.md`](../../docs/server/09_日志系统_nestjs-pino_设计.md)
+- 当前状态：`self-tested`
 - 阻塞：无
-- 下一步第一刀：装 v5 依赖 → 根模块注册 + `main.ts` 接入 → **先只做场景 6 的 ID 一致性**，确认权威归属后再补脱敏
-- 文档锚点：`apps/server/src/common/`（trace-id / http-context / filter / interceptor）
+- 下一步第一刀：合入 `dev`（ff）后把本卡转 `done` 并补集成锚点
+- 文档锚点：`docs/server/09_...设计.md`（§4.2 / §4.3 / §八 记录了实测推翻的四处"想当然"）、
+  `apps/server/src/common/{trace-id,logging.config}.ts`
 - 集成锚点：`待 feature -> dev`
+
+## 实现中与设计稿不同的三处（都是实测才发现）
+
+| # | 设计稿 | 实际落地 | 为什么改 |
+| --- | --- | --- | --- |
+| 1 | 「中间件生成 / Pino 读」或「Pino 生成 / 中间件读」，**选一条并断言顺序** | **幂等的单一生成处** `ensureTraceId`，两个调用方都调它 | 顺序依赖是隐式契约；换成"谁先都一样"后**不需要**顺序断言，也不随框架版本漂移 |
+| 2 | `genReqId: req => req.traceId` | 自定义 `serializers.req` 读 **`req.id`** | `pino-http` 默认 `wrapSerializers: true`，serializer 收到的是 `pino-std-serializers` 的输出（普通对象），**没有** `traceId` / `socket` |
+| 3 | 只用 `redact` 脱敏 | **白名单序列化（第一层）+ `redact`（兜底）** | `redact` 是"路径没写错才安全"；白名单是"凭据根本不带出来"。判据：黑名单会漏，白名单会缺；日志场景里"缺"可接受，"漏"不可接受 |
+
+另有一处由验收暴露：`pino-http` 在 `statusCode >= 500` 时会**自己造**一个
+`failed with status code 5xx` 并带上栈 → 会与过滤器的真实栈**重复两条**。
+已用 `customErrorObject` 去掉那个合成占位（真实错误仍保留）。
 
 ## 收口与沉淀
 
-- `dao-review` 结论：`未执行`
-- 最终验证证据：待补
-- Git / PR：待补
+- `dao-review` 结论：`可收口`
+- 最终验证证据：
+  - **隔离环境 8 条验收全通过** —— `pnpm --filter @rs/server test:logging`
+    （独立 PostgreSQL 55433 + 独立端口 4059；含"真的停库制造 500"与"真实写入含 PII 的简历后 grep 敏感串"）
+  - `pnpm check` 全绿；服务端 16 个单测（**新增 12 个**：`trace-id` 5 + `logging.config` 7）
+- Git / PR：无 PR（在 `dev` 上收口）
+- 常规提交：待补（合入后回填）
 - Dao Commit：`不适用`（单任务收口走 Conventional Commit）
-- 沉淀候选：`「引入会自行生成请求 ID 的中间件前，先确认既有 ID 的权威归属」——若第二个项目复现，值得考虑归母`
+- 沉淀候选：`候选观察` —— **「引入会自行生成请求 ID 的中间件前，先确认既有 ID 的权威归属」**。
+  本轮把它落成了更彻底的形式：与其"选一条顺序并断言"，不如把生成做成**幂等**，顺序就不再是契约。
+  对任何"框架中间件与自研中间件都可能先生成同一个资源"的场景都成立。等第二个项目复现后再判断是否归母。
 - 收口备注：
+  - ⚠️ **`test-resume-isolated.sh` 在 `dev` 上本来是坏的**：它调的 `resume-http.mjs` 导入
+    `packages/common/test/fixtures/resume.mjs`，而仓里实际是 `resume.ts` → 模块找不到。
+    本卡**没有修它**（属 DAO-028 的验收工具，不在本卡范围），而是在新脚本里自带完整流程。
+    这是一个待开的独立缺陷。

@@ -26,12 +26,23 @@ export interface EnvConfig {
   JWT_SECRET: string
   JWT_EXPIRES_IN: ExpiresInLiteral
   DATABASE_URL: string
+  /** 日志最小级别阈值；默认 `info`（见 LOG_LEVELS） */
+  LOG_LEVEL: LogLevel
 }
 
 const NODE_ENVS = ['development', 'test', 'production'] as const
 
 /** 注意 `ms` 必须排在 `m` 前面：正则交替是从左往右匹配的 */
 const EXPIRES_IN_PATTERN = /^\d+(ms|s|m|h|d|w|y)$/
+
+/**
+ * pino 支持的日志级别。
+ *
+ * 用 `as const` 数组派生出联合类型（而不是把级别写两遍）：**校验规则与类型同源**，
+ * 以后加一个级别不会出现"校验放行但类型不认"的错位。
+ */
+export const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent'] as const
+export type LogLevel = (typeof LOG_LEVELS)[number]
 
 export function validateEnv(raw: Record<string, unknown>): EnvConfig {
   const errors: string[] = []
@@ -69,6 +80,16 @@ export function validateEnv(raw: Record<string, unknown>): EnvConfig {
     errors.push(`JWT_EXPIRES_IN 格式不对："${jwtExpiresIn}"，应为「数字 + 单位」，如 30m / 2h / 7d`)
   }
 
+  // 日志级别：可选，默认 info。**校验成枚举而不是放行任意字符串** ——
+  // pino 对未知级别会静默按 info 处理（或直接抛），两种都是"配错了却看不出来"；
+  // 与其到线上才发现 debug 一直没输出，不如启动时指名道姓。
+  const logLevel = String(raw.LOG_LEVEL ?? 'info')
+    .trim()
+    .toLowerCase()
+  if (!(LOG_LEVELS as readonly string[]).includes(logLevel)) {
+    errors.push(`LOG_LEVEL 只能是 ${LOG_LEVELS.join(' / ')}，当前是 "${String(raw.LOG_LEVEL ?? '')}"`)
+  }
+
   if (errors.length > 0) {
     throw new Error(`环境变量校验失败：\n  - ${errors.join('\n  - ')}`)
   }
@@ -79,5 +100,6 @@ export function validateEnv(raw: Record<string, unknown>): EnvConfig {
     JWT_SECRET: jwtSecret,
     JWT_EXPIRES_IN: jwtExpiresIn as ExpiresInLiteral,
     DATABASE_URL: databaseUrl,
+    LOG_LEVEL: logLevel as LogLevel,
   }
 }

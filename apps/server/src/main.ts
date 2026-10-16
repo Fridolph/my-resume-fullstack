@@ -2,11 +2,19 @@ import { ConfigService } from '@nestjs/config'
 import { BadRequestException, StandardSchemaValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
+import { Logger } from 'nestjs-pino'
 import { API_ERROR_CODES } from './common/error-codes'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false })
+  // `bufferLogs: true` 是关键：pino 就绪之前的启动日志先缓冲，等 `useLogger` 之后统一由 pino 输出。
+  // 不写它，那几行会用 Nest 默认 Logger 打印 —— 于是启动日志里混进一批没有 reqId、也没结构的字符串。
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true, bodyParser: false })
+
+  // 把日志出口交给 pino：此后 `new Logger()`（Nest 的）与 pino 是同一条管道，
+  // 且请求内产生的日志会自动带上该请求的 reqId（pino-http 的 child logger + AsyncLocalStorage）。
+  app.useLogger(app.get(Logger))
+
   app.useBodyParser('json', { limit: '128kb' })
   app.useBodyParser('urlencoded', { extended: true, limit: '128kb' })
   // 统一从 ConfigService 读配置（已过 `config/env.validation.ts` 的校验），
