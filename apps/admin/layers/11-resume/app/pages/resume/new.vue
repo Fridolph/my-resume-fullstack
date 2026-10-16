@@ -103,18 +103,22 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-4xl space-y-6">
-    <header class="flex flex-wrap items-center justify-between gap-4">
-      <!-- 页面标题由布局的页头渲染（`route.meta.title`），这里只放说明与返回，避免首屏重复占位 -->
-      <div>
-        <p class="max-w-2xl text-sm leading-6 text-muted">
-          先写基本信息和记得的经历，其余留空也行：创建后会补成结构完整的草稿，再到编辑页继续填。
-        </p>
-        <p class="mt-1 text-xs text-muted">已填 {{ filledSections }} / 7 个区块</p>
+  <!-- 铺满 + 默认边距（与编辑页同一套节奏）。标题由布局页头渲染（`route.meta.title`）。 -->
+  <div class="w-full space-y-6 p-2 lg:p-4 3xl:p-6">
+    <!-- 操作条：页面内 sticky（原因见 edit.vue 的说明：页面根模板不能写具名插槽） -->
+    <div
+      class="sticky top-0 z-10 -mx-2 mb-2 flex flex-wrap items-center justify-between gap-3 border-b border-default bg-default/90 px-2 py-2 backdrop-blur lg:-mx-4 lg:px-4 3xl:-mx-6 3xl:px-6"
+    >
+      <p class="text-xs text-muted">已填 {{ filledSections }} / 7 个区块</p>
+      <div class="flex items-center gap-2">
+        <UButton to="/resume" color="neutral" variant="ghost" label="取消" />
+        <UButton :loading="pending" icon="i-lucide-check" label="创建简历" @click="handleSubmit" />
       </div>
+    </div>
 
-      <UButton to="/resume" color="neutral" variant="ghost" icon="i-lucide-arrow-left" label="返回" />
-    </header>
+    <p class="max-w-2xl text-sm leading-6 text-muted">
+      先写基本信息和记得的经历，其余留空也行：创建后会补成结构完整的草稿，再到编辑页继续填。
+    </p>
 
     <!-- 上传入口：占位（设计 P3 —— 只提示，不做假交互） -->
     <UCard>
@@ -165,10 +169,5 @@ async function handleSubmit() {
       title="还不能创建"
       :description="errorMessage"
     />
-
-    <div class="flex items-center justify-end gap-2 pb-6">
-      <UButton to="/resume" color="neutral" variant="ghost" label="取消" />
-      <UButton :loading="pending" icon="i-lucide-check" label="创建简历" @click="handleSubmit" />
-    </div>
   </div>
 </template>

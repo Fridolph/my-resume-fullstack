@@ -46,6 +46,10 @@ const showHeaderSearch = computed(() => route.meta.headerSearch === true)
       }"
     >
       <template #header>
+        <!-- 注：曾在这里转发过 `<slot name="header-actions" />`，想让页面把"保存 / 取消"
+             这类按钮投到 sticky 页头。**走不通**：页面组件的根模板不允许写具名插槽，
+             Vue 编译器会报 `Codegen node is missing for element/if/for node`。
+             现在各页面用**自己的 sticky 操作条**（见 resume/new.vue、resume/[id]/edit.vue）。 -->
         <AdminHeader :title="pageTitle" :show-search="showHeaderSearch" />
       </template>
 
