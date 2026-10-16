@@ -17,7 +17,13 @@
   撞卡号、并让 `git add` 把别人的在制品一起提交。做法：
   `git worktree add ../<repo>-worktrees/<branch> <branch>`，各会话在自己的目录里改与提交，
   完成后 `git worktree remove`。**共享目录里不要用目录级 `git add <dir>`** —— 只逐文件精确暂存。
-- 分支模型：`main` 只承载发布与正式版本，**不直接在 `main` 上开发**；日常开发在 `dev`，并从 `dev` 开 `feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…` 短分支，验证完成后合回 `dev`。完整流程见 [docs/dev/01_开发流程_分支与提交.md](./docs/dev/01_开发流程_分支与提交.md)。
+- 分支模型：**所有开发只在 `dev` 或从 `dev` 检出的短分支上进行**
+  （`feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…`），验证完成后合回 `dev`。
+- ⚠️ **`main` 上不进行任何开发与操作**（Owner 2026-10-16 明确的硬规矩）：
+  不在 `main` 上提交、合并、打 tag、checkout 或跑发版命令 —— `dev → main` 的集成与推送
+  **由 Owner 手动执行**。AI 的职责边界停在 `dev`。
+  这不是形式要求：`main` 是发布面，任何本地实验都可能被误当成"已发布"。
+  完整流程见 [docs/dev/01_开发流程_分支与提交.md](./docs/dev/01_开发流程_分支与提交.md)。
 
 ## 2. 安全与隐私
 
@@ -193,6 +199,9 @@ Skill 是个人 Codex 环境能力，不是本模板的运行时依赖；不要�
 - 日常提交使用 Conventional Commits：`<type>(<scope>): <description>`，常用 `feat`、`fix`、`docs`、`test`、`refactor`、`chore`。
 - 使用 `release-it` + `@release-it/conventional-changelog` 在稳定发布节点生成版本提交、Git tag 与 `CHANGELOG.md`；
   发布前必须确保工作区干净（`requireCleanWorkingDirectory`）且质量检查通过。
+  ⚠️ 配置里的 `requireBranch: main` 意味着**发版命令只能在 `main` 上跑** ——
+  而按上面的规矩，**这一步由 Owner 执行，AI 不在 `main` 上操作**。
+  AI 可以准备配置、脚本与文档，并在 `dev` 上验证它们，但不代跑发版。
 - **安全默认**：`.release-it.json` 里 `git.push: false`、`npm.publish: false`、`github.release: false`；
   `requireBranch: main`。发版只在本机改文件与打 tag，**推送是单独一步**（本仓"本地提交 ≠ 已发布"）。
   ⚠️ `release-it` 的默认行为包含推送，所以这几项必须显式关掉。
