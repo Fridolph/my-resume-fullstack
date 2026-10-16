@@ -9,6 +9,7 @@ import {
   type SaveResumeDraftDto,
 } from '@rs/common'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import { Public } from '../auth/decorators/public.decorator'
 import type { AuthUser } from '../common/http-context'
 import { ResumeService } from './resume.service'
 
@@ -48,6 +49,33 @@ export class ResumeController {
   @Get('default')
   findDefault(@CurrentUser() currentUser: AuthUser) {
     return this.resumeService.findDefault(currentUser)
+  }
+
+  /**
+   * 公开读取：**默认展示**的简历（首页 `/` 的数据源）。
+   *
+   * 与 `GET default` 的区别是本接口**不需要登录**（`@Public()`），且不看当前用户 ——
+   * 访客与作者拿到的是同一份。`public` 前缀把"匿名可读"写在路径上，避免以后有人误以为
+   * 它是"按当前用户"的接口而往里加身份判断。
+   *
+   * ⚠️ 同样必须早于 `@Get(':id/draft')`。
+   */
+  @Public()
+  @Get('public')
+  findPublishedDefault() {
+    return this.resumeService.findPublishedDefault()
+  }
+
+  /**
+   * 公开读取：**指定 id** 的简历（`/resume/:id` 的数据源）。
+   *
+   * 只按"账号是否仍然有效"过滤，不做所有权校验 —— 这正是"公开"的含义。
+   * 找不到、或账号已被软删除，都返回 404（与项目一贯口径一致：不泄露存在性）。
+   */
+  @Public()
+  @Get('public/:id')
+  findPublished(@Param('id', { schema: resumePrimaryKeySchema }) id: number) {
+    return this.resumeService.findPublished(id)
   }
 
   @Get(':id/draft')

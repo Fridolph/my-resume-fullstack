@@ -26,7 +26,7 @@
     },
     {
       "name": "Resume",
-      "description": "本人完整简历草稿；发布与分享另行实现"
+      "description": "本人简历的列表、草稿读写、重命名与删除；另有 `/resume/public*` 为访客可读的公开内容"
     }
   ],
   "paths": {
@@ -341,6 +341,19 @@
       }
     },
     "/resume": {
+      "get": {
+        "tags": ["Resume"],
+        "summary": "列出本人未删除的简历",
+        "operationId": "listResumes",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ResumeSummaryListSuccess"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      },
       "post": {
         "tags": ["Resume"],
         "summary": "创建本人简历及唯一草稿",
@@ -378,10 +391,9 @@
           "in": "path",
           "required": true,
           "schema": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100,
-            "pattern": "^[A-Za-z0-9_-]+$"
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
           }
         }
       ],
@@ -433,6 +445,120 @@
           },
           "409": {
             "$ref": "#/components/responses/ResumeDraftConflict"
+          }
+        }
+      }
+    },
+    "/resume/public": {
+      "get": {
+        "tags": ["Resume"],
+        "summary": "公开读取「默认展示」的简历（首页 / 的数据源，匿名可读）",
+        "description": "作者标为「默认展示」（★）的那一份。尚未设置默认时返回 404 —— 刻意不隐式挑一份（否则\"展示哪一份\"不可预期）。",
+        "operationId": "getPublishedDefaultResume",
+        "security": [],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ResumeDraftSuccess"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResumeNotFound"
+          }
+        }
+      }
+    },
+    "/resume/public/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        }
+      ],
+      "get": {
+        "tags": ["Resume"],
+        "summary": "公开读取指定 id 的简历（/resume/:id 的数据源，匿名可读）",
+        "description": "只按「账号是否仍然有效」过滤，不做所有权校验 —— 这正是公开的含义。\n\n⚠️ 本轮没有「已发布」字段：只要 id 已知，任何简历（含半成品）都能被读到。",
+        "operationId": "getPublishedResume",
+        "security": [],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ResumeDraftSuccess"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResumeNotFound"
+          }
+        }
+      }
+    },
+    "/resume/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        }
+      ],
+      "patch": {
+        "tags": ["Resume"],
+        "summary": "重命名本人简历（只改内部名称，不动正文）",
+        "operationId": "renameResume",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameResume"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ResumeRenamedSuccess"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ResumeForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResumeNotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Resume"],
+        "summary": "删除本人简历（重复删除返回 404）",
+        "operationId": "deleteResume",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ResumeDeletedSuccess"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ResumeForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResumeNotFound"
           }
         }
       }
@@ -1868,6 +1994,214 @@
                           },
                           "required": ["items"],
                           "additionalProperties": false
+                        }
+                      },
+                      "required": ["id", "title", "type", "data"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100,
+                          "pattern": "^[A-Za-z0-9_-]+$"
+                        },
+                        "title": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "description": {
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "icon": {
+                          "type": "string",
+                          "maxLength": 100,
+                          "pattern": "^[A-Za-z0-9:_-]*$"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": ["custom"]
+                        },
+                        "data": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "view": {
+                                  "type": "string",
+                                  "enum": ["textList"]
+                                },
+                                "items": {
+                                  "maxItems": 50,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 100,
+                                        "pattern": "^[A-Za-z0-9_-]+$"
+                                      },
+                                      "text": {
+                                        "type": "string",
+                                        "maxLength": 200
+                                      }
+                                    },
+                                    "required": ["id", "text"],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": ["view", "items"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "view": {
+                                  "type": "string",
+                                  "enum": ["tagCloud"]
+                                },
+                                "items": {
+                                  "maxItems": 50,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 100,
+                                        "pattern": "^[A-Za-z0-9_-]+$"
+                                      },
+                                      "text": {
+                                        "type": "string",
+                                        "maxLength": 200
+                                      }
+                                    },
+                                    "required": ["id", "text"],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": ["view", "items"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "view": {
+                                  "type": "string",
+                                  "enum": ["timeline"]
+                                },
+                                "items": {
+                                  "maxItems": 50,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 100,
+                                        "pattern": "^[A-Za-z0-9_-]+$"
+                                      },
+                                      "time": {
+                                        "oneOf": [
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "mode": {
+                                                "type": "string",
+                                                "enum": ["custom"]
+                                              },
+                                              "text": {
+                                                "type": "string",
+                                                "maxLength": 500
+                                              }
+                                            },
+                                            "required": ["mode", "text"],
+                                            "additionalProperties": false
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "mode": {
+                                                "type": "string",
+                                                "enum": ["structured"]
+                                              },
+                                              "start": {
+                                                "type": "string",
+                                                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+                                              },
+                                              "end": {
+                                                "nullable": true,
+                                                "type": "string",
+                                                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+                                              },
+                                              "isCurrent": {
+                                                "type": "boolean"
+                                              }
+                                            },
+                                            "required": ["mode", "start", "end", "isCurrent"],
+                                            "additionalProperties": false
+                                          }
+                                        ]
+                                      },
+                                      "title": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 80
+                                      },
+                                      "description": {
+                                        "type": "string",
+                                        "maxLength": 200
+                                      }
+                                    },
+                                    "required": ["id", "time", "title"],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": ["view", "items"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "view": {
+                                  "type": "string",
+                                  "enum": ["richText"]
+                                },
+                                "content": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": ["doc"]
+                                    },
+                                    "content": {
+                                      "maxItems": 200,
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "additionalProperties": {}
+                                      }
+                                    }
+                                  },
+                                  "required": ["type", "content"],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "required": ["view", "content"],
+                              "additionalProperties": false
+                            }
+                          ]
                         }
                       },
                       "required": ["id", "title", "type", "data"],
@@ -3774,6 +4108,214 @@
                           },
                           "required": ["id", "title", "type", "data"],
                           "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100,
+                              "pattern": "^[A-Za-z0-9_-]+$"
+                            },
+                            "title": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80
+                            },
+                            "description": {
+                              "type": "string",
+                              "maxLength": 200
+                            },
+                            "icon": {
+                              "type": "string",
+                              "maxLength": 100,
+                              "pattern": "^[A-Za-z0-9:_-]*$"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": ["custom"]
+                            },
+                            "data": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "view": {
+                                      "type": "string",
+                                      "enum": ["textList"]
+                                    },
+                                    "items": {
+                                      "maxItems": 50,
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 100,
+                                            "pattern": "^[A-Za-z0-9_-]+$"
+                                          },
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 200
+                                          }
+                                        },
+                                        "required": ["id", "text"],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": ["view", "items"],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "view": {
+                                      "type": "string",
+                                      "enum": ["tagCloud"]
+                                    },
+                                    "items": {
+                                      "maxItems": 50,
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 100,
+                                            "pattern": "^[A-Za-z0-9_-]+$"
+                                          },
+                                          "text": {
+                                            "type": "string",
+                                            "maxLength": 200
+                                          }
+                                        },
+                                        "required": ["id", "text"],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": ["view", "items"],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "view": {
+                                      "type": "string",
+                                      "enum": ["timeline"]
+                                    },
+                                    "items": {
+                                      "maxItems": 50,
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 100,
+                                            "pattern": "^[A-Za-z0-9_-]+$"
+                                          },
+                                          "time": {
+                                            "oneOf": [
+                                              {
+                                                "type": "object",
+                                                "properties": {
+                                                  "mode": {
+                                                    "type": "string",
+                                                    "enum": ["custom"]
+                                                  },
+                                                  "text": {
+                                                    "type": "string",
+                                                    "maxLength": 500
+                                                  }
+                                                },
+                                                "required": ["mode", "text"],
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "properties": {
+                                                  "mode": {
+                                                    "type": "string",
+                                                    "enum": ["structured"]
+                                                  },
+                                                  "start": {
+                                                    "type": "string",
+                                                    "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+                                                  },
+                                                  "end": {
+                                                    "nullable": true,
+                                                    "type": "string",
+                                                    "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+                                                  },
+                                                  "isCurrent": {
+                                                    "type": "boolean"
+                                                  }
+                                                },
+                                                "required": ["mode", "start", "end", "isCurrent"],
+                                                "additionalProperties": false
+                                              }
+                                            ]
+                                          },
+                                          "title": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 80
+                                          },
+                                          "description": {
+                                            "type": "string",
+                                            "maxLength": 200
+                                          }
+                                        },
+                                        "required": ["id", "time", "title"],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": ["view", "items"],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "view": {
+                                      "type": "string",
+                                      "enum": ["richText"]
+                                    },
+                                    "content": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "enum": ["doc"]
+                                        },
+                                        "content": {
+                                          "maxItems": 200,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "additionalProperties": {}
+                                          }
+                                        }
+                                      },
+                                      "required": ["type", "content"],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": ["view", "content"],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          },
+                          "required": ["id", "title", "type", "data"],
+                          "additionalProperties": false
                         }
                       ]
                     }
@@ -4151,6 +4693,70 @@
         "required": ["content"],
         "additionalProperties": false,
         "description": "创建输入的稀疏文档：content.sections 至少 1 项且恰含一个 profile 模块，display 可整体省略；服务端补全缺失字段与六类空模块，并固定写入 schemaVersion=1（输入里的同名值被忽略）。该形状是完整文档的超集，旧客户端提交完整文档同样兼容。"
+      },
+      "ResumeSummary": {
+        "type": "object",
+        "description": "列表项：不含正文；revision 与 updatedAt 取自该简历的当前草稿。",
+        "required": ["id", "name", "locale", "revision", "updatedAt"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "locale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "pattern": "^[A-Za-z0-9-]+$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RenameResume": {
+        "type": "object",
+        "description": "只收 name：id / locale / document 各有各的接口，混进同一个 PATCH 会让改名变成一次隐式的整体覆盖。",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        }
+      },
+      "ResumeRenamed": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ResumeDeleted": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        }
       }
     },
     "responses": {
@@ -4502,6 +5108,75 @@
               "data": null,
               "errorCode": "Resume.Draft:conflict",
               "message": "revision 已变化；保留输入并备份后主动重新读取"
+            }
+          }
+        }
+      },
+      "ResumeSummaryListSuccess": {
+        "description": "本人未删除的简历列表（按创建时间倒序，不含正文）",
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ResumeSummary"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "ResumeRenamedSuccess": {
+        "description": "重命名后的简历主键与名称",
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ResumeRenamed"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "ResumeDeletedSuccess": {
+        "description": "已删除的简历主键（重复删除返回 404，不静默成功）",
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ResumeDeleted"
+                    }
+                  }
+                }
+              ]
             }
           }
         }

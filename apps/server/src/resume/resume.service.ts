@@ -145,6 +145,7 @@ export class ResumeService {
         },
         select: { id: true },
       })
+      // where 里已保证 draft 存在；这里只是为了让 TS 收窄类型
       const draft = await transaction.resumeDraft.findUniqueOrThrow({
         where: { resumeId: resume.id },
         include: draftInclude,
@@ -213,6 +214,55 @@ export class ResumeService {
     })
     if (!draft) throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
     return toResponse(draft)
+  }
+
+  /**
+   * 读「公开」草稿：**访客可读，不做所有权过滤**。
+   *
+   * 与 `findDraft` 的分工是本卡的核心取舍：
+   * - `findDraft` 回答"**我的**草稿"，`where` 里带 `workspaceUserId`，连超管也读不到别人的；
+   * - 本方法回答"**这份**内容是什么"，只过滤"账号是否仍然有效"，因此只应由 `@Public()` 路由调用。
+   *
+   * 为什么不合并成一个"按身份可选过滤"的方法：那会让 `where` 的形状随调用方身份漂移，
+   * 权限模型再也读不出"这个接口到底允不允许外人读"。分成两条路由，语义就留在路由表上。
+   *
+   * ⚠️ 已知口径（DAO-038）：本轮**没有"已发布"字段**，所以只要 id 已知，任何简历都能被读到
+   * （含半成品）。引入发布态时，这里就是加过滤条件的地方。
+   */
+  async findPublished(id: number): Promise<ResumeDraftResponse> {
+    const draft = await this.prismaService.resumeDraft.findFirst({
+      where: { resume: this.publishedResume({ id }) },
+      include: draftInclude,
+    })
+    if (!draft) throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+    return toResponse(draft)
+  }
+
+  /**
+   * 读「默认展示」的公开草稿 —— 首页（`/`）用它决定访客看到哪一份。
+   *
+   * 没设默认时**不隐式挑一份**（比如"最近更新的"）：那会让"展示哪一份"变得不可预期。
+   * 前端拿到 404 就展示空态，并引导作者去列表页设置默认。
+   */
+  async findPublishedDefault(): Promise<ResumeDraftResponse> {
+    const draft = await this.prismaService.resumeDraft.findFirst({
+      where: { resume: this.publishedResume({ isDefault: true }) },
+      include: draftInclude,
+    })
+    if (!draft) {
+      throw new NotFoundException('还没有设为默认展示的简历', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+    }
+    return toResponse(draft)
+  }
+
+  /**
+   * 公开读取的过滤条件：**只保证"这份数据属于一个仍然有效的账号"**。
+   *
+   * 与 `ownedResume` 的差别就是少了 `workspaceUserId` ——
+   * 那一条是**授权**（谁能读），这一条是**数据完整性**（这条数据是否还有效）。
+   */
+  private publishedResume(extra: Prisma.ResumeWhereInput): Prisma.ResumeWhereInput {
+    return { ...extra, workspace: { user: { deletedAt: null } } }
   }
 
   /**
