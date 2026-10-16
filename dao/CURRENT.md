@@ -15,6 +15,18 @@
 
 - [`DAO-036` 通用上传端点](./tasks/DAO-036-通用上传端点.md) —— `planned`（等排期）：admin 的 4 个 upload 组件依赖 `POST /api/masterData/file/multipleUpload`，**实测 404**（模板遗留路径），且这些组件**没有任何调用点**。
 
+## 本轮新立的三张卡（2026-10-16，对应三个 Issue）
+
+| 卡 | Issue | 内容 | 状态 |
+| --- | --- | --- | --- |
+| [`DAO-039` 测试体系](./tasks/DAO-039-测试体系-vitest.md) | [#48](https://github.com/Fridolph/my-resume-fullstack/issues/48) | 引入 vitest；`resume.service.test.cjs` → `.ts` 且直接 import 源码；**堵住「0 测试也全绿」** | `planned`（等确认依赖）|
+| [`DAO-040` help 与 release-notes 内容](./tasks/DAO-040-help与release-notes内容.md) | [#49](https://github.com/Fridolph/my-resume-fullstack/issues/49) | 两个页面从模板占位改为**与实现一致**的真实内容（未实装的必须标注） | `planned`（可随时开工）|
+| [`DAO-041` 发版管理](./tasks/DAO-041-发版管理-release-it.md) | [#50](https://github.com/Fridolph/my-resume-fullstack/issues/50) | `release-it` + `@release-it/conventional-changelog` 取代 `standard-version` | `planned`（等确认依赖）|
+
+**共性风险**：前两张卡的验收标准都包含"**不许把未实现写成已实现**" ——
+这条不是形式要求：本轮的 release-notes 现状正是模板时代的文案（"no backend yet"），
+与真实实现完全脱节，属"文档撒谎"那类问题。
+
 ## 待 Owner 处理
 
 - **意图验收（DAO-038 / DAO-037）**：公开页观感（桌面 + 移动端 + 深色）、`/my-resumes` 迁移后的手感、admin 折叠面板与工具栏是否够用。
