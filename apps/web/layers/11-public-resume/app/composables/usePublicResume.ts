@@ -29,15 +29,23 @@ type PublicResumeOutcome =
   | { kind: 'error' }
 
 /**
- * 把"没有可展示内容"如实反映为 HTTP 404。
+ * 把「没有可展示内容」如实反映为 HTTP 404。
  *
- * ⚠️ 这是一个**必须由页面显式调用**的副作用，不能塞进 composable 的 `watch`：
- * 实测（Nuxt 4.5）在 `await useAsyncData()` 之后，composable 内部注册的 watch 在**服务端
- * 不会被触发**（日志里只看到客户端那次），于是 `setResponseStatus` 从未在 SSR 阶段执行，
- * 状态码一直是 200。而**同一句调用写在页面 setup 里就生效**（实测 200 → 404）。
+ * ## 为什么必须由页面在 `await` **之后**调用
  *
- * 所以约定：页面 `await usePublicResume(...)` 之后立刻调用 `applyEmptyStatus(emptyReason.value)`。
- * 客户端是 no-op，只有 SSR 那趟有意义 —— 否则"已删除的简历"会长期以 200 被收录。
+ * 这是本卡修掉的真实缺陷（DAO-038 遗留①）：原先页面写的是**同步**调用
+ * `applyEmptyStatus(emptyReason.value)`，但那一刻 `useAsyncData` 还没解析完，
+ * `emptyReason` 必然是 `null` —— 于是 `setResponseStatus` **一次都没执行过**，
+ * `/resume/999999` 与 `/resume/abc` 长期以 **200** 返回（已实测确认）。
+ *
+ * 现在的约定是**可执行的**：`usePublicResume` 把 `useAsyncData` 那次 await 暴露成 `resume`，
+ * 页面 `await resume` 之后再调用本函数 —— 此时 `emptyReason` 一定已是最终值。
+ *
+ * 为什么不在 composable 内部用 `watch` 解决：实测（Nuxt 4.5）在 SSR 阶段，composable 内注册的
+ * **非 immediate** watch 不会触发（日志里只有客户端那一次），`setResponseStatus` 依然赶不上。
+ * `await` 是**显式**的，不依赖"watch 会不会跑"这种时序假设 —— 这类假设正是本缺陷的成因。
+ *
+ * 客户端是 no-op：只有 SSR 那一趟有意义 —— 否则"已删除的简历"会长期以 200 被搜索引擎收录。
  */
 export function applyEmptyStatus(reason: 'no-default' | 'not-found' | null) {
   if (reason) setResponseStatus(404)
@@ -53,7 +61,9 @@ export function usePublicResume(source: MaybeRefOrGetter<'default' | number | nu
     return value && value > 0 ? `public-resume:${value}` : 'public-resume:invalid'
   })
 
-  const { data, status, refresh } = useAsyncData<PublicResumeOutcome>(
+  // ⚠️ 保留整个 `resume` 并返回给调用方：页面必须 `await` 它之后才能读 `emptyReason`
+  //    （理由见 `applyEmptyStatus` —— 那是"HTTP 状态码定得对不对"的关键）。
+  const resume = useAsyncData<PublicResumeOutcome>(
     key,
     async () => {
       const value = toValue(source)
@@ -76,6 +86,7 @@ export function usePublicResume(source: MaybeRefOrGetter<'default' | number | nu
     },
     { watch: [key] },
   )
+  const { data, status, refresh } = resume
 
   /** 契约文档（响应里的 `document`），页面渲染直接用这一份 */
   const document = computed<ResumeDocument | null>(() => (data.value?.kind === 'ok' ? data.value.data.document : null))
@@ -90,5 +101,5 @@ export function usePublicResume(source: MaybeRefOrGetter<'default' | number | nu
   /** 这份简历的 id（就地编辑保存时要用）。在内部收窄联合，调用方不必判断 `kind`。 */
   const resumeId = computed(() => (data.value?.kind === 'ok' ? data.value.data.resume.id : null))
 
-  return { data, document, resumeId, status, emptyReason, isError, refresh }
+  return { data, document, resumeId, status, emptyReason, isError, refresh, resume }
 }

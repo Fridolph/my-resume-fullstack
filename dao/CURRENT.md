@@ -64,14 +64,16 @@
 - **集成锚点**：两次 feature → dev（`22aeb8b`、`da41e78`）仍未定锚（Dao Commit 卦象由人定）。
 - **DAO-033 的发现**：历史迁移的 `setval(..., 0)` 早已由 `c43db00` 修复（见 DAO028 复盘 §18.4），此条可直接结掉。
 
-## 质量门的一个真实缺口（2026-10-15 实测）
+## 已收口（不再需要跟踪）
 
-`apps/server` 的 Service 单元测试文件被删除后，`pnpm test` 输出 `# tests 0 / # pass 0`，
-Turbo 仍报 **3/3 successful** —— **测试为零也会"全绿"**。要么恢复该测试，要么让测试脚本在
-无匹配文件时失败。详见 DAO028 复盘 §18.5「质量门失效」。
+- **质量门「0 测试也全绿」** —— 已由 `DAO-039` 修掉：三个包的 `test` 脚本都带
+  `--passWithNoTests=false`，无匹配测试文件时会失败，不再可能"全绿却什么也没验证"。
+- **公开站上线前的两笔（`DAO-038` 遗留）** —— 两笔都已了结，详见该卡「已知缺陷」：
+  1. ✅ **不存在的简历返回 200 → 已修**（2026-10-16）。真实根因不是"`setResponseStatus` 不生效"，
+     而是页面**同步**读 `emptyReason`，而那一刻 `useAsyncData` 还没解析 ——
+     改为 `await resume` 之后再调用。实测 `/resume/999999` 与 `/resume/abc` 均由 200 变 **404**。
+  2. ✅ **公开页页头 → 已实现**（`ResumePublicHeader`：品牌 + 身份区）。
 
-## 公开站上线前的两笔（DAO-038 遗留）
-
-1. **不存在的简历仍返回 HTTP 200**（页面已正确显示空态，`setResponseStatus(404)` 未生效）。
-2. **公开页页头缺失**：品牌 / 移动端操作区还没做；旧 mock 链（`useResumeContent`、
-   `ResumePageHeader`、`ResumeAccountMenu` 等）已无引用，属半迁移状态，待一并清理。
+> 顺带更正一条流传的判断：**「旧 mock 链已无引用」不成立** —— `useResumeContent` 仍被
+> `ResumeDraftWorkspace`、`ResumeSettingsSectionsTab`、`ResumeSectionEditorDrawer` **3 处引用**；
+> 确实已无引用的只有 `ResumePageHeader`。清理前要先决定那 3 处的去留，不能按"孤儿"直接删。

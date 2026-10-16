@@ -29,9 +29,13 @@ const {
   emptyReason,
   isError,
   refresh,
+  resume,
 } = usePublicResume(() => (valid.value ? resumeId.value : null))
 
-// 同步可判的空态（例如非法 id）如实返回 404；异步空态的说明见 `applyEmptyStatus`
+// ⚠️ 顺序不能颠倒：必须先把 SSR 取数 `await` 完，`emptyReason` 才是最终值。
+//    非法 id（如 `/resume/abc`）虽然不发请求，但 `useAsyncData` 仍是异步落地的 ——
+//    同步读 `emptyReason` 会永远拿到 `null`。完整推理见 `applyEmptyStatus` 的注释。
+await resume
 applyEmptyStatus(emptyReason.value)
 
 const brandName = computed(

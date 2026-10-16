@@ -19,9 +19,12 @@ import { applyEmptyStatus } from '#layers/public-resume/app/composables/usePubli
  *
  * 与 `/resume/:id`（看指定那一份）职责清晰分开：一个看默认，一个看指定。
  */
-const { document, resumeId, status, emptyReason, isError, refresh } = usePublicResume('default')
+const { document, resumeId, status, emptyReason, isError, refresh, resume } = usePublicResume('default')
 
-// 同步可判的空态如实返回 404；异步空态的说明见 `applyEmptyStatus`
+// ⚠️ 顺序不能颠倒：必须先把 SSR 取数 `await` 完，`emptyReason` 才是最终值。
+//    同步调用那一版会永远读到 `null` —— 这正是 DAO-038 遗留①「不存在的简历返回 200」的成因，
+//    完整推理见 `applyEmptyStatus` 的注释。
+await resume
 applyEmptyStatus(emptyReason.value)
 
 const brandName = computed(
