@@ -6,6 +6,12 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+.local
+
+# macOS 元数据文件
+.DS_Store
+**/.DS_Store
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -144,3 +150,6 @@ vite.config.ts.timestamp-*
 
 # Turborepo cache
 .turbo/
+
+# AI 会话本地产物
+.reasonix/

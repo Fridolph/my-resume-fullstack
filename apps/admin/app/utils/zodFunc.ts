@@ -1,31 +1,6 @@
-import { isValidPhoneNumber } from 'libphonenumber-js'
-import * as z from 'zod'
-
-export function zNonEmptyString(msg?: string) {
-  return z.string().min(1, { message: msg })
-}
-
 /**
- * 电话号码校验（libphonenumber-js）。
- * - `required: false`（默认）：空 / null 通过，有值则须合法
- * - `required: true`：必须非空且合法
+ * ⚠️ 已上提到 `@rs/utils`（DAO-035）。本文件只是**转发层**：
+ * admin 的 `app/utils/**` 参与 Nuxt 自动导入，直接删掉会让所有隐式调用失效，
+ * 而转发能让调用点一行不改。新代码请直接从 `@rs/utils` 引入。
  */
-export function zPhone(options?: {
-  required?: boolean
-  message?: string
-}) {
-  const required = options?.required ?? false
-  const message = options?.message
-
-  const isValid = (val: string | null | undefined) => {
-    if (!val)
-      return !required
-    return isValidPhoneNumber(val)
-  }
-
-  if (required) {
-    return z.string({ message }).refine(isValid, { error: message })
-  }
-
-  return z.string().nullish().refine(isValid, { error: message })
-}
+export * from '@rs/utils/zodFunc'

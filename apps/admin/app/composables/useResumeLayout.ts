@@ -105,9 +105,7 @@ export const RESUME_SECTIONS: ResumeSection[] = [
     label: '基本信息',
     locked: true,
     switchKey: 'headerSwitch',
-    children: [
-      { id: 'contact', label: '联系方式', switchKey: 'contactSwitch', actionKey: 'contact' },
-    ],
+    children: [{ id: 'contact', label: '联系方式', switchKey: 'contactSwitch', actionKey: 'contact' }],
   },
   { id: 'summary', label: '个人概览', switchKey: 'summarySwitch', actionKey: 'summary' },
   { id: 'experience', label: '工作经历', switchKey: 'experienceSwitch' },
@@ -150,7 +148,7 @@ function createDefaultState(): ResumeLayoutState {
     node.children?.forEach(collect)
   }
   RESUME_SECTIONS.forEach(collect)
-  ;[...RESUME_INFO_OPTIONS, ...RESUME_EXPORT_OPTIONS].forEach(o => switches[o.switchKey] = 1)
+  ;[...RESUME_INFO_OPTIONS, ...RESUME_EXPORT_OPTIONS].forEach(o => (switches[o.switchKey] = 1))
 
   const preset = RESUME_THEME_PRESETS[0]!
   return {
@@ -188,9 +186,7 @@ export function useResumeLayout() {
   // 上次保存快照，用于 isDirty 对比
   const lastSaved = ref<ResumeLayoutState>(JSON.parse(JSON.stringify(storage.value)))
 
-  const themePreset = computed(() =>
-    RESUME_THEME_PRESETS.find(t => t.id === themeId.value) ?? RESUME_THEME_PRESETS[0]!,
-  )
+  const themePreset = computed(() => RESUME_THEME_PRESETS.find(t => t.id === themeId.value) ?? RESUME_THEME_PRESETS[0]!)
 
   /** 应用预设主题：覆盖 themeId + 三色，后续可继续微调颜色 */
   function applyTheme(id: string) {
@@ -215,13 +211,14 @@ export function useResumeLayout() {
 
   const isDirty = computed(() => {
     const orderChanged = JSON.stringify(order.value) !== JSON.stringify(lastSaved.value.order)
-    const switchChanged = Object.keys(switches.value).some(key =>
-      normalizeSwitch(switches.value[key]) !== normalizeSwitch(lastSaved.value.switches[key]),
+    const switchChanged = Object.keys(switches.value).some(
+      key => normalizeSwitch(switches.value[key]) !== normalizeSwitch(lastSaved.value.switches[key]),
     )
-    const themeChanged = themeId.value !== lastSaved.value.themeId
-      || themeColor.value !== lastSaved.value.themeColor
-      || gradientFrom.value !== lastSaved.value.gradientFrom
-      || gradientTo.value !== lastSaved.value.gradientTo
+    const themeChanged =
+      themeId.value !== lastSaved.value.themeId ||
+      themeColor.value !== lastSaved.value.themeColor ||
+      gradientFrom.value !== lastSaved.value.gradientFrom ||
+      gradientTo.value !== lastSaved.value.gradientTo
     return orderChanged || switchChanged || themeChanged
   })
 
@@ -268,10 +265,13 @@ export function useResumeLayout() {
 
   /** 按模块 id 取定义 */
   const sectionMap = computed<Record<string, ResumeSection>>(() =>
-    sections.reduce((acc, s) => {
-      acc[s.id] = s
-      return acc
-    }, {} as Record<string, ResumeSection>),
+    sections.reduce(
+      (acc, s) => {
+        acc[s.id] = s
+        return acc
+      },
+      {} as Record<string, ResumeSection>,
+    ),
   )
 
   /** 生效配置：扁平开关 + 主题，供预览渲染消费 */

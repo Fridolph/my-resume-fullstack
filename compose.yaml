@@ -1,0 +1,41 @@
+# 本地开发用的基础设施。
+#
+# 目前**只有 PostgreSQL**：Redis 本机已经在 6379 上跑着，而 `identity-and-access.md` §5 计划的
+# 限流/配额还没开始做 —— 等真要用时再决定是复用本机那个、还是一并放进这里（不提前铺）。
+#
+# 用法：
+#   docker compose up -d          # 起库（首次会拉镜像）
+#   docker compose ps             # 看状态
+#   docker compose logs -f postgres
+#   docker compose down           # 停掉（数据保留在 named volume）
+#   docker compose down -v        # ⚠️ 连数据卷一起删，不可恢复
+#
+# 连接串（写进 apps/server/.env，不要提交）：
+#   DATABASE_URL="postgresql://resume:resume_dev_password@localhost:5432/my_resume?schema=public"
+name: my-resume-fullstack
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: my-resume-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: resume
+      # 仅本地开发用的弱密码：容器只监听本机 5432，且不对外暴露。
+      # 真实环境一律由环境变量注入（见 AGENTS.md 的安全约定）。
+      POSTGRES_PASSWORD: resume_dev_password
+      POSTGRES_DB: my_resume
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # 让 `docker compose up --wait` / 依赖方知道"库真的可用了"，
+      # 而不是容器一起来就连——Postgres 初始化期间是要拒绝连接的
+      test: ['CMD-SHELL', 'pg_isready -U resume -d my_resume']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:

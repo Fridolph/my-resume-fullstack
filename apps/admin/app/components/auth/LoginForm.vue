@@ -1,56 +1,57 @@
 <script setup lang="ts">
-import type { AuthFormField } from "@nuxt/ui";
+import type { AuthFormField } from '@nuxt/ui'
 
 export interface LoginCredentials {
-  email: string;
-  password: string;
+  /** 用户名或邮箱 —— 后端按是否含 `@` 选择查询字段 */
+  account: string
+  password: string
 }
 
 interface LoginFormProps {
-  pending?: boolean;
-  error?: string;
-  title?: string;
-  submitLabel?: string;
-  forgotPasswordTo?: string;
-  createAccountTo?: string;
+  pending?: boolean
+  error?: string
+  title?: string
+  submitLabel?: string
+  forgotPasswordTo?: string
+  createAccountTo?: string
 }
 
 const props = withDefaults(defineProps<LoginFormProps>(), {
   pending: false,
-  error: "",
-  title: "Sign in",
-  submitLabel: "Sign in",
-  forgotPasswordTo: "/forgot-password",
-  createAccountTo: "/register",
-});
+  error: '',
+  title: 'Sign in',
+  submitLabel: 'Sign in',
+  forgotPasswordTo: '/forgot-password',
+  createAccountTo: '/register',
+})
 
 const emit = defineEmits<{
-  submit: [credentials: LoginCredentials];
-}>();
+  submit: [credentials: LoginCredentials]
+}>()
 
 const fields: AuthFormField[] = [
   {
-    name: "email",
-    type: "email",
-    label: "Email",
-    placeholder: "you@example.com",
-    leadingIcon: "i-lucide-mail",
-    size: "lg",
+    name: 'account',
+    type: 'text',
+    label: 'Username or email',
+    placeholder: 'super 或 you@example.com',
+    leadingIcon: 'i-lucide-user-round',
+    size: 'lg',
     required: true,
   },
   {
-    name: "password",
-    type: "password",
-    label: "Password",
-    placeholder: "Enter your password",
-    leadingIcon: "i-lucide-lock-keyhole",
-    size: "lg",
+    name: 'password',
+    type: 'password',
+    label: 'Password',
+    placeholder: 'Enter your password',
+    leadingIcon: 'i-lucide-lock-keyhole',
+    size: 'lg',
     required: true,
   },
-];
+]
 
 function handleSubmit(event: { data: LoginCredentials }) {
-  emit("submit", event.data);
+  emit('submit', event.data)
 }
 </script>
 
@@ -84,21 +85,13 @@ function handleSubmit(event: { data: LoginCredentials }) {
         </ULink>
       </div>
 
-      <UAlert
-        v-if="error"
-        color="error"
-        variant="subtle"
-        icon="i-lucide-circle-alert"
-        :title="error"
-      />
+      <UAlert v-if="error" color="error" variant="subtle" icon="i-lucide-circle-alert" :title="error" />
     </template>
 
     <template #footer>
       <p class="text-center text-sm text-muted">
         New here?
-        <ULink :to="createAccountTo" class="font-medium text-primary hover:underline">
-          Create an account
-        </ULink>
+        <ULink :to="createAccountTo" class="font-medium text-primary hover:underline"> Create an account </ULink>
       </p>
     </template>
   </UAuthForm>

@@ -38,10 +38,7 @@ function checked(opt: ResumeSwitchOption, getSwitch: (key?: string) => number) {
           <p class="text-sm">{{ opt.label }}</p>
           <p v-if="opt.hint" class="mt-0.5 text-xs text-muted">{{ opt.hint }}</p>
         </div>
-        <USwitch
-          :model-value="checked(opt, getSwitch)"
-          @update:model-value="emit('toggle', opt.switchKey)"
-        />
+        <USwitch :model-value="checked(opt, getSwitch)" @update:model-value="emit('toggle', opt.switchKey)" />
       </div>
     </div>
   </aside>

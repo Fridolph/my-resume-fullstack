@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 const paddingLeft = computed(() => `${props.depth + 1}rem`)
 
-const visible = computed(() => props.child.switchKey ? !!props.getSwitch(props.child.switchKey) : true)
+const visible = computed(() => (props.child.switchKey ? !!props.getSwitch(props.child.switchKey) : true))
 
 function toggleSwitch(key?: string) {
   if (!key) return

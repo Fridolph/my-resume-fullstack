@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { settingsNavigation } from "../config/settings-navigation";
+import { settingsNavigation } from '../config/settings-navigation'
 
 /**
  * Settings 父页：在 has-sidebar 布局内再叠一层「二级左侧 sidebar」。
@@ -7,9 +7,9 @@ import { settingsNavigation } from "../config/settings-navigation";
  * - 右侧：<NuxtPage /> 渲染子页面（/settings/company、/settings/team …）
  */
 definePageMeta({
-  layout: "has-sidebar",
-  title: "Settings",
-});
+  layout: 'has-sidebar',
+  title: 'Settings',
+})
 </script>
 
 <template>

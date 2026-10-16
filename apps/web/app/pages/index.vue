@@ -1,58 +1,52 @@
 <script setup lang="ts">
-const config = useRuntimeConfig();
-const apiStatus = shallowRef("checking");
+import ResumePublicShell from '#layers/public-resume/app/components/resume/ResumePublicShell.vue'
+import { applyEmptyStatus } from '#layers/public-resume/app/composables/usePublicResume'
 
-async function checkApi() {
-  try {
-    await $fetch("/health", { baseURL: config.public.apiBase });
-    apiStatus.value = "connected";
-  } catch {
-    apiStatus.value = "offline";
-  }
-}
+/**
+ * `/` —— 公开简历首页。
+ *
+ * 展示作者标为「默认展示」（★）的那一份；**访客与作者看到的是同一页**。
+ *
+ * ## 为什么作者不再被 302 送走
+ *
+ * 早先的写法是"已登录作者 302 → 工作台"，理由是"他大概想接着改"。
+ * Owner 2026-10-15 明确否掉了这个推断：`/` 就是**公开页**，作者也需要能看它
+ *（那正是"访客看到的样子"），要改简历由页头身份菜单里的「我的简历」自己走进去。
+ *
+ * 所以这里不再做任何基于登录态的跳转：
+ * - 访客：看默认简历；
+ * - 作者：同样看这一页，页头身份菜单里有「我的简历」入口。
+ *
+ * 与 `/resume/:id`（看指定那一份）职责清晰分开：一个看默认，一个看指定。
+ */
+const { document, resumeId, status, emptyReason, isError, refresh } = usePublicResume('default')
 
-await checkApi();
+// 同步可判的空态如实返回 404；异步空态的说明见 `applyEmptyStatus`
+applyEmptyStatus(emptyReason.value)
+
+const brandName = computed(
+  () => document.value?.display.brand.title || document.value?.display.brand.logoText || '简历',
+)
+
+/** 标题：有品牌名就用「品牌 · 简历」，没有就只写「简历」（避免拼出"简历 · 简历"） */
+const pageTitle = computed(() => {
+  const brand = brandName.value.trim()
+  return brand && brand !== '简历' ? `${brand} · 简历` : '简历'
+})
+
+useSeoMeta({
+  title: () => pageTitle.value,
+  description: () => document.value?.display.brand.description || '在线简历',
+})
 </script>
 
 <template>
-  <main
-    class="min-h-screen bg-linear-to-br from-primary-50 via-default to-default px-6 py-16 dark:from-primary-950/40"
-  >
-    <div class="mx-auto max-w-4xl space-y-10">
-      <header class="space-y-4">
-        <UBadge color="primary" variant="subtle">@template/web</UBadge>
-        <h1 class="text-4xl font-bold tracking-tight text-highlighted sm:text-6xl">全栈应用模板</h1>
-        <p class="max-w-2xl text-lg text-muted">
-          Nuxt 4、Nuxt UI、Tailwind CSS 4 与 NestJS 的可复用起点。
-        </p>
-      </header>
-
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-highlighted">开发环境状态</h2>
-            <UButton
-              icon="i-lucide-refresh-cw"
-              variant="ghost"
-              label="重新检查"
-              @click="checkApi"
-            />
-          </div>
-        </template>
-        <div class="flex items-center gap-3">
-          <span
-            class="size-3 rounded-full"
-            :class="
-              apiStatus === 'connected'
-                ? 'bg-success'
-                : apiStatus === 'offline'
-                  ? 'bg-error'
-                  : 'bg-warning'
-            "
-          />
-          <span>API 心跳：{{ apiStatus }}</span>
-        </div>
-      </UCard>
-    </div>
-  </main>
+  <ResumePublicShell
+    :document="document"
+    :resume-id="resumeId"
+    :empty-reason="emptyReason"
+    :is-error="isError"
+    :loading="status === 'pending'"
+    @retry="refresh()"
+  />
 </template>

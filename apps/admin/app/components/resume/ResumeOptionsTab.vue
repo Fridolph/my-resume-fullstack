@@ -10,15 +10,18 @@ import { RESUME_STATUS_META } from '~/config/resume-demo'
  * - 右侧「对比」按钮：options > 1 时显示，emit compare
  * - 移动端不单独做下拉选择（greensketch 有，这里简化为统一横向滚动）
  */
-const props = withDefaults(defineProps<{
-  options: Resume[]
-  /** 每个 tab 的估算宽度，用于点击时滚动定位 */
-  itemWidth?: number
-  scrollStep?: number
-}>(), {
-  itemWidth: 160,
-  scrollStep: 200,
-})
+const props = withDefaults(
+  defineProps<{
+    options: Resume[]
+    /** 每个 tab 的估算宽度，用于点击时滚动定位 */
+    itemWidth?: number
+    scrollStep?: number
+  }>(),
+  {
+    itemWidth: 160,
+    scrollStep: 200,
+  },
+)
 
 const activeId = defineModel<number | null>('activeId', { default: null })
 
@@ -114,13 +117,19 @@ onUnmounted(() => {
           v-for="(item, i) in options"
           :key="item.id"
           class="flex shrink-0 cursor-pointer items-center gap-2 rounded-t-lg border border-b-0 border-transparent px-3 text-sm transition"
-          :class="activeId === item.id ? 'border-default bg-default font-medium text-highlighted' : 'text-muted hover:bg-default'"
+          :class="
+            activeId === item.id
+              ? 'border-default bg-default font-medium text-highlighted'
+              : 'text-muted hover:bg-default'
+          "
           @click="handleSelect(item, i)"
         >
           <UBadge
             color="neutral"
             :label="i + 1"
-            :ui="{ base: `px-1.5 py-0 rounded-full min-w-5 h-5 justify-center shrink-0 ${activeId === item.id ? 'bg-primary text-white' : 'bg-muted text-white'}` }"
+            :ui="{
+              base: `px-1.5 py-0 rounded-full min-w-5 h-5 justify-center shrink-0 ${activeId === item.id ? 'bg-primary text-white' : 'bg-muted text-white'}`,
+            }"
           />
           <span class="truncate">{{ item.name }}</span>
           <UBadge

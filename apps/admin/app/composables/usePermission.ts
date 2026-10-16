@@ -10,8 +10,7 @@ export function usePermission() {
 
   /** 传数组时要求**全部**满足 */
   function hasPermission(keys: string | string[]) {
-    if (Array.isArray(keys))
-      return keys.every(k => permissionKeys.value.includes(k))
+    if (Array.isArray(keys)) return keys.every(k => permissionKeys.value.includes(k))
     return permissionKeys.value.includes(keys)
   }
 

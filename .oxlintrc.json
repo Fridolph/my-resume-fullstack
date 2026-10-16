@@ -1,0 +1,15 @@
+{
+  // oxlint 配置（兼容 ESLint v8 格式，支持注释）
+  //
+  // 与原有 ESLint 配置的对应关系（见 docs/dev/workflow.md §2 步骤 5）：
+  // - `vue/*: off` 那几条（multi-word-component-names / no-v-html / no-multiple-template-root /
+  //   no-unused-vars）oxlint 没有对应规则，等于「本来就不会报」，无需配置；
+  // - `vue/max-attributes-per-line`、`vue/html-indent` 等属于 ESLint Vue 插件的**格式**规则，
+  //   oxfmt 无对应项 —— 模板格式统一交给 oxfmt（按 printWidth 折行）；
+  // - 下面只保留 oxlint 真正支持的规则开关。
+  "rules": {
+    "no-unused-expressions": "warn",
+    "no-unused-vars": "off",
+    "typescript/no-explicit-any": "off"
+  }
+}

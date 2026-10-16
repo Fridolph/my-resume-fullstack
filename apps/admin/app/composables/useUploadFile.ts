@@ -43,7 +43,7 @@ export function useUploadFile(options: UploadFileOptions = {}) {
     // 检查文件类型
     if (accept.length > 0 && accept[0] !== '*') {
       const fileType = (file.type || '') as string
-      const isValidType = accept.some((type) => {
+      const isValidType = accept.some(type => {
         if (type.endsWith('/*')) {
           const baseType = type.split('/')[0] || ''
           return fileType.startsWith(baseType)
@@ -79,14 +79,11 @@ export function useUploadFile(options: UploadFileOptions = {}) {
 
     if (input instanceof File) {
       filesToProcess = [input]
-    }
-    else if (Array.isArray(input)) {
+    } else if (Array.isArray(input)) {
       filesToProcess = input
-    }
-    else if (input instanceof FileList) {
+    } else if (input instanceof FileList) {
       filesToProcess = Array.from(input)
-    }
-    else {
+    } else {
       toast.add({ title: 'Error', description: 'Please select a file', color: 'error' })
       return null
     }
@@ -102,8 +99,7 @@ export function useUploadFile(options: UploadFileOptions = {}) {
       const file = filesToProcess[i]
       if (file && validateFile(file, i)) {
         filesToUpload.push(file)
-      }
-      else {
+      } else {
         return null
       }
     }
@@ -114,7 +110,7 @@ export function useUploadFile(options: UploadFileOptions = {}) {
 
     // 构建 FormData
     const formData = new FormData()
-    filesToUpload.forEach((file) => {
+    filesToUpload.forEach(file => {
       formData.append('files', file)
     })
 
@@ -127,16 +123,14 @@ export function useUploadFile(options: UploadFileOptions = {}) {
 
       if (onUpload) {
         result = await onUpload(formData)
-      }
-      else {
+      } else {
         result = await FileApi.uploadFile(formData, { contentType: apiContentType })
       }
 
       files.value = result
       onSuccess?.(result)
       return result
-    }
-    catch (err: any) {
+    } catch (err: any) {
       error.value = err
       const errorMsg = err?.data?.msg || err?.message || 'Upload failed'
       toast.add({
@@ -146,8 +140,7 @@ export function useUploadFile(options: UploadFileOptions = {}) {
       })
       onError?.(err)
       return null
-    }
-    finally {
+    } finally {
       loading.value = false
     }
   }

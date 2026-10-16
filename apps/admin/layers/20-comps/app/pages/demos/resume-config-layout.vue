@@ -51,11 +51,19 @@ const previewRef = useTemplateRef<HTMLElement>('previewRef')
 
 function handleSave() {
   saveLayout()
-  toast.add({ title: '已保存', description: '布局与主题配置已应用（localStorage 模拟后端）', color: 'success' })
+  toast.add({
+    title: '已保存',
+    description: '布局与主题配置已应用（localStorage 模拟后端）',
+    color: 'success',
+  })
 }
 
 function handleAction(key: string) {
-  toast.add({ title: '配置入口', description: `模块 ${key} 的配置面板（demo 占位）`, color: 'neutral' })
+  toast.add({
+    title: '配置入口',
+    description: `模块 ${key} 的配置面板（demo 占位）`,
+    color: 'neutral',
+  })
 }
 
 function scrollToModule(id: string) {
@@ -73,10 +81,10 @@ const themeVars = computed(() => ({
 }))
 
 const isDark = computed(() => themePreset.value.dark === true)
-const paperClass = computed(() => isDark.value ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-default')
-const headingClass = computed(() => isDark.value ? 'text-neutral-100' : 'text-neutral-900')
-const mutedClass = computed(() => isDark.value ? 'text-neutral-400' : 'text-muted')
-const chipClass = computed(() => isDark.value ? 'bg-neutral-800 text-neutral-200' : 'bg-neutral-100 text-neutral-700')
+const paperClass = computed(() => (isDark.value ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-default'))
+const headingClass = computed(() => (isDark.value ? 'text-neutral-100' : 'text-neutral-900'))
+const mutedClass = computed(() => (isDark.value ? 'text-neutral-400' : 'text-muted'))
+const chipClass = computed(() => (isDark.value ? 'bg-neutral-800 text-neutral-200' : 'bg-neutral-100 text-neutral-700'))
 
 function labelOf(id: string) {
   return sectionMap.value[id]?.label ?? id
@@ -160,7 +168,9 @@ function labelOf(id: string) {
                     </div>
                     <div
                       class="flex size-14 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white"
-                      :style="{ background: `linear-gradient(135deg, var(--resume-gradient-from), var(--resume-gradient-to))` }"
+                      :style="{
+                        background: `linear-gradient(135deg, var(--resume-gradient-from), var(--resume-gradient-to))`,
+                      }"
                     >
                       {{ content.avatar }}
                     </div>
@@ -180,7 +190,10 @@ function labelOf(id: string) {
 
                 <!-- 个人概览 -->
                 <section v-else-if="id === 'summary'" :data-module-id="id">
-                  <h2 class="mb-2 flex items-center gap-2 text-sm font-semibold" :style="{ color: 'var(--resume-primary)' }">
+                  <h2
+                    class="mb-2 flex items-center gap-2 text-sm font-semibold"
+                    :style="{ color: 'var(--resume-primary)' }"
+                  >
                     <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
@@ -189,7 +202,10 @@ function labelOf(id: string) {
 
                 <!-- 工作经历 -->
                 <section v-else-if="id === 'experience'" :data-module-id="id">
-                  <h2 class="mb-3 flex items-center gap-2 text-sm font-semibold" :style="{ color: 'var(--resume-primary)' }">
+                  <h2
+                    class="mb-3 flex items-center gap-2 text-sm font-semibold"
+                    :style="{ color: 'var(--resume-primary)' }"
+                  >
                     <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
@@ -198,7 +214,9 @@ function labelOf(id: string) {
                       <div class="w-28 shrink-0 text-xs" :class="mutedClass">{{ item.period }}</div>
                       <div class="min-w-0">
                         <p class="text-sm font-medium" :class="headingClass">{{ item.role }} · {{ item.company }}</p>
-                        <p class="mt-1 text-sm leading-6" :class="mutedClass">{{ item.description }}</p>
+                        <p class="mt-1 text-sm leading-6" :class="mutedClass">
+                          {{ item.description }}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -206,7 +224,10 @@ function labelOf(id: string) {
 
                 <!-- 项目经历 -->
                 <section v-else-if="id === 'projects'" :data-module-id="id">
-                  <h2 class="mb-3 flex items-center gap-2 text-sm font-semibold" :style="{ color: 'var(--resume-primary)' }">
+                  <h2
+                    class="mb-3 flex items-center gap-2 text-sm font-semibold"
+                    :style="{ color: 'var(--resume-primary)' }"
+                  >
                     <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
@@ -215,9 +236,17 @@ function labelOf(id: string) {
                       <div class="w-28 shrink-0 text-xs" :class="mutedClass">{{ item.period }}</div>
                       <div class="min-w-0">
                         <p class="text-sm font-medium" :class="headingClass">{{ item.name }} · {{ item.role }}</p>
-                        <p class="mt-1 text-sm leading-6" :class="mutedClass">{{ item.description }}</p>
+                        <p class="mt-1 text-sm leading-6" :class="mutedClass">
+                          {{ item.description }}
+                        </p>
                         <div class="mt-2 flex flex-wrap gap-1.5">
-                          <span v-for="t in item.tech" :key="t" class="rounded px-1.5 py-0.5 text-xs" :class="chipClass">{{ t }}</span>
+                          <span
+                            v-for="t in item.tech"
+                            :key="t"
+                            class="rounded px-1.5 py-0.5 text-xs"
+                            :class="chipClass"
+                            >{{ t }}</span
+                          >
                         </div>
                       </div>
                     </div>
@@ -226,7 +255,10 @@ function labelOf(id: string) {
 
                 <!-- 教育背景 -->
                 <section v-else-if="id === 'education'" :data-module-id="id">
-                  <h2 class="mb-3 flex items-center gap-2 text-sm font-semibold" :style="{ color: 'var(--resume-primary)' }">
+                  <h2
+                    class="mb-3 flex items-center gap-2 text-sm font-semibold"
+                    :style="{ color: 'var(--resume-primary)' }"
+                  >
                     <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
@@ -243,17 +275,25 @@ function labelOf(id: string) {
 
                 <!-- 专业技能 / 证书 / 语言 / 兴趣（chip 类） -->
                 <section v-else-if="id === 'skills'" :data-module-id="id">
-                  <h2 class="mb-2 flex items-center gap-2 text-sm font-semibold" :style="{ color: 'var(--resume-primary)' }">
+                  <h2
+                    class="mb-2 flex items-center gap-2 text-sm font-semibold"
+                    :style="{ color: 'var(--resume-primary)' }"
+                  >
                     <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
                   <div class="flex flex-wrap gap-1.5">
-                    <span v-for="s in content.skills" :key="s" class="rounded px-2 py-1 text-xs" :class="chipClass">{{ s }}</span>
+                    <span v-for="s in content.skills" :key="s" class="rounded px-2 py-1 text-xs" :class="chipClass">{{
+                      s
+                    }}</span>
                   </div>
                 </section>
 
                 <section v-else-if="id === 'certificates'" :data-module-id="id">
-                  <h2 class="mb-2 flex items-center gap-2 text-sm font-semibold" :style="{ color: 'var(--resume-primary)' }">
+                  <h2
+                    class="mb-2 flex items-center gap-2 text-sm font-semibold"
+                    :style="{ color: 'var(--resume-primary)' }"
+                  >
                     <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
@@ -263,22 +303,36 @@ function labelOf(id: string) {
                 </section>
 
                 <section v-else-if="id === 'languages'" :data-module-id="id">
-                  <h2 class="mb-2 flex items-center gap-2 text-sm font-semibold" :style="{ color: 'var(--resume-primary)' }">
+                  <h2
+                    class="mb-2 flex items-center gap-2 text-sm font-semibold"
+                    :style="{ color: 'var(--resume-primary)' }"
+                  >
                     <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
                   <div class="flex flex-wrap gap-1.5">
-                    <span v-for="l in content.languages" :key="l.lang" class="rounded px-2 py-1 text-xs" :class="chipClass">{{ l.lang }} · {{ l.level }}</span>
+                    <span
+                      v-for="l in content.languages"
+                      :key="l.lang"
+                      class="rounded px-2 py-1 text-xs"
+                      :class="chipClass"
+                      >{{ l.lang }} · {{ l.level }}</span
+                    >
                   </div>
                 </section>
 
                 <section v-else-if="id === 'hobbies'" :data-module-id="id">
-                  <h2 class="mb-2 flex items-center gap-2 text-sm font-semibold" :style="{ color: 'var(--resume-primary)' }">
+                  <h2
+                    class="mb-2 flex items-center gap-2 text-sm font-semibold"
+                    :style="{ color: 'var(--resume-primary)' }"
+                  >
                     <span class="inline-block size-1.5 rounded-full" :style="{ background: 'var(--resume-primary)' }" />
                     {{ labelOf(id) }}
                   </h2>
                   <div class="flex flex-wrap gap-1.5">
-                    <span v-for="h in content.hobbies" :key="h" class="rounded px-2 py-1 text-xs" :class="chipClass">{{ h }}</span>
+                    <span v-for="h in content.hobbies" :key="h" class="rounded px-2 py-1 text-xs" :class="chipClass">{{
+                      h
+                    }}</span>
                   </div>
                 </section>
               </template>
@@ -296,7 +350,8 @@ function labelOf(id: string) {
 }
 
 @keyframes layout-highlight {
-  0%, 40% {
+  0%,
+  40% {
     box-shadow: 0 0 0 2px var(--resume-primary, #3ec064);
   }
   100% {

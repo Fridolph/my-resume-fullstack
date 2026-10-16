@@ -45,7 +45,9 @@ const resumes = ref<Resume[]>(RESUMES)
             <p class="text-sm font-medium text-highlighted">{{ r.name }}</p>
             <span class="text-xs text-muted">{{ r.updatedAt }}</span>
           </div>
-          <p class="mt-1 text-xs text-muted">{{ r.targetRole }} · {{ r.yearsOfExperience }} 年 · {{ r.expectedSalary }}k</p>
+          <p class="mt-1 text-xs text-muted">
+            {{ r.targetRole }} · {{ r.yearsOfExperience }} 年 · {{ r.expectedSalary }}k
+          </p>
         </div>
       </div>
     </div>

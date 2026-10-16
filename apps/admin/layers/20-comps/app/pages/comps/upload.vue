@@ -6,7 +6,7 @@ import * as z from 'zod'
 import { uploadFiles } from '~/apis/files'
 import { FileUploadError, useFileUploader } from '~/composables/useFileUploader'
 import { imageDimensionRule, isAcceptedType, validateFiles } from '~/utils/fileValidation'
-import { isAbortError } from '~/utils/request'
+import { isAbortError } from '@rs/common'
 
 definePageMeta({
   layout: 'has-sidebar',
@@ -29,13 +29,17 @@ function summarize(list: readonly UploadedFile[] | UploadedFile[]) {
 function usePreviewUrl(source: Ref<File | File[] | null | undefined>) {
   const url = ref<string>()
 
-  watch(source, (value) => {
-    if (url.value) {
-      URL.revokeObjectURL(url.value)
-    }
-    const file = Array.isArray(value) ? value[0] : value
-    url.value = file instanceof File ? URL.createObjectURL(file) : undefined
-  }, { immediate: true })
+  watch(
+    source,
+    value => {
+      if (url.value) {
+        URL.revokeObjectURL(url.value)
+      }
+      const file = Array.isArray(value) ? value[0] : value
+      url.value = file instanceof File ? URL.createObjectURL(file) : undefined
+    },
+    { immediate: true },
+  )
 
   onBeforeUnmount(() => {
     if (url.value) {
@@ -50,10 +54,10 @@ function notifyUploadError(err: unknown) {
   if (isAbortError(err)) {
     return
   }
-  const rawMsg = err instanceof FileUploadError
-    ? err.issue.messageKey
-    : (err as { data?: { msg?: string }, message?: string })?.data?.msg
-      || (err as { message?: string })?.message
+  const rawMsg =
+    err instanceof FileUploadError
+      ? err.issue.messageKey
+      : (err as { data?: { msg?: string }; message?: string })?.data?.msg || (err as { message?: string })?.message
   toast.add({
     title: 'Upload failed',
     description: typeof rawMsg === 'string' ? rawMsg : undefined,
@@ -165,14 +169,12 @@ async function uploadRaw() {
       },
     })
     toast.add({ title: 'Uploaded', description: summarize(rawResult.value), color: 'success' })
-  }
-  catch (error) {
+  } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       return
     }
     toast.add({ title: 'Upload failed', color: 'error' })
-  }
-  finally {
+  } finally {
     rawUploading.value = false
     rawController = null
   }
@@ -191,19 +193,19 @@ const formSchema = z.object({
     .custom<File>(isFile, { error: 'Avatar is required' })
     .refine(file => file.size <= MAX_IMAGE_SIZE, { error: 'Avatar must be under 2MB' })
     .refine(file => isAcceptedType(file, IMAGE_ACCEPT), { error: 'Only JPG / PNG / WebP' })
-    .refine(async (file) => {
-      const issue = await validateFiles([file], [
-        imageDimensionRule({ minWidth: 200, minHeight: 200 }),
-      ])
-      return issue == null
-    }, { error: 'Avatar must be at least 200×200' }),
+    .refine(
+      async file => {
+        const issue = await validateFiles([file], [imageDimensionRule({ minWidth: 200, minHeight: 200 })])
+        return issue == null
+      },
+      { error: 'Avatar must be at least 200×200' },
+    ),
   documents: z
     .array(z.custom<File>(isFile))
     .max(3, 'At most 3 PDFs')
-    .refine(
-      files => files.every(file => isAcceptedType(file, PDF_ACCEPT)),
-      { error: 'Attachments must be PDF' },
-    ),
+    .refine(files => files.every(file => isAcceptedType(file, PDF_ACCEPT)), {
+      error: 'Attachments must be PDF',
+    }),
 })
 
 type FormSchema = z.output<typeof formSchema>
@@ -243,11 +245,9 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
       description: summarize(formUploaded.value),
       color: 'success',
     })
-  }
-  catch {
+  } catch {
     toast.add({ title: 'Form file upload failed', color: 'error' })
-  }
-  finally {
+  } finally {
     formSubmitting.value = false
   }
 }
@@ -256,12 +256,11 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
 <template>
   <div class="content-pad max-w-4xl space-y-6">
     <div class="space-y-2">
-      <h1 class="text-xl font-semibold tracking-tight text-highlighted">
-        useFileUploader × UFileUpload
-      </h1>
+      <h1 class="text-xl font-semibold tracking-tight text-highlighted">useFileUploader × UFileUpload</h1>
       <p class="text-sm text-muted">
-        演示 UploadFiles（薄封装）、自动上传、手动上传、插槽定制、尺寸校验、独立 API，以及 UForm + Zod。
-        实际上传会请求 <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">/masterData/file/multipleUpload</code>，模板未接入后端时会失败。
+        演示 UploadFiles（薄封装）、自动上传、手动上传、插槽定制、尺寸校验、独立 API，以及 UForm + Zod。 实际上传会请求
+        <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">/masterData/file/multipleUpload</code
+        >，模板未接入后端时会失败。
       </p>
     </div>
 
@@ -276,12 +275,8 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            UploadFiles：默认入口 + 外部列表
-          </p>
-          <p class="text-sm text-muted">
-            multiple 多选追加；受 maxCount 剩余名额限制；上传中可取消
-          </p>
+          <p class="font-semibold">UploadFiles：默认入口 + 外部列表</p>
+          <p class="text-sm text-muted">multiple 多选追加；受 maxCount 剩余名额限制；上传中可取消</p>
         </div>
       </template>
 
@@ -295,7 +290,7 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
             :src="file.thumbnailFilePath || file.originalFilePath"
             :alt="file.fileName"
             class="size-full object-contain"
-          >
+          />
           <UButton
             icon="i-lucide-x"
             color="neutral"
@@ -329,12 +324,8 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            UploadFiles：default slot 完全自定义
-          </p>
-          <p class="text-sm text-muted">
-            用 open / removeAt / canAddMore / uploading 自己拼 UI（示例为 PDF 列表）
-          </p>
+          <p class="font-semibold">UploadFiles：default slot 完全自定义</p>
+          <p class="text-sm text-muted">用 open / removeAt / canAddMore / uploading 自己拼 UI（示例为 PDF 列表）</p>
         </div>
       </template>
 
@@ -380,21 +371,9 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
                 label="Add PDF"
                 @click="open()"
               />
-              <UButton
-                v-if="uploading"
-                color="neutral"
-                variant="ghost"
-                label="Cancel"
-                @click="abort()"
-              />
-              <UProgress
-                v-if="uploading"
-                :model-value="progress.percent"
-                class="w-40"
-              />
-              <p v-else-if="!canAddMore" class="text-xs text-muted">
-                Reached the limit of {{ DEMO_FILES_MAX }}
-              </p>
+              <UButton v-if="uploading" color="neutral" variant="ghost" label="Cancel" @click="abort()" />
+              <UProgress v-if="uploading" :model-value="progress.percent" class="w-40" />
+              <p v-else-if="!canAddMore" class="text-xs text-muted">Reached the limit of {{ DEMO_FILES_MAX }}</p>
             </div>
           </div>
         </template>
@@ -407,12 +386,8 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            1. 选中即上传
-          </p>
-          <p class="text-sm text-muted">
-            autoUpload，图片多选，可看进度并中途取消
-          </p>
+          <p class="font-semibold">1. 选中即上传</p>
+          <p class="text-sm text-muted">autoUpload，图片多选，可看进度并中途取消</p>
         </div>
       </template>
 
@@ -431,26 +406,18 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
           <div v-if="autoUploading" class="mt-3 flex items-center gap-3">
             <UProgress :model-value="autoProgress.percent" class="flex-1" />
             <span class="w-10 text-xs tabular-nums text-muted">{{ autoProgress.percent }}%</span>
-            <UButton size="xs" color="neutral" variant="ghost" @click="abortAuto()">
-              取消
-            </UButton>
+            <UButton size="xs" color="neutral" variant="ghost" @click="abortAuto()"> 取消 </UButton>
           </div>
         </template>
       </UFileUpload>
-      <p class="mt-3 text-xs text-muted">
-        服务端文件：{{ summarize(autoUploaded) }}
-      </p>
+      <p class="mt-3 text-xs text-muted">服务端文件：{{ summarize(autoUploaded) }}</p>
     </UCard>
 
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            2. 先选后传
-          </p>
-          <p class="text-sm text-muted">
-            PDF，用 files-bottom / actions 插槽手动触发上传
-          </p>
+          <p class="font-semibold">2. 先选后传</p>
+          <p class="text-sm text-muted">PDF，用 files-bottom / actions 插槽手动触发上传</p>
         </div>
       </template>
 
@@ -466,13 +433,7 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
         class="min-h-40 w-full"
       >
         <template #actions="{ open }">
-          <UButton
-            color="neutral"
-            variant="outline"
-            icon="i-lucide-upload"
-            label="选择文件"
-            @click="open()"
-          />
+          <UButton color="neutral" variant="outline" icon="i-lucide-upload" label="选择文件" @click="open()" />
         </template>
         <template #files-bottom="{ files, removeFile }">
           <div class="mt-3 flex flex-wrap items-center gap-2">
@@ -482,38 +443,20 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
               label="开始上传"
               @click="runUpload(uploadPdf())"
             />
-            <UButton
-              color="neutral"
-              variant="ghost"
-              :disabled="!pdfUploading"
-              label="取消"
-              @click="abortPdf()"
-            />
-            <UButton
-              v-if="files?.length"
-              color="neutral"
-              variant="outline"
-              label="清空"
-              @click="removeFile()"
-            />
+            <UButton color="neutral" variant="ghost" :disabled="!pdfUploading" label="取消" @click="abortPdf()" />
+            <UButton v-if="files?.length" color="neutral" variant="outline" label="清空" @click="removeFile()" />
           </div>
           <UProgress v-if="pdfUploading" :model-value="pdfProgress.percent" class="mt-2" />
         </template>
       </UFileUpload>
-      <p class="mt-3 text-xs text-muted">
-        服务端文件：{{ summarize(pdfUploaded) }}
-      </p>
+      <p class="mt-3 text-xs text-muted">服务端文件：{{ summarize(pdfUploaded) }}</p>
     </UCard>
 
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            3. 自定义插槽
-          </p>
-          <p class="text-sm text-muted">
-            使用默认插槽的 open / removeFile，做成头像选择
-          </p>
+          <p class="font-semibold">3. 自定义插槽</p>
+          <p class="text-sm text-muted">使用默认插槽的 open / removeFile，做成头像选择</p>
         </div>
       </template>
 
@@ -527,15 +470,19 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
           <UAvatar size="xl" :src="avatarPreview" icon="i-lucide-user" />
           <div class="space-y-2">
             <div class="flex flex-wrap gap-2">
-              <UButton color="neutral" variant="outline" :label="avatarFile ? '更换图片' : '选择图片'" @click="open()" />
-              <UButton :loading="avatarUploading" :disabled="!avatarFile" label="上传" @click="runUpload(uploadAvatar())" />
               <UButton
-                v-if="avatarFile"
-                color="error"
-                variant="link"
-                label="移除"
-                @click="removeFile()"
+                color="neutral"
+                variant="outline"
+                :label="avatarFile ? '更换图片' : '选择图片'"
+                @click="open()"
               />
+              <UButton
+                :loading="avatarUploading"
+                :disabled="!avatarFile"
+                label="上传"
+                @click="runUpload(uploadAvatar())"
+              />
+              <UButton v-if="avatarFile" color="error" variant="link" label="移除" @click="removeFile()" />
             </div>
             <p v-if="avatarFile && !Array.isArray(avatarFile)" class="text-xs text-muted">
               {{ avatarFile.name }}
@@ -543,20 +490,14 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
           </div>
         </div>
       </UFileUpload>
-      <p class="mt-3 text-xs text-muted">
-        服务端文件：{{ summarize(avatarUploaded) }}
-      </p>
+      <p class="mt-3 text-xs text-muted">服务端文件：{{ summarize(avatarUploaded) }}</p>
     </UCard>
 
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            4. 图片尺寸校验
-          </p>
-          <p class="text-sm text-muted">
-            imageDimensionRule：宽高需在 200×200 到 4096×4096 之间
-          </p>
+          <p class="font-semibold">4. 图片尺寸校验</p>
+          <p class="text-sm text-muted">imageDimensionRule：宽高需在 200×200 到 4096×4096 之间</p>
         </div>
       </template>
 
@@ -569,54 +510,35 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
         description="小于 200px 的图会被拦截；通过后自动上传"
         class="min-h-36 w-full"
       />
-      <p v-if="sizedIssue" class="mt-3 text-xs text-error">
-        {{ sizedIssue.messageKey }}（{{ sizedIssue.code }}）
-      </p>
-      <p class="mt-3 text-xs text-muted">
-        服务端文件：{{ summarize(sizedUploaded) }}
-      </p>
+      <p v-if="sizedIssue" class="mt-3 text-xs text-error">{{ sizedIssue.messageKey }}（{{ sizedIssue.code }}）</p>
+      <p class="mt-3 text-xs text-muted">服务端文件：{{ summarize(sizedUploaded) }}</p>
       <pre>{{ sizedFiles }}</pre>
     </UCard>
 
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            5. 独立调用 uploadFiles
-          </p>
-          <p class="text-sm text-muted">
-            不经过 useFileUploader 编排，直接请求（仍支持进度和取消）
-          </p>
+          <p class="font-semibold">5. 独立调用 uploadFiles</p>
+          <p class="text-sm text-muted">不经过 useFileUploader 编排，直接请求（仍支持进度和取消）</p>
         </div>
       </template>
 
       <div class="space-y-3">
-        <UFileUpload
-          v-model="rawFile"
-          accept="image/*"
-          variant="button"
-          :preview="true"
-        />
+        <UFileUpload v-model="rawFile" accept="image/*" variant="button" :preview="true" />
         <div class="flex flex-wrap gap-2">
           <UButton :loading="rawUploading" label="直接上传" @click="uploadRaw" />
           <UButton color="neutral" variant="ghost" :disabled="!rawUploading" label="取消" @click="abortRaw" />
         </div>
         <UProgress v-if="rawUploading" :model-value="rawPercent" />
-        <p class="text-xs text-muted">
-          服务端文件：{{ summarize(rawResult) }}
-        </p>
+        <p class="text-xs text-muted">服务端文件：{{ summarize(rawResult) }}</p>
       </div>
     </UCard>
 
     <UCard>
       <template #header>
         <div>
-          <p class="font-semibold">
-            6. 表单校验
-          </p>
-          <p class="text-sm text-muted">
-            UForm + Zod：标题必填，头像必选且校验类型 / 体积 / 尺寸，附件可选 PDF
-          </p>
+          <p class="font-semibold">6. 表单校验</p>
+          <p class="text-sm text-muted">UForm + Zod：标题必填，头像必选且校验类型 / 体积 / 尺寸，附件可选 PDF</p>
         </div>
       </template>
 
@@ -625,12 +547,7 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
           <UInput v-model="formState.title" placeholder="例如：产品封面" class="w-full" />
         </UFormField>
 
-        <UFormField
-          name="avatar"
-          label="头像"
-          required
-          hint="JPG / PNG / WebP，至少 200×200，最大 2MB"
-        >
+        <UFormField name="avatar" label="头像" required hint="JPG / PNG / WebP，至少 200×200，最大 2MB">
           <UFileUpload
             v-slot="{ open, removeFile }"
             v-model="formAvatar"
@@ -640,14 +557,7 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
             <div class="flex items-center gap-3">
               <UAvatar size="lg" :src="formPreview" icon="i-lucide-image" />
               <UButton color="neutral" variant="outline" :label="formAvatar ? '更换' : '上传头像'" @click="open()" />
-              <UButton
-                v-if="formAvatar"
-                color="error"
-                variant="link"
-                size="xs"
-                label="移除"
-                @click="removeFile()"
-              />
+              <UButton v-if="formAvatar" color="error" variant="link" size="xs" label="移除" @click="removeFile()" />
             </div>
           </UFileUpload>
         </UFormField>
@@ -666,15 +576,11 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
         </UFormField>
 
         <div class="flex gap-2">
-          <UButton type="submit" :loading="formSubmitting">
-            提交并上传
-          </UButton>
+          <UButton type="submit" :loading="formSubmitting"> 提交并上传 </UButton>
         </div>
       </UForm>
 
-      <p class="mt-3 text-xs text-muted">
-        服务端文件：{{ summarize(formUploaded) }}
-      </p>
+      <p class="mt-3 text-xs text-muted">服务端文件：{{ summarize(formUploaded) }}</p>
     </UCard>
   </div>
 </template>

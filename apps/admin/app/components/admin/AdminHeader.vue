@@ -1,17 +1,30 @@
 <script setup lang="ts">
-import type { AdminBreadcrumb } from "../../types/admin";
+import type { AdminBreadcrumb } from '../../types/admin'
 
+/**
+ * 后台页头（sticky）。
+ *
+ * **搜索默认不出现**：绝大多数页面没有可搜索的对象，铺一个永远没人用的输入框
+ * 只会让每个页面看起来像"没做完"。需要搜索的页面用 `definePageMeta({ headerSearch: true })`
+ * 显式打开 —— 布局会把该 meta 透传到这里（见 `layouts/has-sidebar.vue`）。
+ *
+ * ⚠️ 两处**有意移除**（若要回退，按需改回即可）：
+ * - 写死的 `AD` 头像：它替一个不存在的用户打勾，而侧栏底部已有真实用户区（`AdminUserMenu`）；
+ * - 通知铃铛：功能未实现，点了没有任何反馈，属于"假交互"。
+ *   将来接入通知时再加回来，并从 `right` 插槽之外单独配置。
+ */
 withDefaults(
   defineProps<{
-    title: string;
-    breadcrumbs?: AdminBreadcrumb[];
-    showSearch?: boolean;
+    title: string
+    breadcrumbs?: AdminBreadcrumb[]
+    /** 是否显示中间搜索框；由页面通过 `definePageMeta({ headerSearch: true })` 打开 */
+    showSearch?: boolean
   }>(),
   {
     breadcrumbs: () => [],
-    showSearch: true,
+    showSearch: false,
   },
-);
+)
 </script>
 
 <template>
@@ -39,27 +52,13 @@ withDefaults(
 
     <template #default>
       <slot name="center">
-        <UInput
-          v-if="showSearch"
-          icon="i-lucide-search"
-          placeholder="Search"
-          class="hidden w-48 md:block lg:w-64"
-        />
+        <UInput v-if="showSearch" icon="i-lucide-search" placeholder="Search" class="hidden w-48 md:block lg:w-64" />
       </slot>
     </template>
 
     <template #right>
       <slot name="actions" />
-      <UButton
-        icon="i-lucide-bell"
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        aria-label="Notifications"
-      />
-      <slot name="profile">
-        <UAvatar text="AD" size="sm" alt="Admin user" />
-      </slot>
+      <slot name="profile" />
     </template>
   </UDashboardNavbar>
 </template>

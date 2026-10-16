@@ -40,9 +40,7 @@ const bestMap = computed(() => {
   const map = new Map<number, number>()
   props.fields.forEach((field, i) => {
     if (!isRow(field) || !field.best) return
-    const vals = props.options
-      .map(o => numericValue(field, o))
-      .filter((v): v is number => v != null)
+    const vals = props.options.map(o => numericValue(field, o)).filter((v): v is number => v != null)
     if (new Set(vals).size <= 1) return
     map.set(i, field.best === 'min' ? Math.min(...vals) : Math.max(...vals))
   })
@@ -50,7 +48,12 @@ const bestMap = computed(() => {
 })
 
 /** 预计算渲染项（标题 / 数据行），避免模板里对 union 做类型收窄 */
-interface TitleEntry { kind: 'title', key: string, title: string, icon?: string }
+interface TitleEntry {
+  kind: 'title'
+  key: string
+  title: string
+  icon?: string
+}
 interface RowEntry {
   kind: 'row'
   key: string
@@ -104,8 +107,12 @@ function toNext() {
 
 // 移动端左右两份（两个下拉交叉禁用，保证不选同一份）
 const selectV = ref({ left: 0, right: 1 })
-const leftItems = computed(() => props.options.map((o, i) => ({ label: o.name, value: i, disabled: i === selectV.value.right })))
-const rightItems = computed(() => props.options.map((o, i) => ({ label: o.name, value: i, disabled: i === selectV.value.left })))
+const leftItems = computed(() =>
+  props.options.map((o, i) => ({ label: o.name, value: i, disabled: i === selectV.value.right })),
+)
+const rightItems = computed(() =>
+  props.options.map((o, i) => ({ label: o.name, value: i, disabled: i === selectV.value.left })),
+)
 
 const showOptionIndex = computed<number[]>(() => {
   if (isDesktop.value) {
@@ -123,8 +130,22 @@ const showOptionIndex = computed<number[]>(() => {
     <div class="flex flex-col gap-2">
       <!-- PC 翻页 -->
       <div v-if="isDesktop && options.length > MAX_COLS" class="flex justify-between">
-        <UButton icon="i-lucide-chevron-left" variant="ghost" color="neutral" size="sm" :disabled="range.start === 0" @click="toPrev" />
-        <UButton icon="i-lucide-chevron-right" variant="ghost" color="neutral" size="sm" :disabled="range.end >= options.length - 1" @click="toNext" />
+        <UButton
+          icon="i-lucide-chevron-left"
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          :disabled="range.start === 0"
+          @click="toPrev"
+        />
+        <UButton
+          icon="i-lucide-chevron-right"
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          :disabled="range.end >= options.length - 1"
+          @click="toNext"
+        />
       </div>
 
       <!-- 移动端选择器 -->
@@ -140,7 +161,9 @@ const showOptionIndex = computed<number[]>(() => {
           <UBadge
             variant="soft"
             :label="RESUME_STATUS_META[options[idx]!.status].label"
-            :ui="{ base: `mt-1 px-1 py-0 rounded-sm ${RESUME_STATUS_META[options[idx]!.status].class}` }"
+            :ui="{
+              base: `mt-1 px-1 py-0 rounded-sm ${RESUME_STATUS_META[options[idx]!.status].class}`,
+            }"
           />
         </div>
       </div>

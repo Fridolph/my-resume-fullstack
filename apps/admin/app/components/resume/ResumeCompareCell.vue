@@ -3,15 +3,18 @@
  * ResumeCompareCell —— 对比表格中的单个单元格（参考 greensketch OptionCompareCell）。
  * `best` 为 true 时用渐变文字 + 奖杯图标高亮。
  */
-withDefaults(defineProps<{
-  name: string
-  value: string
-  best?: boolean
-  subtext?: string
-}>(), {
-  best: false,
-  subtext: '',
-})
+withDefaults(
+  defineProps<{
+    name: string
+    value: string
+    best?: boolean
+    subtext?: string
+  }>(),
+  {
+    best: false,
+    subtext: '',
+  },
+)
 </script>
 
 <template>

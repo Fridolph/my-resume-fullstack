@@ -1,0 +1,217 @@
+<script setup lang="ts">
+/**
+ * MyDrawer —— 共享抽屉（`packages/ui`）
+ *
+ * 与 `MyModal` 共用同一套 slot 契约：
+ * `trigger` / 默认（body）/ `header` / `title` / `description` / `actions` / `close` / `footer`
+ *
+ * 约定：
+ * - 隐式关闭（点遮罩 / Esc / 滑动）与显式关闭**统一走 `close()`**，且只 emit 一次
+ *   （Reka 在关闭动画结束后还会再触发一次 `update:open(false)`，不拦截就会 emit 两次）
+ * - 面板只在 `open` 为真时渲染 → 默认不需要 `ClientOnly`，SSR 首屏不会出现浮层
+ */
+/** `inheritAttrs: false` + 显式 `v-bind="$attrs"`：属性只落到 UDrawer 一处，避免双重绑定 */
+defineOptions({ inheritAttrs: false })
+
+const props = withDefaults(
+  defineProps<{
+    title?: string
+    description?: string
+    /** 抽屉从哪一侧滑出 */
+    direction?: 'top' | 'right' | 'bottom' | 'left'
+    /** 尺寸档位：侧边抽屉=宽度，上下抽屉=高度 */
+    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
+    /** 是否允许用遮罩 / Esc / 滑动关闭 */
+    dismissible?: boolean
+    /** 底部状态文案（放在动作区左侧） */
+    footerText?: string
+    /** 是否渲染内置动作区（取消 / 确认） */
+    showActions?: boolean
+    confirmText?: string
+    cancelText?: string
+    /** 确认按钮的 loading（异步提交时用） */
+    loading?: boolean
+    /** 点确认后是否自动关闭（异步提交场景可设 false） */
+    closeOnConfirm?: boolean
+    /** 透传给底层 `UDrawer` 的 ui 覆写 */
+    ui?: Record<string, any>
+  }>(),
+  {
+    title: '',
+    description: '',
+    direction: 'right',
+    size: 'md',
+    dismissible: true,
+    footerText: '',
+    showActions: false,
+    confirmText: '确定',
+    cancelText: '取消',
+    loading: false,
+    closeOnConfirm: true,
+  },
+)
+
+const emit = defineEmits<{
+  confirm: []
+  cancel: []
+  /** 关闭（包含隐式关闭）；`confirmed` 为 true 表示"确认后关闭" */
+  close: [confirmed?: boolean]
+}>()
+
+const open = defineModel<boolean>('open', { default: false })
+
+const slots = defineSlots<{
+  trigger?: () => unknown
+  default?: (props: { close: (confirmed?: boolean) => void }) => unknown
+  header?: (props: { close: (confirmed?: boolean) => void }) => unknown
+  title?: () => unknown
+  description?: () => unknown
+  actions?: (props: { close: (confirmed?: boolean) => void }) => unknown
+  close?: () => unknown
+  footer?: (props: { close: (confirmed?: boolean) => void; confirm: () => void; cancel: () => void }) => unknown
+}>()
+
+function close(confirmed = false) {
+  if (!open.value) {
+    return
+  }
+  open.value = false
+  emit('close', confirmed)
+}
+
+function onConfirm() {
+  emit('confirm')
+  if (props.closeOnConfirm && !props.loading) {
+    close(true)
+  }
+}
+
+function onCancel() {
+  emit('cancel')
+  close(false)
+}
+
+/** Reka 在关闭动画后还会再触发一次，交给 close() 去做幂等 */
+function onUpdateOpen(value: boolean) {
+  if (value) {
+    open.value = true
+    return
+  }
+  close(false)
+}
+
+/** 侧边抽屉=宽度；上下抽屉=高度（Tailwind 类必须是字面量，所以写成映射表） */
+const SIZE_CLASS: Record<NonNullable<typeof props.size>, { side: string; top: string }> = {
+  sm: { side: 'sm:max-w-sm', top: 'max-h-[40vh]' },
+  md: { side: 'sm:max-w-md', top: 'max-h-[60vh]' },
+  lg: { side: 'sm:max-w-lg', top: 'max-h-[75vh]' },
+  xl: { side: 'sm:max-w-xl', top: 'max-h-[85vh]' },
+  '2xl': { side: 'sm:max-w-[40rem]', top: 'max-h-[92vh]' }, // 640px：设置面板这类内容用
+  full: { side: 'sm:max-w-full', top: 'max-h-[95vh]' },
+}
+
+const drawerUi = computed(() => {
+  const user = props.ui ?? {}
+  // `!`：withDefaults 已经保证有默认值，但 noUncheckedIndexedAccess 下索引仍被视为可能 undefined
+  const size = SIZE_CLASS[props.size ?? 'md']!
+  const vertical = props.direction === 'top' || props.direction === 'bottom'
+  const sizeClass = vertical ? size.top : size.side
+
+  return {
+    ...user,
+    // ⚠️ content 必须保留 Nuxt UI 默认的 `flex`（**横向**）：vaul 的 handle 靠 `my-auto`
+    // 在其中垂直居中。若改成 `flex-col`，handle 会变成普通的纵向兄弟节点并抢走一大块高度
+    // （实测把内容区顶到 y=411）—— 这就是"把手错位"。
+    // 调用方显式覆写 content（如 `w-150!`）时**不再注入尺寸档**：`max-w-*` 会压住 `w-*`
+    // （max-width 优先于 width），实测出现过 `w-150!` 被默认档 `sm:max-w-md` 压成 448px 的坑。
+    content: cn('overflow-hidden', user.content ? '' : sizeClass, user.content),
+    // container 才是 Nuxt UI 的纵向容器（默认已是 `flex flex-col`），也是它默认放滚动的地方。
+    // 我们要「头尾固定、只有中间滚」，因此在这里**关掉它的滚动**（默认的 `overflow-y-auto`
+    // 用普通类覆盖不掉，必须 important），把滚动交给内层 body 滚动区。
+    container: cn('min-h-0 !overflow-hidden', user.container),
+    handle: user.handle,
+    header: cn('shrink-0', user.header),
+    body: cn('contents', user.body),
+    footer: cn('shrink-0', user.footer),
+  }
+})
+
+/** 不允许关闭时拦掉 Esc 与遮罩点击（Reka 的事件口子） */
+const contentProps = computed(() => {
+  if (props.dismissible) {
+    return undefined
+  }
+
+  return {
+    onEscapeKeyDown: (event: Event) => event.preventDefault(),
+    onPointerDownOutside: (event: Event) => event.preventDefault(),
+  }
+})
+
+/** 转发实际存在的槽位，避免在不使用时生成空容器 */
+const FORWARD_SLOTS = ['content', 'header', 'title', 'description', 'actions', 'close'] as const
+const forwarded = computed(() => FORWARD_SLOTS.filter(name => name in slots))
+
+/**
+ * 调用方用 `#header` 自定义头部时，Nuxt UI 就不再渲染默认的标题 / 描述区，
+ * 于是 Reka 报「DialogContent requires a DialogTitle」「Missing Description」——
+ * 无障碍语义（`aria-labelledby` / `aria-describedby`）失去目标。
+ * 这里补一份**视觉隐藏**的标题与描述；视觉上的标题仍在调用方的 `#header` 里。
+ */
+const needsHiddenTitle = computed(() => Boolean(props.title) && 'header' in slots && !('title' in slots))
+const needsHiddenDescription = computed(
+  () => Boolean(props.description) && 'header' in slots && !('description' in slots),
+)
+</script>
+
+<template>
+  <UDrawer
+    v-bind="$attrs"
+    :ui="drawerUi"
+    :open="open"
+    :title="title"
+    :description="description"
+    :direction="direction"
+    :content="contentProps"
+    :should-scale-background="false"
+    :set-background-color-on-scale="false"
+    @update:open="onUpdateOpen"
+  >
+    <slot name="trigger" />
+
+    <!--
+      批量转发自己声明的 slot。`as any` 是有意的：6 个 slot 的参数类型各不相同
+      （`footer` 要 close/confirm/cancel，`content` 不要），而这里是**透传** ——
+      运行时由内层组件的 slot 决定，类型系统表达不了"对每个 slot 都成立"。
+      断言只在这一处；`defineSlots` 的声明保持精确，使用方仍有提示。
+    -->
+    <template v-for="name in forwarded" :key="name" #[name]="slotProps">
+      <slot :name="name as keyof typeof slots" v-bind="{ ...slotProps, close } as any" />
+    </template>
+
+    <template v-if="needsHiddenTitle" #title>
+      <span class="sr-only">{{ title }}</span>
+    </template>
+
+    <template v-if="needsHiddenDescription" #description>
+      <span class="sr-only">{{ description }}</span>
+    </template>
+
+    <template #body>
+      <div class="min-h-0 flex-1 overflow-y-auto">
+        <slot :close="close" />
+      </div>
+    </template>
+
+    <template #footer>
+      <slot v-if="slots.footer" name="footer" :close="close" :confirm="onConfirm" :cancel="onCancel" />
+      <div v-else-if="showActions" class="flex w-full items-center justify-between gap-2">
+        <span class="text-muted text-xs">{{ footerText }}</span>
+        <div class="flex gap-2">
+          <UButton color="neutral" variant="ghost" :label="cancelText" @click="onCancel" />
+          <UButton :label="confirmText" :loading="loading" @click="onConfirm" />
+        </div>
+      </div>
+    </template>
+  </UDrawer>
+</template>

@@ -1,0 +1,294 @@
+/*
+ * 简历展示域样式（layers/11-public-resume）
+ *
+ * 目的：把「重复的单位属性」收在这里，组件模板只写语义类；
+ * Tailwind 类则回归本职 —— 布局与灵活调整。
+ * 详见 docs/dev/css-conventions.md（通用约定）与 docs/dev/resume-styles.md（风格维度）。
+ *
+ * 变量分两组，**默认值在此集中声明**，组件里不再写 `var(--resume-x, fallback)`：
+ * - 主题（颜色）：页面按 `config.theme` 注入到 `<body>`
+ * - 风格（外观参数）：页面按 `config.style` 注入到 `<body>`
+ *
+ * 注入到 `<body>` 而不是内容容器，是为了让 teleport 到 body 的弹窗 / 抽屉
+ * （`UModal` / `UDrawer`）也能解析到这些变量，从而跟随简历主题色。
+ */
+
+:root {
+  /* ── 主题（颜色）默认值：与 resumeThemePresets[0]「简约白」一致 ── */
+  --resume-primary: #1578d0;
+  --resume-gradient-from: #1578d0;
+  --resume-gradient-to: #3ec064;
+  --resume-surface: #ffffff;
+  --resume-border: #e2e8f0;
+  --resume-text: #0f172a;
+  --resume-muted: #64748b;
+  --resume-chip-bg: #f1f5f9;
+  --resume-chip-text: #334155;
+
+  /* 页面底色：旧站（my-resume）式渐变，颜色由 primary / surface 派生，随主题变化 */
+  --resume-page:
+    radial-gradient(circle at top, color-mix(in srgb, var(--resume-primary) 14%, transparent), transparent 24%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--resume-primary) 3%, #f7f9fe) 0%,
+      color-mix(in srgb, var(--resume-primary) 6%, #eef3fb) 100%
+    );
+
+  /* ── 风格（外观参数）默认值：minimal ── */
+  --resume-card-radius: 1rem;
+  --resume-card-padding: 1.25rem;
+  --resume-card-bg: var(--resume-surface);
+  --resume-card-shadow: none;
+  --resume-card-shadow-hover: none;
+  --resume-title-size: 0.875rem;
+}
+
+@layer components {
+  /* ── 文字色：替代组件里大量 `:style="{ color: 'var(--resume-…)' }"` ── */
+  .resume-text {
+    color: var(--resume-text);
+  }
+
+  .resume-muted {
+    color: var(--resume-muted);
+  }
+
+  .resume-accent {
+    color: var(--resume-primary);
+  }
+
+  /* ── 卡片外壳：区块外壳与 hero 共用 ── */
+  .resume-card {
+    border: 1px solid var(--resume-border);
+    border-radius: var(--resume-card-radius);
+    padding: var(--resume-card-padding);
+    background: var(--resume-card-bg);
+    box-shadow: var(--resume-card-shadow);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.24s ease,
+      border-color 0.2s ease;
+  }
+
+  /* hover 动效只给 standard，且只在真有 hover 能力的设备上启用 */
+  @media (hover: hover) {
+    .resume-card[data-style='standard']:hover,
+    .resume-card[data-style='pro']:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--resume-primary) 45%, transparent);
+      box-shadow: var(--resume-card-shadow-hover);
+    }
+  }
+
+  /* ── 区块小标题：与旧站 `.web-eyebrow` 一致 ── */
+  .resume-eyebrow {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--resume-muted);
+  }
+
+  /* ── 设置面板 / 抽屉里的字段标签 ── */
+  .resume-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--resume-muted);
+  }
+
+  /* ── 区块标题字号（由风格变量决定） ── */
+  .resume-title {
+    font-size: var(--resume-title-size);
+  }
+
+  /* ── 标签胶囊：技术栈 / 技能 / 兴趣 ── */
+  .resume-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.375rem;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    background: var(--resume-chip-bg);
+    color: var(--resume-chip-text);
+  }
+
+  /* ── 按钮 / 徽标组：替代重复的 `flex flex-wrap gap-2` ── */
+  .resume-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* ── pro（精致）通用零件 ────────────────────────────────
+   * 这些零件会在 hero 与多个区块的 pro 版里复用，所以放这里而不是组件 scoped：
+   * 组件 scoped 只留「该区块独有」的样式。（从 hero 上提，见 DAO-015）
+   */
+  .resume-pro-block {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .resume-pro-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    border: 1px solid var(--resume-border);
+    border-radius: calc(var(--resume-card-radius) * 0.5);
+    padding: 0.4rem 0.6rem;
+  }
+
+  .resume-pro-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid var(--resume-border);
+    border-radius: 9999px;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--resume-text);
+  }
+
+  /* 数字块：hero 的数字、项目的指标、经历的量级都能用 */
+  .resume-pro-stats {
+    display: grid;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--resume-border);
+  }
+
+  .resume-pro-stat {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 0 0.5rem;
+  }
+
+  .resume-pro-stat-label {
+    font-size: 0.7rem;
+    color: var(--resume-muted);
+  }
+
+  .resume-pro-stat-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--resume-primary);
+  }
+
+  .resume-pro-stat-hint {
+    grid-column: 2;
+    font-size: 0.7rem;
+    line-height: 1.4;
+    color: var(--resume-muted);
+  }
+
+  /* ── 编辑态：工具按钮（上移 / 下移 / 编辑 / 拖拽 / 隐藏） ── */
+  .resume-tool-btn {
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid var(--resume-border);
+    border-radius: 0.375rem;
+    padding: 0.25rem;
+    background: var(--resume-surface);
+    color: var(--resume-muted);
+    transition:
+      border-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  @media (hover: hover) {
+    .resume-tool-btn:hover:not(:disabled) {
+      border-color: color-mix(in srgb, var(--resume-primary) 50%, transparent);
+      color: var(--resume-primary);
+    }
+  }
+
+  .resume-tool-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .resume-tool-btn[data-drag-handle] {
+    cursor: grab;
+  }
+
+  .resume-tool-btn[data-drag-handle]:active {
+    cursor: grabbing;
+  }
+
+  /* ── 拖拽进行中：给所有可落区域描边，空落点显形 ── */
+  [data-dragging='true'] .resume-drop-zone,
+  [data-dragging='true'] .resume-tray {
+    outline: 1px dashed color-mix(in srgb, var(--resume-primary) 45%, transparent);
+    outline-offset: 6px;
+    border-radius: 0.75rem;
+  }
+
+  [data-dragging='true'] .resume-empty-slot {
+    opacity: 1;
+    border-color: color-mix(in srgb, var(--resume-primary) 45%, transparent);
+  }
+
+  /* ── 空落点（空栏 / 空托盘） ── */
+  .resume-empty-slot {
+    display: grid;
+    place-items: center;
+    min-height: 9rem;
+    border: 1px dashed var(--resume-border);
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--resume-muted);
+    opacity: 0.6;
+    transition:
+      opacity 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  /* ── 未使用模块托盘 ── */
+  .resume-tray {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    background: color-mix(in srgb, var(--resume-surface) 65%, transparent);
+  }
+
+  .resume-tray-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--resume-border);
+    border-radius: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--resume-surface);
+    color: var(--resume-text);
+    font-size: 0.75rem;
+  }
+
+  /* ── sortablejs 的拖拽态 ── */
+  .resume-drag-ghost {
+    opacity: 0.4;
+  }
+
+  .resume-drag-chosen {
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--resume-primary) 18%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .resume-card {
+      transition: none;
+    }
+
+    .resume-card[data-style='standard']:hover,
+    .resume-card[data-style='pro']:hover {
+      transform: none;
+    }
+  }
+}

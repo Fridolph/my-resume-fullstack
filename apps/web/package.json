@@ -1,5 +1,5 @@
 {
-  "name": "@template/web",
+  "name": "@rs/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,13 +12,25 @@
     "lint": "nuxt typecheck"
   },
   "dependencies": {
-    "@nuxt/ui": "^4.2.1",
+    "@nuxt/ui": "^4.3.0",
+    "@pinia/colada": "^1.4.7",
+    "@pinia/colada-nuxt": "^1.2.0",
+    "@pinia/nuxt": "^1.0.2",
+    "@rs/common": "workspace:*",
+    "@tiptap/core": "^3.0.0",
+    "@tiptap/html": "^3.0.0",
+    "@tiptap/pm": "^3.0.0",
+    "@tiptap/starter-kit": "^3.0.0",
+    "@tiptap/vue-3": "^3.0.0",
     "nuxt": "^4.2.2",
+    "sortablejs": "^1.15.7",
     "vue": "^3.5.22"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.74",
+    "@iconify-json/ri": "^1.2.10",
     "@tailwindcss/vite": "^4.1.18",
+    "@types/sortablejs": "^1.15.9",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.1.5"

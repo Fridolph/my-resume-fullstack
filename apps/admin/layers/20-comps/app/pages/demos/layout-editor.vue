@@ -47,11 +47,19 @@ const previewRef = useTemplateRef<HTMLElement>('previewRef')
 
 function handleSave() {
   saveLayout()
-  toast.add({ title: '已保存', description: '布局配置已应用（localStorage 模拟后端）', color: 'success' })
+  toast.add({
+    title: '已保存',
+    description: '布局配置已应用（localStorage 模拟后端）',
+    color: 'success',
+  })
 }
 
 function handleAction(key: string) {
-  toast.add({ title: '配置入口', description: `模块 ${key} 的配置面板（demo 占位）`, color: 'neutral' })
+  toast.add({
+    title: '配置入口',
+    description: `模块 ${key} 的配置面板（demo 占位）`,
+    color: 'neutral',
+  })
 }
 
 function scrollToModule(id: string) {
@@ -150,7 +158,9 @@ const themeVars = computed(() => ({
                   </div>
                   <div
                     class="flex size-12 items-center justify-center rounded-full text-lg font-bold text-white"
-                    :style="{ background: `linear-gradient(135deg, var(--resume-gradient-from), var(--resume-gradient-to))` }"
+                    :style="{
+                      background: `linear-gradient(135deg, var(--resume-gradient-from), var(--resume-gradient-to))`,
+                    }"
                   >
                     张
                   </div>
@@ -192,7 +202,8 @@ const themeVars = computed(() => ({
 }
 
 @keyframes layout-highlight {
-  0%, 40% {
+  0%,
+  40% {
     box-shadow: 0 0 0 2px var(--resume-primary, #3ec064);
   }
   100% {

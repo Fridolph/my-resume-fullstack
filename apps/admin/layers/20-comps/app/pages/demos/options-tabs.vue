@@ -98,10 +98,15 @@ const salaryItems = [
               <UBadge
                 variant="soft"
                 :label="RESUME_STATUS_META[activeResume.status].label"
-                :ui="{ base: `px-1 py-0 rounded-sm ${RESUME_STATUS_META[activeResume.status].class}` }"
+                :ui="{
+                  base: `px-1 py-0 rounded-sm ${RESUME_STATUS_META[activeResume.status].class}`,
+                }"
               />
             </div>
-            <p class="mt-1 text-sm text-muted">{{ activeResume.targetRole }} · {{ activeResume.location }} · {{ activeResume.updatedAt }}</p>
+            <p class="mt-1 text-sm text-muted">
+              {{ activeResume.targetRole }} · {{ activeResume.location }} ·
+              {{ activeResume.updatedAt }}
+            </p>
           </div>
           <UButton icon="i-lucide-pencil" size="sm" label="编辑" @click="openEdit" />
         </div>
@@ -109,12 +114,16 @@ const salaryItems = [
         <p class="mt-4 text-sm leading-6 text-muted">{{ activeResume.summary }}</p>
 
         <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div v-for="item in [
-            { label: '工作年限', value: `${activeResume.yearsOfExperience} 年` },
-            { label: '期望薪资', value: `${activeResume.expectedSalary}k` },
-            { label: '技能', value: `${activeResume.skillsCount} 项` },
-            { label: '项目', value: `${activeResume.projectsCount} 个` },
-          ]" :key="item.label" class="rounded-lg border border-default p-3">
+          <div
+            v-for="item in [
+              { label: '工作年限', value: `${activeResume.yearsOfExperience} 年` },
+              { label: '期望薪资', value: `${activeResume.expectedSalary}k` },
+              { label: '技能', value: `${activeResume.skillsCount} 项` },
+              { label: '项目', value: `${activeResume.projectsCount} 个` },
+            ]"
+            :key="item.label"
+            class="rounded-lg border border-default p-3"
+          >
             <p class="text-xs text-muted">{{ item.label }}</p>
             <p class="mt-1 text-lg font-semibold text-highlighted">{{ item.value }}</p>
           </div>
@@ -127,12 +136,7 @@ const salaryItems = [
   <ResumeCompareModal v-model:open="compareOpen" :options="resumes" :fields="RESUME_COMPARE_FIELDS" />
 
   <!-- 编辑抽屉 -->
-  <UDrawer
-    v-model:open="editOpen"
-    title="编辑简历"
-    description="改完点 Save 生效"
-    :ui="{ content: 'max-w-md w-full' }"
-  >
+  <UDrawer v-model:open="editOpen" title="编辑简历" description="改完点 Save 生效" :ui="{ content: 'max-w-md w-full' }">
     <template #body>
       <UForm v-if="draft" ref="formRef" :schema="schema" :state="draft" class="space-y-4" @submit="onSubmit">
         <UFormField name="name" label="版本名称" required>

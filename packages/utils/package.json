@@ -1,0 +1,77 @@
+{
+  "name": "@rs/utils",
+  "version": "0.1.0",
+  "private": true,
+  "description": "跨端共享的纯工具函数（不依赖 Vue；带第三方依赖的工具库集中在此）",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./company-validation": {
+      "types": "./dist/company-validation.d.ts",
+      "import": "./dist/company-validation.js",
+      "default": "./dist/company-validation.js"
+    },
+    "./design-console": {
+      "types": "./dist/design-console.d.ts",
+      "import": "./dist/design-console.js",
+      "default": "./dist/design-console.js"
+    },
+    "./error-handler": {
+      "types": "./dist/error-handler.d.ts",
+      "import": "./dist/error-handler.js",
+      "default": "./dist/error-handler.js"
+    },
+    "./fileValidation": {
+      "types": "./dist/fileValidation.d.ts",
+      "import": "./dist/fileValidation.js",
+      "default": "./dist/fileValidation.js"
+    },
+    "./number": {
+      "types": "./dist/number.d.ts",
+      "import": "./dist/number.js",
+      "default": "./dist/number.js"
+    },
+    "./pdf": {
+      "types": "./dist/pdf.d.ts",
+      "import": "./dist/pdf.js",
+      "default": "./dist/pdf.js"
+    },
+    "./phoneMetaData": {
+      "types": "./dist/phoneMetaData.d.ts",
+      "import": "./dist/phoneMetaData.js",
+      "default": "./dist/phoneMetaData.js"
+    },
+    "./zodFunc": {
+      "types": "./dist/zodFunc.d.ts",
+      "import": "./dist/zodFunc.js",
+      "default": "./dist/zodFunc.js"
+    },
+    "./file-upload": {
+      "types": "./dist/file-upload.d.ts",
+      "import": "./dist/file-upload.js",
+      "default": "./dist/file-upload.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests=false"
+  },
+  "dependencies": {
+    "a-calc": "^3.0.2",
+    "libphonenumber-js": "^1.13.14",
+    "radashi": "^12.9.6",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
+}

@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import { moveArrayElement, useSortable } from '@vueuse/integrations/useSortable'
+
+/**
+ * 拖拽事件类型。
+ *
+ * 从 `moveArrayElement` 的参数推导，而不是直接 `import type ... from 'sortablejs'`：
+ * app 没有声明 `@types/sortablejs`，直接 import 会报 TS7016；
+ * 走 vueuse 的声明则能解析到提升目录里的类型。
+ */
+type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>
 import type { ResumeSection } from '~/composables/useResumeLayout'
 
 /**
@@ -54,8 +63,8 @@ const { start } = useSortable(listRef, order, {
   fallbackOnBody: true,
   fallbackTolerance: 3,
   filter: 'input, textarea, select, option',
-  onUpdate: (e: { oldIndex: number, newIndex: number }) => {
-    moveArrayElement(order, e.oldIndex, e.newIndex, e)
+  onUpdate: (e: SortableEvent) => {
+    moveArrayElement(order, e.oldIndex ?? 0, e.newIndex ?? 0, e)
     ensureFirstLocked()
   },
 } as any)
@@ -66,10 +75,13 @@ onMounted(async () => {
 })
 
 const sectionMap = computed<Record<string, ResumeSection>>(() =>
-  props.sections.reduce((acc, s) => {
-    acc[s.id] = s
-    return acc
-  }, {} as Record<string, ResumeSection>),
+  props.sections.reduce(
+    (acc, s) => {
+      acc[s.id] = s
+      return acc
+    },
+    {} as Record<string, ResumeSection>,
+  ),
 )
 
 function moduleVisible(id: string) {
@@ -110,20 +122,13 @@ function onScrollTo(id: string) {
             @click.self="onScrollTo(moduleId)"
           >
             <!-- 锁定：不可拖 -->
-            <UIcon
-              v-if="sectionMap[moduleId]?.locked"
-              name="i-lucide-lock"
-              class="size-4 shrink-0 text-muted"
-            />
+            <UIcon v-if="sectionMap[moduleId]?.locked" name="i-lucide-lock" class="size-4 shrink-0 text-muted" />
             <!-- 可拖：把手 -->
             <span v-else class="layout-drag-handle" aria-hidden="true">
               <UIcon name="i-lucide-grip-vertical" class="size-4" />
             </span>
 
-            <span
-              class="min-w-0 flex-1 cursor-pointer truncate text-sm"
-              @click="onScrollTo(moduleId)"
-            >
+            <span class="min-w-0 flex-1 cursor-pointer truncate text-sm" @click="onScrollTo(moduleId)">
               {{ sectionMap[moduleId]?.label ?? moduleId }}
             </span>
 
@@ -158,10 +163,7 @@ function onScrollTo(id: string) {
         </div>
       </div>
 
-      <div
-        v-if="isDirty"
-        class="flex shrink-0 items-center gap-2 border-t border-default bg-default px-4 py-3"
-      >
+      <div v-if="isDirty" class="flex shrink-0 items-center gap-2 border-t border-default bg-default px-4 py-3">
         <UButton label="取消" color="neutral" variant="outline" size="sm" class="flex-1" @click="emit('reset')" />
         <UButton label="保存" size="sm" class="flex-1" @click="emit('save')" />
       </div>

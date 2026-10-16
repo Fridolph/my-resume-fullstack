@@ -53,7 +53,7 @@ async function uploadPdf(files: File[] | null | undefined) {
   }
 
   emit('uploadStart')
-  const res = await handleFileSelect(files, async (formData) => {
+  const res = await handleFileSelect(files, async formData => {
     return FileApi.uploadFile(formData, { contentType: 2 })
   })
 
@@ -95,11 +95,7 @@ const canAddMore = computed(() => !props.disabled && documents.value.length < (p
             class="cursor-pointer text-lg text-primary"
             @click="delDocument(doc)"
           />
-          <UIcon
-            name="i-lucide-download"
-            class="cursor-pointer text-lg text-primary"
-            @click="downloadDocument(doc)"
-          />
+          <UIcon name="i-lucide-download" class="cursor-pointer text-lg text-primary" @click="downloadDocument(doc)" />
         </div>
       </div>
     </div>
@@ -124,20 +120,21 @@ const canAddMore = computed(() => !props.disabled && documents.value.length < (p
         @update:model-value="uploadPdf"
       >
         <template #default="{ open }">
-          <div v-if="isLoading" class="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center text-primary">
+          <div
+            v-if="isLoading"
+            class="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center text-primary"
+          >
             <UIcon name="i-lucide-loader-circle" class="size-8 animate-spin" />
-            <div class="text-sm">
-              Loading...
-            </div>
+            <div class="text-sm">Loading...</div>
           </div>
-          <div v-else class="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-1 text-center text-primary" @click="open()">
+          <div
+            v-else
+            class="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-1 text-center text-primary"
+            @click="open()"
+          >
             <UIcon name="i-lucide-upload" class="text-2xl text-primary" size="2rem" />
-            <div class="text-sm text-primary">
-              Upload PDF
-            </div>
-            <div class="text-xs leading-normal text-gray-400">
-              PDF only, max 50MB
-            </div>
+            <div class="text-sm text-primary">Upload PDF</div>
+            <div class="text-xs leading-normal text-gray-400">PDF only, max 50MB</div>
           </div>
         </template>
       </UFileUpload>
@@ -147,7 +144,7 @@ const canAddMore = computed(() => !props.disabled && documents.value.length < (p
 
 <style scoped lang="css">
 .add-card {
-  &[disabled="true"] {
+  &[disabled='true'] {
     opacity: 0.8;
     pointer-events: none;
   }

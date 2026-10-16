@@ -4,14 +4,14 @@ import type { UploadedFile } from '~/types/file'
 import type { ImageDimensionOptions } from '~/utils/fileValidation'
 import { useFileDialog } from '@vueuse/core'
 import { FileUploadError, useFileUploader } from '~/composables/useFileUploader'
-import { isAbortError } from '~/utils/request'
+import { isAbortError } from '@rs/common'
 
 type FileUploadUi = NonNullable<FileUploadProps['ui']>
 
 export interface UploadFilesSlotProps {
   files: UploadedFile[]
   uploading: boolean
-  progress: { loaded: number, total: number, percent: number }
+  progress: { loaded: number; total: number; percent: number }
   canAddMore: boolean
   /** 本次还能再选几个；无 maxCount 时为 Infinity */
   remaining: number
@@ -73,16 +73,9 @@ const {
 
 defineSlots<{
   default?: (props: UploadFilesSlotProps) => any
-  leading?: (props: {
-    uploading: boolean
-    progress: UploadFilesSlotProps['progress']
-  }) => any
+  leading?: (props: { uploading: boolean; progress: UploadFilesSlotProps['progress'] }) => any
   /** 默认入口上传中的取消区；不传且 showAbort 时用内置按钮 */
-  abort?: (props: {
-    abort: () => void
-    uploading: boolean
-    progress: UploadFilesSlotProps['progress']
-  }) => any
+  abort?: (props: { abort: () => void; uploading: boolean; progress: UploadFilesSlotProps['progress'] }) => any
 }>()
 
 const model = defineModel<UploadedFile[] | null>({ default: () => [] })
@@ -105,7 +98,12 @@ const acceptAttr = computed(() => {
   if (accept == null) {
     return '*'
   }
-  const list = Array.isArray(accept) ? accept : accept.split(',').map(s => s.trim()).filter(Boolean)
+  const list = Array.isArray(accept)
+    ? accept
+    : accept
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
   const mime = list.filter(item => item.includes('/'))
   return (mime.length ? mime : list).join(',') || '*'
 })
@@ -125,10 +123,10 @@ function notifyError(err: unknown) {
   if (isAbortError(err)) {
     return
   }
-  const rawMsg = err instanceof FileUploadError
-    ? err.issue.messageKey
-    : (err as { data?: { msg?: string }, message?: string })?.data?.msg
-      || (err as { message?: string })?.message
+  const rawMsg =
+    err instanceof FileUploadError
+      ? err.issue.messageKey
+      : (err as { data?: { msg?: string }; message?: string })?.data?.msg || (err as { message?: string })?.message
   toast.add({
     title: 'Upload failed',
     description: typeof rawMsg === 'string' ? rawMsg : undefined,
@@ -154,9 +152,7 @@ const {
 } = useFileUploader({
   ...(accept != null ? { accept: (() => accept) as () => string | string[] } : {}),
   ...(maxFileSize != null ? { maxFileSize: () => maxFileSize } : {}),
-  ...(typeof maxCount === 'number'
-    ? { maxCount: () => Math.max(0, maxCount - files.value.length) }
-    : {}),
+  ...(typeof maxCount === 'number' ? { maxCount: () => Math.max(0, maxCount - files.value.length) } : {}),
   imageSize: () => imageSize,
   contentType: () => contentType,
   autoUpload: true,
@@ -180,7 +176,7 @@ const {
   reset: true,
 })
 
-onDialogChange((selected) => {
+onDialogChange(selected => {
   if (!selected?.length || !canAddMore.value || uploading.value) {
     resetDialog()
     return
@@ -267,18 +263,10 @@ defineExpose({
 
 <template>
   <!-- 达上限且无 default slot / 非上传中时不渲染，避免 grid 里留下空格子 -->
-  <div
-    v-if="slots.default || canAddMore || uploading"
-    class="upload-files"
-    data-slot="root"
-    :class="className"
-  >
+  <div v-if="slots.default || canAddMore || uploading" class="upload-files" data-slot="root" :class="className">
     <slot v-if="slots.default" v-bind="slotProps" />
 
-    <div
-      v-else
-      class="relative size-full"
-    >
+    <div v-else class="relative size-full">
       <UFileUpload
         v-model="pickerFiles"
         :accept="acceptAttr"
@@ -298,7 +286,7 @@ defineExpose({
           <slot name="leading" :uploading :progress>
             <UAvatar
               v-if="icon !== false"
-              :icon="uploading ? 'i-lucide-loader-circle' : (typeof icon === 'string' ? icon : undefined)"
+              :icon="uploading ? 'i-lucide-loader-circle' : typeof icon === 'string' ? icon : undefined"
               :size
               :color
               data-slot="avatar"
@@ -307,10 +295,7 @@ defineExpose({
         </template>
       </UFileUpload>
 
-      <div
-        v-if="uploading && (showAbort || !!slots.abort)"
-        class="absolute inset-x-2 bottom-2 z-10"
-      >
+      <div v-if="uploading && (showAbort || !!slots.abort)" class="absolute inset-x-2 bottom-2 z-10">
         <slot name="abort" :abort="cancelUpload" :uploading :progress>
           <UButton
             size="xs"

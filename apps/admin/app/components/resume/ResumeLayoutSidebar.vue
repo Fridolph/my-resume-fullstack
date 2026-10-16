@@ -14,18 +14,21 @@ export interface SidebarPanel {
   activeIcon?: string
 }
 
-const props = withDefaults(defineProps<{
-  panels: SidebarPanel[]
-  collapseBelow?: number
-  minWidth?: number
-  maxWidth?: number
-  defaultWidth?: number
-}>(), {
-  collapseBelow: undefined,
-  minWidth: 240,
-  maxWidth: 480,
-  defaultWidth: 320,
-})
+const props = withDefaults(
+  defineProps<{
+    panels: SidebarPanel[]
+    collapseBelow?: number
+    minWidth?: number
+    maxWidth?: number
+    defaultWidth?: number
+  }>(),
+  {
+    collapseBelow: undefined,
+    minWidth: 240,
+    maxWidth: 480,
+    defaultWidth: 320,
+  },
+)
 
 const emit = defineEmits<{
   'panel-state-change': [expanded: boolean]
@@ -37,7 +40,7 @@ const lastPanelId = ref<string | null>(null)
 
 function initPanelState() {
   const defaultId = props.panels[0]?.id ?? null
-  activePanelId.value = (props.collapseBelow && window.innerWidth < props.collapseBelow) ? null : defaultId
+  activePanelId.value = props.collapseBelow && window.innerWidth < props.collapseBelow ? null : defaultId
 }
 
 const debouncedCheckCollapse = useDebounceFn(() => {
@@ -75,8 +78,7 @@ function toggle() {
   if (activePanelId.value) {
     lastPanelId.value = activePanelId.value
     activePanelId.value = null
-  }
-  else {
+  } else {
     activePanelId.value = lastPanelId.value ?? props.panels[0]?.id ?? null
   }
 }
@@ -132,7 +134,7 @@ defineExpose({ toggle, collapse, open })
       <UButton
         v-for="panel in panels"
         :key="panel.id"
-        :icon="(activePanelId === panel.id && panel.activeIcon) ? panel.activeIcon : panel.icon"
+        :icon="activePanelId === panel.id && panel.activeIcon ? panel.activeIcon : panel.icon"
         variant="ghost"
         :color="activePanelId === panel.id ? 'primary' : 'neutral'"
         size="sm"

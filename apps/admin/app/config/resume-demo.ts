@@ -26,7 +26,7 @@ export interface Resume {
 
 /** 对比弹窗的字段配置：section（分组标题）或 row（数据行） */
 export type ResumeCompareField =
-  | { title: string, icon?: string }
+  | { title: string; icon?: string }
   | {
       name: string | ((opt: Resume) => string)
       key?: string
@@ -121,7 +121,7 @@ export const RESUMES: Resume[] = [
 ]
 
 /** 状态 → 徽标样式（label + 颜色 class），供 tab 与对比弹窗复用 */
-export const RESUME_STATUS_META: Record<Resume['status'], { label: string, class: string }> = {
+export const RESUME_STATUS_META: Record<Resume['status'], { label: string; class: string }> = {
   draft: { label: '草稿', class: 'bg-neutral-100 text-neutral-600' },
   final: { label: '定稿', class: 'bg-emerald-100 text-emerald-700' },
   archived: { label: '归档', class: 'bg-orange-100 text-orange-700' },
@@ -134,7 +134,12 @@ export const RESUME_COMPARE_FIELDS: ResumeCompareField[] = [
   { title: '求职定位', icon: 'i-lucide-crosshair' },
   { name: '目标岗位', key: 'targetRole' },
   { name: '工作年限', value: o => `${o.yearsOfExperience} 年`, best: 'max' },
-  { name: '期望薪资', value: o => money(o.expectedSalary), best: 'min', subtext: () => '按年包口径' },
+  {
+    name: '期望薪资',
+    value: o => money(o.expectedSalary),
+    best: 'min',
+    subtext: () => '按年包口径',
+  },
   { name: '期望城市', key: 'location' },
 
   { title: '能力画像', icon: 'i-lucide-badge-check' },

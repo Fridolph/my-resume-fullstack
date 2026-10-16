@@ -23,9 +23,7 @@ const emit = defineEmits<{
   'update:gradientToColor': [value: string]
 }>()
 
-const colors = [
-  '#3ec064', '#1578d0', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444', '#111827',
-]
+const colors = ['#3ec064', '#1578d0', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444', '#111827']
 </script>
 
 <template>
@@ -44,12 +42,16 @@ const colors = [
             :key="preset.id"
             type="button"
             class="flex flex-col gap-1.5 rounded-lg border p-2 text-left transition"
-            :class="themeId === preset.id ? 'border-primary ring-1 ring-primary' : 'border-default hover:border-accented'"
+            :class="
+              themeId === preset.id ? 'border-primary ring-1 ring-primary' : 'border-default hover:border-accented'
+            "
             @click="emit('apply-theme', preset.id)"
           >
             <span
               class="flex h-8 w-full items-end justify-between rounded-md p-1.5"
-              :style="{ background: `linear-gradient(135deg, ${preset.gradientFrom}, ${preset.gradientTo})` }"
+              :style="{
+                background: `linear-gradient(135deg, ${preset.gradientFrom}, ${preset.gradientTo})`,
+              }"
             >
               <span class="size-2 rounded-full" :style="{ background: preset.themeColor }" />
               <span class="text-[10px] text-white/90">{{ preset.dark ? '深' : '浅' }}</span>
@@ -79,7 +81,7 @@ const colors = [
               :checked="themeColor === c"
               class="sr-only"
               @change="emit('update:themeColor', c)"
-            >
+            />
           </label>
           <label class="relative size-7 cursor-pointer overflow-hidden rounded-full border border-default">
             <input
@@ -87,11 +89,13 @@ const colors = [
               type="color"
               class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
               @input="emit('update:themeColor', ($event.target as HTMLInputElement).value)"
-            >
+            />
             <span class="block size-full" :style="{ background: themeColor }" />
           </label>
         </div>
-        <p class="mt-2 text-xs text-muted">当前：<code>{{ themeColor }}</code></p>
+        <p class="mt-2 text-xs text-muted">
+          当前：<code>{{ themeColor }}</code>
+        </p>
       </div>
 
       <!-- 渐变 -->
@@ -105,7 +109,7 @@ const colors = [
               type="color"
               class="h-9 w-full cursor-pointer rounded border border-default bg-default"
               @input="emit('update:gradientFromColor', ($event.target as HTMLInputElement).value)"
-            >
+            />
           </div>
           <div>
             <p class="mb-1 text-xs text-muted">结束色</p>
@@ -114,7 +118,7 @@ const colors = [
               type="color"
               class="h-9 w-full cursor-pointer rounded border border-default bg-default"
               @input="emit('update:gradientToColor', ($event.target as HTMLInputElement).value)"
-            >
+            />
           </div>
         </div>
         <div

@@ -42,7 +42,7 @@ export interface ResumeContent {
   education: ResumeEducation[]
   skills: string[]
   certificates: string[]
-  languages: { lang: string, level: string }[]
+  languages: { lang: string; level: string }[]
   hobbies: string[]
 }
 
@@ -55,7 +55,8 @@ export const RESUME_CONTENT: ResumeContent = {
   location: '杭州',
   age: 30,
   website: 'https://zhangsan.dev',
-  summary: '5 年前端开发经验，专注 Vue/Nuxt 与前端工程化，主导过组件库、低代码表单与多页文档（提案/简历）导出等方向；注重代码质量与可维护性，擅长把复杂业务拆成可复用、可配置的模块。',
+  summary:
+    '5 年前端开发经验，专注 Vue/Nuxt 与前端工程化，主导过组件库、低代码表单与多页文档（提案/简历）导出等方向；注重代码质量与可维护性，擅长把复杂业务拆成可复用、可配置的模块。',
   experience: [
     {
       company: '某互联网大厂',

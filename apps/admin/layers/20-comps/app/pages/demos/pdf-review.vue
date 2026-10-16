@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { normalizeApiError, resolveApiErrorMessage } from '@rs/common'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { TableColumn } from '@nuxt/ui'
-import type { PdfAlign, PdfCoverImageMode, PdfTextVertical } from '~/types/pdf'
+import type { PdfAlign, PdfCoverImageMode, PdfTextVertical } from '@rs/common'
 import * as z from 'zod'
 
 /**
@@ -22,46 +23,41 @@ definePageMeta({
 const toast = useToast()
 
 // 抽屉开关 / 生效配置 / 编辑态 / 保存取消
-const {
-  open: configOpen,
-  config,
-  draft,
-  save: saveConfig,
-  cancel: cancelConfig,
-  reset: resetDraft,
-} = usePdfConfig()
+const { open: configOpen, config, draft, save: saveConfig, cancel: cancelConfig, reset: resetDraft } = usePdfConfig()
 
 /* ---------- 表单校验（参考项目既有 UForm + Zod 写法） ----------
  * - 导出文件名：必填
  * - 封面页开启时：标题必填，其余可选
  */
-const schema = z.object({
-  fileName: z.string().trim().min(1, '导出文件名必填'),
-  header: z.object({
-    enabled: z.boolean(),
-    title: z.string().optional(),
-    meta: z.string().optional(),
-  }),
-  cover: z.object({
-    enabled: z.boolean(),
-    title: z.string().optional(),
-    eyebrow: z.string().optional(),
-    description: z.string().optional(),
-    image: z.string().optional(),
-    imageMode: z.enum(['none', 'banner', 'background']).optional(),
-    footerTitle: z.string().optional(),
-    footerText: z.string().optional(),
-    align: z.enum(['left', 'center', 'right']).optional(),
-    vertical: z.enum(['top', 'center', 'bottom']).optional(),
-    gradientFrom: z.string().optional(),
-    gradientTo: z.string().optional(),
-  }),
-}).superRefine((value, ctx) => {
-  // 只有开启封面页时才要求标题
-  if (value.cover.enabled && !value.cover.title?.trim()) {
-    ctx.addIssue({ code: 'custom', path: ['cover', 'title'], message: '开启封面页时标题必填' })
-  }
-})
+const schema = z
+  .object({
+    fileName: z.string().trim().min(1, '导出文件名必填'),
+    header: z.object({
+      enabled: z.boolean(),
+      title: z.string().optional(),
+      meta: z.string().optional(),
+    }),
+    cover: z.object({
+      enabled: z.boolean(),
+      title: z.string().optional(),
+      eyebrow: z.string().optional(),
+      description: z.string().optional(),
+      image: z.string().optional(),
+      imageMode: z.enum(['none', 'banner', 'background']).optional(),
+      footerTitle: z.string().optional(),
+      footerText: z.string().optional(),
+      align: z.enum(['left', 'center', 'right']).optional(),
+      vertical: z.enum(['top', 'center', 'bottom']).optional(),
+      gradientFrom: z.string().optional(),
+      gradientTo: z.string().optional(),
+    }),
+  })
+  .superRefine((value, ctx) => {
+    // 只有开启封面页时才要求标题
+    if (value.cover.enabled && !value.cover.title?.trim()) {
+      ctx.addIssue({ code: 'custom', path: ['cover', 'title'], message: '开启封面页时标题必填' })
+    }
+  })
 
 const formRef = useTemplateRef<{ submit: () => Promise<unknown> }>('formRef')
 
@@ -81,19 +77,19 @@ function resetConfig() {
   toast.add({ title: 'Reset to defaults', description: '点 Save 生效', color: 'neutral' })
 }
 
-const alignItems: { label: string, value: PdfAlign }[] = [
+const alignItems: { label: string; value: PdfAlign }[] = [
   { label: 'Left', value: 'left' },
   { label: 'Center', value: 'center' },
   { label: 'Right', value: 'right' },
 ]
 
-const verticalItems: { label: string, value: PdfTextVertical }[] = [
+const verticalItems: { label: string; value: PdfTextVertical }[] = [
   { label: 'Top', value: 'top' },
   { label: 'Center', value: 'center' },
   { label: 'Bottom', value: 'bottom' },
 ]
 
-const imageModeItems: { label: string, value: PdfCoverImageMode }[] = [
+const imageModeItems: { label: string; value: PdfCoverImageMode }[] = [
   { label: 'None', value: 'none' },
   { label: 'Banner (top)', value: 'banner' },
   { label: 'Background (full)', value: 'background' },
@@ -111,11 +107,12 @@ const previewUrl = computed(() => (import.meta.client ? window.location.href : r
 
 const { isPending, exportPdf, printPdf } = usePdfExport({
   onSuccess: url => toast.add({ title: 'PDF ready', description: url, color: 'success' }),
-  onError: e => toast.add({
-    title: 'Export failed',
-    description: getApiErrorMessage(e) || '后端导出未接入，可先用 Print 降级。',
-    color: 'error',
-  }),
+  onError: e =>
+    toast.add({
+      title: 'Export failed',
+      description: e ? resolveApiErrorMessage(normalizeApiError(e)) : '后端导出未接入，可先用 Print 降级。',
+      color: 'error',
+    }),
 })
 
 async function exportServer() {
@@ -150,7 +147,7 @@ const activity = [
   { title: 'Proposal sent', meta: 'Harbor solar array', time: '5 hr ago' },
 ]
 
-const columns: TableColumn<typeof projectRows[number]>[] = [
+const columns: TableColumn<(typeof projectRows)[number]>[] = [
   { accessorKey: 'name', header: 'Project' },
   { accessorKey: 'owner', header: 'Owner' },
   { accessorKey: 'status', header: 'Status' },
@@ -174,11 +171,7 @@ const columns: TableColumn<typeof projectRows[number]>[] = [
 
         <USeparator />
 
-        <USwitch
-          v-model="draft.cover.enabled"
-          label="封面页"
-          description="关闭后直接从内容页开始"
-        />
+        <USwitch v-model="draft.cover.enabled" label="封面页" description="关闭后直接从内容页开始" />
 
         <template v-if="draft.cover.enabled">
           <UFormField name="cover.title" label="标题" required>
@@ -247,7 +240,8 @@ const columns: TableColumn<typeof projectRows[number]>[] = [
           @click="exportServer"
         />
         <p class="text-xs text-muted">
-          后端导出接口见 <code class="rounded bg-elevated px-1">apis/pdf.ts</code>；暂无后端时会失败，用 Print 降级。
+          后端导出接口见
+          <code class="rounded bg-elevated px-1">apis/pdf.ts</code>；暂无后端时会失败，用 Print 降级。
         </p>
       </div>
     </template>
@@ -277,9 +271,7 @@ const columns: TableColumn<typeof projectRows[number]>[] = [
       </template>
 
       <section class="pt-4">
-        <h2 class="text-lg font-semibold text-gray-900">
-          Summary
-        </h2>
+        <h2 class="text-lg font-semibold text-gray-900">Summary</h2>
 
         <div class="mt-4 grid grid-cols-3 gap-4">
           <div v-for="item in summary" :key="item.label" class="rounded-lg border border-gray-200 p-4">
@@ -312,9 +304,7 @@ const columns: TableColumn<typeof projectRows[number]>[] = [
       </template>
 
       <section class="pt-4">
-        <h2 class="text-lg font-semibold text-gray-900">
-          Project list
-        </h2>
+        <h2 class="text-lg font-semibold text-gray-900">Project list</h2>
 
         <UTable
           class="mt-4"
@@ -338,16 +328,10 @@ const columns: TableColumn<typeof projectRows[number]>[] = [
       </template>
 
       <section class="pt-4">
-        <h2 class="text-lg font-semibold text-gray-900">
-          Recent activity
-        </h2>
+        <h2 class="text-lg font-semibold text-gray-900">Recent activity</h2>
 
         <ul class="mt-4 divide-y divide-gray-100">
-          <li
-            v-for="item in activity"
-            :key="item.title"
-            class="flex items-center justify-between py-3"
-          >
+          <li v-for="item in activity" :key="item.title" class="flex items-center justify-between py-3">
             <div>
               <p class="text-sm font-medium text-gray-900">
                 {{ item.title }}

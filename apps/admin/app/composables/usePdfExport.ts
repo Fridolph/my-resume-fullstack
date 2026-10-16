@@ -1,4 +1,4 @@
-import type { PdfExportPayload } from '~/types/pdf'
+import type { PdfExportPayload } from '@rs/common'
 import { requestPdfExport } from '~/apis/pdf'
 
 export type PdfExportStatus = 'idle' | 'pending' | 'success' | 'error'
@@ -45,15 +45,13 @@ export function usePdfExport(options: UsePdfExportOptions = {}) {
 
       if (options.onSuccess) {
         options.onSuccess(url)
-      }
-      else if (url) {
+      } else if (url) {
         // 后端返回对象存储地址，直接跳转触发浏览器下载
         await navigateTo(url, { external: true })
       }
 
       return url
-    }
-    catch (e) {
+    } catch (e) {
       error.value = e
       status.value = 'error'
       options.onError?.(e)

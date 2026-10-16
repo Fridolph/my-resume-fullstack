@@ -1,16 +1,18 @@
 # AGENTS 协作规范
 
-本仓库是供 `dao-*` 项目复用的全栈模板，也是 `Dao-is-Coding` 的一个真实验证场。它不是 `Dao-is-Coding` 母仓：项目内的业务、实现和局部经验留在这里；经验证且跨项目成立的规则，才以候选形式回灌母仓。
+本仓是 **`Dao-is-Coding` 的进行时验证仓**，也是 `my-resume` 真实业务开发的实现场 —— 底座沿用供 `dao-*` 项目复用的全栈模板（源自 `dao-monorepo-temp`），但这里跑的是真业务：用熟悉的 Nuxt 4 + NestJS 栈逐模块把简历系统、用户与权限实现出来，再把验证过的结论带回 `my-resume` 仓，用 React + Next.js + Python 重做同一套功能。它**不是** `Dao-is-Coding` 母仓：项目内的业务、实现和局部经验留在这里；经验证且跨项目成立的规则，才以候选形式回灌母仓。
 
 更深层目录中的 `AGENTS.md` 可补充具体实现约定；安全要求与本文件的主线、验证、归母边界不得被弱化。
 
 ## 1. 项目定位与边界
 
-- 保持模板通用性：只沉淀多个项目复用的工程能力，不在模板中堆叠具体业务、领域模型或产品功能。
-- 当前技术栈为 `pnpm workspace`、Turborepo、Nuxt 4、Nuxt UI、Tailwind CSS 4、NestJS 与 TypeScript。
-- `apps/web` 是用户端，`apps/admin` 是管理端，`apps/api` 是后端服务，`packages/common` 存放跨应用的稳定类型与基础能力。
+- **本仓是进行时验证仓，不只是模板**：底座提供可复用的工程能力，但项目的价值在于**在真实业务约束下验证**——简历系统（个人能力、风格、编辑、版本发布）、用户与权限、账号与会话都在这里实装，而不是停留在范例层面。
+- 分层看待底座与业务：底座是多个项目可复用的工程能力（骨架、公共组件、校验与工具），保持通用、可抽离；`my-resume` 的业务实现放在应用自身的业务域 layer 与后端模块内，不反向污染底座能力。
+- 当前技术栈为 `pnpm workspace`、Turborepo、Nuxt 4、Nuxt UI、Tailwind CSS 4、`@pinia/colada`、NestJS、Prisma、PostgreSQL、Redis 与 TypeScript。
+- `apps/web` 是用户端，`apps/admin` 是管理端，`apps/server` 是后端服务，`packages/common` 存放跨应用的稳定类型与基础能力。
+- 业务按模块推进：一个任务卡只落一个模块或一条闭环，不顺手扩展相邻模块；未定的选型写进任务卡待确认项，不靠猜测落地。
 - 新增目录、包、基础设施或共享契约前，先说明动机、影响范围、回滚方式，并同步更新 README。
-- 本模板默认直接在 `main` 小步推进；不因模板开发而强制建立功能分支。多人并行、发布分支或主干不稳定时，再按当前复杂度另行选择工作流。
+- 分支模型：`main` 只承载发布与正式版本，**不直接在 `main` 上开发**；日常开发在 `dev`，并从 `dev` 开 `feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…` 短分支，验证完成后合回 `dev`。完整流程见 [docs/dev/01_开发流程_分支与提交.md](./docs/dev/01_开发流程_分支与提交.md)。
 
 ## 2. 安全与隐私
 
@@ -53,19 +55,76 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
 - 开工前先写清：目标、非目标、涉及文件、风险、验收标准与第一步。需求模糊或边界可能扩张时，使用 `dao-grill` 做最小对齐；明确小改不机械触发。
 - 中途换窗口、模型或协作者时，使用最小交接包：`目标 / 状态 / 已完成 / 下一步 / 阻塞 / 自测 / 文档锚点 / 集成锚点（如适用）`。其中“下一步”必须是接棒后的第一刀。
 - 收口前先自查：是否达成目标、是否越界、验证是否真实完成、是否有隐藏风险、API/类型/文档是否同步、是否需要沉淀。需要时使用 `dao-review`，它不替代代码 review 或测试。
-- 对存在协作切换、风险、跨文件影响或阶段性价值的关键任务，在 `dao/` 创建一张任务卡，并由 `dao/CURRENT.md` 指向当前唯一关键任务。任务卡是目标、状态、验证、交接与收口的唯一事实源；小修不必机械建卡。完整规则见 [`dao/README.md`](./dao/README.md)。
+- 对存在协作切换、风险、跨文件影响或阶段性价值的关键任务，在 `dao/` 创建一张任务卡，并由 `dao/CURRENT.md` 指向当前唯一关键任务。任务卡是目标、状态、验证、交接与收口的唯一事实源；小修不必机械建卡。完整规则见 [`dao/README.md`](./dao/README.md)。任务完成即收口：状态改 `done`、回填并关闭对应 Issue、把该卡从 `dao/CURRENT.md` 移出 —— 细则与盘点命令见 `dao/README.md` →「完成后立即收口（避免积累）」。
+
+### 3.3 单 Task 全栈闭环开发模式
+
+- 一轮只推进一个模块或一条最小业务闭环；后端、共享契约、前端与验证都必须围绕同一个 Task 收口，不顺手扩展相邻能力。
+- 标准顺序：`Grill → 任务卡 → 讨论文档 → Owner 确认 → Issue/短分支 → 表结构与迁移 → 共享契约 → 后端接口 → 后端验证 → 前端模块 → API 对接 → 桌面/移动端人工验收 → Review → 文档回填 → 提交 → Owner 授权后推送/合入`。
+- 讨论阶段先提供 Markdown 模板和当前理解；Owner 表达业务理解后，AI 负责解释职责、补齐边界、给出字段/表结构候选、接口契约和程序化伪代码。Owner 确认前不写源码、schema、迁移或完整接口实现。
+- 程序化伪代码按输入、身份校验、条件分支、读写顺序、失败出口、返回值、事务边界与并发条件组织；不以业务散文或直接复制源码替代。
+- Issue 必须记录已确认方案、范围、非目标、验收入口、测试计划、讨论文档链接和回滚方式；分支名带 Issue 编号。一个 Issue 可包含多个连续用例，但每次只实现一个可独立验证的用例。
+- 接口契约、权限、交互状态和测试计划在设计阶段一起明确；需要数据库变更时，再按 `schema.prisma → 生成并审查 migration SQL → 在已确认环境应用 → generate → Zod/共享类型 → Service → Controller → OpenAPI/Apifox` 交付。无需数据库变更的 Task 跳过迁移，不机械补层。前端消费稳定契约，不直接依赖 Prisma 模型或数据库字段。
+- AI 可以主动运行格式检查、lint、typecheck、单元测试和构建；本地接口测试须使用已确认的本地或测试环境，写入限定测试数据并安排清理。迁移、seed、外部 Apifox 写入、环境变量、部署和发布仍遵守安全门，涉及这些动作时先说明影响、回滚与授权边界；已有明确授权则直接执行，不重复询问。
+- 测试计划从分析开始，按风险验证契约、权限、业务规则、并发及关键链路；测试先行按需采用。测试脚本返回成功但没有执行测试时，记录测试缺口，不宣称功能通过；新增测试依赖先说明用途和兼容性。
+- AI 每个阶段解释“为什么这样设计、输入输出是什么、怎样验收”，Owner 提供业务样本并参与关键判断；按已确认的任务连续推进，不能一次铺满未确认设计或以大段实现替代教学。
+- UI/交互必须同时做机器检查和 Owner 的桌面/移动端意图验收；“机器通过”不等于“观感和操作通过”。后端异常路径、权限、并发和数据迁移也必须有对应验证记录。
+- 收口前执行 `dao-review`：确认目标、边界、验证证据、文档、API/类型同步和未验证边界；普通 Task 使用 Conventional Commit，只有集成边界才使用 Dao Commit。未得到 Owner 的推送/合入指示，不把本地提交当成已发布。
+- 后端默认采用 Controller → Service → PrismaService；查询复杂、跨用例复用或需要隔离持久化实现时采用平级 Repository，不强制增加转发层。输入类型统一 `Dto` 后缀，参数使用对应类型的小驼峰名称（如 createUserDto）。
+- 优先采用 Nest 官方集成与成熟依赖来减少模板代码、明确职责，不以零依赖为目标。本项目鉴权采用 `@nestjs/passport` / `passport` / `passport-jwt`，保留 `@nestjs/jwt` 签发令牌；Guard 处理公开路由与错误语义，Strategy 认证后委托 Service 恢复身份。其他新依赖仍按任务范围说明用途和兼容性。
+- 模块方法使用多行 TSDoc：除职责外，补充必要的设计理由、业务边界、事务/并发与安全取舍，可作为学习与面试复盘材料。注释必须符合当前实现，不重复逐行代码，不沿用已失效的设计描述。
+- 例如 JWT 注释应说明签名不等于加密、sub 的身份含义、权限恢复策略与代价；当前按 sub 每次回查数据库，不能写成“权限变化只能等 token 过期”。较长的流程图与延伸讨论保留在业务文档。
+- 当前项目默认采用上面的单 Task 全栈闭环。Owner 仍负责产品意图、数据破坏性动作、外部服务写入、桌面/移动端观感和最终发布判断；AI 负责可重复的机器验证、证据回填和风险提示。
+- 若某一轮明确切换为学习演示模式，任务卡必须写明“验证由 Owner 执行”及未运行命令；否则不能用历史上的“未运行验证”约定阻止本轮已授权的自动化检查。
 
 ## 4. 工程原则与验证
 
 - 先明确目标、非目标、风险、改动文件和验收标准，再开始实现；任务变大时拆分，不顺手扩展无关范围。
 - 主线重于扩展，验证重于堆功能，决策与取舍应在代码或文档中可追溯。
 - 优先小步、可验证、可回滚的改动；相同逻辑出现三处以上再抽取公共能力，避免过度抽象和过早优化。
-- 发现旁支问题时记录为独立 Issue；除非它直接阻塞当前验收，否则不得混入当前改动。
+- 先建 Issue 再写代码：Issue 写明背景、目标、非目标、范围、验收与测试计划；分支名带 Issue 编号；发现旁支问题时记录为独立 Issue，除非它直接阻塞当前验收，否则不得混入当前改动。
 - API、共享类型或目录结构改变时，同步检查调用方、README、测试和相关文档。
 - TypeScript 保持严格类型；前端使用 Vue Composition API 与 `<script setup lang="ts">`；NestJS 按 module、controller、service 与 common 边界组织。
 - 测试文件优先放在对应模块的 `__tests__/` 目录，验证真实行为，不提交只为凑覆盖率的模板测试。
 - UI 改动必须验证桌面端与移动端关键路径；后端改动必须验证对应接口及异常路径。
-- 提交前至少执行 `pnpm format:check`、`pnpm lint`、`pnpm typecheck`、`pnpm test` 和受影响范围的构建；若项目尚无测试，说明缺口而不是伪造测试。
+- **提交时机按"能不能被机器验证"分层**：
+  - **UI 与交互**（视觉 / 布局 / 动效 / 手感）：机器验证只证明"没坏"，不证明"对"。改动先留在工作区并说明"看哪里、看什么"，**经 Owner 实看确认后**再提交；未确认前不要用 squash / 合并带进 `dev`。
+  - **其余**（后端 / 共享契约 / 文档 / 构建配置等可机器验证的部分）：**自测通过即可在当前分支本地提交**，不必逐次确认 —— 一个 task 补充完善且 `typecheck` / `lint` / 实测通过，就该落成提交，别把改动攒在工作区。
+  - **推送远端**仍按 Owner 显式指示执行：**本地提交 ≠ 已发布**，二者不混为一谈。
+- 提交前至少执行 `pnpm check`（= `release-notes:check` → `format:check` → `lint` → `typecheck` → `test`）
+  和受影响范围的构建；若项目尚无测试，说明缺口而不是伪造测试。
+- **`test` 必须能区分"通过"与"没有测试"**：三个包的脚本都带 `--passWithNoTests=false`。
+  历史上用 `node --test` 时，测试文件被删光仍以 0 退出（实测 `# tests 0 / # pass 0`，Turbo 报 3/3 successful）——
+  质量门"全绿"却什么也没验证。
+- **`release-notes:check`** 校验 `CHANGELOG.md` 与 `packages/common/src/ui/release-notes.ts` 是否同步
+  （后者由 `scripts/sync-release-notes.mjs` 生成，发版时挂在 `release-it` 的 `after:bump` 钩子上）。
+  发版后忘了同步，这道门会红，而不是让 release notes 页面悄悄停在旧版本。
+
+### 4.6 共享层归属判据（三层）
+
+新增"想给两端共用"的东西前，先判它属于哪一层：
+
+| 判据 | 落点 |
+| --- | --- |
+| 能脱离 Vue / Nuxt 运行（类型、校验、算法、常量） | `packages/common`（`@rs/common`） |
+| 碰 Vue 或 Nuxt UI，但**不含业务语义** | `packages/ui` |
+| 含业务语义（业务域类型、业务组件） | 各端自己的 layer；**两端都要**才上提 |
+| 应用专属外壳（页面、布局、导航） | `apps/*/app` |
+
+配套规则（都是实际踩出来的，不要绕过）：
+
+- `packages/ui` **只描述"能做什么"，不判断"谁可以做"**：能力经 props / slots / composable 注入
+  （`MySchemaForm` 的 `list-item-extra`、`MyModal` 的 `footer`、插件的 `$api`）。
+- `packages/ui` 的 dependencies 只放 Vue 生态基础库（`@vueuse/*`）；**重量级引擎走 peer** 由宿主提供
+  （如 `sortablejs`）；`vue` 走 peer + dev。
+- ui 组件里含 **Tailwind 类名字面量**的，必须能被宿主的 `@source` 扫到；
+  纯 TS 包（common / utils）**不要放类名** —— 不会被扫描，生成不出样式。
+- 组件的 props 类型**在 ui 内定义**：`defineProps<整个外部类型>()` 指向 `@rs/common` 会在 dev 崩
+  （SFC 编译器不展开包的 re-export 链，只有 dev 报错）；layer 的 `alias` 也**不合并到宿主**。
+- 迁移时**保留调用面**（原处留一行 re-export），搬移保持纯位移、零调用点改动，清理留给后续。
+- 纯前端换算与通用工具放 `@rs/utils`；**与具体接口/后端约定绑定的**（表单字段名、响应解包、端点路径）
+  留在业务侧 —— 共享层不认接口。
+- 分层理由与本次踩坑的完整记录见 [`docs/web/03_Layers_分层约定.md`](./docs/web/03_Layers_分层约定.md) §8。
 
 ## 5. Skills：使用、安装与边界
 
@@ -127,5 +186,13 @@ Skill 是个人 Codex 环境能力，不是本模板的运行时依赖；不要�
 
 - 文档以中文为主，除“怎么做”外，还应记录关键决策的背景、取舍与结论。
 - 日常提交使用 Conventional Commits：`<type>(<scope>): <description>`，常用 `feat`、`fix`、`docs`、`test`、`refactor`、`chore`。
-- 使用 `standard-version` 在稳定发布节点生成版本提交、Git tag 与 `CHANGELOG.md`；发布前必须确保工作区干净且质量检查通过。
-- `standard-version` 只管理版本与 Changelog，不执行 npm 发布。详细脚本和操作步骤见 README。
+- 使用 `release-it` + `@release-it/conventional-changelog` 在稳定发布节点生成版本提交、Git tag 与 `CHANGELOG.md`；
+  发布前必须确保工作区干净（`requireCleanWorkingDirectory`）且质量检查通过。
+- **安全默认**：`.release-it.json` 里 `git.push: false`、`npm.publish: false`、`github.release: false`；
+  `requireBranch: main`。发版只在本机改文件与打 tag，**推送是单独一步**（本仓"本地提交 ≠ 已发布"）。
+  ⚠️ `release-it` 的默认行为包含推送，所以这几项必须显式关掉。
+- **发版会一并更新 release notes 页面**（Owner 2026-10-16 的约定）：`after:bump` 钩子跑
+  `scripts/sync-release-notes.mjs`，把 `CHANGELOG.md` 同步进 `packages/common/src/ui/release-notes.ts`
+  （admin 的 `release-notes.vue` 读它）。数据在共享包、页面只渲染 —— 发版工具**不需要改 `.vue` 源码**。
+- `CHANGELOG.md` 与那份数据的一致性由 `pnpm release-notes:check` 把关（已纳入 `pnpm check`）。
+- 详细脚本与操作步骤见 README。
