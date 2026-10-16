@@ -3,6 +3,7 @@ import { defu } from 'defu'
 import { defineNuxtConfig } from 'nuxt/config'
 import type { NuxtConfig } from 'nuxt/schema'
 import { readGitCommit, readPackageVersion } from './node-env.js'
+import { rsPagePrivateComponents } from './page-components.js'
 
 /**
  * `apps/web` 与 `apps/admin` 共用的 Nuxt **构建基线**。
@@ -164,6 +165,17 @@ export function defineRsNuxtConfig(options: RsNuxtOptions, overrides: RsNuxtConf
     css: ['~/assets/css/main.css'],
 
     devtools: { enabled: true },
+
+    // ── 页面私有组件（B1）─────────────────────────────────────────────────────
+    // 这两项是**一对**，缺一不可，理由见 rsPagePrivateComponents 的文档注释：
+    //   hooks  —— 把页面目录下的 components 子目录注册为自动导入组件（便利）
+    //   pages  —— 把它排除出路由扫描（安全网；只做便利会让私有组件变成可访问页面）
+    hooks: {
+      ...rsPagePrivateComponents(),
+    },
+    pages: {
+      pattern: ['**/*.vue', '!**/components/**'],
+    },
 
     typescript: { strict: true, typeCheck: true },
 

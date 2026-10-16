@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`in-progress`（A + C 已实现并机器验证；B1 待做）
+- 状态：`self-tested`（A + B1 + C 均已实现并机器验证；待 Owner 意图验收与合入决定）
 - Owner：`昇哥（2026-10-16：参考我另一个项目 greensketch-website 的 nuxt.config.ts 对本仓进行优化；后续也希望本仓成为我的 Nuxt monorepo 基础脚手架）`
 - 创建日期：`2026-10-16`
 - 分支：`feat/51-rs-config`
@@ -24,6 +24,7 @@
 | ------------------------- | --------------------------------------------------------------------------------------------------------------- | ------ | ---------- |
 | `planned -> designed`     | Owner 已定范围（A+B1+C）与形态（纯函数包）；重复量已量化：两端各 73 行、逐行 diff 仅 15 行，其中 26 行注释逐字相同 | 昇哥   | 2026-10-16 |
 | `designed -> in-progress` | go/no-go 探针通过：`@rs/config` 的 `exports` 直指 `./src/index.ts`，两端 `nuxt prepare` 成功 —— jiti 能转译 workspace 内的 TS，**退路 A/B 都不需要** | AI（机器验证） | 2026-10-16 |
+| `in-progress -> self-tested` | A + B1 + C 全部实现；`pnpm check` 全绿；**B1 四项探针通过**（私有组件自动渲染 / 不成路由 / 既有页面无损）；**C 三项运行时实测**（安全头 / version+commit / 生产构建无 `.map`） | AI（机器验证） | 2026-10-16 |
 
 ## Grill：开工前对齐
 
@@ -71,7 +72,7 @@
 | 包名用 `@rs/config`（而非 `@rs/nuxt-base`）         | Owner 目标是「Nuxt monorepo 基础脚手架」，tsconfig / oxlint / tailwind 基线未来都要有落点，一次命名到位，避免二次改名                                  | 昇哥             | 2026-10-16 |
 | 用纯函数包，不用 Nuxt layer                         | layer 会同时承担「页面/组件/样式」与「构建基线」两种职责，违反 §4.6 三层判据；配置工厂不碰 Vue/Nuxt UI，属「能脱离运行时」那一层                        | 昇哥（选定形态） | 2026-10-16 |
 | 业务 alias（`#rs/resume-content`）留在各 app        | 它是展示域契约，塞进通用底座等于让底座认识业务。底座只负责合并 `overrides.alias`                                                                      | AI               | 2026-10-16 |
-| B1 用 `pathPrefix: true`                            | 避免同名冲突；**不移植** greensketch 的 `RE_COMPONENTS` 名称归一（那是它自己的命名约定）。代价是组件名偏长，先接受并写进文档，等首个真实用例再复议 | AI（可复议）     | 2026-10-16 |
+| B1 用 `pathPrefix: true` **且去掉 `Components` 段** | 初判"不移植 greensketch 的名称归一"，**实测后修正**：`pathPrefix` 会把 `components` 目录名拼进组件名（得到 `ProbeComponentsProbeCard`，模板里不可用）；加 `extendComponent` 归一后为 `ProbeProbeCard`（真实场景如 `CapabilitiesCard`）—— 保留页面作用域，又不把"组件放在哪个目录"写进标签名 | AI（实测修正）   | 2026-10-16 |
 | 两端 Tiptap 注释合并为一份                          | 两端讲的是同一个坑（`@tiptap/pm` 无根导出 / `prosemirror-*` 需 `@nuxt/ui >` 前缀），保留信息更全的一版                                             | AI               | 2026-10-16 |
 | **模块提供的配置键只能"局部放弃静态校验"**          | `NuxtConfig` **没有索引签名**，且 `icon`（由 `@nuxt/icon`）、`routeRules`（由 `@nuxt/nitro-server` 的 `augments`）都**不在 `@nuxt/schema` 核心**里，而是由内部包/模块 `declare module` 增强 —— 这些类型不是任何可 import 的单一入口。故用 `AUGMENTED_OPTIONS` 这一个显式白名单收口，其余键仍完整受类型检查；加错键不会有编译错误，已写进代码注释警示 | AI（实测得出）   | 2026-10-16 |
 | `$production` / `$development` 需 `RsNuxtConfigInput` | 它们是 **c12** 的 `C12InputConfig` 键（`$test`/`$development`/`$production`/`$env`），不在 `NuxtConfig` 上。**只在类型层加宽**，运行时 Nuxt/c12 本来就支持这些分段键                        | AI（实测得出）   | 2026-10-16 |
@@ -98,15 +99,18 @@
 | 机器验（C·版本注入） | SSR payload                                                                                        | `apiBase:"http://localhost:4049/api",version:"0.1.0",commit:"22081ea"`；**commit 与 HEAD 一致**                                                                  | —                                                                           |
 | 机器验（C·生产）     | `pnpm --filter @rs/web build` + 统计 `.output/public` 下 `*.map`                                    | 构建成功（Σ 10.5 MB），**`.map` 计数 = 0** —— `$production` 分段实测生效                                                                                          | —                                                                           |
 | 机器验（回归）       | web dev 干净启动（4051 → 200）                                                                     | `optimizeDeps` 9 条**全部可解析**（有任一条解析不到，Vite 会直接启动失败）                                                                                        | ⚠️ **富文本编辑器单实例行为未在浏览器验证**；依据是"配置逐字搬移、零改动"，非新证据 |
+| 机器验（B1·探针）    | 临时建 `pages/__probe/index.vue` + `pages/__probe/components/ProbeCard.vue`（验证后已删除）          | ① `/__probe` → **200**；② HTML 含 `PROBE_CARD_RENDERED`（**不写 import 即自动渲染**）；③ `/__probe/components/ProbeCard` → **404**（未进路由表）；④ `/`、`/resume/4`、`/my-resumes` 仍 200                                                              | —                                                                           |
+| 机器验（B1·踩坑）    | 首轮探针用 `<ProbeCard />`                                                                         | **失败，且是有价值的失败**：生成的名字是 `ProbeComponentsProbeCard` —— `components` 目录名被拼进了组件名。据此修正了"不移植名称归一"的初判（见「设计与决策」），加 `extendComponent` 后变为 `ProbeProbeCard`                                    | —                                                                           |
+| 结构验（B1）         | 重启 dev 后重新生成 `.nuxt/components.d.ts`                                                        | 归一前 `ProbeComponentsProbeCard` → 归一后 `ProbeProbeCard`。⚠️ **改 `@rs/config` 必须重启 dev**：Nuxt 只在启动时求值 `nuxt.config`，HMR 不会重跑 hook                    | —                                                                           |
 | 结构验               | 两端 `nuxt.config.ts` 行数                                                                         | web **73 → 29 行**；admin **73 → 37 行**；26 行 Tiptap 注释从"两份"变"一份"                                                                                       | —                                                                           |
 | 意图验               | —                                                                                                  | **未执行**                                                                                                                                                       | 需 Owner 实看；本卡基本无观感变化，主要是工程结构                            |
 
 ## 交接
 
-- 已完成：—
-- 当前状态：`designed`
-- 阻塞：无
-- 下一步第一刀：go/no-go 探针 —— 建最小 `packages/config` + 让 `apps/web` 引一行 + `nuxt prepare`
+- 已完成：**A**（`@rs/config` 共享基线）+ **B1**（页面私有组件）+ **C**（构建运行时基线）全部实现并机器验证；两端 `nuxt.config.ts` 收敛完毕
+- 当前状态：`self-tested`
+- 阻塞：无（等 Owner 意图验收与合入决定）
+- 下一步第一刀：Owner 实看两端页面确认无回归后，把 B1 增量提交、按需合回 `dev`；合并后再统一分支名（`feat/51-rs-config` → 可改回 `feat/51-nuxt-config-base`）
 - 文档锚点：`AGENTS.md` §1 / §4.6、[`docs/web/03_Layers_分层约定.md`](../../docs/web/03_Layers_分层约定.md)
 - 集成锚点：`待 feature -> dev`
 
@@ -117,5 +121,5 @@
 - Git / PR：
 - 常规提交：`待补 commit SHA`
 - Dao Commit：`不适用`
-- 沉淀候选：`无`
-- 收口备注：
+- 沉淀候选：`候选观察` —— **「共享配置工厂无法静态校验模块提供的配置键」**：`NuxtConfig` 没有索引签名，而 `icon`（`@nuxt/icon`）、`routeRules`（`@nuxt/nitro-server`）等键由内部包 `declare module` 增强，不是任何可 import 的单一入口。这条对任何"多应用共用 Nuxt 配置"的仓都成立，等第二个仓复现后再判断是否归母（参照 `.dao/return-dao.md` 现有条目的成熟度门槛）
+- 收口备注：⚠️ 分支名 `feat/51-rs-config` 是被动产生的 —— 本卡建卡时另一个会话把提交落到了共享目录里同名分支上（`AGENTS.md` §1「多会话独立 worktree」正是因此才立）。合回 `dev` 后可统一
