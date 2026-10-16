@@ -8,6 +8,7 @@ import {
   type RenameResumeDto,
   type SaveResumeDraftDto,
 } from '@rs/common'
+import { TraceId } from '../common/decorators/trace-id.decorator'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { Public } from '../auth/decorators/public.decorator'
 import type { AuthUser } from '../common/http-context'
@@ -116,12 +117,20 @@ export class ResumeController {
    */
   /** 设为默认展示（互斥：会取消本人其他简历的默认），返回更新后的完整列表 */
   @Patch(':id/default')
-  setDefault(@Param('id', { schema: resumePrimaryKeySchema }) id: number, @CurrentUser() currentUser: AuthUser) {
-    return this.resumeService.setDefault(id, currentUser)
+  setDefault(
+    @Param('id', { schema: resumePrimaryKeySchema }) id: number,
+    @CurrentUser() currentUser: AuthUser,
+    @TraceId() traceId: string,
+  ) {
+    return this.resumeService.setDefault(id, currentUser, { requestId: traceId })
   }
 
   @Delete(':id')
-  remove(@Param('id', { schema: resumePrimaryKeySchema }) id: number, @CurrentUser() currentUser: AuthUser) {
-    return this.resumeService.remove(id, currentUser)
+  remove(
+    @Param('id', { schema: resumePrimaryKeySchema }) id: number,
+    @CurrentUser() currentUser: AuthUser,
+    @TraceId() traceId: string,
+  ) {
+    return this.resumeService.remove(id, currentUser, { requestId: traceId })
   }
 }

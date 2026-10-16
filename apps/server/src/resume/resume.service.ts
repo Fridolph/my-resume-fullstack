@@ -12,7 +12,9 @@ import type { Prisma } from '../generated/prisma/client'
 import type { AuthUser } from '../common/http-context'
 import { API_ERROR_CODES } from '../common/error-codes'
 import { PERMISSION_KEYS } from '../auth/permission-keys'
+import { AUDIT_ACTIONS, AUDIT_RESOURCE_TYPES } from '@rs/common'
 import { PrismaService } from '../prisma/prisma.service'
+import { AuditService, type AuditContext } from '../audit/audit.service'
 
 const draftInclude = { resume: { select: { id: true, name: true, locale: true } } } as const
 type DraftRecord = Prisma.ResumeDraftGetPayload<{ include: typeof draftInclude }>
@@ -28,7 +30,10 @@ function toResponse(draft: DraftRecord): ResumeDraftResponse {
 
 @Injectable()
 export class ResumeService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly auditService: AuditService,
+  ) {}
 
   /**
    * 编辑资格：**两个条件必须同时满足**——角色表达身份层级，权限键表达功能授权。
@@ -46,23 +51,39 @@ export class ResumeService {
    *
    * 返回**更新后的完整列表**，让前端一次拿到互斥结果，不用再猜另一份现在是 true 还是 false。
    */
-  async setDefault(id: number, currentUser: AuthUser): Promise<ResumeSummary[]> {
+  async setDefault(id: number, currentUser: AuthUser, context: AuditContext = {}): Promise<ResumeSummary[]> {
     this.assertEditable(currentUser)
 
     await this.prismaService.$transaction(async transaction => {
       const target = await transaction.resume.findFirst({
         where: this.ownedResume(id, currentUser),
-        select: { id: true },
+        select: { id: true, name: true },
       })
       if (!target) {
         throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
       }
+
+      // 记录"被顶掉的那一份"：状态变更的追责价值在于**变更前是什么**，
+      // 而不是变更后 —— 后者可以直接查当前数据得到
+      const previous = await transaction.resume.findFirst({
+        where: { workspaceUserId: currentUser.userId, isDefault: true, id: { not: id } },
+        select: { id: true },
+      })
 
       await transaction.resume.updateMany({
         where: { workspaceUserId: currentUser.userId, isDefault: true, id: { not: id } },
         data: { isDefault: false },
       })
       await transaction.resume.update({ where: { id }, data: { isDefault: true } })
+
+      await this.auditService.record(transaction, currentUser, {
+        action: AUDIT_ACTIONS.resumeSetDefault,
+        resourceType: AUDIT_RESOURCE_TYPES.resume,
+        resourceId: String(id),
+        resourceSnapshot: { name: target.name },
+        metadata: { previousDefaultId: previous?.id },
+        requestId: context.requestId,
+      })
     })
 
     return this.list(currentUser)
@@ -345,16 +366,54 @@ export class ResumeService {
    * `count === 0`，正好对应统一的 404 口径；`delete` 会抛 Prisma 的 P2025，那属于把
    * 数据库异常当业务分支用。**重复删除仍然是 404**，不会静默成功。
    */
-  async remove(id: number, currentUser: AuthUser): Promise<{ id: number }> {
+  async remove(id: number, currentUser: AuthUser, context: AuditContext = {}): Promise<{ id: number }> {
     this.assertEditable(currentUser)
 
-    const removed = await this.prismaService.resume.deleteMany({
-      where: this.ownedResume(id, currentUser),
-    })
-    if (removed.count !== 1) {
-      throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
-    }
+    return this.prismaService.$transaction(async transaction => {
+      // ⚠️ **先读快照，再删除**：删掉之后就没有东西可以快照了。
+      // 这也解释了为什么"审计不靠外键"：快照必须在删除动作**发生之前**取下来。
+      const target = await transaction.resume.findFirst({
+        where: this.ownedResume(id, currentUser),
+        select: { id: true, name: true, isDefault: true, draft: { select: { revision: true, document: true } } },
+      })
+      if (!target) {
+        throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+      }
 
-    return { id }
+      const removed = await transaction.resume.deleteMany({
+        where: this.ownedResume(id, currentUser),
+      })
+      if (removed.count !== 1) {
+        // 并发下另一个请求先删掉了：同样按 404 处理，不留半条审计
+        throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+      }
+
+      await this.auditService.record(transaction, currentUser, {
+        action: AUDIT_ACTIONS.resumeDelete,
+        resourceType: AUDIT_RESOURCE_TYPES.resume,
+        resourceId: String(id),
+        resourceSnapshot: { name: target.name },
+        metadata: {
+          revision: target.draft?.revision,
+          sectionCount: countResumeSections(target.draft?.document),
+          wasDefault: target.isDefault,
+        },
+        requestId: context.requestId,
+      })
+
+      return { id }
+    })
   }
+}
+
+/**
+ * 从草稿文档里数出模块数。
+ *
+ * 模块在 `document.content.sections` 这个 **JSON 数组**里，Prisma 无法直接 `count`；
+ * 删除是低频动作，为此多读一次文档是可以接受的代价 ——
+ * 换来的是"删掉的是一份 12 模块的完整简历，还是一份空壳"这个可判断的事实。
+ */
+function countResumeSections(document: unknown): number | undefined {
+  const sections = (document as { content?: { sections?: unknown[] } } | null | undefined)?.content?.sections
+  return Array.isArray(sections) ? sections.length : undefined
 }

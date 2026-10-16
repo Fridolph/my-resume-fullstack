@@ -17,6 +17,16 @@ export interface AuditRecordInput {
   requestId?: string | null
 }
 
+/**
+ * 审计写入所需的**请求级上下文**。
+ *
+ * 由 controller 显式传入（见 `common/decorators/trace-id.decorator.ts` 的说明）：
+ * Service 手上只有 `AuthUser`，拿不到 `req.traceId`。
+ */
+export interface AuditContext {
+  requestId?: string | null
+}
+
 /** 查询审计记录的条件（超管专用） */
 export interface AuditQuery {
   actorId?: string

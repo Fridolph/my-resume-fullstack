@@ -16,10 +16,26 @@ import type { AuthUser } from '../../common/http-context'
  *    或 `PrismaService` 的形状。
  */
 type PrismaServiceDouble = ConstructorParameters<typeof ResumeService>[0]
+type AuditServiceDouble = ConstructorParameters<typeof ResumeService>[1]
 
-/** fake 以对象字面量传入，形状由各用例自行保证；只在这一处收口到构造参数类型 */
+/** 审计写入的调用记录（多用例会断言"真的写了审计"） */
+const auditRecords: unknown[] = []
+
+/**
+ * fake 以对象字面量传入，形状由各用例自行保证；只在这一处收口到构造参数类型。
+ *
+ * 第二个参数是 `AuditService` 的替身：**只实现 `record`**（这些用例不涉及查询），
+ * 并把每次调用收进 `auditRecords` 供断言 —— 这样"删简历时确实写了审计"
+ * 是可验证的，而不是靠读代码相信。
+ */
 function createService(fake: object): ResumeService {
-  return new ResumeService(fake as unknown as PrismaServiceDouble)
+  auditRecords.length = 0
+  const auditService = {
+    record: async (...args: unknown[]) => {
+      auditRecords.push(args)
+    },
+  }
+  return new ResumeService(fake as unknown as PrismaServiceDouble, auditService as unknown as AuditServiceDouble)
 }
 
 test('编辑同时要求管理员角色和明确权限，拒绝发生在访问数据库之前', async () => {
@@ -106,16 +122,62 @@ test('条件更新失败返回冲突，停止后续写入', async () => {
   assert.equal(laterWrites, 0)
 })
 
-test('删除走物理删除：deleteMany + 统一 404，且不写任何软删标记', async () => {
+test('删除走物理删除：先读快照 → deleteMany → **同一事务内**写审计', async () => {
   const calls: any[] = []
-  const service = createService({
+  const tx = {
     resume: {
+      // 快照必须在删除**之前**取；这里给出"一份 3 模块、已设为默认"的简历
+      findFirst: async () => ({
+        id: 7,
+        name: '我的求职简历',
+        isDefault: true,
+        draft: { revision: 9, document: { content: { sections: [{}, {}, {}] } } },
+      }),
+      deleteMany: async (input: any) => {
+        calls.push(input)
+        return { count: 1 }
+      },
+    },
+  }
+  const service = createService({ $transaction: async (action: any) => action(tx) })
+  const editor = {
+    userId: 'super',
+    roleKeys: ['super_admin'],
+    permissionKeys: ['Resume.Sections:edit'],
+  } as unknown as AuthUser
+
+  await service.remove(7, editor, { requestId: 'req-abc' })
+
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0].where.id, 7)
+  assert.equal(calls[0].where.workspaceUserId, 'super')
+  // 硬删只有一条 DELETE：没有 data.deletedAt 这种"打标记"的写法
+  assert.equal('data' in calls[0], false)
+
+  assert.equal(auditRecords.length, 1, '删除必须留下审计')
+  const [txArg, , input] = auditRecords[0] as [unknown, AuthUser, any]
+  assert.equal(txArg, tx, '必须复用业务事务客户端，而不是另开连接 —— 否则强一致不成立')
+  assert.equal(input.action, 'resume.delete')
+  assert.equal(input.resourceType, 'resume')
+  assert.equal(input.resourceId, '7')
+  assert.equal(input.requestId, 'req-abc')
+  assert.deepEqual(input.resourceSnapshot, { name: '我的求职简历' })
+  // 这三个字段回答的是"删掉的是一份已完成的简历，还是一个空壳"
+  assert.deepEqual(input.metadata, { revision: 9, sectionCount: 3, wasDefault: true })
+})
+
+test('删除：快照读不到就不删、也不写审计（统一 404）', async () => {
+  const calls: any[] = []
+  const tx = {
+    resume: {
+      findFirst: async () => null,
       deleteMany: async (input: any) => {
         calls.push(input)
         return { count: 0 }
       },
     },
-  })
+  }
+  const service = createService({ $transaction: async (action: any) => action(tx) })
   const editor = {
     userId: 'super',
     roleKeys: ['super_admin'],
@@ -123,9 +185,6 @@ test('删除走物理删除：deleteMany + 统一 404，且不写任何软删标
   } as unknown as AuthUser
 
   await assert.rejects(service.remove(7, editor), error => (error as { getStatus(): number }).getStatus() === 404)
-  assert.equal(calls.length, 1)
-  assert.equal(calls[0].where.id, 7)
-  assert.equal(calls[0].where.workspaceUserId, 'super')
-  // 硬删只有一条 DELETE：没有 data.deletedAt 这种"打标记"的写法
-  assert.equal('data' in calls[0], false)
+  assert.equal(calls.length, 0, '读不到就不该执行 DELETE')
+  assert.equal(auditRecords.length, 0, '没有发生删除，就不该有审计记录')
 })
