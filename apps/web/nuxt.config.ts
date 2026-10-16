@@ -35,4 +35,39 @@ export default defineNuxtConfig({
   },
   typescript: { strict: true, typeCheck: true },
   compatibilityDate: '2025-01-01',
+
+  // ── Tiptap / ProseMirror 必须是**单实例** ───────────────────────────────────
+  //
+  // 现象（2026-10-15 真实复现）：`packages/ui` 的 `CustomSectionEditor` 挂载 `UEditor` 时抛
+  // `RangeError: Adding different instances of a keyed plugin (plugin$)`，堆栈落在
+  // `prosemirror-state → EditorState.reconfigure`，结果是富文本区一片空白、点不动。
+  //
+  // 病因不在安装：磁盘上 `@tiptap/pm` 与所有 `prosemirror-*` 各只有一份（apps/web 与
+  // packages/ui 的软链指向同一处）。真正的分裂来自 **Vite dev 的按需预打包** ——
+  // `@tiptap/core` 的那份 prosemirror-state 与运行时另加载的一份不是同一个模块实例。
+  //
+  // 修法：把这条链显式列入 `optimizeDeps.include`，强制预打包成同一实例。
+  // 这段配置在 #37 移除自研编辑器时被删掉，`apps/admin/nuxt.config.ts` 当时留了恢复提示
+  // （"将来若重新引入基于 Tiptap 的编辑器（包括直接使用 @nuxt/ui 的编辑器组件）"）。
+  // 编辑器上提到 `packages/ui` 后**两端都会执行**，所以两端都要补。
+  //
+  // 注意前缀：`prosemirror-*` 是 `@nuxt/ui` 的（传递）依赖，apps/* 自己解析不到它，
+  // 必须写成 `@nuxt/ui > prosemirror-*` 才能从那个依赖上下文里解析。
+  // 另外**不要**把 `@tiptap/pm` 写进来：它没有根导出（只有 `@tiptap/pm/state` 这类子路径），
+  // 写进去会让 Vite 启动直接失败（`"." is not exported from package .../@tiptap/pm`）。
+  vite: {
+    optimizeDeps: {
+      include: [
+        '@nuxt/ui > prosemirror-gapcursor',
+        '@nuxt/ui > prosemirror-model',
+        '@nuxt/ui > prosemirror-state',
+        '@nuxt/ui > prosemirror-tables',
+        '@nuxt/ui > prosemirror-transform',
+        '@nuxt/ui > prosemirror-view',
+        '@tiptap/core',
+        '@tiptap/starter-kit',
+        '@tiptap/vue-3',
+      ],
+    },
+  },
 })

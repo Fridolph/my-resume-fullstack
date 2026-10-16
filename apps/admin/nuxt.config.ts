@@ -38,13 +38,36 @@ export default defineNuxtConfig({
   typescript: { strict: true, typeCheck: true },
   compatibilityDate: '2025-01-01',
 
-  // 注：原先这里有一段 `vite.optimizeDeps.include`，把 prosemirror / @tiptap/* 预打包成
-  // 单实例，用来避免 Tiptap 报 "Adding different instances of a keyed plugin"。
-  // 随着自研的 TextEditor 组件移除，这段配置已无用处，故一并删除。
+  // ── Tiptap / ProseMirror 必须是**单实例** ───────────────────────────────────
   //
-  // ⚠️ 将来若重新引入基于 Tiptap 的编辑器（包括直接使用 @nuxt/ui 的编辑器组件），
-  // 需要把它加回来，否则可能撞上多实例报错。原先的值是：
-  //   '@nuxt/ui > prosemirror-{gapcursor,model,state,tables,transform,view}'
-  //   '@tiptap/core'、'@tiptap/vue-3' 及用到的各 @tiptap/extension-*
-  //   'highlight.js/lib/languages/{css,javascript,typescript,xml}'、'lowlight'
+  // 原先这里有一段 `vite.optimizeDeps.include`，把 prosemirror / @tiptap/* 预打包成单实例，
+  // 用来避免 Tiptap 报 "Adding different instances of a keyed plugin"。随自研 TextEditor 移除，
+  // 那段配置在 #37 被删除，并在此留了恢复提示。
+  //
+  // 2026-10-15：富文本编辑器以「`packages/ui` 的 `CustomSectionEditor` + Nuxt UI `UEditor`」的
+  // 形式重新引入 —— 正是当时预告的情形，于是**按提示把配置加回来**（否则实测复现该 RangeError，
+  // 富文本区空白且点不动）。两端共享同一个编辑器，所以 apps/web 也补了同一段。
+  //
+  // 与旧版的两点差异：
+  //   1. 去掉了 `@tiptap/extension-*` 与 highlight.js / lowlight —— 这些是**自研编辑器**才装的，
+  //      现已不在依赖里；往 optimizeDeps 里写解析不到的包会让 Vite 启动报错。
+  //   2. 去掉了 `@tiptap/pm` —— 它**没有根导出**（只有 `@tiptap/pm/state` 这类子路径），
+  //      写进 `optimizeDeps.include` 会让 Vite 启动直接失败：
+  //      `"." is not exported ... from package .../@tiptap/pm`。
+  // `prosemirror-*` 是 `@nuxt/ui` 的传递依赖，apps/* 解析不到，故保留 `@nuxt/ui > ` 前缀。
+  vite: {
+    optimizeDeps: {
+      include: [
+        '@nuxt/ui > prosemirror-gapcursor',
+        '@nuxt/ui > prosemirror-model',
+        '@nuxt/ui > prosemirror-state',
+        '@nuxt/ui > prosemirror-tables',
+        '@nuxt/ui > prosemirror-transform',
+        '@nuxt/ui > prosemirror-view',
+        '@tiptap/core',
+        '@tiptap/starter-kit',
+        '@tiptap/vue-3',
+      ],
+    },
+  },
 })

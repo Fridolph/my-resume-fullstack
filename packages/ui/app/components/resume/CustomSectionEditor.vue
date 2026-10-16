@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { watch } from 'vue'
 import type { ResumeCustomSectionDraft, ResumeCustomView } from '@rs/common'
+
+import { resumeRichTextToolbarItems } from '../../config/resume-rich-text-toolbar'
 
 /**
  * 自定义模块的编辑器（标题 / 描述 / 展示方式 / 内容）。
@@ -18,6 +21,9 @@ import type { ResumeCustomSectionDraft, ResumeCustomView } from '@rs/common'
  */
 const draft = defineModel<ResumeCustomSectionDraft>({ required: true })
 
+/** `defineModel` 只给出 ref、不暴露 emit；就地改动的同步需要显式声明事件 */
+const emit = defineEmits<{ 'update:modelValue': [value: ResumeCustomSectionDraft] }>()
+
 const VIEW_OPTIONS: { value: ResumeCustomView; label: string; description: string }[] = [
   { value: 'richText', label: '富文本', description: '可以加粗、列表、链接的正文' },
   { value: 'textList', label: '条目列表', description: '一行一条，带强调点' },
@@ -32,6 +38,32 @@ const itemsText = computed({
     draft.value.items = value.split('\n')
   },
 })
+
+/**
+ * 把**就地改动**同步给父组件。
+ *
+ * ⚠️ 为什么必须有这一段：本组件里的输入是 `v-model="draft.title"` 这种**改属性**的写法，
+ *    它只改 `defineModel` 里那份对象的字段，**不会触发 `update:modelValue`**
+ *    （只有给整个 model 赋值才会）。于是父组件（尤其 admin 编辑页那种"computed setter 负责转换"
+ *    的用法）永远收不到改动 —— 实测后果是"界面改了、保存请求发了、服务端内容没变"。
+ *
+ * 这里用 `JSON.stringify` 做**值比对**来防环：同步出去的仍是同一个草稿对象，
+ * 而对比用的是纯值，所以不会"改了 → 通知 → 又认为改了 → 再通知"。
+ *
+ * 覆盖全部字段：标题 / 描述 / 展示方式 / 条目 / 时间轴 / 富文本 —— 任何一项改了都要推给父组件，
+ * 否则就会出现"界面改了、保存了、服务端没变"。
+ */
+let lastEmitted = ''
+watch(
+  draft,
+  value => {
+    const serialized = JSON.stringify(value)
+    if (serialized === lastEmitted) return
+    lastEmitted = serialized
+    emit('update:modelValue', value)
+  },
+  { deep: true },
+)
 
 function addTimelineItem() {
   draft.value.timeline.push({ time: '', title: '', description: '' })
@@ -58,10 +90,13 @@ function removeTimelineItem(index: number) {
 
     <!-- 富文本：TipTap JSON。
          ⚠️ 必须包 `ClientOnly`：`UEditor` 建立在 TipTap 上，初始化要读 DOM；
-         服务端渲染阶段挂载会失败，表现就是"富文本区域一片空白、点不动"。 -->
+         服务端渲染阶段挂载会失败，表现就是"富文本区域一片空白、点不动"。
+         ⚠️ `UEditorToolbar` **必须放在 `UEditor` 的默认插槽里** —— 它靠插槽拿 `editor` 实例；
+         放外面拿不到实例，按钮会渲染出来但点了没反应。 -->
     <UFormField v-if="draft.view === 'richText'" label="内容" hint="支持加粗、列表、链接等">
       <ClientOnly>
         <UEditor
+          v-slot="{ editor }"
           :model-value="draft.document"
           content-type="json"
           placeholder="写点什么…"
@@ -71,7 +106,9 @@ function removeTimelineItem(index: number) {
               draft.document = value as ResumeCustomSectionDraft['document']
             }
           "
-        />
+        >
+          <UEditorToolbar :editor="editor" :items="resumeRichTextToolbarItems" class="border-b border-default pb-1" />
+        </UEditor>
         <template #fallback>
           <div class="rounded-lg border border-default p-4 text-sm text-muted">编辑器加载中…</div>
         </template>
