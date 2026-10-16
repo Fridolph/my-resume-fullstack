@@ -17,9 +17,6 @@ import { AUDIT_ACTIONS } from '@rs/common'
  * 就必须显式把它写进下面的 `PENDING` 清单 —— **从"忘了"变成"有意识地欠着"**。
  */
 const PENDING = new Set([
-  // ⚠️ 本卡范围内、**下一步就接**：这条测试加进来时当场抓到的真实遗漏
-  // （字典里有 resume.create，但只有 delete / set_default 接了线）
-  'resumeCreate',
   // 账号与权限域尚未接线（按 AGENTS.md「一卡一闭环」，留作独立 Issue）
   'userCreate',
   'userDelete',

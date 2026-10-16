@@ -57,6 +57,20 @@ export interface ResumeDeletionAudit {
   requestId?: string | null
 }
 
+/**
+ * 创建简历时要记录的信息。
+ *
+ * `name` 必填的理由与删除一致：**快照要在能取到的时候取**。
+ * 创建时取名字的代价为零（本来就在入参里），但若此刻不取，
+ * 将来"这份简历最初叫什么"就无从得知（改名不留痕）。
+ */
+export interface ResumeCreationAudit {
+  resumeId: number
+  name: string
+  locale: string
+  requestId?: string | null
+}
+
 /** 设为默认展示时要记录的信息 */
 export interface ResumeSetDefaultAudit {
   resumeId: number
@@ -152,6 +166,25 @@ export class AuditService {
         sectionCount: input.sectionCount,
         wasDefault: input.wasDefault,
       },
+      requestId: input.requestId,
+    })
+  }
+
+  /** 记录"创建简历" */
+  async recordResumeCreation(
+    transaction: Prisma.TransactionClient,
+    actor: AuthUser,
+    input: ResumeCreationAudit,
+  ): Promise<void> {
+    await this.record(transaction, actor, {
+      action: AUDIT_ACTIONS.resumeCreate,
+      resourceType: AUDIT_RESOURCE_TYPES.resume,
+      resourceId: String(input.resumeId),
+      resourceSnapshot: { name: input.name },
+      // `resume.create` 的白名单里只有 locale（见 packages/common/src/audit.ts）——
+      // 名字走 resourceSnapshot 而不是 metadata，两者职责不同：
+      // 前者是"这个资源当时长什么样"，后者是"这个动作的特有信息"
+      metadata: { locale: input.locale },
       requestId: input.requestId,
     })
   }

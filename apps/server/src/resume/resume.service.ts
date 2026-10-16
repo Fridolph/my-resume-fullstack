@@ -133,7 +133,11 @@ export class ResumeService {
    * 原子创建空间、简历和唯一草稿，服务端从认证身份设置所有权。
    * 用户写入再次检查软删除；任何一步失败均回滚，不留下空简历。
    */
-  async create(createResumeDto: CreateResumeDto, currentUser: AuthUser): Promise<ResumeDraftResponse> {
+  async create(
+    createResumeDto: CreateResumeDto,
+    currentUser: AuthUser,
+    context: AuditContext = {},
+  ): Promise<ResumeDraftResponse> {
     this.assertEditable(currentUser)
     // 客户端的 document 是稀疏输入：先补全成完整 V1 文档再入库。
     // schemaVersion 由服务端固定写 1 —— 输入里即使带了同名值也被忽略，不采用客户端提供的版本号。
@@ -163,6 +167,16 @@ export class ResumeService {
         },
         select: { id: true },
       })
+      // 与创建同一个事务：创建回滚则这条记录也不留。
+      // 放在 `resume.create` 之后：审计需要简历 id；而名字本来就在入参里，
+      // 所以这里不存在"快照要在删除前取"那种时机问题。
+      await this.auditService.recordResumeCreation(transaction, currentUser, {
+        resumeId: resume.id,
+        name: createResumeDto.name,
+        locale: createResumeDto.locale,
+        requestId: context.requestId,
+      })
+
       // where 里已保证 draft 存在；这里只是为了让 TS 收窄类型
       const draft = await transaction.resumeDraft.findUniqueOrThrow({
         where: { resumeId: resume.id },

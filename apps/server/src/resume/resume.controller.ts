@@ -23,8 +23,12 @@ export class ResumeController {
    * 身份取自 Guard；Schema 拒绝客户端设置所有权和 revision。
    */
   @Post()
-  create(@Body({ schema: createResumeSchema }) createResumeDto: CreateResumeDto, @CurrentUser() currentUser: AuthUser) {
-    return this.resumeService.create(createResumeDto, currentUser)
+  create(
+    @Body({ schema: createResumeSchema }) createResumeDto: CreateResumeDto,
+    @CurrentUser() currentUser: AuthUser,
+    @TraceId() traceId: string,
+  ) {
+    return this.resumeService.create(createResumeDto, currentUser, { requestId: traceId })
   }
 
   /**

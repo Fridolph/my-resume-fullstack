@@ -138,3 +138,21 @@ test('recordResumeSetDefault：记录**被顶掉的那一份**（变更前的状
   // 没传 requestId 时落 null，而不是缺字段
   assert.equal(data.requestId, null)
 })
+
+test('recordResumeCreation：名字走 resourceSnapshot，locale 走 metadata', async () => {
+  const { service, transaction, txCreates } = createService({})
+  await service.recordResumeCreation(transaction as never, actor, {
+    resumeId: 7,
+    name: '我的求职简历',
+    locale: 'zh',
+    requestId: 'req-abc',
+  })
+
+  const { data } = txCreates[0] as { data: Record<string, unknown> }
+  assert.equal(data.action, 'resume.create')
+  assert.equal(data.resourceId, '7')
+  // 两者职责不同：快照是"资源当时长什么样"，metadata 是"动作的特有信息"
+  assert.deepEqual(data.resourceSnapshot, { name: '我的求职简历' })
+  assert.deepEqual(data.metadata, { locale: 'zh' })
+  assert.equal(data.requestId, 'req-abc')
+})
