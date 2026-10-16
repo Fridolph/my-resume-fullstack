@@ -112,6 +112,9 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
     - `dev` 与从 `dev` 检出的开发分支：**AI 自行判断并推送**，不必逐次请示。
     - `main`（含 `dev → main` 的集成与推送）与发版（tag / release）：**归 Owner**，见 §1 与 §7。
     - **"已发布"只以 `main` / tag 为准**；`dev` 是**开发流程记录**，不是发布面。
+    - **推 `dev` 之前先 `git fetch origin` 并确认是 fast-forward**，非 ff 就先整合
+      （`git rebase origin/dev`）再推。多个窗口都能推 `dev`，直接推会被拒、白跑一趟 ——
+      2026-10-16 实际发生过一次。
 
     > **为什么这样分工**（Owner 2026-10-16 定）：要求 Owner 为每一次 `dev` 推送点头，
     > 会把注意力耗在流程细节上 —— 而 `dev` 本来就是一条**可回看的开发流程记录**。

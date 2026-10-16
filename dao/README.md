@@ -141,6 +141,11 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
 2. **Issue**：回填改动摘要与验证结果后**关闭**。若实现内容已随别的提交进了主线（并行分支常见），
    直接关闭并在评论里写明"已随 `<sha>` 合入 `dev`"，**不要再合并一个重复 PR**。
 3. **指针**：把该卡从 `dao/CURRENT.md` 移出（只留 `in-progress` / `planned` / `self-tested` / `review-ready`）。
+4. **分支与 worktree**：按下面的判据确认内容已在 `dev` 后，删掉本地与远端分支，并 `git worktree remove`
+   对应的 worktree。**遗留分支会让 `dev` 看起来"没合全"**，下次再排查一遍纯属浪费 ——
+   本仓 2026-10-16 就因此产生过一次"很多分支没合并"的误判（见下节实测）。
+   ⚠️ squash 合并时 `git branch -d` **会拒绝删除**（它按祖先关系判断），所以要在
+   **确认内容已在 `dev` 之后**用 `-D`，并把依据写进卡里的收口备注。
 
 判 `done` 的三个条件：
 
@@ -152,17 +157,39 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
 > 「等 Owner 看一眼」不构成不收口的理由 —— 写进「确认门与续跑」即可，卡该 `done` 就 `done`。
 
 **反例（2026-10-08 实测）**：一度出现 6 张卡停在 `review-ready`、3 个 PR 挂在远端；
-其中 2 个 PR 的内容**早已随别的提交进了 dev**（再合并就会造出重复改动）。收口前先跑一遍盘点：
+其中 2 个 PR 的内容**早已随别的提交进了 dev**（再合并就会造出重复改动）。收口前先跑一遍盘点。
+
+### ⚠️ 盘点未合入分支：squash 会让常规判据**全部误报**
+
+本仓大量使用 squash 合并（`[Feat] …（Issue #NN）` 那种单条提交）。squash **会换掉补丁**，
+于是下面两条常用判据都会**把已合并的分支报成"未合并"**：
+
+| 判据 | 为什么失效 |
+| --- | --- |
+| `git branch --merged dev`、`git log origin/dev..<branch>` | 只看**祖先关系**；squash 后分支的提交不是 `dev` 的祖先 |
+| `git cherry origin/dev <branch>` | 按 **patch-id** 比对；squash 后的补丁与逐提交补丁不同 |
+
+**正确做法：按「内容」判断，并用 Issue 状态交叉验证。**
 
 ```bash
-# 各任务卡状态一览
-for f in dao/tasks/DAO-*.md; do
-  printf "%-52s %s\n" "$(basename "$f" .md | cut -c1-50)" "$(grep -m1 '^- 状态：' "$f" | sed 's/- 状态：//')"
+# ① 该分支新增的文件里，哪些在 dev 里根本不存在（真缺）
+#    NUL 分隔：git 会给非 ASCII 路径加引号转义，不用 -z 会得到假阴性
+base=$(git merge-base origin/dev <branch>)
+git diff --name-only --diff-filter=A -z "$base" "<branch>" | while IFS= read -r -d '' f; do
+  git cat-file -e "origin/dev:$f" 2>/dev/null || echo "  真缺: $f"
 done
 
-# 未合入主线的分支（判断远端 PR 还需要不需要合）
-git fetch -q origin && git log --oneline origin/dev..origin/<branch>
+# ② 交叉验证：dev 日志里有没有对应 Issue 的 squash 提交？Issue 关了吗？
+git log --oneline origin/dev --grep="#<issue>"
+gh issue view <issue> --json state,title
 
-# 内容是否其实已在 dev（为空 = 不需要再合）
-git diff --stat <branch> origin/dev -- apps docs dao
+# ③ 「dev 里没有」也可能是被**搬移**或**有意删除**了 —— 查证之后再下结论
+git log --oneline origin/dev -- "*<文件名>*"
 ```
+
+> **2026-10-16 实测**：`feat/23` / `feat/24` / `feat/25` / `feat/29` 四个分支按前两条判据
+> 全都显示"未合并"，逐条查下来却**没有任何内容缺失** —— 文件"dev 里没有"分别是
+> **搬移**（展示层上提到 `packages/ui`，DAO-034）与**有意删除**
+> （`ab18cc5 chore: rm the unused comps`），四个 Issue 也都已 CLOSED。
+> 换句话说：**那次"很多分支没合并"是判据的误报，不是流程失误** —— 但遗留分支确实让人误判，
+> 所以收口时应当清掉（见下）。
