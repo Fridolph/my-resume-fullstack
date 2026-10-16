@@ -193,3 +193,55 @@ model ResumeDraft {
 
   @@map("resume_drafts")
 }
+
+/// 关键操作的审计记录（**只增不改**）。设计说明见 docs/server/10_审计表_设计与落地.md。
+///
+/// ## 与业务表的关系是「值引用 + 快照」，**不是外键**
+///
+/// 简历是**物理删除**（见 `Resume` 注释）、账号可软删。若挂 `onDelete: Cascade`，
+/// "删除资源"会连带删掉追责记录 —— 与"审计一直保留"正面冲突；
+/// 若挂 `SetNull` 则会丢掉"是哪个资源"。所以这里**不放任何外键约束**：
+/// 用 `resourceType` + `resourceId` 按值指认，再用快照保证资源消失后依然可读。
+///
+/// ## 为什么快照字段必须在第一版就有
+///
+/// `actorRoleKeys` / `actorSnapshot` 这类字段**补不回来**：此刻不记，
+/// 那个时点的角色与昵称就永久消失，后补的行只会永远显示"当时未知"。
+///
+/// ## 不记录简历内容与 PII
+///
+/// `metadata` 走白名单（见 `common/audit.ts`）；严禁写入简历 document、姓名、手机号、邮箱。
+model AuditLog {
+  id String @id @default(cuid())
+
+  /// 操作者 id。**不挂外键** —— 账号可能已被删除，记录必须留下
+  actorId String @map("actor_id")
+  /// 操作当时的昵称/邮箱快照：只有 actorId 的话，账号删掉后没人看得懂这条记录
+  actorSnapshot Json? @map("actor_snapshot")
+  /// 操作当时的角色键快照（追责时回答"他当时是什么身份"）
+  actorRoleKeys String[] @map("actor_role_keys")
+
+  /// 动作标识（如 resume.delete）。用 String 而非 Prisma enum：
+  /// 新增动作不需要迁移，符合"边做边完善"；代价是失去数据库层枚举约束，由应用常量与测试兜住
+  action String @db.VarChar(64)
+
+  resourceType String @db.VarChar(32) @map("resource_type")
+  /// **String 而非 Int**：Resume.id 是 Int、User.id 是 cuid，统一成字符串才装得下两类资源
+  resourceId String @map("resource_id")
+  /// 资源快照（如简历标题）：让人能读懂"删的是哪一份"
+  resourceSnapshot Json? @map("resource_snapshot")
+
+  occurredAt DateTime @default(now()) @map("occurred_at")
+  /// 与请求日志关联（复用 TraceIdMiddleware 的 id），可追到当时的完整上下文
+  requestId String? @map("request_id")
+  /// 动作特有的少量信息（白名单）。一个请求可产生多条审计 → **不加唯一约束**
+  metadata Json?
+
+  /// "这份简历的历史" —— 追责最常见的入口
+  @@index([resourceType, resourceId, occurredAt])
+  /// "这个人做过什么"
+  @@index([actorId, occurredAt])
+  /// 归档遍历 / 按时间范围审计
+  @@index([occurredAt])
+  @@map("audit_logs")
+}
