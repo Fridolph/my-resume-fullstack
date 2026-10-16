@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`self-tested`（2026-10-16：接线完成，卡里 8 条验收**全部通过**；合入 `dev` 后转 `done`）
+- 状态：`done`（2026-10-16 收口：接线完成 · **8 条验收全部通过** · 已合入 `dev` 并推送）
 - Owner：`昇哥（2026-10-16：感觉少了些什么…发现没有日志系统…按照建议执行，开 DAO-042 卡）`
   ⚠️ 原编号 DAO-042，与并行窗口的 `DAO-042-Nuxt配置底座化.md` 撞号，本卡改为 **DAO-044**（043 留给该窗口）
 - 创建日期：`2026-10-16`
@@ -86,12 +86,12 @@ Bearer 与 Cookie 两种载体都在用，两处都要脱敏。
   `redact` 兜底 / `app.module.ts` 的 `LoggerModule.forRootAsync` / `main.ts` 的 `bufferLogs` + `useLogger` /
   `LOG_LEVEL` 环境变量）/ **12 个新增单测** / **隔离环境 8 条验收全通过** /
   文档 [`docs/server/09_日志系统_nestjs-pino_设计.md`](../../docs/server/09_日志系统_nestjs-pino_设计.md)
-- 当前状态：`self-tested`
+- 当前状态：`done`
 - 阻塞：无
-- 下一步第一刀：合入 `dev`（ff）后把本卡转 `done` 并补集成锚点
+- 下一步第一刀：**本卡无未完成项**。可观测性若继续推进，下一步是 `DAO-045`（审计表，#53，等产品决定）
 - 文档锚点：`docs/server/09_...设计.md`（§4.2 / §4.3 / §八 记录了实测推翻的四处"想当然"）、
   `apps/server/src/common/{trace-id,logging.config}.ts`
-- 集成锚点：`待 feature -> dev`
+- 集成锚点：`已 feature -> dev`（`f7ccf23` 实现与文档，ff 合入并推送 `origin/dev`）
 
 ## 实现中与设计稿不同的三处（都是实测才发现）
 
@@ -113,7 +113,7 @@ Bearer 与 Cookie 两种载体都在用，两处都要脱敏。
     （独立 PostgreSQL 55433 + 独立端口 4059；含"真的停库制造 500"与"真实写入含 PII 的简历后 grep 敏感串"）
   - `pnpm check` 全绿；服务端 16 个单测（**新增 12 个**：`trace-id` 5 + `logging.config` 7）
 - Git / PR：无 PR（在 `dev` 上收口）
-- 常规提交：待补（合入后回填）
+- 常规提交：`f7ccf23`（实现 + 文档；本收口提交紧随其后）
 - Dao Commit：`不适用`（单任务收口走 Conventional Commit）
 - 沉淀候选：`候选观察` —— **「引入会自行生成请求 ID 的中间件前，先确认既有 ID 的权威归属」**。
   本轮把它落成了更彻底的形式：与其"选一条顺序并断言"，不如把生成做成**幂等**，顺序就不再是契约。

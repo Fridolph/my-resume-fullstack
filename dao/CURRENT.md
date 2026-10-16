@@ -19,17 +19,21 @@
 
 | 卡 | Issue | 内容 | 状态 |
 | --- | --- | --- | --- |
-| [`DAO-044` 可观测性](./tasks/DAO-044-可观测性-nestjs-pino.md) | [#52](https://github.com/Fridolph/my-resume-fullstack/issues/52) | 接入 `nestjs-pino` v5 + 统一请求 ID + 脱敏（**审计不做**） | `designed`（依赖已确认，可开工）|
+| [`DAO-044` 可观测性](./tasks/DAO-044-可观测性-nestjs-pino.md) | [#52](https://github.com/Fridolph/my-resume-fullstack/issues/52) | 接入 `nestjs-pino` v5 + 统一请求 ID + 脱敏（**审计不做**） | ✅ `done`（**已从本表移出**，见下）|
 | [`DAO-045` 审计表](./tasks/DAO-045-审计表.md) | [#53](https://github.com/Fridolph/my-resume-fullstack/issues/53) | 关键操作审计表（创建 / 发布 / 删除 / 权限变更） | `planned`（**等 Owner 答四个产品决定**）|
 
 **为什么拆两卡**：审计涉及 Prisma schema 变更 + 迁移，按 `AGENTS.md` §3.3「一个任务卡只落一条闭环」
 不与日志接入混一轮；且"保留多久 / 谁可查 / 删号如何处理"是产品决定，不是工程顺手能定的。
 
-**DAO-044 的核心风险**（写进卡里作为主内容，不是附录）：
-既有 `TraceIdMiddleware` 生成的 ID 已流向**日志 + 响应头 + 响应体**三处，
-接入 Pino 时若让它自己 `genReqId` 会立刻分叉 —— 必须选一条权威路径并用断言验证，
-**不能靠"注册顺序应该没问题"**。另两处：Bearer 与 Cookie 两种载体都要脱敏；
-`PUT /resume/:id/draft` 的请求体就是整份简历，**字段白名单**优于"先记后脱敏"。
+### ✅ DAO-044 已收口（2026-10-16）
+
+接 `nestjs-pino` + 统一请求 ID + 脱敏三件事全部落地，卡里 **8 条验收全部通过**
+（隔离 PostgreSQL + 隔离端口，含"真的停库制造 500"与"真实写入含 PII 的简历后 grep 敏感串"）。
+`f7ccf23` 已 ff 合入 `dev`。状态、证据与"实测推翻的四处想当然"见[该卡](./tasks/DAO-044-可观测性-nestjs-pino.md)。
+
+> 落地时**偏离了卡里的设计稿一处**，而且更彻底：原方案是「选一条执行顺序并断言」，
+> 实际改成**幂等的单一生成处**（两个调用方都调 `ensureTraceId`）—— 顺序不再是契约，也就不必断言。
+> 详见卡里「实现中与设计稿不同的三处」。
 
 ## Nuxt 配置底座化 —— ✅ 已收口（DAO-042 / #51）
 
