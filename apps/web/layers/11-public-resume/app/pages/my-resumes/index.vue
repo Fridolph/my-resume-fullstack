@@ -8,9 +8,10 @@ import ResumeAdminLoginModal from '#layers/public-resume/app/components/resume/R
 /**
  * 我的简历（工作台入口）。
  *
- * 这个位置原先是一份 mock 驱动的"公开站预览"，与 `/resume/draft` 的契约文档工作台重复，
+ * 这个位置（`/my-resumes`）原在 `/resume`，与工作台是同一套作者视角；
  * 而且已经漂移（排布改按 section id 后，手写 mock 没有区块清单 → 渲染不出内容）。
- * 现在改为**列表页**：数据来自 `GET /resume`，点一份进 `/resume/draft/:id`。
+ * 现在：数据来自 `GET /resume`，点一份进 `/my-resumes/draft/:id`。
+ * `/resume/:id` 让给了**公开只读**展示（DAO-038）。
  *
  * 「展示哪一份」的答案就落在这里 —— **由用户自己选**；不再依赖 localStorage 记"上次那份"
  * （那只是没指定 id 时的兼容回退）。公开站（访客看的页面）走哪条 URL 是另一件事，
@@ -44,7 +45,7 @@ async function createResume() {
       locale: 'zh',
       document: createDemoResumeDocument(capabilitySample),
     })
-    await navigateTo(`/resume/draft/${created.resume.id}`)
+    await navigateTo(`/my-resumes/draft/${created.resume.id}`)
   } catch (problem) {
     toast.add({ title: '创建失败', description: normalizeApiError(problem).message, color: 'error' })
   } finally {
@@ -105,7 +106,7 @@ function formatUpdatedAt(value: string) {
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div class="min-w-0">
                 <NuxtLink
-                  :to="`/resume/draft/${item.id}`"
+                  :to="`/my-resumes/draft/${item.id}`"
                   class="truncate font-medium text-highlighted hover:text-primary"
                 >
                   {{ item.name }}
@@ -116,7 +117,7 @@ function formatUpdatedAt(value: string) {
               </div>
 
               <div class="flex items-center gap-1">
-                <UButton :to="`/resume/draft/${item.id}`" icon="i-lucide-pencil" size="xs" label="继续编辑" />
+                <UButton :to="`/my-resumes/draft/${item.id}`" icon="i-lucide-pencil" size="xs" label="继续编辑" />
                 <UButton
                   icon="i-lucide-trash-2"
                   size="xs"
