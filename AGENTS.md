@@ -17,6 +17,13 @@
   撞卡号、并让 `git add` 把别人的在制品一起提交。做法：
   `git worktree add ../<repo>-worktrees/<branch> <branch>`，各会话在自己的目录里改与提交，
   完成后 `git worktree remove`。**共享目录里不要用目录级 `git add <dir>`** —— 只逐文件精确暂存。
+- **新 worktree 必须走引导序列**，否则 `typecheck` 会报一堆"模块找不到"的假错误
+  （本轮实测 49 个，全都不是代码问题）：
+  1. `pnpm install --frozen-lockfile`（`node_modules` 不跨 worktree 共享）
+  2. `pnpm --filter @rs/common build`（共享包产物 `dist/` 不在版本控制里）
+  3. `pnpm --filter @rs/server exec prisma generate`（Prisma client 生成到 `src/generated/`，同样不入库）
+- ⚠️ 判断命令成败时**不要用 `cmd | tail`** 看结果：管道的退出码是 `tail` 的，失败会被吞掉
+  （本轮我因此把一次 `typecheck` 失败误当成通过并照常提交）。要么不加管道，要么 `set -o pipefail`。
 - 分支模型：**所有开发只在 `dev` 或从 `dev` 检出的短分支上进行**
   （`feat/<issue>-<slug>` / `fix/…` / `docs/…` / `chore/…`），验证完成后合回 `dev`。
 - ⚠️ **`main` 上不进行任何开发与操作**（Owner 2026-10-16 明确的硬规矩）：
