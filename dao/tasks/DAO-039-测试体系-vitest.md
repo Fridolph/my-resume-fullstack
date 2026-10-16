@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`planned`（等 Owner 确认依赖变更后开工）
+- 状态：`done`（2026-10-16 完成，已合入 dev 并推送）
 - Owner：`昇哥（2026-10-16：那留着吧，改为 resume.service.test.ts，可以加入 vitest；admin 和 web 暂不添加单元测试，但 packages 这些是公共的可以添加）`
 - 创建日期：`2026-10-16`
 - 分支：待建 `test/48-vitest`
@@ -62,8 +62,13 @@
 
 ## 收口与沉淀
 
-- `dao-review` 结论：`未执行`
-- 最终验证证据：待补
+- `dao-review` 结论：`自测通过，收口`（机器可验证项，按 AGENTS.md §4 分层可自行提交）
+- 最终验证证据：
+  - `pnpm test` → **4 successful / 4 total**；`@rs/utils` 3 文件 **87 例**、`@rs/common` 2 文件 **22 例**、
+    `@rs/server` 1 文件 **4 例**（合计 **113 例**，此前为 0）
+  - **零测试必须失败**：移走测试文件 → 退出码 **1**（`No test files found`）；恢复 → 通过
+  - **不再依赖构建产物**：移走各包 `dist/` 后测试仍全绿
+  - `pnpm check` 全绿（format 335 文件 / lint 305 文件 0 error / typecheck 8/8 / test 113 例）
 - Git / PR：待补
 - Dao Commit：`不适用`
 - 沉淀候选：`「质量门必须能区分『通过』与『没有测试』」——若第二个项目复现同样问题，值得考虑归母`

@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`planned`
+- 状态：`done`（2026-10-16 完成，已合入 dev 并推送；Owner 已实看确认）
 - Owner：`昇哥（2026-10-16：希望将更新内容对应写到 apps/admin/app/pages/help.vue、release-notes.vue 之中）`
 - 创建日期：`2026-10-16`
 - 分支：待建 `docs/49-help-release-notes`
@@ -62,8 +62,12 @@
 
 ## 收口与沉淀
 
-- `dao-review` 结论：`未执行`
-- 最终验证证据：待补
+- `dao-review` 结论：`Owner 实看确认后收口`（UI 页面按 AGENTS.md §4 需实看）
+- 最终验证证据：
+  - Owner 于 2026-10-16 确认两个页面内容与排版无误后授权提交
+  - 内容逐条回溯到 `git log` / `dao/tasks/*`；AI 助手与通用上传两处**明确标注未实装**
+  - `release-notes.vue` 改为读 `@rs/common` 的 `RESUME_RELEASES`（数据源见 DAO-041）
+  - `pnpm typecheck` 通过（admin 侧）
 - Git / PR：待补
 - Dao Commit：`不适用`
 - 沉淀候选：`无`

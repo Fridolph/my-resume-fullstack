@@ -4,7 +4,7 @@
 
 ## 身份
 
-- 状态：`planned`（等 Owner 确认依赖变更后开工）
+- 状态：`self-tested`（配置与脚本已落地推送；**端到端预演未跑通**，Issue #50 保持开启）
 - Owner：`昇哥（2026-10-16：希望添加 @release-it/conventional-changelog 来管理后续发布）`
 - 创建日期：`2026-10-16`
 - 分支：待建 `chore/50-release-it`
@@ -73,8 +73,16 @@
 
 ## 收口与沉淀
 
-- `dao-review` 结论：`未执行`
-- 最终验证证据：待补
+- `dao-review` 结论：`部分收口` —— 配置/脚本/文档已交付，端到端预演待补
+- 最终验证证据：
+  - 安全闸**实测生效**：`test/48-vitest` 上跑 `pnpm release:dry` → `ERROR Must be on branch main`；
+    工作区有改动 → `ERROR Working dir must be clean`
+  - 已核验 `.release-it.json`：`git.push: false` · `npm.publish: false` · `github.release: false` ·
+    `requireBranch: main` · `requireCleanWorkingDirectory: true`
+  - `scripts/sync-release-notes.mjs` 用候选 CHANGELOG 实测：解析 → 分组 → 生成 → `--check` 全通过
+  - `pnpm check` 已纳入 `release-notes:check`
+- **未验证（卡点）**：`release-it` 的完整 dry-run 输出（版本推算 + CHANGELOG 生成）未跑通 ——
+  临时放开"工作区需干净"后仍被拦，闸门来源未定位。**解除卡点第一步**：工作区干净后在 `main` 上跑 `pnpm release:dry`
 - Git / PR：待补
 - Dao Commit：`不适用`
 - 沉淀候选：`「发版工具的默认行为可能包含 push —— 引入前先关掉」值得作为工具接入的检查项`
