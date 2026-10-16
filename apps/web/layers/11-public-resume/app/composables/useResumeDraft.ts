@@ -7,7 +7,7 @@ import { createResumeDraftApi } from '#layers/public-resume/app/apis/resume-draf
 /**
  * 草稿工作台的状态。
  *
- * `initialId`：URL 里指定的简历 id（`/resume/draft/:id`）。
+ * `initialId`：URL 里指定的简历 id（`/my-resumes/draft/:id`）。
  * - 有值时**以它为准**（用户明确选了这一份），按 `manual` 处理 —— 找不到就如实报错；
  * - 没值时回退到 localStorage 记的"上次编辑的那份"（`stored`，404 宽容处理）。
  */
@@ -68,11 +68,18 @@ export function useResumeDraft(initialId?: MaybeRefOrGetter<string | null>) {
     // resume.id 现为 integer 自增主键；localStorage 只能存字符串，URL 参数也是字符串，故此处转一下
     writeStoredId(String(response.resume.id))
   }
-  function fail(problem: unknown) {
+  /**
+   * 统一的失败落点：**必须同时**写 `status` 与 `error`。
+   *
+   * ⚠️ 这两个字段由 `labels[status]` 直接驱动界面文案，一旦不同步就会退化成"黑盒"：
+   * 用户只看到"保存或读取失败"却不知道为什么。API 错误由 `normalizeApiError` 给出人话；
+   * 非 API 异常（例如历史那次 `DataCloneError`）没有 `message` 语义，给一句兜底。
+   */
+  function fail(problem: unknown, fallback = '保存失败，请重试或先导出备份') {
     const normalized = normalizeApiError(problem)
     reauthRequired.value = normalized.code === 401
     status.value = normalized.errorCode === 'Resume.Draft:conflict' ? 'conflict' : 'error'
-    error.value = normalized.message || '请求失败，请稍后重试'
+    error.value = normalized.message || fallback
   }
   /**
    * 读取草稿。
@@ -127,19 +134,47 @@ export function useResumeDraft(initialId?: MaybeRefOrGetter<string | null>) {
       !document.value ||
       !dirty.value ||
       saving ||
+      // ⚠️ `error` **刻意不在守卫里**：否则「保存失败 → 修好内容 → 再保存」会被永久挡住，
+      //    用户只能刷新页面才能重试（这正是"黑盒"的来源之一）。
       status.value === 'conflict' ||
       status.value === 'loading'
     )
       return
-    const parsed = resumeDocumentSchema.safeParse(document.value)
-    if (!parsed.success) {
-      status.value = 'error'
-      error.value = parsed.error.issues[0]?.message ?? '字段不合法'
+    const expected = generation
+    // ⚠️ 守卫里已排除 `error`，所以这里要 accept 它；成功时再清掉。
+    //    否则「失败 → 修复 → 重试」永远被上面的守卫挡住。
+    const isRetry = status.value === 'error'
+    /**
+     * ⚠️ 保存链路的核心约束：**不能把 reactive 代理喂给 Zod**。
+     *
+     * 实测（2026-10-15）两个坑，都会让保存彻底失效：
+     *  1. 直接传 `document.value`：Zod 解析时内部克隆 → 抛
+     *     `DataCloneError: Failed to execute 'structuredClone': [object Array] could not be cloned`；
+     *  2. 只加一层 `toRaw(document.value)` **不够** —— `toRaw` 只解顶层，
+     *     `richText` 内容里的数组仍是深层代理，照样抛同一个错。
+     *
+     * 而且这两个异常**不是** `{ success: false }`，会直接冒泡绕过 `try/catch`，
+     * 于是状态永远停在 `pending`（"待保存"）、既不报错也不重试 —— 这正是"保存黑盒"的成因。
+     *
+     * 可靠做法是**以文本为边界**：`JSON.stringify` 是纯读操作、不克隆，
+     * 得到的就是这份文档的纯对象快照。用它同时做校验、内容比对与请求体，
+     * 三者语义完全一致（后端也会再校验一次）。
+     */
+    let submittedInput: string
+    let requestDocument: ResumeDocument
+    try {
+      submittedInput = JSON.stringify(document.value)
+      const parsed = resumeDocumentSchema.safeParse(JSON.parse(submittedInput) as ResumeDocument)
+      if (!parsed.success) {
+        fail(parsed.error.issues[0]?.message ?? '字段不合法')
+        return
+      }
+      requestDocument = parsed.data
+    } catch (problem) {
+      // 不可序列化 / 解析本身抛异常时也要照实落 `error`，让用户能看到原因并按「立即保存 / 重试」重来。
+      fail(problem, '草稿内容无法序列化，请检查自定义模块的富文本内容')
       return
     }
-    const expected = generation
-    const submittedInput = JSON.stringify(document.value)
-    const requestDocument = structuredClone(parsed.data)
     saving = true
     status.value = 'saving'
     try {
@@ -157,12 +192,21 @@ export function useResumeDraft(initialId?: MaybeRefOrGetter<string | null>) {
       if (expected === generation) fail(problem)
     } finally {
       saving = false
-      if (status.value === 'pending') schedule()
+      // 失败（或本次提交语义已过期）时不要盲目重排，交给用户按「立即保存 / 重试」；
+      // 成功但期间又有新改动（pending）才继续自动保存。
+      if (status.value === 'pending' && !isRetry) schedule()
     }
   }
   function schedule() {
     cancelTimer()
     if (!dirty.value && status.value === 'pending') status.value = 'saved'
+    // 上一次失败后用户又改了内容 → 之前那条错误信息已经过期，清掉并重新排一次自动保存。
+    // （用户没再改时 `schedule()` 不会被调用，所以不会形成失败重试风暴；
+    //   手动重试走「立即保存 / 重试」按钮。）
+    if (status.value === 'error' && dirty.value) {
+      status.value = 'pending'
+      error.value = ''
+    }
     if (
       !canEdit.value ||
       reauthRequired.value ||

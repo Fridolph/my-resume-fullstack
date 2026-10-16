@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResumeDocument, ResumeSection } from '@rs/common'
+import type { ResumeDocument, ResumeSection, ResumeSectionSummary } from '@rs/common'
 import {
   resumeSectionComponents,
   getSectionDefinition,
@@ -9,6 +9,31 @@ import { toResumeContent } from '#layers/public-resume/app/utils/resume-document
 import CapabilitySection from '#layers/ui/app/components/resume/CapabilitySection.vue'
 import ResumeBackgroundLayer from '#layers/ui/app/components/resume/ResumeBackgroundLayer.vue'
 const props = defineProps<{ document: ResumeDocument }>()
+
+/**
+ * 契约区块 → 展示层要的区块摘要（`ResumeSectionSummary`）。
+ *
+ * ⚠️ 不要在这里**手工拼**一个"只含 key/label/icon"的字面量：
+ *   - 漏 `id` → `CustomSection` 靠 `content.custom.find(item => item.id === section.id)` 找自己那份内容，
+ *     `undefined === undefined` 会让它**永远找不到**，富文本一个字符都不渲染；
+ *   - 漏 `description` → 用户填的模块描述永远看不见。
+ *
+ * 预设模块的显示名与图标来自共享定义（用户不通过 `title` 改它）；自定义模块相反 ——
+ * 用实例自己的 `title` / `description` / `icon`。这与 `@rs/common` 的 `toResumeContent` 口径一致。
+ */
+function sectionSummary(section: ResumeSection): ResumeSectionSummary {
+  const key = toLegacySectionKey(section.type)
+  const definition = getSectionDefinition(key)
+  const isCustom = section.type === 'custom'
+
+  return {
+    id: section.id,
+    key,
+    label: isCustom ? section.title : (definition?.label ?? section.title),
+    icon: isCustom ? (section.icon ?? 'i-lucide-shapes') : (definition?.icon ?? 'i-lucide-file-text'),
+    description: section.description,
+  }
+}
 const sections = computed(() =>
   props.document.display.sections.order.flatMap(id =>
     props.document.content.sections.filter(
@@ -46,29 +71,13 @@ const gridClass = computed(() =>
         ? 'lg:grid-cols-[280px_minmax(0,1fr)]'
         : 'lg:grid-cols-[minmax(0,1fr)_280px]',
 )
-const variables = computed(() => {
-  const display = props.document.display
-  const palette = display.theme[display.theme.mode]
-  return {
-    '--resume-primary': palette.primary,
-    '--resume-gradient-from': palette.gradientFrom,
-    '--resume-gradient-to': palette.gradientTo,
-    '--resume-surface': palette.surface,
-    '--resume-border': palette.border,
-    '--resume-text': palette.text,
-    '--resume-muted': palette.muted,
-    '--resume-chip-bg': palette.chipBg,
-    '--resume-chip-text': palette.chipText,
-    '--resume-card-radius': display.style.id === 'minimal' ? '1rem' : '1.5rem',
-    '--resume-card-padding': display.style.id === 'minimal' ? '1.25rem' : '1.5rem',
-    '--resume-title-size': display.style.id === 'minimal' ? '0.875rem' : '1.25rem',
-    '--resume-card-bg':
-      display.style.id === 'minimal'
-        ? 'var(--resume-surface)'
-        : 'linear-gradient(140deg, var(--resume-surface), var(--resume-chip-bg))',
-    '--resume-page': display.theme.mode === 'dark' ? '#0f172a' : '#f3f6fb',
-  }
-})
+/**
+ * 主题 / 风格 → CSS 变量。
+ *
+ * ⚠️ 用 `packages/ui` 的共享实现，不要在页面里再写一份简化版：公开站、工作台预览、
+ * admin 只读详情页必须是同一套观感，分叉出去必然漂移（这里原先就有一份"预览简化版"）。
+ */
+const variables = useResumeThemeVariables(() => props.document.display)
 </script>
 
 <template>
@@ -97,11 +106,7 @@ const variables = computed(() => {
           <component
             :is="resumeSectionComponents[toLegacySectionKey(section.type)]"
             v-else
-            :section="{
-              ...getSectionDefinition(toLegacySectionKey(section.type))!,
-              label: section.title,
-              icon: section.icon || getSectionDefinition(toLegacySectionKey(section.type))!.icon,
-            }"
+            :section="sectionSummary(section)"
             :content="toResumeContent(document, section)"
             :options="document.display.options"
             :theme="document.display.theme"

@@ -17,6 +17,7 @@ import {
   resumeDisplayMock,
   resumeThemePresets,
 } from '#layers/public-resume/app/mock/resume-display'
+import { toResumeDisplayConfig, type ResumeDocument } from '@rs/common'
 
 const STORAGE_KEY = 'my-resume.display-config'
 
@@ -163,6 +164,40 @@ export function useResumeDisplay() {
   if (import.meta.client && !autoSaveBound.value) {
     autoSaveBound.value = true
     watch(config, scheduleSave, { deep: true })
+  }
+
+  /**
+   * 以**某份简历文档的展示配置**为基线（同时把它接成"可写"）。
+   *
+   * ## 为什么是"共享对象"而不是"拷贝一份 + 回写"
+   *
+   * Owner 2026-10-15 定的口径：**样式 / 版式这类配置留在浏览器本地，不入库**
+   *（新访客用默认配置；将来的 `locale` 这类才入契约）。
+   * 所以这里不做"服务端为真源"的适配层，而是：
+   *
+   * - `document.display` 提供**基线**（作者在别的端调过的观感，访客要看到）；
+   * - 本 store 的 `config` **直接复用它的对象引用**（`toResumeDisplayConfig` 对
+   *   `layout` / `theme` / `style` / `background` 本来就是引用直通）——
+   *   于是设置面板改的就是文档里那份，**保存仍走调用方原有机制**（工作台自动保存 / admin 整份提交），
+   *   不需要第二套持久化路径，也不会出现"配置改了但没保存"；
+   * - 用户在本机继续调 → 由本 composable 的 `watch(config, deep)` 落 localStorage（浏览器缓存），
+   *   下次打开还是他调过的样子。
+   *
+   * ⚠️ 唯一的例外是 `sections`：`toResumeDisplayConfig` 对它是**浅拷贝**，
+   * 所以这里显式把 `order` / `slot` / `hidden` 也接回文档对象，
+   * 否则在面板里拖排序、切显隐只会改到副本、保存时丢失。
+   */
+  function adopt(display: ResumeDisplayConfig) {
+    const base = toResumeDisplayConfig({
+      // 这里只需要 display 字段；用一个最小外壳把它喂给映射函数，避免再写一遍字段搬运
+      display,
+    } as ResumeDocument)
+    base.sections = {
+      order: display.sections.order,
+      slot: display.sections.slot,
+      hidden: display.sections.hidden,
+    }
+    config.value = base
   }
 
   // ── 布局 ──────────────────────────────────────────────
@@ -358,6 +393,8 @@ export function useResumeDisplay() {
     // 状态
     config,
     settingsOpen,
+    /** 以某份文档的展示配置为基线（见 `adopt` 的说明） */
+    adopt,
     editable,
     isDirty,
     saveState,

@@ -17,6 +17,8 @@ const { draft, document, status, error, staleNotice, dirty, canEdit, reauthRequi
   useResumeDraft(() => props.initialId ?? null)
 const { isAuthed, restoreError, hydrate, signOut } = useAuthState()
 const { content: legacyContent, loadLocal: loadContent } = useResumeContent()
+// ⚠️ 这两个只服务于「从本地内容导入」（`createDraft(true)`）：它把浏览器里旧版本存的
+//    展示配置与内容转成一份文档。**不参与渲染** —— 渲染读的是服务端文档 + 本机覆盖（见公开页）。
 const { config: legacyDisplay, loadLocal: loadDisplay } = useResumeDisplay()
 const loginOpen = ref(false)
 const editorOpen = ref(false)
@@ -54,7 +56,11 @@ async function createDraft(importLocal = false) {
       loadDisplay()
     }
     const initial = importLocal
-      ? importResumeDocument(legacyContent.value, legacyDisplay.value)
+      ? // ⚠️ 必须 `toRaw`：`legacyContent` / `legacyDisplay` 是 reactive 代理，而
+        //    `importResumeDocument` 内部走 `resumeDocumentSchema.parse` ——
+        //    喂代理会抛 `DataCloneError: [object Array] could not be cloned`，
+        //    再被下面的 `catch` 统一说成"格式无法转换"，把真正的类型问题伪装成数据问题。
+        importResumeDocument(toRaw(legacyContent.value), toRaw(legacyDisplay.value))
       : createDemoResumeDocument(capabilitySample)
     await create(name.value, initial)
   } catch {
@@ -149,7 +155,7 @@ function openId() {
         <p class="mt-1 text-sm text-muted">围绕目标岗位组织能力，修改将在停顿 2.5 秒后保存。</p>
       </div>
       <div class="flex items-center gap-3">
-        <NuxtLink to="/resume" class="text-sm underline">查看公开演示</NuxtLink>
+        <NuxtLink to="/" class="text-sm underline">查看公开效果</NuxtLink>
         <UButton v-if="isAuthed" label="退出登录" color="neutral" variant="ghost" @click="logout" />
       </div>
     </header>
