@@ -69,6 +69,8 @@ export const API_ERROR_MESSAGES: Record<number, string> = {
 export const API_ERROR_CODE_MESSAGES: Record<string, string> = {
   'AUTH.Token:expired': '登录已过期，请重新登录',
   'AUTH.Token:invalid': '登录状态异常，请重新登录',
+  // 审计查阅：权限键本身就是最精确的那句话（403 页会优先用它）
+  'Audit.Log:view': '仅超级管理员可查阅审计记录',
 }
 
 /** 策略表里没有的 code 走这里 */
