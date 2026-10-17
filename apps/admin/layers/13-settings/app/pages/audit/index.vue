@@ -31,6 +31,11 @@ import type { AuditLogRow } from '../../apis/audit'
  */
 definePageMeta({
   title: '审计日志',
+  /**
+   * ⚠️ 必须显式声明：admin 没有 `default` 布局，不写这个页面会落在 Nuxt 内置的空布局里
+   * —— 没有侧栏、没有 sticky 页头，看起来像"跑到了另一个站点"。
+   */
+  layout: 'has-sidebar',
   middleware: ['auth', 'permission'],
   roles: ['super_admin'],
   permissions: ['Audit.Log:view'],
@@ -121,7 +126,7 @@ async function copyRequestId(requestId: string | null) {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="content-pad space-y-6">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <p class="max-w-2xl text-sm leading-6 text-muted">
         关键操作的只增日志：谁在什么时候、对什么、做了什么。记录里不含邮箱等隐私字段，
@@ -142,41 +147,43 @@ async function copyRequestId(requestId: string | null) {
     </header>
 
     <!-- 筛选区：行为下拉 + 时间范围。两个控件都在 URL 里，刷新与分享都不丢 -->
-    <div class="flex flex-wrap items-end gap-3">
-      <UFormField label="行为" class="w-48">
-        <USelect v-model="actionModel" :items="AUDIT_ACTION_OPTIONS" value-key="value" />
-      </UFormField>
+    <UCard :ui="{ body: 'p-4 sm:p-4' }">
+      <div class="flex flex-wrap items-end gap-3">
+        <UFormField label="行为" class="w-48">
+          <USelect v-model="actionModel" :items="AUDIT_ACTION_OPTIONS" value-key="value" />
+        </UFormField>
 
-      <UFormField label="时间范围" class="w-72">
-        <UInputDate :model-value="dateRange as never" range @update:model-value="onDateRangeChange" />
-      </UFormField>
+        <UFormField label="时间范围" class="w-72">
+          <UInputDate :model-value="dateRange as never" range @update:model-value="onDateRangeChange" />
+        </UFormField>
 
-      <div v-if="filters.actorId" class="flex items-center gap-2 pb-2">
-        <UBadge color="primary" variant="subtle">仅看操作者 {{ filters.actorId.slice(0, 8) }}</UBadge>
-        <UButton
-          icon="i-lucide-x"
-          size="xs"
-          color="neutral"
-          variant="ghost"
-          aria-label="取消操作者筛选"
-          @click="applyFilters({ actorId: undefined })"
-        />
+        <div v-if="filters.actorId" class="flex items-center gap-2 pb-2">
+          <UBadge color="primary" variant="subtle">仅看操作者 {{ filters.actorId.slice(0, 8) }}</UBadge>
+          <UButton
+            icon="i-lucide-x"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            aria-label="取消操作者筛选"
+            @click="applyFilters({ actorId: undefined })"
+          />
+        </div>
+
+        <div v-if="filters.resourceId" class="flex items-center gap-2 pb-2">
+          <UBadge color="primary" variant="subtle">
+            仅看 {{ AUDIT_RESOURCE_LABELS[filters.resourceType ?? 'resume'] }} #{{ filters.resourceId }}
+          </UBadge>
+          <UButton
+            icon="i-lucide-x"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            aria-label="取消资源筛选"
+            @click="applyFilters({ resourceType: undefined, resourceId: undefined })"
+          />
+        </div>
       </div>
-
-      <div v-if="filters.resourceId" class="flex items-center gap-2 pb-2">
-        <UBadge color="primary" variant="subtle">
-          仅看 {{ AUDIT_RESOURCE_LABELS[filters.resourceType ?? 'resume'] }} #{{ filters.resourceId }}
-        </UBadge>
-        <UButton
-          icon="i-lucide-x"
-          size="xs"
-          color="neutral"
-          variant="ghost"
-          aria-label="取消资源筛选"
-          @click="applyFilters({ resourceType: undefined, resourceId: undefined })"
-        />
-      </div>
-    </div>
+    </UCard>
 
     <!-- 5xx 留在页面内给重试：这是"服务坏了"，不是"你没权限"（403 已在 composable 里转错误页） -->
     <UAlert
@@ -188,63 +195,74 @@ async function copyRequestId(requestId: string | null) {
       description="请稍后重试；若持续失败，查看后端日志。"
     />
 
-    <UTable
-      v-else
-      :data="items"
-      :columns="columns"
-      :loading="pending"
-      :empty="pending ? '加载中…' : '没有符合条件的审计记录'"
-      class="shrink-0"
-    >
-      <template #occurredAt-cell="{ row }">
-        <span class="whitespace-nowrap text-sm">{{ formatTime(row.original.occurredAt) }}</span>
-      </template>
+    <UCard v-else :ui="{ body: 'p-0 sm:p-0' }">
+      <UTable
+        :data="items"
+        :columns="columns"
+        :loading="pending"
+        :empty="pending ? '加载中…' : '没有符合条件的审计记录'"
+      >
+        <template #occurredAt-cell="{ row }">
+          <span class="whitespace-nowrap text-sm">{{ formatTime(row.original.occurredAt) }}</span>
+        </template>
 
-      <template #actorId-cell="{ row }">
-        <button
-          type="button"
-          class="flex flex-col items-start gap-1 rounded text-left hover:underline"
-          :title="`只看 ${row.original.actorId} 的记录`"
-          @click="drillActor(row.original)"
-        >
-          <span class="text-sm font-medium text-highlighted">{{ actorName(row.original) }}</span>
-          <span class="font-mono text-xs text-dimmed">{{ row.original.actorRoleKeys.join(', ') || '—' }}</span>
-        </button>
-      </template>
+        <template #actorId-cell="{ row }">
+          <button
+            type="button"
+            class="flex flex-col items-start gap-1 rounded text-left hover:underline"
+            :title="`只看 ${row.original.actorId} 的记录`"
+            @click="drillActor(row.original)"
+          >
+            <span class="text-sm font-medium text-highlighted">{{ actorName(row.original) }}</span>
+            <span class="font-mono text-xs text-dimmed">{{ row.original.actorRoleKeys.join(', ') || '—' }}</span>
+          </button>
+        </template>
 
-      <template #action-cell="{ row }">
-        <span class="text-sm">{{ AUDIT_ACTION_LABELS[row.original.action] }}</span>
-        <span class="ml-2 font-mono text-xs text-dimmed">{{ row.original.action }}</span>
-      </template>
+        <template #action-cell="{ row }">
+          <span class="text-sm">{{ AUDIT_ACTION_LABELS[row.original.action] }}</span>
+          <span class="ml-2 font-mono text-xs text-dimmed">{{ row.original.action }}</span>
+        </template>
 
-      <template #resourceId-cell="{ row }">
-        <button type="button" class="rounded text-left hover:underline" @click="drillResource(row.original)">
-          <span class="text-sm">{{ AUDIT_RESOURCE_LABELS[row.original.resourceType] }}</span>
-          <span class="ml-1 font-mono text-xs text-muted">#{{ row.original.resourceId }}</span>
-        </button>
-      </template>
+        <template #resourceId-cell="{ row }">
+          <button type="button" class="rounded text-left hover:underline" @click="drillResource(row.original)">
+            <span class="text-sm">{{ AUDIT_RESOURCE_LABELS[row.original.resourceType] }}</span>
+            <span class="ml-1 font-mono text-xs text-muted">#{{ row.original.resourceId }}</span>
+          </button>
+        </template>
 
-      <template #metadata-cell="{ row }">
-        <span class="text-sm text-muted">{{ summarizeAudit(row.original) }}</span>
-      </template>
+        <template #metadata-cell="{ row }">
+          <span class="text-sm text-muted">{{ summarizeAudit(row.original) }}</span>
+        </template>
 
-      <template #requestId-cell="{ row }">
-        <button
-          v-if="row.original.requestId"
-          type="button"
-          class="rounded font-mono text-xs text-muted hover:underline"
-          title="复制请求 id"
-          @click="copyRequestId(row.original.requestId)"
-        >
-          {{ row.original.requestId.slice(0, 8) }}
-        </button>
-        <span v-else class="text-xs text-dimmed">—</span>
-      </template>
-    </UTable>
+        <template #requestId-cell="{ row }">
+          <button
+            v-if="row.original.requestId"
+            type="button"
+            class="rounded font-mono text-xs text-muted hover:underline"
+            title="复制请求 id"
+            @click="copyRequestId(row.original.requestId)"
+          >
+            {{ row.original.requestId.slice(0, 8) }}
+          </button>
+          <span v-else class="text-xs text-dimmed">—</span>
+        </template>
+      </UTable>
 
-    <!-- 分页：服务端分页，总数来自接口 -->
-    <div v-if="total > pageSize" class="flex justify-end">
-      <UPagination :page="page" :items-per-page="pageSize" :total="total" @update:page="setPage" />
-    </div>
+      <!--
+        分页放在卡片内的 footer 行：表格与"共几条 / 第几页"是同一件事，
+        拆成两个视觉块时，滚动到底部会以为分页是另一块内容。
+        `border-t` + 与表格一致的左右内边距，让它在视觉上属于同一张卡片。
+      -->
+      <div class="flex flex-wrap items-center justify-between gap-3 border-t border-default px-4 py-3">
+        <p class="text-sm text-muted">共 {{ total }} 条记录</p>
+        <UPagination
+          v-if="total > pageSize"
+          :page="page"
+          :items-per-page="pageSize"
+          :total="total"
+          @update:page="setPage"
+        />
+      </div>
+    </UCard>
   </div>
 </template>

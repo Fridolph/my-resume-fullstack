@@ -26,9 +26,13 @@ import { API_ERROR_CODE_MESSAGES, API_ERROR_MESSAGES, UNKNOWN_ERROR_MESSAGE } fr
 
 export type ErrorPageKind = 'unauthorized' | 'forbidden' | 'not-found' | 'unknown'
 
-/** 主按钮的三种去向；`retry` 要重新进入当前地址，由宿主执行 */
-export type ErrorPageAction = 'login' | 'home' | 'retry'
-
+/**
+ * 错误页要展示的内容。
+ *
+ * ⚠️ 这里**没有"主按钮"字段**：按钮固定为「返回上一页 / 返回主页」两个
+ *（Owner 2026-10-16），属于交互形态而非文案，因此不随状态码变化。
+ * 状态码只决定"说哪句话"（分类 + 图标 + 文案）。
+ */
 export interface ErrorPageConfig {
   kind: ErrorPageKind
   /** 顶部徽标，如 `403` */
@@ -39,8 +43,6 @@ export interface ErrorPageConfig {
   description: string
   /** 一句话补充；没有就不显示 */
   hint?: string
-  primaryLabel: string
-  primaryAction: ErrorPageAction
 }
 
 /** 只读共享层那张错误码表，不在别处另抄一份（抄必漂移） */
@@ -67,8 +69,6 @@ export function resolveErrorPage(statusCode: number | undefined, statusMessage: 
       icon: 'i-lucide-log-in',
       title: '需要先登录',
       description: byCode ?? API_ERROR_MESSAGES[401] ?? UNKNOWN_ERROR_MESSAGE,
-      primaryLabel: '去登录',
-      primaryAction: 'login',
     }
   }
 
@@ -82,8 +82,6 @@ export function resolveErrorPage(statusCode: number | undefined, statusMessage: 
       // Owner 2026-10-16：403 页**只做告知**，不给"切换账号"。
       // 它要回答的是"这个功能存在、但你现在进不去"，而不是替用户做登录决策。
       hint: '该功能仅对超级管理员开放。如需使用，请由超级管理员操作。',
-      primaryLabel: '返回首页',
-      primaryAction: 'home',
     }
   }
 
@@ -95,8 +93,6 @@ export function resolveErrorPage(statusCode: number | undefined, statusMessage: 
       title: '页面不存在',
       description: byCode ?? API_ERROR_MESSAGES[404] ?? UNKNOWN_ERROR_MESSAGE,
       hint: '地址可能已经变更，或者这个页面还没有做。',
-      primaryLabel: '返回首页',
-      primaryAction: 'home',
     }
   }
 
@@ -107,7 +103,5 @@ export function resolveErrorPage(statusCode: number | undefined, statusMessage: 
     title: '出了点问题',
     description: byCode ?? (statusCode ? API_ERROR_MESSAGES[statusCode] : undefined) ?? UNKNOWN_ERROR_MESSAGE,
     hint: '如果反复出现，请查看后端日志（响应头里有请求 id）。',
-    primaryLabel: '重试',
-    primaryAction: 'retry',
   }
 }
