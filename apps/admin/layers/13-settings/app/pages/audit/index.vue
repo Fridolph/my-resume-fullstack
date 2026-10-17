@@ -9,6 +9,7 @@ import {
 } from '../../config/audit-labels'
 import { toRangeBounds, useAuditLog, type DateRangeValue } from '../../composables/useAuditLog'
 import type { AuditLogRow } from '../../apis/audit'
+import MyDataTable from '#layers/ui/app/components/MyDataTable.vue'
 
 /**
  * 审计日志（`/audit`）—— **仅超级管理员**。
@@ -196,11 +197,18 @@ async function copyRequestId(requestId: string | null) {
     />
 
     <UCard v-else :ui="{ body: 'p-0 sm:p-0' }">
-      <UTable
+      <!--
+        与简历列表共用 `MyDataTable`（`packages/ui`）：表格 + 服务端分页 + "共 N 条"。
+        两页之前各写一套表格与页脚，分页行为已经开始分叉（一个在卡外、一个在卡内）。
+      -->
+      <MyDataTable
         :data="items"
         :columns="columns"
+        :total="total"
+        :page="page"
+        :page-size="pageSize"
         :loading="pending"
-        :empty="pending ? '加载中…' : '没有符合条件的审计记录'"
+        empty-text="没有符合条件的审计记录"
       >
         <template #occurredAt-cell="{ row }">
           <span class="whitespace-nowrap text-sm">{{ formatTime(row.original.occurredAt) }}</span>
@@ -246,23 +254,7 @@ async function copyRequestId(requestId: string | null) {
           </button>
           <span v-else class="text-xs text-dimmed">—</span>
         </template>
-      </UTable>
-
-      <!--
-        分页放在卡片内的 footer 行：表格与"共几条 / 第几页"是同一件事，
-        拆成两个视觉块时，滚动到底部会以为分页是另一块内容。
-        `border-t` + 与表格一致的左右内边距，让它在视觉上属于同一张卡片。
-      -->
-      <div class="flex flex-wrap items-center justify-between gap-3 border-t border-default px-4 py-3">
-        <p class="text-sm text-muted">共 {{ total }} 条记录</p>
-        <UPagination
-          v-if="total > pageSize"
-          :page="page"
-          :items-per-page="pageSize"
-          :total="total"
-          @update:page="setPage"
-        />
-      </div>
+      </MyDataTable>
     </UCard>
   </div>
 </template>

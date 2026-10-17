@@ -197,3 +197,62 @@ test('删除：快照读不到就不删、也不写审计（统一 404）', asyn
   assert.equal(calls.length, 0, '读不到就不该执行 DELETE')
   assert.equal(auditRecords.length, 0, '没有发生删除，就不该有审计记录')
 })
+
+/**
+ * 列表分页的两条不变量（都属于"错了不会报错、只在跨页时才显形"的那类）：
+ * 1. `count` 与 `findMany` 必须用**同一个 where**，否则"共 N 条"与实际能翻到的条数对不上；
+ * 2. `skip` 由页码推出、`take` 是每页条数，且越界值被收敛（不回显会让页码与实际请求脱节）。
+ */
+test('list：分页参数推出 skip/take，count 与 findMany 共用一个 where', async () => {
+  const findManyArgs: { where: unknown; skip?: number; take?: number; orderBy?: unknown }[] = []
+  const countWheres: unknown[] = []
+  const prismaService = {
+    resume: {
+      findMany: async (args: { where: unknown; skip?: number; take?: number; orderBy?: unknown }) => {
+        findManyArgs.push(args)
+        return []
+      },
+      count: async (args: { where: unknown }) => {
+        countWheres.push(args.where)
+        return 0
+      },
+    },
+    // 服务里用的是数组形式 $transaction([findMany, count])
+    $transaction: async (operations: Promise<unknown>[]) => Promise.all(operations),
+  }
+
+  const service = createService(prismaService)
+  const identity = {
+    userId: 'u-1',
+    roleKeys: ['admin'],
+    permissionKeys: ['Resume.Sections:edit'],
+  } as unknown as AuthUser
+
+  const result = await service.list(identity, { page: 3, pageSize: 10 })
+
+  assert.equal(findManyArgs[0]?.skip, 20, '第 3 页应跳过 20 条')
+  assert.equal(findManyArgs[0]?.take, 10)
+  assert.deepEqual(countWheres[0], findManyArgs[0]?.where, 'count 的 where 必须与列表一致')
+  // 次级排序键保证同时间戳的行在两页里不会重复出现
+  assert.deepEqual(findManyArgs[0]?.orderBy, [{ createdAt: 'desc' }, { id: 'desc' }])
+  assert.deepEqual(result, { items: [], total: 0, page: 3, pageSize: 10 })
+})
+
+test('list：越界的分页参数被收敛，并回显生效值', async () => {
+  const prismaService = {
+    resume: {
+      findMany: async () => [],
+      count: async () => 0,
+    },
+    $transaction: async (operations: Promise<unknown>[]) => Promise.all(operations),
+  }
+  const service = createService(prismaService)
+  const identity = { userId: 'u-1', roleKeys: ['admin'], permissionKeys: [] } as unknown as AuthUser
+
+  assert.deepEqual(await service.list(identity, { page: 0, pageSize: 100000 }), {
+    items: [],
+    total: 0,
+    page: 1,
+    pageSize: 100,
+  })
+})

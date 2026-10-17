@@ -1,4 +1,4 @@
-import type { CreateResumeDto, ResumeDraftResponse, SaveResumeDraftDto, ResumeSummary } from '@rs/common'
+import type { CreateResumeDto, ResumeDraftResponse, ResumeSummaryPage, SaveResumeDraftDto } from '@rs/common'
 
 /**
  * 简历主体的读写接口（admin 侧）。
@@ -15,16 +15,18 @@ export function createResumeApi() {
   const { $api } = useNuxtApp()
 
   return {
-    /** 本人未删除的简历（概览页）；不返回正文，正文走 `getDraft` */
-    list: () => $api<ResumeSummary[]>('/resume', { silent: true, retry: 0 }),
+    /** 本人未删除的简历（概览页，**服务端分页**）；不返回正文，正文走 `getDraft` */
+    list: (query: { page?: number; pageSize?: number } = {}) =>
+      $api<ResumeSummaryPage>('/resume', { query, silent: true, retry: 0 }),
 
     create: (input: CreateResumeDto) =>
       $api<ResumeDraftResponse>('/resume', { method: 'POST', body: input, silent: true, retry: 0 }),
 
     /** 读取本人草稿（完整文档 + 当前 revision），编辑页的入口数据 */
     /** 设为默认展示（互斥：会取消本人其他简历的默认），返回更新后的完整列表 */
+    /** 设为默认展示；返回哪一份成了默认（列表由调用方重新拉取） */
     setDefault: (id: number) =>
-      $api<ResumeSummary[]>(`/resume/${id}/default`, { method: 'PATCH', silent: true, retry: 0 }),
+      $api<{ id: number }>(`/resume/${id}/default`, { method: 'PATCH', silent: true, retry: 0 }),
     getDraft: (id: number) => $api<ResumeDraftResponse>(`/resume/${id}/draft`, { silent: true, retry: 0 }),
 
     /**

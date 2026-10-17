@@ -779,3 +779,27 @@ export const resumeSummarySchema = z.strictObject({
  * 类型标注不等于已校验：外部数据仍须调用 `resumeSummarySchema.parse`。
  */
 export type ResumeSummary = z.infer<typeof resumeSummarySchema>
+
+/**
+ * 列表的分页结构（服务端分页的**统一形状**）。
+ *
+ * ## 为什么形状统一
+ *
+ * admin 的简历列表、审计日志都是"当前页 + 总数"，前端也就只有一套翻页组件
+ *（`MyDataTable`）。若每张表各发明一种（`{ list, count }` / `{ rows, totalCount }` …），
+ * 前端每接一张表都要写一次适配，paginate 组件也复用不了。
+ *
+ * ## 为什么带 `page` / `pageSize` 回显
+ *
+ * 服务端会把越界值收敛（`page=0` → 1、`pageSize=1000` → 100）。
+ * 回显**生效值**而不是让前端自己猜收敛规则 —— 否则页码显示与实际请求会对不上。
+ */
+export interface PagedResult<T> {
+  items: T[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+/** 简历列表的分页结果 */
+export type ResumeSummaryPage = PagedResult<ResumeSummary>

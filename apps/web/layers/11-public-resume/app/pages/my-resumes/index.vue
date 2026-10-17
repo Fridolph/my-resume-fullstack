@@ -27,11 +27,26 @@ const loginOpen = ref(false)
 const busyId = ref<number | null>(null)
 const creating = ref(false)
 
+/** 每页条数：卡片网格一屏放得下的数量 */
+const PAGE_SIZE = 12
+const page = ref(1)
+
+/**
+ * 列表现在是**服务端分页**的：`data` 是 `{ items, total, page, pageSize }`。
+ * 页码进请求参数，所以 `page` 也必须进 `watch` —— 否则翻页不会重新取数。
+ */
 const {
-  data: resumes,
+  data: listPage,
   refresh,
   status,
-} = await useAsyncData('my-resumes', () => (isAuthed.value ? api.list() : Promise.resolve([])), { watch: [isAuthed] })
+} = await useAsyncData(
+  'my-resumes',
+  () => (isAuthed.value ? api.list({ page: page.value, pageSize: PAGE_SIZE }) : Promise.resolve(null)),
+  { watch: [isAuthed, page] },
+)
+
+const resumes = computed(() => listPage.value?.items ?? [])
+const total = computed(() => listPage.value?.total ?? 0)
 
 const isLoading = computed(() => status.value === 'pending')
 
@@ -132,6 +147,11 @@ function formatUpdatedAt(value: string) {
           </UCard>
         </li>
       </ul>
+      <!-- 服务端分页：总数来自接口，翻页改 `page` 后由 useAsyncData 的 watch 重新取数 -->
+      <div v-if="total > PAGE_SIZE" class="mt-4 flex items-center justify-between gap-3">
+        <p class="text-sm text-muted">共 {{ total }} 份简历</p>
+        <UPagination v-model:page="page" :items-per-page="PAGE_SIZE" :total="total" />
+      </div>
     </template>
 
     <ResumeAdminLoginModal v-model:open="loginOpen" />

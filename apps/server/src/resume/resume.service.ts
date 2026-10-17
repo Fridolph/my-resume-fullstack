@@ -7,9 +7,11 @@ import {
   type RenameResumeDto,
   type ResumeDraftResponse,
   type ResumeSummary,
+  type ResumeSummaryPage,
 } from '@rs/common'
 import type { Prisma } from '../generated/prisma/client'
 import type { AuthUser } from '../common/http-context'
+import type { ResumeListDto } from './dto/resume-list.schema'
 import { API_ERROR_CODES } from '../common/error-codes'
 import { PERMISSION_KEYS } from '../auth/permission-keys'
 import { PrismaService } from '../prisma/prisma.service'
@@ -51,7 +53,7 @@ export class ResumeService {
    *
    * 返回**更新后的完整列表**，让前端一次拿到互斥结果，不用再猜另一份现在是 true 还是 false。
    */
-  async setDefault(id: number, currentUser: AuthUser, context: AuditContext = {}): Promise<ResumeSummary[]> {
+  async setDefault(id: number, currentUser: AuthUser, context: AuditContext = {}): Promise<{ id: number }> {
     this.assertEditable(currentUser)
 
     await this.prismaService.$transaction(async transaction => {
@@ -84,7 +86,10 @@ export class ResumeService {
       })
     })
 
-    return this.list(currentUser)
+    // 返回值从"整份列表"收成 `{ id }`：列表现在**分页**了，返回"全部"既昂贵又语义含混
+    //（调用方拿到的是第几页？）。调用方真正需要的是"哪一份成了默认"，
+    // 其余状态用一次重新拉取（列表已有缓存失效机制）就够了。
+    return { id }
   }
 
   /**
@@ -203,22 +208,39 @@ export class ResumeService {
    * "有简历必有草稿"是数据不变量；真出现无草稿的脏数据，宁可让它不出现，
    * 也不用猜测出来的 revision 把它伪装成正常简历返回。
    */
-  async list(currentUser: AuthUser): Promise<ResumeSummary[]> {
-    const resumes = await this.prismaService.resume.findMany({
-      where: {
-        workspaceUserId: currentUser.userId,
-        workspace: { user: { deletedAt: null } },
-        draft: { isNot: null },
-      },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        locale: true,
-        isDefault: true,
-        draft: { select: { revision: true, updatedAt: true } },
-      },
-    })
+  async list(currentUser: AuthUser, query: ResumeListDto = {}): Promise<ResumeSummaryPage> {
+    // 收敛规则与审计查询一致：page 从 1 起、pageSize 上限 100。
+    // 放在 service 而不只放 schema：将来若有非 HTTP 入口（内部任务、CLI），
+    // 绕过 schema 也不会把 `pageSize=100000` 打到数据库上。
+    const page = Math.max(1, Math.trunc(query.page ?? 1))
+    const pageSize = Math.min(100, Math.max(1, Math.trunc(query.pageSize ?? 20)))
+
+    // 分页的两个查询用**同一个 where**：count 与 findMany 条件不一致时，
+    // "共 N 条"与实际能翻到的条数会对不上，而这种错误只在跨页时才显形。
+    const where: Prisma.ResumeWhereInput = {
+      workspaceUserId: currentUser.userId,
+      workspace: { user: { deletedAt: null } },
+      draft: { isNot: null },
+    }
+
+    const [resumes, total] = await this.prismaService.$transaction([
+      this.prismaService.resume.findMany({
+        where,
+        // 次级排序键 `id` 是**稳定分页的前提**：createdAt 相同的两行在
+        // LIMIT/OFFSET 下顺序不稳定，会出现"同一条记录在两页里各出现一次"。
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        select: {
+          id: true,
+          name: true,
+          locale: true,
+          isDefault: true,
+          draft: { select: { revision: true, updatedAt: true } },
+        },
+      }),
+      this.prismaService.resume.count({ where }),
+    ])
 
     const items: ResumeSummary[] = []
     for (const resume of resumes) {
@@ -233,7 +255,7 @@ export class ResumeService {
       })
     }
 
-    return items
+    return { items, total, page, pageSize }
   }
 
   /**

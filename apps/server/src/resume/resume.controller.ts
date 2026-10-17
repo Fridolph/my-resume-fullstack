@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common'
 import {
   createResumeSchema,
   renameResumeSchema,
@@ -10,6 +10,7 @@ import {
 } from '@rs/common'
 import { TraceId } from '../common/decorators/trace-id.decorator'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import { resumeListSchema, type ResumeListDto } from './dto/resume-list.schema'
 import { Public } from '../auth/decorators/public.decorator'
 import type { AuthUser } from '../common/http-context'
 import { ResumeService } from './resume.service'
@@ -38,8 +39,10 @@ export class ResumeController {
    * 身份取自 Guard，不接受客户端指定归属；普通用户也能读自己的列表（不需要编辑资格）。
    */
   @Get()
-  list(@CurrentUser() currentUser: AuthUser) {
-    return this.resumeService.list(currentUser)
+  list(@CurrentUser() currentUser: AuthUser, @Query({ schema: resumeListSchema }) query: ResumeListDto) {
+    // 分页参数走 schema 校验（越界 400、缺省由 service 收敛）；
+    // 身份仍只取 Guard 恢复的 `currentUser`，不接受客户端指定归属。
+    return this.resumeService.list(currentUser, query)
   }
 
   /**

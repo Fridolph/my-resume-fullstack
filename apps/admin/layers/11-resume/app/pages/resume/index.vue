@@ -4,6 +4,7 @@ import { useQueryCache } from '@pinia/colada'
 import { normalizeApiError, resolveApiErrorMessage, type ResumeSummary } from '@rs/common'
 import { queryKeys } from '~/lib/query-keys'
 import { createResumeApi } from '../../apis/resume'
+import MyDataTable from '#layers/ui/app/components/MyDataTable.vue'
 
 /**
  * 简历概览（`/resume`）。
@@ -27,7 +28,7 @@ const toast = useToast()
 const api = createResumeApi()
 const queryCache = useQueryCache()
 const { signOut } = useAuthState()
-const { summaries, status, error, refresh } = useResumeList()
+const { summaries, total, page, pageSize, status, error, refresh } = useResumeList()
 
 type ResumeViewMode = 'card' | 'list'
 
@@ -282,75 +283,85 @@ async function confirmDelete() {
     </div>
 
     <!-- 列表视图（UTable：字段与交互都会继续长，表格比手写行更好扩展） -->
-    <UTable
-      v-else
-      :data="summaries"
-      :columns="columns"
-      :ui="{
-        th: 'text-xs font-medium text-muted',
-        td: 'text-sm',
-      }"
-    >
-      <template #name-cell="{ row }">
-        <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-file-text" class="size-4 shrink-0 text-muted" />
-          <NuxtLink :to="`/resume/${row.original.id}`" class="truncate font-medium text-highlighted hover:text-primary">
-            {{ row.original.name }}
-          </NuxtLink>
-        </div>
-      </template>
+    <UCard v-else :ui="{ body: 'p-0 sm:p-0' }">
+      <!--
+        列表视图走公共组件 `MyDataTable`（`packages/ui`）：表格 + 服务端分页 + "共 N 条"。
+        它与审计页是同一份实现 —— 之前这两处各写一套，外观与分页行为已经开始分叉。
+      -->
+      <MyDataTable
+        :data="summaries"
+        :columns="columns"
+        :total="total"
+        :page="page"
+        :page-size="pageSize"
+        empty-text="还没有简历"
+        unit="份简历"
+        @update:page="page = $event"
+      >
+        <template #name-cell="{ row }">
+          <div class="flex items-center gap-2">
+            <UIcon name="i-lucide-file-text" class="size-4 shrink-0 text-muted" />
+            <NuxtLink
+              :to="`/resume/${row.original.id}`"
+              class="truncate font-medium text-highlighted hover:text-primary"
+            >
+              {{ row.original.name }}
+            </NuxtLink>
+          </div>
+        </template>
 
-      <template #locale-cell="{ row }">
-        <UBadge color="neutral" variant="subtle" :label="row.original.locale" />
-      </template>
+        <template #locale-cell="{ row }">
+          <UBadge color="neutral" variant="subtle" :label="row.original.locale" />
+        </template>
 
-      <template #revision-cell="{ row }">
-        <span class="text-muted">rev {{ row.original.revision }}</span>
-      </template>
+        <template #revision-cell="{ row }">
+          <span class="text-muted">rev {{ row.original.revision }}</span>
+        </template>
 
-      <template #updatedAt-cell="{ row }">
-        <span class="text-muted">{{ formatUpdatedAt(row.original.updatedAt) }}</span>
-      </template>
+        <template #updatedAt-cell="{ row }">
+          <span class="text-muted">{{ formatUpdatedAt(row.original.updatedAt) }}</span>
+        </template>
 
-      <template #actions-cell="{ row }">
-        <div class="flex items-center justify-end gap-1">
-          <UButton
-            icon="i-lucide-star"
-            size="xs"
-            color="neutral"
-            :variant="row.original.isDefault ? 'soft' : 'ghost'"
-            :disabled="row.original.isDefault"
-            :aria-label="row.original.isDefault ? '已是默认展示' : `把「${row.original.name}」设为默认展示`"
-            :title="row.original.isDefault ? '已是默认展示' : '设为默认展示'"
-            @click="setDefault(row.original.id)"
-          />
-          <UButton
-            :to="`/resume/${row.original.id}`"
-            icon="i-lucide-eye"
-            size="xs"
-            color="neutral"
-            variant="ghost"
-            :aria-label="`查看「${row.original.name}」`"
-          />
-          <UButton
-            :to="`/resume/${row.original.id}/edit`"
-            icon="i-lucide-pencil"
-            size="xs"
-            color="neutral"
-            variant="ghost"
-            :aria-label="`编辑「${row.original.name}」`"
-          />
-          <UButton
-            icon="i-lucide-trash-2"
-            size="xs"
-            color="error"
-            variant="ghost"
-            :aria-label="`删除「${row.original.name}」`"
-            @click="askDelete(row.original)"
-          />
-        </div>
-      </template>
-    </UTable>
+        <template #actions-cell="{ row }">
+          <div class="flex items-center justify-end gap-1">
+            <UButton
+              icon="i-lucide-star"
+              size="xs"
+              color="neutral"
+              :variant="row.original.isDefault ? 'soft' : 'ghost'"
+              :disabled="row.original.isDefault"
+              :aria-label="row.original.isDefault ? '已是默认展示' : `把「${row.original.name}」设为默认展示`"
+              :title="row.original.isDefault ? '已是默认展示' : '设为默认展示'"
+              @click="setDefault(row.original.id)"
+            />
+            <UButton
+              :to="`/resume/${row.original.id}`"
+              icon="i-lucide-eye"
+              size="xs"
+              color="neutral"
+              variant="ghost"
+              :aria-label="`查看「${row.original.name}」`"
+            />
+            <UButton
+              :to="`/resume/${row.original.id}/edit`"
+              icon="i-lucide-pencil"
+              size="xs"
+              color="neutral"
+              variant="ghost"
+              :aria-label="`编辑「${row.original.name}」`"
+            />
+            <UButton
+              icon="i-lucide-trash-2"
+              size="xs"
+              color="error"
+              variant="ghost"
+              :aria-label="`删除「${row.original.name}」`"
+              @click="askDelete(row.original)"
+            />
+          </div>
+        </template>
+      </MyDataTable>
+    </UCard>
 
     <ModalDeleteConfirm
       v-model:open="deleteOpen"
