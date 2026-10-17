@@ -12,6 +12,17 @@ export function createResumeDraftApi() {
       $api<ResumeDraftResponse>('/resume', { method: 'POST', body: input, silent: true, retry: 0 }),
     read: (id: string) =>
       $api<ResumeDraftResponse>(`/resume/${encodeURIComponent(id)}/draft`, { silent: true, retry: 0 }),
+    /** 设为默认展示（公开页 `/` 展示的就是它）；返回哪一份成了默认 */
+    setDefault: (id: number) =>
+      $api<{ id: number }>(`/resume/${id}/default`, { method: 'PATCH', silent: true, retry: 0 }),
+    /** 重命名（只改名字，不碰内容与展示配置） */
+    rename: (id: number, name: string) =>
+      $api<{ id: number; name: string }>(`/resume/${id}`, {
+        method: 'PATCH',
+        body: { name },
+        silent: true,
+        retry: 0,
+      }),
     remove: (id: string) =>
       $api<{ id: number }>(`/resume/${encodeURIComponent(id)}`, { method: 'DELETE', silent: true, retry: 0 }),
     save: (id: string, input: SaveResumeDraftDto) =>

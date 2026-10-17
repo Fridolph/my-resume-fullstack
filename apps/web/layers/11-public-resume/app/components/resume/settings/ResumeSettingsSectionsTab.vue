@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
-import { useResumeContent } from '#layers/public-resume/app/composables/useResumeContent'
+import { PUBLIC_RESUME_DOCUMENT_KEY } from '#layers/public-resume/app/composables/usePublicResumeDocument'
 import ResumeSettingsGroup from './ResumeSettingsGroup.vue'
 
 /**
@@ -18,10 +18,36 @@ import ResumeSettingsGroup from './ResumeSettingsGroup.vue'
  * （否则用户会以为界面坏了，那比直接禁用更糟）。
  */
 const { config, toggleSection } = useResumeDisplay()
-// 开关按**文档清单**列（自定义模块是多实例，每个实例一个独立开关），
-// 名字取清单项的 label —— 自定义模块就是用户填的 title
-const { content } = useResumeContent()
+
+/**
+ * 开关按**当前文档**的模块清单列（自定义模块多实例，每个实例一个独立开关）。
+ *
+ * ⚠️ 这里曾经读 `useResumeContent()`（legacy mock，`sections: []`）——
+ * 于是这个 tab 永远列出 0 个模块，且不报错。改为从 `provide` 拿真实文档。
+ */
+const document = inject(PUBLIC_RESUME_DOCUMENT_KEY, ref(null))
+
+/** 模块清单：id 用文档里的 UUID（`toggleSection` 依赖它），名字优先用清单项标题 */
+const sections = computed(() => {
+  const list = document.value?.content.sections ?? []
+  return list.map(section => ({
+    id: section.id,
+    label: section.title || SECTION_FALLBACK_LABELS[section.type] || section.type,
+  }))
+})
 const { canEditSections, canInteractSections } = usePermission()
+
+/** 模块没填标题时的兜底名（与编辑器里的分组标题保持同一套说法） */
+const SECTION_FALLBACK_LABELS: Record<string, string> = {
+  profile: '基本信息',
+  highlights: '亮点',
+  education: '教育经历',
+  experience: '工作经历',
+  projects: '项目经历',
+  capabilities: '能力',
+  evaluations: '评价',
+  custom: '自定义模块',
+}
 
 const toast = useToast()
 
@@ -50,15 +76,17 @@ function onToggle(id: string) {
     hint="顺序与栏位归属在页面上拖拽调整"
     locked-hint="需要登录"
   >
-    <ul class="grid gap-1">
+    <p v-if="!sections.length" class="resume-text text-xs opacity-70">这份简历还没有可显隐的模块。</p>
+
+    <ul v-else class="grid gap-1">
       <li
-        v-for="item in content.sections"
+        v-for="item in sections"
         :key="item.id"
         class="flex items-center justify-between gap-3 rounded-lg border px-2.5 py-1.5"
         :style="{ borderColor: 'var(--resume-border)' }"
       >
         <span class="flex min-w-0 items-center gap-2">
-          <UIcon :name="item.icon" class="resume-accent size-4 shrink-0" />
+          <UIcon name="i-lucide-layout-list" class="resume-accent size-4 shrink-0" />
           <span class="resume-text truncate text-sm">{{ item.label }}</span>
         </span>
 

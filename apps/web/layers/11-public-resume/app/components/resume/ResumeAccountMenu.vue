@@ -62,7 +62,8 @@ const menuItems = computed<DropdownMenuItem[][]>(() => {
 
   if (canResetConfig.value) {
     tail.push({
-      label: '重置全部配置…',
+      // 只会还原**展示配置**（内容与模块不动），所以文案不能再说"全部" —— 那句是假承诺
+      label: '重置展示配置…',
       icon: 'i-lucide-rotate-ccw',
       color: 'error',
       onSelect: () => emit('reset'),

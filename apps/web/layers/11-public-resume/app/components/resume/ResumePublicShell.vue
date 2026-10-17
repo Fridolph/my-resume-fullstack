@@ -5,6 +5,7 @@ import { createResumeDraftApi } from '#layers/public-resume/app/apis/resume-draf
 import ResumePublicHeader from './ResumePublicHeader.vue'
 import ResumePublicView from './ResumePublicView.vue'
 import ResumeSettingsDrawer from './ResumeSettingsDrawer.vue'
+import { PUBLIC_RESUME_DOCUMENT_KEY } from '#layers/public-resume/app/composables/usePublicResumeDocument'
 
 /**
  * 公开简历页的外壳：**主题变量注入 + 空态 / 失败态**，正文交给 `ResumePublicView`。
@@ -90,7 +91,14 @@ async function persistDocument() {
     const current = await draftApi.read(String(id))
     await draftApi.save(String(id), {
       expectedRevision: current.revision,
-      document: JSON.parse(JSON.stringify(doc)),
+      document: {
+        ...JSON.parse(JSON.stringify(doc)),
+        // ⚠️ **展示配置不入库**（Owner 2026-10-15 的决定：版式 / 主题 / 背景留在浏览器本地）。
+        // 而 `useResumeDisplay.adopt()` 是**引用共享**的 —— 本机调的展示会直接改到
+        // `props.document.display` 上。若原样回写，"本机偏好"就会被顺手写进服务端，
+        // 变成"一个人调主题、所有访客都跟着变"。所以回写前换回**加载时的快照**。
+        display: serverDisplay.value ?? JSON.parse(JSON.stringify(doc)).display,
+      },
     })
   } catch {
     // 静默：见上面的取舍说明
@@ -104,6 +112,37 @@ function schedulePersist() {
   if (saveTimer) clearTimeout(saveTimer)
   saveTimer = setTimeout(() => void persistDocument(), 1500)
 }
+
+/**
+ * 服务端那份展示配置的快照（见 `persistDocument` 里的说明）。
+ *
+ * 用**深拷贝**而不是引用：`adopt()` 之后两边是同一个对象，留引用等于没留快照。
+ */
+const serverDisplay = ref<unknown>(null)
+
+/**
+ * 真正接上落盘：**内容变了才保存**。
+ *
+ * - 只监听 `content`：展示配置按 Owner 的决定存本机，不该因为"换了个主题"就发一次写请求；
+ * - `documentReady` 用来跳过首帧：`props.document` 从 `null` 变成真实文档时也会触发一次 watch，
+ *   那一次保存毫无意义（等于把刚读到的内容原样写回，还会白白占用一次 revision）。
+ */
+const documentReady = ref(false)
+watch(
+  () => props.document?.content,
+  () => {
+    if (!documentReady.value) return
+    schedulePersist()
+  },
+  { deep: true },
+)
+
+onMounted(() => {
+  // 等这一帧的渲染与 watch 都跑完，再允许保存
+  void nextTick(() => {
+    documentReady.value = true
+  })
+})
 
 onBeforeUnmount(() => {
   if (saveTimer) clearTimeout(saveTimer)
@@ -122,7 +161,10 @@ const { config: displayConfig, adopt, setEditable, applyDrop, toggleSection, sav
 watch(
   () => props.document?.display,
   display => {
-    if (display) adopt(display)
+    if (!display) return
+    // 先留快照（深拷贝），再 adopt —— adopt 之后 props.document.display 就是"本机可写的基线"
+    serverDisplay.value = JSON.parse(JSON.stringify(display))
+    adopt(display)
   },
   { immediate: true },
 )
@@ -132,6 +174,31 @@ watch(
 // 公开页的语义是"访客可以调自己的观感，只存在本机"，所以这里恒为 true。
 onMounted(() => setEditable(true))
 onBeforeUnmount(() => setEditable(false))
+
+/**
+ * 「重置展示配置」：把本机覆盖还原成**文档里那份**（即作者设定的样式）。
+ *
+ * 为什么不是"重置成硬编码默认值"：作者给这份简历调过主题与版式，那是作品的一部分；
+ * 用户点重置的合理预期是"回到作者的样子"，而不是"回到系统出厂样"。
+ * 只是把 `localStorage` 里的本机覆盖丢掉，不写服务端（样式本来就不入库）。
+ */
+function resetDisplay() {
+  if (!serverDisplay.value) return
+  adopt(serverDisplay.value as Parameters<typeof adopt>[0])
+  toast.add({ title: '已恢复', description: '展示配置已回到这份简历的设定。', color: 'success' })
+}
+
+const toast = useToast()
+
+/**
+ * 把当前文档交给展示设置面板（`provide` 而不是 props 一层层传）：
+ * 「区块显隐」tab 需要**真实文档里的模块清单** —— 它此前读的是 legacy mock
+ *（`useResumeContent()` 的 `sections: []`），所以那个 tab 永远是空的。
+ */
+provide(
+  PUBLIC_RESUME_DOCUMENT_KEY,
+  computed(() => props.document),
+)
 
 /** 主题变量用**生效配置**（不是文档原始值），否则本机调整看不出效果 */
 const variables = useResumeThemeVariables(() => displayConfig.value ?? props.document?.display ?? resumeDisplayMock)
@@ -168,6 +235,7 @@ useHead({
       :save-label="saveState === 'pending' ? '保存中…' : saveState === 'saved' ? '已保存' : ''"
       @display="displayOpen = true"
       @update:edit-mode="editMode = $event"
+      @reset="resetDisplay"
     />
 
     <template v-if="document && content">

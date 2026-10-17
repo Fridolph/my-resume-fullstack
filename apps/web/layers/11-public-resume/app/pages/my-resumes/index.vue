@@ -50,6 +50,62 @@ const total = computed(() => listPage.value?.total ?? 0)
 
 const isLoading = computed(() => status.value === 'pending')
 
+// ── ★ 设为默认 / 重命名 ────────────────────────────────────────────
+// 空态文案让用户"去列表点 ★"，但列表此前既没有 ★ 也没有重命名入口 —— 承诺写在了文案里，按钮没做。
+const defaultBusyId = ref<number | null>(null)
+
+/**
+ * 设为默认展示。
+ *
+ * 公开页 `/` 展示的就是"默认"那一份，所以这个动作改变的是**访客看到的首页** ——
+ * 对作者来说是"发布哪一份"，值得即时反馈（失败一定要提示，不能静默吞掉）。
+ */
+async function setDefault(id: number) {
+  if (defaultBusyId.value) return
+  defaultBusyId.value = id
+  try {
+    await api.setDefault(id)
+    await refresh()
+    toast.add({ title: '已设为默认展示', description: '公开首页现在展示这一份。', color: 'success' })
+  } catch (problem) {
+    toast.add({ title: '设置失败', description: normalizeApiError(problem).message, color: 'error' })
+  } finally {
+    defaultBusyId.value = null
+  }
+}
+
+const renameOpen = ref(false)
+const renameTarget = ref<{ id: number; name: string } | null>(null)
+const renameDraft = ref('')
+const renaming = ref(false)
+
+/** 打开重命名弹窗；名字长度后端有 1..80 约束，这里同步拦截，避免一次必然 400 的请求 */
+function askRename(item: { id: number; name: string }) {
+  renameTarget.value = { id: item.id, name: item.name }
+  renameDraft.value = item.name
+  renameOpen.value = true
+}
+
+const canSubmitRename = computed(() => {
+  const next = renameDraft.value.trim()
+  return next.length > 0 && next.length <= 80 && next !== renameTarget.value?.name
+})
+
+async function submitRename() {
+  const target = renameTarget.value
+  if (!target || !canSubmitRename.value || renaming.value) return
+  renaming.value = true
+  try {
+    await api.rename(target.id, renameDraft.value.trim())
+    renameOpen.value = false
+    await refresh()
+  } catch (problem) {
+    toast.add({ title: '重命名失败', description: normalizeApiError(problem).message, color: 'error' })
+  } finally {
+    renaming.value = false
+  }
+}
+
 /** 新建：给一份能立刻编辑的演示文档，然后直接进工作台 */
 async function createResume() {
   if (creating.value) return
@@ -132,6 +188,25 @@ function formatUpdatedAt(value: string) {
               </div>
 
               <div class="flex items-center gap-1">
+                <UButton
+                  icon="i-lucide-star"
+                  size="xs"
+                  color="neutral"
+                  :variant="item.isDefault ? 'soft' : 'ghost'"
+                  :disabled="item.isDefault"
+                  :loading="defaultBusyId === item.id"
+                  :aria-label="item.isDefault ? '已是默认展示' : `把「${item.name}」设为默认展示`"
+                  :title="item.isDefault ? '公开首页正在展示这一份' : '设为默认展示（公开首页展示它）'"
+                  @click="setDefault(item.id)"
+                />
+                <UButton
+                  icon="i-lucide-text-cursor-input"
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  label="重命名"
+                  @click="askRename(item)"
+                />
                 <UButton :to="`/my-resumes/draft/${item.id}`" icon="i-lucide-pencil" size="xs" label="继续编辑" />
                 <UButton
                   icon="i-lucide-trash-2"
@@ -152,6 +227,26 @@ function formatUpdatedAt(value: string) {
         <p class="text-sm text-muted">共 {{ total }} 份简历</p>
         <UPagination v-model:page="page" :items-per-page="PAGE_SIZE" :total="total" />
       </div>
+
+      <UModal v-model:open="renameOpen" title="重命名简历">
+        <template #body>
+          <UFormField label="简历名称" :hint="`${renameDraft.trim().length}/80`">
+            <UInput
+              v-model="renameDraft"
+              autofocus
+              maxlength="80"
+              placeholder="例如：前端工程师 · 2026"
+              @keydown.enter.prevent="submitRename"
+            />
+          </UFormField>
+        </template>
+        <template #footer>
+          <div class="flex w-full justify-end gap-2">
+            <UButton color="neutral" variant="ghost" label="取消" @click="renameOpen = false" />
+            <UButton label="保存" :loading="renaming" :disabled="!canSubmitRename" @click="submitRename" />
+          </div>
+        </template>
+      </UModal>
     </template>
 
     <ResumeAdminLoginModal v-model:open="loginOpen" />

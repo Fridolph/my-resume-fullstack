@@ -27,7 +27,7 @@ const props = withDefaults(
   { brand: '简历', editMode: false, saveLabel: '' },
 )
 
-const emit = defineEmits<{ display: []; 'update:editMode': [value: boolean] }>()
+const emit = defineEmits<{ display: []; 'update:editMode': [value: boolean]; reset: [] }>()
 
 const { canViewDisplay, canUseAiChat } = usePermission()
 
@@ -78,6 +78,7 @@ const initial = computed(() => props.brand.trim().slice(0, 1).toUpperCase() || '
           :save-label="saveLabel"
           :edit-mode="editMode"
           @update:edit-mode="emit('update:editMode', $event)"
+          @reset="emit('reset')"
         />
       </div>
     </div>
