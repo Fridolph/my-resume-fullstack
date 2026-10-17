@@ -390,9 +390,8 @@ useHead({
     <UModal v-model:open="resetOpen" title="重置展示配置？">
       <template #body>
         <p class="text-sm leading-6 text-muted">
-          版式、主题、背景与模块显隐会恢复为默认。这些设置只存在本机，<strong class="text-highlighted"
-            >重置后无法恢复</strong
-          >； 简历内容不受影响。
+          版式、主题、背景与模块显隐会恢复为默认，且<strong class="text-highlighted">不可撤销</strong>；
+          简历内容不受影响。作者的重置会同步到服务端 —— 访客看到的样式也会跟着变。
         </p>
       </template>
       <template #footer>
