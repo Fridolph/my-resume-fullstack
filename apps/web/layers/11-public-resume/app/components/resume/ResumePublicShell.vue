@@ -88,6 +88,7 @@ async function persistDocument() {
   if (!doc || !id || !editable.value || saving) return
   saving = true
   try {
+    serverSaveState.value = 'pending'
     const current = await draftApi.read(String(id))
     await draftApi.save(String(id), {
       expectedRevision: current.revision,
@@ -110,6 +111,7 @@ async function persistDocument() {
 function schedulePersist() {
   if (!import.meta.client || !editable.value || !props.resumeId) return
   if (saveTimer) clearTimeout(saveTimer)
+  serverSaveState.value = 'pending'
   saveTimer = setTimeout(() => void persistDocument(), 1500)
 }
 
@@ -128,6 +130,15 @@ const serverDisplay = ref<unknown>(null)
  *   那一次保存毫无意义（等于把刚读到的内容原样写回，还会白白占用一次 revision）。
  */
 const documentReady = ref(false)
+
+/**
+ * **服务端**保存状态。
+ *
+ * 页头原来显示的是 display store 的 `saveState` —— 那是 localStorage 的写盘状态。
+ * 于是"改了内容"时页头毫无反应（内容根本没写库），看起来像保存坏了。
+ * 两个状态含义不同，必须分开：本机样式、服务端内容。
+ */
+const serverSaveState = ref<'idle' | 'pending' | 'saved' | 'error'>('idle')
 watch(
   () => props.document?.content,
   () => {
@@ -156,7 +167,18 @@ onBeforeUnmount(() => {
  *（引用共享），并由 store 自动存进 localStorage —— 所以公开页上访客也能调，
  * 刷新后还是他调过的样子，而服务端数据不受影响。
  */
-const { config: displayConfig, adopt, setEditable, applyDrop, toggleSection, saveState } = useResumeDisplay()
+const {
+  config: displayConfig,
+  adopt,
+  setEditable,
+  applyDrop,
+  toggleSection,
+  saveState,
+  loadLocal,
+  setScope,
+  reset: resetDisplayConfig,
+  flushSave,
+} = useResumeDisplay()
 
 watch(
   () => props.document?.display,
@@ -172,7 +194,12 @@ watch(
 // 打开 store 的落盘闸门：它只在"编辑态"写 localStorage（见 `scheduleSave`），
 // 不开的话设置面板的改动能改到内存、却存不下来 —— 实测表现为"点了三栏没反应、localStorage 也没有"。
 // 公开页的语义是"访客可以调自己的观感，只存在本机"，所以这里恒为 true。
-onMounted(() => setEditable(true))
+onMounted(() => {
+  // 先定作用域再读缓存：否则读到的是"另一份简历"或全局那份
+  setScope(props.resumeId ?? null)
+  setEditable(true)
+  loadLocal()
+})
 onBeforeUnmount(() => setEditable(false))
 
 /**
@@ -182,10 +209,24 @@ onBeforeUnmount(() => setEditable(false))
  * 用户点重置的合理预期是"回到作者的样子"，而不是"回到系统出厂样"。
  * 只是把 `localStorage` 里的本机覆盖丢掉，不写服务端（样式本来就不入库）。
  */
+/**
+ * 「重置展示配置」——**破坏性动作，先确认再执行**（Owner 2026-10-17）。
+ *
+ * 它会丢掉本机所有展示调整（版式 / 主题 / 背景 / 显隐），而这些东西**不在库里**
+ * —— 丢了就真没了，没有任何"从服务端恢复"的后路。所以必须二次确认。
+ */
+const resetOpen = ref(false)
+
 function resetDisplay() {
-  if (!serverDisplay.value) return
-  adopt(serverDisplay.value as Parameters<typeof adopt>[0])
-  toast.add({ title: '已恢复', description: '展示配置已回到这份简历的设定。', color: 'success' })
+  resetOpen.value = true
+}
+
+function confirmReset() {
+  resetDisplayConfig()
+  // store 的 `reset()` 只是改内存；这里显式落盘，避免"重置后刷新又回来了"
+  flushSave()
+  resetOpen.value = false
+  toast.add({ title: '已重置', description: '展示配置已恢复为默认。', color: 'success' })
 }
 
 const toast = useToast()
@@ -232,7 +273,15 @@ useHead({
     <ResumePublicHeader
       :brand="brandName"
       :edit-mode="editMode"
-      :save-label="saveState === 'pending' ? '保存中…' : saveState === 'saved' ? '已保存' : ''"
+      :save-label="
+        serverSaveState === 'pending'
+          ? '保存中…'
+          : serverSaveState === 'saved'
+            ? '已保存'
+            : serverSaveState === 'error'
+              ? '保存失败'
+              : ''
+      "
       @display="displayOpen = true"
       @update:edit-mode="editMode = $event"
       @reset="resetDisplay"
@@ -292,6 +341,23 @@ useHead({
         </div>
       </UCard>
     </div>
+    <!-- 重置展示配置的二次确认：这个动作不可撤销（配置不在库里，没有服务端副本可回退） -->
+    <UModal v-model:open="resetOpen" title="重置展示配置？">
+      <template #body>
+        <p class="text-sm leading-6 text-muted">
+          版式、主题、背景与模块显隐会恢复为默认。这些设置只存在本机，<strong class="text-highlighted"
+            >重置后无法恢复</strong
+          >； 简历内容不受影响。
+        </p>
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton color="neutral" variant="ghost" label="取消" @click="resetOpen = false" />
+          <UButton color="error" label="确认重置" @click="confirmReset" />
+        </div>
+      </template>
+    </UModal>
+
     <!-- 展示设置：**原来的完整抽屉**（布局与风格 / 主题与背景 / 区块显隐）。
          Owner 明确它属于公开页（访客也可能想调自己的观感），不在工作台。 -->
     <ResumeSettingsDrawer v-if="document" v-model:open="displayOpen" />

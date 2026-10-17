@@ -21,6 +21,16 @@ import { toResumeDisplayConfig, type ResumeDocument } from '@rs/common'
 
 const STORAGE_KEY = 'my-resume.display-config'
 
+/**
+ * 有**多份简历**之后，展示配置不能共用一个 key：
+ * 给 A 调的主题会顺带套到 B 上（同一个浏览器）。所以缓存键按简历 id 分作用域。
+ *
+ * ⚠️ 这是**本机偏好**，不是作品数据：访客看到的是各自浏览器里的覆盖 + 文档里的设定。
+ * 若哪天要"作者调的样式让所有访客都看到"，那只能写入库（`PUT /resume/:id/display`），
+ * 与 Owner 2026-10-15 的"样式不入库"是同一个取舍的两面。
+ */
+const scopeSegment = (scope: string | null) => (scope ? `${STORAGE_KEY}:${scope}` : STORAGE_KEY)
+
 /** 自动保存的防抖窗口（拖拽 / 连续点选时合并成一次写入） */
 const SAVE_DEBOUNCE = 600
 
@@ -131,11 +141,14 @@ export function useResumeDisplay() {
    * 写盘。**将来换成 `PUT /resume/display-config` 只改这一个函数**，
    * 自动保存、手动保存、退出前兜底都复用它。
    */
+  /** 缓存作用域：哪一份简历的展示配置（见 `scopeSegment` 的说明） */
+  const scope = ref<string | null>(null)
+
   function persist() {
     if (!import.meta.client) {
       return
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config.value))
+    localStorage.setItem(scopeSegment(scope.value), JSON.stringify(config.value))
   }
 
   /** 立即落盘并更新保存状态（退出编辑态前会兜底调用一次） */
@@ -374,11 +387,15 @@ export function useResumeDisplay() {
     config.value = createDefaultConfig()
     // 重置也是一次变更，编辑态下由 watch 自动保存
   }
+  /** 缓存作用域（当前展示的是哪一份简历）；`null` = 不分作用域 */
+  function setScope(next: number | string | null) {
+    scope.value = next === null || next === undefined ? null : String(next)
+  }
   function loadLocal() {
     if (!import.meta.client) {
       return
     }
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(scopeSegment(scope.value))
     if (raw) {
       const parsed = JSON.parse(raw) as ResumeDisplayConfig
       // 旧配置可能缺主题字段，补全后再使用（见 normalizeTheme）
@@ -427,6 +444,7 @@ export function useResumeDisplay() {
     reset,
     persist,
     flushSave,
+    setScope,
     loadLocal,
   }
 }

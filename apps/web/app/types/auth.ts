@@ -60,7 +60,18 @@ export interface AuthSessionData {
   refreshToken?: string
   oswUserInfo: AuthUserInfo
   oswCompanyInfo?: AuthCompanyInfo
+  /**
+   * 旧客户端的权限形状（`permissionPermitKeys` 聚合）。**本仓后端从不返回它** ——
+   * 保留只为兼容历史类型，真正可用的是下面的两个字段（见 `docs/dev/02` §2）。
+   */
   permissionList: AuthPermissionItem[]
+  /**
+   * 后端 `/auth/info` 实际返回的身份字段（与 `BackendIdentity` 一致）。
+   * 登录响应可能没有，所以是可选 —— 但**权限判断必须以它为准**，
+   * 只读 `permissionList` 会让 `canEditSections` 之类的判断恒为 false。
+   */
+  roleKeys?: string[]
+  permissionKeys?: string[]
 }
 
 /** auth 接口的响应包装（后端形状） */

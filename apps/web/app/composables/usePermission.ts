@@ -14,7 +14,18 @@ export function usePermission() {
   const { session, role } = useAuthState()
 
   const permissionKeys = computed<readonly string[]>(() => {
-    const fromBackend = session.value?.permissionList?.flatMap(item => item.permissionPermitKeys ?? []) ?? []
+    /**
+     * ⚠️ **优先读 `permissionKeys`**：那是后端 `/auth/info` 真正返回的字段
+     *（`{ roleKeys, permissionKeys }`）。`permissionList[].permissionPermitKeys` 是旧客户端的
+     * 形状，后端**从不返回** —— 只读它的话，`fromBackend` 恒为空，
+     * 于是 `canEditSections` 等判断永远为 false。
+     *
+     * 症状：公开页的就地编辑对**任何身份**都不可用（编辑开关不出现、改了也不保存），
+     * 而页面上没有任何报错 —— 看起来像"保存坏了"。
+     * 旧形状保留为兜底，等旧客户端彻底下线再删。
+     */
+    const legacy = session.value?.permissionList?.flatMap(item => item.permissionPermitKeys ?? []) ?? []
+    const fromBackend = session.value?.permissionKeys?.length ? session.value.permissionKeys : legacy
 
     return session.value ? [...new Set([...rolePermissions('guest'), ...fromBackend])] : rolePermissions(role.value)
   })
