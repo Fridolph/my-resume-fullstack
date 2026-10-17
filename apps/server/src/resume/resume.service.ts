@@ -13,7 +13,8 @@ import type { AuthUser } from '../common/http-context'
 import { API_ERROR_CODES } from '../common/error-codes'
 import { PERMISSION_KEYS } from '../auth/permission-keys'
 import { PrismaService } from '../prisma/prisma.service'
-import { AuditService, type AuditContext } from '../audit/audit.service'
+import { AuditService } from '../audit/audit.service'
+import type { AuditContext } from '../audit/audit.types'
 
 const draftInclude = { resume: { select: { id: true, name: true, locale: true } } } as const
 type DraftRecord = Prisma.ResumeDraftGetPayload<{ include: typeof draftInclude }>

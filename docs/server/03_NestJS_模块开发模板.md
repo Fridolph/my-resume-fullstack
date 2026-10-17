@@ -30,6 +30,7 @@
 │   └── <module>.schema.ts
 ├── <module>.controller.ts
 ├── <module>.service.ts
+├── <module>.types.ts        # 服务间契约类型（按需，见下）
 ├── <module>.repository.ts  # 仅在查询复杂或需要复用时添加
 ├── <module>.errors.ts       # 需要模块级持久化错误时添加
 ├── <module>.module.ts
@@ -37,6 +38,20 @@
 ```
 
 不额外增加 `infrastructure/` 层。只有出现稳定的跨模块能力时，才考虑抽到 `common/` 或 `packages/common`。
+
+### 2.1 类型放哪：按"谁消费"分三处
+
+| 类型是什么 | 放哪 | 判据 |
+| --- | --- | --- |
+| HTTP 输入（body / query / param）及推导类型 | `dto/<module>.schema.ts` | zod schema 与 `z.infer` **必须同文件** —— 拆开就是让校验规则和类型分家 |
+| **服务间契约**（Service 方法入参对象、跨模块上下文） | `<module>.types.ts` | 不经 HTTP；调用方要看"该传什么"时不必翻实现 |
+| 数据库行形状 | 不手写 | 用 Prisma 生成类型；前端不得直接依赖 |
+
+**什么时候才建 `types/` 目录**：只有类型多到一个文件装不下（>10 个、且能自然分组）时，
+建 `types/` 再分文件；否则扁平一个 `<module>.types.ts` 就够。**不要为一个 3 行 interface 新开文件。**
+
+抽取阈值与配套规则（含"纯类型搬移不需要新增测试"的验证方式）见
+[`AGENTS.md`](../../AGENTS.md) §4.7；参照实现是 `apps/server/src/audit/audit.types.ts`。
 
 ## 3. 请求处理链路
 

@@ -166,6 +166,26 @@ planned -> designed -> in-progress -> self-tested -> review-ready -> done
   留在业务侧 —— 共享层不认接口。
 - 分层理由与本次踩坑的完整记录见 [`docs/web/03_Layers_分层约定.md`](./docs/web/03_Layers_分层约定.md) §8。
 
+### 4.7 后端模块内的类型落位（`<module>.types.ts`）
+
+一个后端模块的类型按**"谁消费它"**分三处放，不按"它长什么样"：
+
+| 类型是什么 | 放哪 | 理由 |
+| --- | --- | --- |
+| **HTTP 输入**（body / query / param）及由 schema 推导的类型 | `dto/<name>.schema.ts` | zod schema 与 `z.infer` **必须同文件** —— 拆开等于让校验规则和类型分家，两边迟早漂移 |
+| **服务间契约**（Service 方法的入参对象、跨模块传的上下文） | `<module>.types.ts` | 不经 HTTP；调用方要确认"该传什么"时，不必翻 service 的实现 |
+| 数据库行形状 | 不手写 | 用 Prisma 生成的类型；前端也不得直接依赖它 |
+
+**抽取阈值**（宁少勿滥）：一个 service 文件里内联的 `export interface` 超过约 3 个，或类型篇幅盖过行为（接近一半），就抽出去。只有类型多到一个文件装不下（>10 个、且能自然分组如 `dto` / `entity` / `events`）才建 `types/` 目录分文件 —— **不要为一个 3 行 interface 新开一个文件**。
+
+配套规则（都是实测出来的，不要绕过）：
+
+- 类型文件**只放类型**：`interface` / `type` / 纯常量映射可以放；**不放**有副作用的函数与装饰器类。
+- 两端（web / admin）都要的契约不在这里停：先按 §4.6 判据上提到 `packages/common` —— `*.types.ts` 是**单端内部**的落点，不是共享层。
+- **纯类型搬移没有运行时代价**（interface 编译期彻底擦除），所以它**不需要新增测试**：验证方式是"搬移前后同一组测试结果逐项一致" + `grep '^export interface' <module>.service.ts` 归零。别为它编造"覆盖率的测试"。
+- 存量模块**触碰即迁移**（Boy Scout rule）：不为统一而单独开一次全仓重排 —— 改动面大、收益低、review 成本高，而收益是渐进的。
+- 参照实现：`apps/server/src/audit/`（`audit.service.ts` 354 行里曾有 9 个 interface 占 44%，抽出 `audit.types.ts` 后 service 只剩行为；其余 service 当时为 0，佐证"按需抽"够用）。
+
 ## 5. Skills：使用、安装与边界
 
 Skill 是个人 Codex 环境能力，不是本模板的运行时依赖；不要把全局 skill 复制进项目，也不要让业务代码依赖某个 skill 路径。
