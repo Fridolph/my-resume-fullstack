@@ -47,5 +47,14 @@ function runPrimaryAction() {
 </script>
 
 <template>
-  <MyErrorPage :config="config" :technical="technical" @primary="runPrimaryAction" />
+  <MyErrorPage
+    :badge="config.badge"
+    :icon="config.icon"
+    :title="config.title"
+    :description="config.description"
+    :hint="config.hint"
+    :primary-label="config.primaryLabel"
+    :technical="technical"
+    @primary="runPrimaryAction"
+  />
 </template>

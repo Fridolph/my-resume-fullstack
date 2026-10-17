@@ -29,7 +29,9 @@ useHead(() => ({ title: `${config.value.title} · 简历` }))
 function runPrimaryAction() {
   switch (config.value.primaryAction) {
     case 'login':
-      return clearError({ redirect: '/login' })
+      // ⚠️ web **没有登录页**（只有 admin 有 `/login`）。共享层给出的 `login` 动作
+      // 在这里降级为回首页 —— 跳一个不存在的路由只会把 401 变成 404。
+      return clearError({ redirect: '/' })
     case 'retry':
       return clearError({ redirect: useRoute().fullPath })
     default:
@@ -39,5 +41,14 @@ function runPrimaryAction() {
 </script>
 
 <template>
-  <MyErrorPage :config="config" :technical="technical" @primary="runPrimaryAction" />
+  <MyErrorPage
+    :badge="config.badge"
+    :icon="config.icon"
+    :title="config.title"
+    :description="config.description"
+    :hint="config.hint"
+    :primary-label="config.primaryLabel"
+    :technical="technical"
+    @primary="runPrimaryAction"
+  />
 </template>
