@@ -62,7 +62,14 @@ function goHome() {
 <template>
   <div class="flex min-h-dvh flex-col items-center justify-center px-6 py-16">
     <UEmpty :icon="config.icon" :title="config.title" :description="config.description" class="max-w-xl">
-      <template #default>
+      <!--
+        ⚠️ 必须是具名插槽 `#body` —— `UEmpty` **没有默认插槽**（它的插槽是
+        header / leading / title / description / body / actions）。
+        写成 `<template #default>` 不会报错，但插槽内容**整块消失**：
+        页面只剩标题和描述，两个按钮与状态码徽标都不见。
+        本仓因此实测踩过一次（curl 打到 404 页只看到"页面不存在"）。
+      -->
+      <template #body>
         <div class="mt-2 flex flex-col items-center gap-4">
           <UBadge color="neutral" variant="subtle" class="font-mono">{{ config.badge }}</UBadge>
 
