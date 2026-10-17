@@ -8,10 +8,12 @@ import {
   type ResumeDraftResponse,
   type ResumeSummary,
   type ResumeSummaryPage,
+  type ResumeDocument,
 } from '@rs/common'
 import type { Prisma } from '../generated/prisma/client'
 import type { AuthUser } from '../common/http-context'
 import type { ResumeListDto } from './dto/resume-list.schema'
+import type { ResumeDisplayUpdateDto } from './dto/resume-display.schema'
 import { API_ERROR_CODES } from '../common/error-codes'
 import { PERMISSION_KEYS } from '../auth/permission-keys'
 import { PrismaService } from '../prisma/prisma.service'
@@ -256,6 +258,60 @@ export class ResumeService {
     }
 
     return { items, total, page, pageSize }
+  }
+
+  /**
+   * 只更新**展示配置**（主题 / 版式 / 背景 / 模块显隐），不动内容、**不推进 revision**。
+   *
+   * ## 为什么单独开一个接口，而不是让内容保存顺带存 display
+   *
+   * `revision` 是**内容**的乐观锁：两个人一个改正文、一个调主题，不该互相 409。
+   * 所以外观走这条独立的写路径，只覆盖 `document.display`。
+   *
+   * ## 权限
+   *
+   * 需要 `Resume.Display:edit`（此前这个键**零实现**，只有前端在判断），
+   * 加所有权校验（`ownedResume`）—— 与 `assertEditable` 里的角色判断互补：
+   * 权限键表达"功能是否授权"，所有权表达"是不是你的简历"。
+   *
+   * ## 并发
+   *
+   * 在事务里"读文档 → 换掉 display → 写回"。两次并发调主题时后写覆盖先写（last-write-wins）——
+   * 主题是整体替换、没有增量，这个语义可以接受；不用乐观锁换复杂度。
+   */
+  async updateDisplay(
+    id: number,
+    resumeDisplayUpdateDto: ResumeDisplayUpdateDto,
+    currentUser: AuthUser,
+  ): Promise<{ display: ResumeDocument['display'] }> {
+    if (!currentUser.permissionKeys.includes(PERMISSION_KEYS.RESUME_DISPLAY_EDIT)) {
+      throw new ForbiddenException('当前身份不能修改展示配置', {
+        errorCode: API_ERROR_CODES.RESUME_EDIT_FORBIDDEN,
+      })
+    }
+
+    return this.prismaService.$transaction(async transaction => {
+      const draft = await transaction.resumeDraft.findFirst({
+        where: { resume: this.ownedResume(id, currentUser) },
+        select: { id: true, document: true },
+      })
+
+      if (!draft) {
+        throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+      }
+
+      // 先按 schema 解析再合并：库里可能有旧版本文档，直接改字段会把形状问题带下去
+      const document = resumeDocumentSchema.parse(draft.document)
+      const next: ResumeDocument = { ...document, display: resumeDisplayUpdateDto.display }
+
+      await transaction.resumeDraft.update({
+        where: { id: draft.id },
+        // 只写 document 与 updatedBy；**不碰 revision**（见方法注释）
+        data: { document: next as Prisma.InputJsonValue, updatedBy: currentUser.userId },
+      })
+
+      return { display: next.display }
+    })
   }
 
   /**

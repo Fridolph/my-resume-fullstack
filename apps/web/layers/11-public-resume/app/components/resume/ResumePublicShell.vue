@@ -139,6 +139,7 @@ const documentReady = ref(false)
  * 两个状态含义不同，必须分开：本机样式、服务端内容。
  */
 const serverSaveState = ref<'idle' | 'pending' | 'saved' | 'error'>('idle')
+
 watch(
   () => props.document?.content,
   () => {
@@ -180,6 +181,49 @@ const {
   flushSave,
 } = useResumeDisplay()
 
+/**
+ * 展示配置（主题/版式/背景/显隐）的落库。
+ *
+ * ## 为什么单独一条写路径
+ *
+ * 内容是内容、外观是外观：`PUT /resume/:id/draft` 用 `expectedRevision` 做乐观锁，
+ * 若外观也走它，一个人改正文、另一个人调主题就会互相 409。
+ * 所以外观走 `PATCH /resume/:id/display`，**不推进 revision**。
+ *
+ * ## 作者写库，访客只本机
+ *
+ * 作者调的是**作品的样子**，访客应该看到；访客调的是自己的偏好，只留在本机
+ *（`editable` 为假时不发请求，只落 localStorage）。
+ */
+let displayTimer: ReturnType<typeof setTimeout> | undefined
+
+async function persistDisplay() {
+  const id = props.resumeId
+  if (!id || !editable.value) return
+  if (!serverDisplay.value) return
+  try {
+    await draftApi.saveDisplay(id, JSON.parse(JSON.stringify(displayConfig.value)))
+    serverSaveState.value = 'saved'
+  } catch {
+    serverSaveState.value = 'error'
+  }
+}
+
+watch(
+  displayConfig,
+  () => {
+    if (!documentReady.value || !editable.value || !props.resumeId) return
+    serverSaveState.value = 'pending'
+    if (displayTimer) clearTimeout(displayTimer)
+    displayTimer = setTimeout(() => void persistDisplay(), 1500)
+  },
+  { deep: true },
+)
+
+onBeforeUnmount(() => {
+  if (displayTimer) clearTimeout(displayTimer)
+})
+
 watch(
   () => props.document?.display,
   display => {
@@ -198,7 +242,8 @@ onMounted(() => {
   // 先定作用域再读缓存：否则读到的是"另一份简历"或全局那份
   setScope(props.resumeId ?? null)
   setEditable(true)
-  loadLocal()
+  // **只有访客读本机缓存**：作者看到的应当是库里的（作品）而不是上次本机调的残留
+  if (!canEdit.value) loadLocal()
 })
 onBeforeUnmount(() => setEditable(false))
 

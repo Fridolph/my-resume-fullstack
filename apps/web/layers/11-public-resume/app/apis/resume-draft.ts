@@ -25,6 +25,14 @@ export function createResumeDraftApi() {
       }),
     remove: (id: string) =>
       $api<{ id: number }>(`/resume/${encodeURIComponent(id)}`, { method: 'DELETE', silent: true, retry: 0 }),
+    /** 只保存展示配置（主题/版式/背景/显隐）；不推进 revision */
+    saveDisplay: (id: number, display: unknown) =>
+      $api<{ display: unknown }>(`/resume/${id}/display`, {
+        method: 'PATCH',
+        body: { display },
+        silent: true,
+        retry: 0,
+      }),
     save: (id: string, input: SaveResumeDraftDto) =>
       $api<ResumeDraftResponse>(`/resume/${encodeURIComponent(id)}/draft`, {
         method: 'PUT',

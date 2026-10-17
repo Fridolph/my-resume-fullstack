@@ -276,7 +276,7 @@ const palette = z.strictObject({
  * 独立成具名 schema，供完整文档与「创建输入的稀疏 display」共用：
  * 后者用 `.partial()` 让七块都能省略，再由补全函数填默认值。
  */
-const displaySchema = z.strictObject({
+export const displaySchema = z.strictObject({
   brand: z.strictObject({
     logoText: text.optional(),
     logoUrl: imageUrl.optional(),

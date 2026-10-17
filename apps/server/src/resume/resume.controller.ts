@@ -11,6 +11,7 @@ import {
 import { TraceId } from '../common/decorators/trace-id.decorator'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { resumeListSchema, type ResumeListDto } from './dto/resume-list.schema'
+import { resumeDisplayUpdateSchema, type ResumeDisplayUpdateDto } from './dto/resume-display.schema'
 import { Public } from '../auth/decorators/public.decorator'
 import type { AuthUser } from '../common/http-context'
 import { ResumeService } from './resume.service'
@@ -130,6 +131,21 @@ export class ResumeController {
     @TraceId() traceId: string,
   ) {
     return this.resumeService.setDefault(id, currentUser, { requestId: traceId })
+  }
+
+  /**
+   * 只更新展示配置（主题 / 版式 / 背景 / 显隐）；不推进 revision。
+   *
+   * 与 `PUT :id/draft` 分开的理由见 service 注释：内容是内容、外观是外观，
+   * 两者用同一把乐观锁会让"一个人改正文、一个人调主题"互相 409。
+   */
+  @Patch(':id/display')
+  updateDisplay(
+    @Param('id', { schema: resumePrimaryKeySchema }) id: number,
+    @Body({ schema: resumeDisplayUpdateSchema }) resumeDisplayUpdateDto: ResumeDisplayUpdateDto,
+    @CurrentUser() currentUser: AuthUser,
+  ) {
+    return this.resumeService.updateDisplay(id, resumeDisplayUpdateDto, currentUser)
   }
 
   @Delete(':id')
