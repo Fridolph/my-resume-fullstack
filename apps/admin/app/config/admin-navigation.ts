@@ -19,6 +19,14 @@ export const adminNavigation: AdminNavigationItem[] = [
     to: '/resume',
   },
   {
+    // 审计：**入口对所有人可见**（Owner 2026-10-16）—— 非超管点进去拿 403，
+    // 那本身就是答案："系统有审计，但你没这个权限"。
+    // 真正的拦阻在 middleware/permission.ts 与后端 assertAuditViewer 两处。
+    label: '审计',
+    icon: 'i-lucide-scroll-text',
+    to: '/audit',
+  },
+  {
     label: 'Settings',
     icon: 'i-lucide-settings-2',
     to: '/settings',

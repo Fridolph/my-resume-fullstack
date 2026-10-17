@@ -160,6 +160,8 @@ export interface AuditQuery {
   actorId?: string
   resourceType?: AuditResourceType
   resourceId?: string
+  /** 动作标识；不传则不过滤 */
+  action?: AuditAction
   /** 起始时间（含） */
   from?: Date
   /** 结束时间（含） */

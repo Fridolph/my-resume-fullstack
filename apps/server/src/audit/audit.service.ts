@@ -198,6 +198,7 @@ export class AuditService {
       ...(query.actorId ? { actorId: query.actorId } : {}),
       ...(query.resourceType ? { resourceType: query.resourceType } : {}),
       ...(query.resourceId ? { resourceId: query.resourceId } : {}),
+      ...(query.action ? { action: query.action } : {}),
       ...(query.from || query.to
         ? { occurredAt: { ...(query.from ? { gte: query.from } : {}), ...(query.to ? { lte: query.to } : {}) } }
         : {}),

@@ -25,9 +25,22 @@ function revokeAll() {
   setPermissionKeys([])
 }
 
-// 首次进入给一个权限，方便直观看到效果
+/**
+ * 这一页要演示"权限变了、内容跟着变"，必然要动**全局**权限态（`PermissionWrapper` 读的就是它）。
+ *
+ * 但它是个 demo：**离开时必须还原**。否则从这页点去别的页面，权限已经是被改过的样子 ——
+ * 权限守卫改成 fail-closed 之后，`revokeAll()` 甚至能把当前会话"锁"在后台外面。
+ * 做法是进入时快照、卸载时恢复（而不是"进页时补一个权限"那种会越界的手）。
+ */
+const permissionSnapshot = ref<string[] | null>(null)
+
 onMounted(() => {
+  permissionSnapshot.value = [...permissionKeys.value]
   if (!permissionKeys.value.length) setPermissionKeys(['project.read'])
+})
+
+onBeforeUnmount(() => {
+  if (permissionSnapshot.value) setPermissionKeys(permissionSnapshot.value)
 })
 </script>
 

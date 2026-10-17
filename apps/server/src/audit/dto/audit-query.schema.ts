@@ -1,4 +1,12 @@
+import { AUDIT_ACTIONS, type AuditAction } from '@rs/common'
 import { z } from 'zod'
+
+/**
+ * 动作的可选值**直接取自共享字典**，不在这里另抄一份字符串数组：
+ * 往 `AUDIT_ACTIONS` 加动作时，过滤条件自动可用，不会出现"字典有新动作、查询查不到"。
+ * 断言成元组的唯一原因是 `z.enum` 需要非空元组类型，运行时仍是同一个数组。
+ */
+const AUDIT_ACTION_VALUES = Object.values(AUDIT_ACTIONS) as [AuditAction, ...AuditAction[]]
 
 /**
  * 审计查询的入参 schema。
@@ -20,6 +28,8 @@ export const auditQuerySchema = z.object({
   resourceType: z.enum(['resume', 'user', 'role']).optional(),
   resourceId: z.string().min(1).max(64).optional(),
   actorId: z.string().min(1).max(64).optional(),
+  /** 动作标识（如 `role.change`）；值域见共享层 `AUDIT_ACTIONS` */
+  action: z.enum(AUDIT_ACTION_VALUES).optional(),
   /** 起始时间（含）；ISO 字符串 */
   from: z.coerce.date().optional(),
   /** 结束时间（含） */

@@ -68,6 +68,9 @@ test('超管 + 明确权限：放行并把查询条件透传给 service', async 
     actorId: undefined,
     resourceType: 'resume',
     resourceId: '42',
+    // 新增的 action 过滤：控制器**照原样透传**（不传就是 undefined），
+    // "不传则不过滤"由 service 决定
+    action: undefined,
     from: undefined,
     to: undefined,
     page: 2,

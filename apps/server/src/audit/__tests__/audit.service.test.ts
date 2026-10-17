@@ -228,3 +228,28 @@ test('recordRoleChange：昵称为空时也照写（快照与 PII 的取舍不�
   const { data } = txCreates[0] as { data: Record<string, unknown> }
   assert.deepEqual(data.resourceSnapshot, { nickname: null })
 })
+
+test('list：action 过滤落到 where；不传时不留 undefined 键', async () => {
+  const whereSeen: unknown[] = []
+  const prismaService = {
+    auditLog: {
+      findMany: async (args: { where: unknown }) => {
+        whereSeen.push(args.where)
+        return []
+      },
+      count: async () => 0,
+    },
+    // 服务里用的是数组形式 $transaction([findMany, count])
+    $transaction: async (operations: Promise<unknown>[]) => Promise.all(operations),
+  }
+  const service = new AuditService(prismaService as never)
+
+  await service.list({ action: 'role.change' })
+  await service.list({})
+  await service.list({ actorId: 'u-1' })
+
+  assert.deepEqual(whereSeen[0], { action: 'role.change' })
+  // 关键：不传就不该出现 `action: undefined` —— Prisma 会把它当成"要等于 undefined"
+  assert.deepEqual(whereSeen[1], {})
+  assert.deepEqual(whereSeen[2], { actorId: 'u-1' })
+})

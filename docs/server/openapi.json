@@ -395,6 +395,125 @@
         }
       }
     },
+    "/audit-logs": {
+      "get": {
+        "tags": ["Audit"],
+        "summary": "分页查询审计记录（仅超管）",
+        "description": "角色须为 super_admin **且**具备 Audit.Log:view，两者缺一不可。按 occurredAt 新→旧返回。审计行自包含：actorSnapshot / resourceSnapshot 是写入时刻的快照，不对当前用户表做 join。",
+        "operationId": "listAuditLogs",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "页码（从 1 起）"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "description": "每页条数（上限 100，超出返回 400）"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "resume.create",
+                "resume.delete",
+                "resume.set_default",
+                "user.create",
+                "user.delete",
+                "role.change"
+              ]
+            },
+            "description": "动作过滤；取值见共享层 AUDIT_ACTIONS"
+          },
+          {
+            "name": "actorId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "description": "操作者用户 id"
+          },
+          {
+            "name": "resourceType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["resume", "user", "role"]
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "起始时间（含）"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "结束时间（含）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/AuditLogPageSuccess"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      }
+    },
     "/resume": {
       "get": {
         "tags": ["Resume"],
@@ -952,6 +1071,92 @@
               "type": "string",
               "enum": ["admin", "user"]
             }
+          }
+        }
+      },
+      "AuditLogRow": {
+        "type": "object",
+        "description": "一条审计记录。自包含：两张快照都是写入时刻的值，补不回来。",
+        "required": ["id", "actorId", "actorRoleKeys", "action", "resourceType", "resourceId", "occurredAt"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string",
+            "description": "操作者用户 id"
+          },
+          "actorSnapshot": {
+            "type": ["object", "null"],
+            "description": "操作者昵称快照（不含邮箱等 PII）",
+            "properties": {
+              "nickname": {
+                "type": ["string", "null"]
+              }
+            }
+          },
+          "actorRoleKeys": {
+            "type": "array",
+            "description": "操作者**当时**的角色键（不是当前角色）",
+            "items": {
+              "type": "string"
+            }
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "resume.create",
+              "resume.delete",
+              "resume.set_default",
+              "user.create",
+              "user.delete",
+              "role.change"
+            ]
+          },
+          "resourceType": {
+            "type": "string",
+            "enum": ["resume", "user", "role"]
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "简历是整数、用户是 cuid —— 一律按字符串返回"
+          },
+          "resourceSnapshot": {
+            "type": ["object", "null"],
+            "description": "资源快照，形状按资源类型而异"
+          },
+          "metadata": {
+            "type": ["object", "null"],
+            "description": "动作特有信息，已过白名单裁剪；无可记内容时为 null"
+          },
+          "requestId": {
+            "type": ["string", "null"],
+            "description": "关联的请求 id（与访问日志对齐）"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AuditLogPage": {
+        "type": "object",
+        "required": ["items", "total", "page", "pageSize"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditLogRow"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
           }
         }
       },
@@ -5018,6 +5223,28 @@
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/ChangedUserRoles"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "AuditLogPageSuccess": {
+        "description": "分页的审计记录",
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AuditLogPage"
                     }
                   }
                 }

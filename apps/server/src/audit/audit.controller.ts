@@ -36,6 +36,7 @@ export class AuditController {
       actorId: query.actorId,
       resourceType: query.resourceType,
       resourceId: query.resourceId,
+      action: query.action,
       from: query.from,
       to: query.to,
       page: query.page,
