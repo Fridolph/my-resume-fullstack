@@ -192,14 +192,17 @@ const {
  *
  * ## 作者写库，访客只本机
  *
- * 作者调的是**作品的样子**，访客应该看到；访客调的是自己的偏好，只留在本机
- *（`editable` 为假时不发请求，只落 localStorage）。
+ * 作者调的是**作品的样子**，访客应该看到；访客调的是自己的偏好，只留在本机。
+ * 判据是 `canEdit`（有没有编辑身份），**不是** `editable`（当前是否处于编辑模式）——
+ * 作者只看不编时调主题同样算数。
  */
 let displayTimer: ReturnType<typeof setTimeout> | undefined
 
 async function persistDisplay() {
   const id = props.resumeId
-  if (!id || !editable.value) return
+  // 判 `canEdit` 而不是 `editable`：作者在**只看不编**的状态下调主题，也是"作者的设定"，
+  // 应当落库；`editable` 只决定"能不能改内容"。
+  if (!id || !canEdit.value) return
   if (!serverDisplay.value) return
   try {
     await draftApi.saveDisplay(id, JSON.parse(JSON.stringify(displayConfig.value)))
@@ -212,7 +215,7 @@ async function persistDisplay() {
 watch(
   displayConfig,
   () => {
-    if (!documentReady.value || !editable.value || !props.resumeId) return
+    if (!documentReady.value || !canEdit.value || !props.resumeId) return
     serverSaveState.value = 'pending'
     if (displayTimer) clearTimeout(displayTimer)
     displayTimer = setTimeout(() => void persistDisplay(), 1500)

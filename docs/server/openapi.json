@@ -585,6 +585,63 @@
         }
       }
     },
+    "/resume/{id}/display": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "patch": {
+        "tags": ["Resume"],
+        "summary": "只更新展示配置（主题 / 版式 / 背景 / 显隐）",
+        "description": "整体替换 document.display，**不推进 revision** —— 内容是内容、外观是外观，两者用同一把乐观锁会让「一个人改正文、一个人调主题」互相 409。需要 Resume.Display:edit 且为本人简历。并发取 last-write-wins（主题是整体替换、无增量）。",
+        "operationId": "updateResumeDisplay",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["display"],
+                "properties": {
+                  "display": {
+                    "type": "object",
+                    "description": "展示配置整体（schema 见共享层 displaySchema）"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ResumeDisplaySuccess"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ResumeForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResumeNotFound"
+          }
+        }
+      }
+    },
     "/resume/{id}/default": {
       "parameters": [
         {
@@ -5353,6 +5410,33 @@
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/ResumeSummaryPage"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "ResumeDisplaySuccess": {
+        "description": "已更新的展示配置",
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ApiSuccess"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "display": {
+                          "type": "object"
+                        }
+                      }
                     }
                   }
                 }
