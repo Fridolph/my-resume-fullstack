@@ -5,6 +5,7 @@ import { PassportModule } from '@nestjs/passport'
 import type { ExpiresInLiteral } from '../config/env.validation'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
+import { PermissionSyncCheck } from './permission-sync'
 import { JwtAuthGuard } from './jwt-auth.guard'
 import { JwtStrategy } from './jwt.strategy'
 
@@ -45,7 +46,7 @@ import { JwtStrategy } from './jwt.strategy'
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtAuthGuard, JwtStrategy],
+  providers: [AuthService, JwtAuthGuard, JwtStrategy, PermissionSyncCheck],
   // 导出 JwtModule 与 AuthService：后续模块若需要"签发/解析 token"（如刷新令牌）可直接注入
   exports: [AuthService, JwtAuthGuard, JwtModule, PassportModule],
 })
