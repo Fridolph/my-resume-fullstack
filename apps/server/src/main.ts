@@ -23,9 +23,25 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api')
 
-  // ⚠️ 当前允许任意来源跨域，便于本地前端联调。上线前要收紧为白名单
-  // （`origin: [web, admin 的域名]`），否则任何站点都能直接调这套接口
-  app.enableCors()
+  // CORS 白名单：**只有** `CORS_ORIGINS` 里列出的来源会被放行。
+  //
+  // 不传参（`enableCors()`）等价于 `Access-Control-Allow-Origin: *` —— 任何站点都能读到
+  // 本接口的响应；配上公开读接口，等于谁都能跨站把全部简历抓走。白名单是这条的上游闸门。
+  //
+  // 两个刻意之处：
+  // 1. `exposedHeaders` 不是装饰：浏览器**默认不允许**脚本读取非"简单响应头"，
+  //    `x-request-id` 正属于后者。不给它开洞，前端就拿不到 traceId ——
+  //    「请求头 ID == 日志 ID == 响应头 ID == 响应体 traceId」在浏览器里只剩三处可见。
+  // 2. **没有** `credentials: true`：token 走 `Authorization: Bearer`，且服务端
+  //    **没有任何 cookie 解析**（跨域 cookie 才需要 credentials）。若将来改成跨域 cookie 鉴权，
+  //    必须同时加 `credentials: true` —— 而且那时 `origin` 就更不能放宽了。
+  app.enableCors({
+    origin: config.get<string[]>('CORS_ORIGINS') ?? [],
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-request-id'],
+    exposedHeaders: ['x-request-id'],
+    maxAge: 600,
+  })
 
   // 入参校验：Nest 12 的 Standard Schema 管道（schema 挂在 `@Body({ schema })` 上）。
   // 用它而不是 class-validator：校验规则与 TS 类型同源（`z.infer`），且 `z.object()` 默认 strip

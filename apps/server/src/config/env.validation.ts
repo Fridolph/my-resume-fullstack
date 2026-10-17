@@ -32,6 +32,11 @@ export interface EnvConfig {
   LOG_FILE_ENABLED: boolean
   /** 本地日志目录（相对进程工作目录）；默认 `logs` */
   LOG_FILE_DIR: string
+  /**
+   * CORS 白名单：完整 origin 列表（协议 + 主机 + 可选端口），**不含通配符**。
+   * `development` 有默认值（两个 Nuxt 应用）；`production` 必须显式配置，缺失即启动失败。
+   */
+  CORS_ORIGINS: string[]
 }
 
 const NODE_ENVS = ['development', 'test', 'production'] as const
@@ -47,6 +52,48 @@ const EXPIRES_IN_PATTERN = /^\d+(ms|s|m|h|d|w|y)$/
  */
 export const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent'] as const
 export type LogLevel = (typeof LOG_LEVELS)[number]
+
+/**
+ * CORS 白名单里允许的 origin 形状：协议 + 主机 + 可选端口。
+ *
+ * **刻意不允许路径、末尾斜杠和通配符**：
+ * - 浏览器发出的 `Origin` 头**永远只有** scheme + host + port。带路径的配置项永远匹配不上，
+ *   而症状是"本地好好的、上线后所有请求被拦"—— 配错了却看不出是配置错了。
+ * - `*` 正是本项要消灭的东西：全放行等于没配。
+ */
+const ORIGIN_PATTERN = /^https?:\/\/[A-Za-z0-9.-]+(:\d{1,5})?$/
+
+/** `development` 的默认来源：`apps/web` 与 `apps/admin` 两个 Nuxt 应用 */
+const DEFAULT_DEV_ORIGINS = ['http://localhost:4041', 'http://localhost:4047']
+
+/**
+ * 把 `CORS_ORIGINS` 的原始字符串解析成白名单数组。
+ *
+ * 纯函数，只负责**切分 / 去空白 / 去重 / 形状校验**，不决定"能不能为空" ——
+ * 那是环境策略（开发可空、生产不可空），留给 `validateEnv`。
+ *
+ * 拆出来是为了**能单测**：`*` 与非法项必须在这里被挑出来，
+ * 而不是靠"跑一次真实请求看看有没有被拦"才发现配错了。
+ *
+ * @param value 逗号分隔的 origin 串（直接来自环境变量）
+ * @returns `origins` 合法项（已去重，保持书写顺序）；`invalid` 非法项（原样保留，供报错点名）
+ */
+export function parseCorsOrigins(value: string): { origins: string[]; invalid: string[] } {
+  const origins: string[] = []
+  const invalid: string[] = []
+
+  for (const item of value.split(',')) {
+    const origin = item.trim()
+    if (!origin) continue
+    if (!ORIGIN_PATTERN.test(origin)) {
+      invalid.push(origin)
+      continue
+    }
+    if (!origins.includes(origin)) origins.push(origin)
+  }
+
+  return { origins, invalid }
+}
 
 export function validateEnv(raw: Record<string, unknown>): EnvConfig {
   const errors: string[] = []
@@ -113,6 +160,21 @@ export function validateEnv(raw: Record<string, unknown>): EnvConfig {
 
   const logFileDir = String(raw.LOG_FILE_DIR ?? 'logs').trim() || 'logs'
 
+  // ── CORS 白名单 ────────────────────────────────────────────────────────
+  // 默认值**只在 development 给**：本地要联调两个 Nuxt 应用。
+  // 生产没有默认值 —— 与 JWT_SECRET 同一条判据：不允许"忘了配就静默全放行"。
+  const corsRaw = String(raw.CORS_ORIGINS ?? (nodeEnv === 'development' ? DEFAULT_DEV_ORIGINS.join(',') : '')).trim()
+  const { origins: corsOrigins, invalid: invalidOrigins } = parseCorsOrigins(corsRaw)
+  if (invalidOrigins.length > 0) {
+    errors.push(
+      `CORS_ORIGINS 含非法来源：${invalidOrigins.join('、')} —— 每项须形如 https://example.com ` +
+        '或 http://localhost:4041（不允许通配符 *、路径、末尾斜杠）',
+    )
+  }
+  if (corsOrigins.length === 0 && nodeEnv === 'production') {
+    errors.push('缺少 CORS_ORIGINS：生产环境必须显式列出允许的站点来源，否则浏览器端无法调用本接口')
+  }
+
   if (errors.length > 0) {
     throw new Error(`环境变量校验失败：\n  - ${errors.join('\n  - ')}`)
   }
@@ -126,5 +188,6 @@ export function validateEnv(raw: Record<string, unknown>): EnvConfig {
     LOG_LEVEL: logLevel as LogLevel,
     LOG_FILE_ENABLED: logFileEnabled,
     LOG_FILE_DIR: logFileDir,
+    CORS_ORIGINS: corsOrigins,
   }
 }
