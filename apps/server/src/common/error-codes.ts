@@ -88,6 +88,13 @@ export const API_ERROR_CODES = {
    * 前者是"你已经试太多次，先停一会儿" —— 两者的用户动作完全不同。
    */
   AUTH_LOGIN_THROTTLED: 'AUTH.Login:throttled',
+  /**
+   * 想把**未发布**的简历设为默认展示（400）。
+   *
+   * 单独给码而不是复用 `Common.Validation:failed`：前端要据它给出可操作的引导
+   * （「请先发布该简历」），而不是一句笼统的「参数有误」。
+   */
+  RESUME_NOT_PUBLISHED: 'Resume.Publish:required',
   /** 请求参数没过校验 */
   VALIDATION_FAILED: 'Common.Validation:failed',
   /** 路由不存在 */

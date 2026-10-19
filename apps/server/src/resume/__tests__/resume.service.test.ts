@@ -256,3 +256,97 @@ test('list：越界的分页参数被收敛，并回显生效值', async () => {
     pageSize: 100,
   })
 })
+
+/**
+ * B1（发布态）的三条契约。
+ *
+ * 这些断言都落在**收口点**上，而不是某个接口的返回值：发布态加在唯一收口点
+ * `publishedResume()` 里，所以这里钉住"where 的形状"；接口层的真实行为
+ * （未发布 404 / 发布 200）要靠隔离环境的真实请求验。
+ */
+
+test('两个公开读的 where 都带发布态过滤（未发布读不到）', async () => {
+  const wheres: Array<Record<string, unknown>> = []
+  const service = createService({
+    resumeDraft: {
+      // 返回 null 就够了：SQL 没跑到，但 where 已经被记下来；同时也会抛 404
+      findFirst: async (args: { where: Record<string, unknown> }) => {
+        wheres.push(args.where)
+        return null
+      },
+    },
+  })
+
+  await assert.rejects(() => service.findPublished(1))
+  await assert.rejects(() => service.findPublishedDefault())
+
+  assert.equal(wheres.length, 2)
+  for (const where of wheres) {
+    assert.deepEqual((where.resume as Record<string, unknown>).publishedAt, { not: null })
+  }
+})
+
+test('发布写时间戳；取消发布置 null，且命中默认那份时连带取消默认', async () => {
+  const updates: Array<Record<string, unknown>> = []
+  const tx = {
+    resume: {
+      // 未发布但仍是默认 —— 正是"取消发布要连带清默认"的场景
+      findFirst: async () => ({ id: 7, publishedAt: null, isDefault: true }),
+      update: async (args: { data: Record<string, unknown> }) => {
+        updates.push(args.data)
+        return { id: 7, publishedAt: args.data.publishedAt ?? null }
+      },
+    },
+  }
+  const service = createService({ $transaction: async (action: (t: unknown) => unknown) => action(tx) })
+  const admin = {
+    userId: 'u-1',
+    roleKeys: ['admin'],
+    permissionKeys: ['Resume.Sections:edit'],
+  } as unknown as AuthUser
+
+  const published = await service.setPublished(7, true, admin)
+  assert.ok(updates[0].publishedAt instanceof Date, '发布应写入当前时间')
+  assert.equal(typeof published.publishedAt, 'string')
+
+  updates.length = 0
+  const unpublished = await service.setPublished(7, false, admin)
+  assert.equal(unpublished.publishedAt, null)
+  // 第一次 update 置 null，第二次清 isDefault —— 维持 `默认 ⇒ 已发布` 不变量
+  assert.equal(updates.length, 2)
+  assert.equal(updates[1].isDefault, false)
+})
+
+test('把未发布的简历设为默认 → 400 且带可引导的错误码（不自动帮它发布）', async () => {
+  let wrote = false
+  const tx = {
+    resume: {
+      findFirst: async () => ({ id: 9, name: '未发布的那份', publishedAt: null }),
+      update: async () => {
+        wrote = true
+        return { id: 9 }
+      },
+      updateMany: async () => {
+        wrote = true
+        return { count: 0 }
+      },
+    },
+  }
+  const service = createService({ $transaction: async (action: (t: unknown) => unknown) => action(tx) })
+  const admin = {
+    userId: 'u-1',
+    roleKeys: ['admin'],
+    permissionKeys: ['Resume.Sections:edit'],
+  } as unknown as AuthUser
+
+  await assert.rejects(
+    () => service.setDefault(9, admin),
+    (error: { getStatus?: () => number; getResponse?: () => unknown }) => {
+      assert.equal(error.getStatus?.(), 400)
+      assert.equal((error.getResponse?.() as Record<string, unknown>).errorCode, 'Resume.Publish:required')
+      return true
+    },
+  )
+  // 关键：拒绝发生在**任何写入之前**，不存在"先偷偷发布再设默认"
+  assert.equal(wrote, false)
+})

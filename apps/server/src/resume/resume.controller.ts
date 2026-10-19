@@ -12,6 +12,7 @@ import { TraceId } from '../common/decorators/trace-id.decorator'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { resumeListSchema, type ResumeListDto } from './dto/resume-list.schema'
 import { resumeDisplayUpdateSchema, type ResumeDisplayUpdateDto } from './dto/resume-display.schema'
+import { resumePublishSchema, type ResumePublishDto } from './dto/resume-publish.schema'
 import { Public } from '../auth/decorators/public.decorator'
 import type { AuthUser } from '../common/http-context'
 import { ResumeService } from './resume.service'
@@ -131,6 +132,26 @@ export class ResumeController {
     @TraceId() traceId: string,
   ) {
     return this.resumeService.setDefault(id, currentUser, { requestId: traceId })
+  }
+
+  /**
+   * 发布 / 取消发布（幂等）。
+   *
+   * 发布是「公开读可见」的开关 —— B1 之前公开接口只过滤「账号是否软删」，
+   * 于是只要 id 已知，任何简历（含半成品）都能被外人读到。现在未发布一律 404。
+   *
+   * 与 `PATCH :id/default` 的关系：不变量是 **默认 ⇒ 已发布**。
+   * 所以设为默认时会校验目标已发布（未发布返回 400 `Resume.Publish:required`），
+   * 而取消发布若命中默认那份，会连带取消默认。
+   * 由此产生一条**用户可见的操作顺序：先发布，再设默认**。
+   */
+  @Patch(':id/publish')
+  setPublished(
+    @Param('id', { schema: resumePrimaryKeySchema }) id: number,
+    @Body({ schema: resumePublishSchema }) resumePublishDto: ResumePublishDto,
+    @CurrentUser() currentUser: AuthUser,
+  ) {
+    return this.resumeService.setPublished(id, resumePublishDto.published, currentUser)
   }
 
   /**

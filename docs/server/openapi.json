@@ -679,6 +679,90 @@
         }
       }
     },
+    "/resume/{id}/publish": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "patch": {
+        "tags": ["Resume"],
+        "summary": "发布 / 取消发布（幂等）",
+        "description": "发布后该简历才能被公开读接口读到；未发布一律 **404**（不是 403 —— 403 会泄露「存在但未发布」）。\n\n**不变量：默认 ⇒ 已发布。** 设为默认时若目标未发布，返回 `400` + `Resume.Publish:required`；取消发布若命中默认那份，会连带取消默认。由此产生一条用户可见的**操作顺序：先发布，再设默认**。\n\n幂等：重复发布不刷新首次发布时间。",
+        "operationId": "setResumePublished",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["published"],
+                "properties": {
+                  "published": {
+                    "type": "boolean",
+                    "description": "true = 发布（写发布时间）；false = 取消发布（置 null）"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "操作成功；返回该简历的 id 与新的 publishedAt，便于前端就地更新",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiSuccess"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": ["id", "publishedAt"],
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "publishedAt": {
+                              "type": ["string", "null"],
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ResumeForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResumeNotFound"
+          }
+        }
+      }
+    },
     "/resume/{id}/draft": {
       "parameters": [
         {
@@ -5113,7 +5197,7 @@
       "ResumeSummary": {
         "type": "object",
         "description": "列表项：不含正文；revision 与 updatedAt 取自该简历的当前草稿。",
-        "required": ["id", "name", "locale", "revision", "updatedAt"],
+        "required": ["id", "name", "locale", "revision", "updatedAt", "isDefault", "publishedAt"],
         "properties": {
           "id": {
             "type": "integer",
@@ -5137,6 +5221,15 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "是否为「默认展示」的简历（每个用户至多一份）。"
+          },
+          "publishedAt": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "发布时间；`null` 表示**未发布** —— 公开读接口（`GET /resume/public*`）看不到它。"
           }
         }
       },

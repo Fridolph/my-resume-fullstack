@@ -171,6 +171,10 @@ model Resume {
   /// 「默认展示」的简历：访客/首页看的就是它。**每个用户至多一份** —— 互斥由服务端在同一事务里保证
   /// （没有加 partial unique index：Prisma schema 表达不了，硬加会让 `migrate dev` 每次都报漂移）
   isDefault Boolean @default(false) @map("is_default")
+  /// 发布态：**null 表示未发布** —— 公开读（`/resume/public` 与 `/resume/public/:id`）只认已发布的。
+  /// 用可空时间戳而不是布尔：一个字段同时表达「是否发布」与「何时发布」，
+  /// 且判据只有一条（IS NULL / IS NOT NULL），不会随「某些历史数据是例外」而漂移。
+  publishedAt DateTime? @map("published_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   workspace ResumeWorkspace @relation(fields: [workspaceUserId], references: [userId], onDelete: Restrict)

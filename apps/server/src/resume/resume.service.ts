@@ -1,4 +1,10 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import {
   buildResumeDocument,
   resumeDocumentSchema,
@@ -61,10 +67,20 @@ export class ResumeService {
     await this.prismaService.$transaction(async transaction => {
       const target = await transaction.resume.findFirst({
         where: this.ownedResume(id, currentUser),
-        select: { id: true, name: true },
+        select: { id: true, name: true, publishedAt: true },
       })
       if (!target) {
         throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+      }
+
+      // 不变量：**`isDefault` ⇒ 已发布**。默认展示的那份必须能被公开读到，
+      // 否则首页会指向一份 404 的内容 —— 那比"没设默认"更难排查。
+      // 这里选择**拒绝**而不是自动帮它发布：自动发布等于静默扩大暴露面，
+      // 而"公开"这件事必须由作者明确表达（Owner 2026-10-17 确认此口径）。
+      if (!target.publishedAt) {
+        throw new BadRequestException('请先发布该简历，再设为默认展示', {
+          errorCode: API_ERROR_CODES.RESUME_NOT_PUBLISHED,
+        })
       }
 
       // 记录"被顶掉的那一份"：状态变更的追责价值在于**变更前是什么**，
@@ -92,6 +108,61 @@ export class ResumeService {
     //（调用方拿到的是第几页？）。调用方真正需要的是"哪一份成了默认"，
     // 其余状态用一次重新拉取（列表已有缓存失效机制）就够了。
     return { id }
+  }
+
+  /**
+   * 发布 / 取消发布（幂等）。
+   *
+   * ## 为什么与 `setDefault` 同一条授权口径
+   *
+   * 发布决定「外人能不能看到」—— 与「哪一份是默认」同级的写操作。
+   * 两者若授权不一致，就会出现「能设默认却不能发布」这种读不懂的权限缺口。
+   *
+   * ## 取消发布时**连带取消默认**
+   *
+   * 不变量是 **`isDefault` ⇒ 已发布**。所以取消发布若命中的正是默认那份，
+   * 这里一并把 `isDefault` 清掉，否则首页会指向一份 404 的内容。
+   *
+   * 这与「自动帮它发布」方向相反、性质也不同：自动发布是**扩大暴露面**，
+   * 不该静默做；清默认是**收窄暴露面**，且正是「我要把它撤下来」这个意图的必然结果。
+   *
+   * ## 幂等：重复发布不刷新时间戳
+   *
+   * `published ? (target.publishedAt ?? new Date()) : null` —— 已经发布过就保留首次发布时间，
+   * 否则「点两次」会让发布日变成今天，分享页上那个「发布于」就没意义了。
+   *
+   * @returns 该简历的 `id` 与新的 `publishedAt`（ISO 字符串或 `null`），供前端就地更新，
+   *          不必为了一次状态变更重新拉整页列表
+   */
+  async setPublished(
+    id: number,
+    published: boolean,
+    currentUser: AuthUser,
+  ): Promise<{ id: number; publishedAt: string | null }> {
+    this.assertEditable(currentUser)
+
+    return this.prismaService.$transaction(async transaction => {
+      const target = await transaction.resume.findFirst({
+        where: this.ownedResume(id, currentUser),
+        select: { id: true, publishedAt: true, isDefault: true },
+      })
+      if (!target) {
+        throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+      }
+
+      const updated = await transaction.resume.update({
+        where: { id },
+        data: { publishedAt: published ? (target.publishedAt ?? new Date()) : null },
+        select: { id: true, publishedAt: true },
+      })
+
+      // 取消发布命中默认那份时，一并清掉默认，维持 `isDefault` ⇒ 已发布 的不变量
+      if (!published && target.isDefault) {
+        await transaction.resume.update({ where: { id }, data: { isDefault: false } })
+      }
+
+      return { id: updated.id, publishedAt: updated.publishedAt?.toISOString() ?? null }
+    })
   }
 
   /**
@@ -238,6 +309,7 @@ export class ResumeService {
           name: true,
           locale: true,
           isDefault: true,
+          publishedAt: true,
           draft: { select: { revision: true, updatedAt: true } },
         },
       }),
@@ -254,6 +326,7 @@ export class ResumeService {
         revision: resume.draft.revision,
         updatedAt: resume.draft.updatedAt.toISOString(),
         isDefault: resume.isDefault,
+        publishedAt: resume.publishedAt?.toISOString() ?? null,
       })
     }
 
@@ -367,13 +440,22 @@ export class ResumeService {
   }
 
   /**
-   * 公开读取的过滤条件：**只保证"这份数据属于一个仍然有效的账号"**。
+   * 公开读取的过滤条件：**已发布 + 账号仍有效**。
    *
-   * 与 `ownedResume` 的差别就是少了 `workspaceUserId` ——
-   * 那一条是**授权**（谁能读），这一条是**数据完整性**（这条数据是否还有效）。
+   * 两条判据各回答一个问题：
+   * - `publishedAt: { not: null }` —— **作者有没有主动公开这份内容**（授权面）；
+   * - `workspace: { user: { deletedAt: null } }` —— **这条数据是否还有效**（数据完整性）。
+   *
+   * 与 `ownedResume` 的差别是少了 `workspaceUserId`：那个条件是「只看自己的」，
+   * 而公开读的口径是「作者公开过的、任何人的」。
+   *
+   * ⚠️ 这里是 `findPublished` 与 `findPublishedDefault` 的**唯一收口点** ——
+   * 发布态只需加一次就同时覆盖两个公开读接口。
+   * 加这条过滤之前（DAO-038），只要 id 已知，任何简历都能被读到（含写了一半的草稿）；
+   * B1（上线门槛）关的正是这条。
    */
   private publishedResume(extra: Prisma.ResumeWhereInput): Prisma.ResumeWhereInput {
-    return { ...extra, workspace: { user: { deletedAt: null } } }
+    return { ...extra, publishedAt: { not: null }, workspace: { user: { deletedAt: null } } }
   }
 
   /**

@@ -771,6 +771,13 @@ export const resumeSummarySchema = z.strictObject({
   updatedAt: z.string(),
   /** 是否为「默认展示」的简历（每个用户至多一份） */
   isDefault: z.boolean(),
+  /**
+   * 发布时间（ISO 字符串）；`null` 表示**未发布** —— 公开读接口看不到它。
+   *
+   * 列表页必须据它显示「已发布 / 未发布」：迁移后非默认简历一律未发布，
+   * 没有这个字段，作者只会看到「我的简历突然打不开了」而不知道原因。
+   */
+  publishedAt: z.string().nullable(),
 })
 
 /**
