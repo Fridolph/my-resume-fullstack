@@ -12,6 +12,19 @@ export function createResumeDraftApi() {
       $api<ResumeDraftResponse>('/resume', { method: 'POST', body: input, silent: true, retry: 0 }),
     read: (id: string) =>
       $api<ResumeDraftResponse>(`/resume/${encodeURIComponent(id)}/draft`, { silent: true, retry: 0 }),
+    /**
+     * 发布 / 取消发布。
+     *
+     * 未发布的简历**公开链接读不到**（`GET /resume/public/:id` 返回 404）。
+     * 幂等：重复发布不刷新首次发布时间（否则「点两次」会让发布日变成今天）。
+     */
+    setPublished: (id: number, published: boolean) =>
+      $api<{ id: number; publishedAt: string | null }>(`/resume/${id}/publish`, {
+        method: 'PATCH',
+        body: { published },
+        silent: true,
+        retry: 0,
+      }),
     /** 设为默认展示（公开页 `/` 展示的就是它）；返回哪一份成了默认 */
     setDefault: (id: number) =>
       $api<{ id: number }>(`/resume/${id}/default`, { method: 'PATCH', silent: true, retry: 0 }),

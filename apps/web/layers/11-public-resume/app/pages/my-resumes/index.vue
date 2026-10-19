@@ -74,6 +74,59 @@ async function setDefault(id: number) {
   }
 }
 
+// ── 发布 / 取消发布 ────────────────────────────────────────────────
+// B1 之后公开读只认「已发布」：未发布的简历 `/resume/:id` 直接 404。
+// 所以列表必须把发布态显示出来 —— 否则作者只会看到「简历突然打不开了」，
+// 而不知道是自己没发布（迁移后非默认简历一律未发布）。
+const publishBusyId = ref<number | null>(null)
+
+interface PublishableItem {
+  id: number
+  name: string
+  publishedAt: string | null
+  isDefault: boolean
+}
+
+function publishTitle(item: PublishableItem): string {
+  return item.publishedAt ? '已发布：公开链接可以访问（点击取消发布）' : '未发布：公开链接打不开（点击发布）'
+}
+
+/**
+ * ★ 的可用性**依赖发布态**：未发布的简历不能被设为默认。
+ *
+ * 服务端对此返回 400 `Resume.Publish:required`（不变量：默认 ⇒ 已发布，
+ * 否则首页会指向一份读不到的内容）。这里提前禁用并给出原因，
+ * 比让作者点一下再吃一个错误提示更好。
+ */
+function starTitle(item: PublishableItem): string {
+  if (item.isDefault) return '公开首页正在展示这一份'
+  if (!item.publishedAt) return '请先发布，再设为默认展示'
+  return '设为默认展示（公开首页展示它）'
+}
+
+async function togglePublished(item: PublishableItem) {
+  if (publishBusyId.value) return
+  const next = !item.publishedAt
+  publishBusyId.value = item.id
+  try {
+    await api.setPublished(item.id, next)
+    await refresh()
+    toast.add({
+      title: next ? '已发布' : '已取消发布',
+      description: next
+        ? `「${item.name}」的公开链接现在可以访问了。`
+        : item.isDefault
+          ? '公开链接现在打不开；它原本是默认展示，默认已一并取消。'
+          : '公开链接现在打不开。',
+      color: next ? 'success' : 'warning',
+    })
+  } catch (problem) {
+    toast.add({ title: '操作失败', description: normalizeApiError(problem).message, color: 'error' })
+  } finally {
+    publishBusyId.value = null
+  }
+}
+
 const renameOpen = ref(false)
 const renameTarget = ref<{ id: number; name: string } | null>(null)
 const renameDraft = ref('')
@@ -182,21 +235,36 @@ function formatUpdatedAt(value: string) {
                 >
                   {{ item.name }}
                 </NuxtLink>
-                <p class="mt-1 text-xs text-muted">
-                  {{ item.locale }} · rev {{ item.revision }} · 更新于 {{ formatUpdatedAt(item.updatedAt) }}
+                <p class="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
+                  <span
+                    >{{ item.locale }} · rev {{ item.revision }} · 更新于 {{ formatUpdatedAt(item.updatedAt) }}</span
+                  >
+                  <UBadge :color="item.publishedAt ? 'primary' : 'neutral'" variant="subtle" size="sm">
+                    {{ item.publishedAt ? '已发布' : '未发布' }}
+                  </UBadge>
                 </p>
               </div>
 
               <div class="flex items-center gap-1">
                 <UButton
+                  :icon="item.publishedAt ? 'i-lucide-globe' : 'i-lucide-globe-lock'"
+                  size="xs"
+                  color="neutral"
+                  :variant="item.publishedAt ? 'soft' : 'ghost'"
+                  :loading="publishBusyId === item.id"
+                  :aria-label="item.publishedAt ? `取消发布「${item.name}」` : `发布「${item.name}」`"
+                  :title="publishTitle(item)"
+                  @click="togglePublished(item)"
+                />
+                <UButton
                   icon="i-lucide-star"
                   size="xs"
                   color="neutral"
                   :variant="item.isDefault ? 'soft' : 'ghost'"
-                  :disabled="item.isDefault"
+                  :disabled="item.isDefault || !item.publishedAt"
                   :loading="defaultBusyId === item.id"
                   :aria-label="item.isDefault ? '已是默认展示' : `把「${item.name}」设为默认展示`"
-                  :title="item.isDefault ? '公开首页正在展示这一份' : '设为默认展示（公开首页展示它）'"
+                  :title="starTitle(item)"
                   @click="setDefault(item.id)"
                 />
                 <UButton
