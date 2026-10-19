@@ -8,8 +8,8 @@
 - 目标/非目标/契约/回滚/验收：以上设计文档为本任务详细设计；不修改历史发布与分享。
 - 文件：common resume/pdf-config与文档契约；Prisma schema/migration；server resume配置service/controller及存量写入保留；ui PDF引擎/面板/composable；双端页面与apis；OpenAPI、README、测试。
 - 风险：旧JSON兼容、配置互相覆盖、模块ID跨简历泄漏、页眉页脚挤占、双端与下载不一致。
-- 下一步：新增共享配置契约与增量迁移；现有库迁移选择待Owner输入，独立验证先行。
-- 验证：待执行，不用历史结果代替本任务验证。
+- 下一步：Owner 确认现有开发库迁移环境后应用迁移，并实看桌面/移动配置体验；本轮实现与隔离验证已收口。
+- 验证：本轮实际执行结果见下方实施与收口记录。
 
 ## 实施与 Review
 
@@ -25,4 +25,6 @@
 
 - 最新质量门通过：225项测试（common31/utils87/config8/server99），lint仅1条既有warning；web/admin/server构建通过。
 - 本轮按Owner明确要求提交推送并fast-forward集成dev；迁移文件交付，现有库不动，应用命令见README。
-- Issue回填关闭与提交锚点在集成后补记。
+- 实现提交：`37b7cd7 feat(pdf): persist per-resume settings and reusable personal preset`。
+- 集成：`fys-dev/59-pdf-config` 已推送；主工作区 `dev` fast-forward 至 `37b7cd7` 并推送 `origin/dev`，未操作 `main`、tag 或发布。
+- Issue #59 已回填验证证据、现有库未迁移及字体验收边界，并关闭。

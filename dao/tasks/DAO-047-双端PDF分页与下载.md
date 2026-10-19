@@ -75,3 +75,6 @@ Owner 已认可生成的测试 PDF，要求修正实际 4041/4047 仍显示旧�
 ## Owner 确认
 
 Owner 在后续任务确认当前预览后，授权提交、推送并集成 dev。该任务机器验、页面修正及文档已完成；新配置需求另开 Issue，不混入本卡。
+
+- 实现提交：`8c130c4 feat(pdf): share paginated resume preview and Chromium download`，已随 #59 fast-forward 集成并推送 `origin/dev`。
+- Issue #58 已回填关闭。上文“未提交/待验”为当时的阶段记录；最终提交依照 Owner 后续明确授权，实际字体与系统打印对话框的环境验收仍保留。
