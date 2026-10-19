@@ -269,7 +269,7 @@ async function onSubmitForm(event: FormSubmitEvent<FormSchema>) {
       variant="subtle"
       icon="i-lucide-info"
       title="演示组件用法"
-      description="上传请求打到 runtimeConfig.public.apiBase；模板未接后端，上传会失败，属预期。"
+      description="上传请求打到 runtimeConfig.public.apiBase；模板未接后端，上传走真实端点 `POST /api/upload/files`（png / jpeg / pdf / md / doc / docx，单文件 ≤5MB）。"
     />
 
     <UCard>
