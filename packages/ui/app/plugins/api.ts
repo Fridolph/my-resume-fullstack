@@ -90,6 +90,20 @@ export default defineNuxtPlugin({
       },
 
       async onResponse({ response, options }) {
+        // 二进制成功保留 Blob；同一请求的 401/409 等仍是 JSON，需要先解码再统一归一化。
+        if (
+          response.ok &&
+          options.responseType === 'blob' &&
+          response.headers.get('content-type')?.startsWith('application/pdf')
+        )
+          return
+        if (response._data instanceof Blob) {
+          try {
+            response._data = JSON.parse(await response._data.text())
+          } catch {
+            response._data = undefined
+          }
+        }
         const payload = response._data as { code?: number; data?: unknown } | undefined
 
         if (response.ok && payload && isApiSuccess(payload)) {

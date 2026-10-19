@@ -252,3 +252,20 @@ pnpm release:major   # 破坏性变更，例如 0.x → 1.0.0
 ```bash
 git push --follow-tags
 ```
+
+## 简历 PDF 预览与下载
+
+web `/resume/:id/pdf` 读取已发布内容（须登录），admin 同路径读取本人草稿。两端使用
+`@rs/ui/pdf` 的同一份安全 HTML/CSS 和自动 A4 分页，后端 Chromium 直接响应文件。
+首次运行导出前安装与 Playwright 匹配的浏览器（不涉及数据库）：
+
+```bash
+pnpm --filter @rs/server exec playwright install chromium
+pnpm --filter @rs/server test:resume:pdf
+pnpm --filter @rs/server build
+pnpm --filter @rs/server test:resume:pdf:http
+```
+
+后两项为真实浏览器/HTTP 隔离验收；HTTP 测试使用固定身份和仓储替身，不连接项目数据库。
+服务器需要 Chromium 的系统依赖与中文字体；本轮未修改部署配置。方案、资源策略和验收记录见
+[导出与打印](./docs/dev/06_简历系统_导出与打印.md#11-2026-10-19双端分页预览与直接下载续作方案)。

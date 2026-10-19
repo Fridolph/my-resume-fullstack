@@ -4,6 +4,19 @@
   "private": true,
   "description": "跨 app 共享的 Vue / Nuxt UI 组件与前端工具（Nuxt layer 形式，源码级共享、零构建）。允许 Vue 生态基础库（@vueuse/*）；vue 与重量级引擎（sortablejs 等）由宿主提供。",
   "type": "module",
+  "typesVersions": {
+    "*": {
+      "pdf": [
+        "pdf/index.d.mts"
+      ]
+    }
+  },
+  "exports": {
+    "./pdf": {
+      "types": "./pdf/index.d.mts",
+      "default": "./pdf/index.mjs"
+    }
+  },
   "scripts": {
     "typecheck": "echo \"layer 由宿主 app 的 typecheck 覆盖（apps/web、apps/admin）\"",
     "lint": "echo \"layer 的 lint 由根 oxlint 覆盖\""

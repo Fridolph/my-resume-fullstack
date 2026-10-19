@@ -172,3 +172,13 @@ export default defineNuxtConfig({
 - **头尾固定、内容滚动**：`content` 是 `flex flex-col`，`body` 用 `contents`
   把内层滚动 div 提升为 flex 子项（`flex-1 overflow-y-auto`），header / footer 作为兄弟节点
   `shrink-0` —— 于是 `#header` / `#footer` 天然钉在顶部 / 底部，不随内容滚动（不需要 CSS sticky）。
+
+## 简历 PDF 纸面引擎
+
+`pdf/index.mjs` 经 `@rs/ui/pdf` 子路径提供受控 HTML、打印 CSS 和 DOM 自动分页；独立于
+Vue 运行，可由前端 iframe 和后端 Chromium 同时消费。它包含纸面视觉规则，因此放在 ui，
+不引入服务端模板，也不会由此在后端加载 Nuxt/Vue。`ResumePdfWorkspace` 通过 props 接收
+文档与下载回调，宿主负责身份和接口选择。新增子路径可随本任务撤销，原有 layer 调用面不变。
+
+本轮仅提供统一 A4 单栏纸面：承接模块排序、显隐、联系信息开关和完整正文；网页背景、多栏
+布局与装饰图片不导出。所有外部资源加载均禁用，用户链接保留。中文字体由宿主环境提供。

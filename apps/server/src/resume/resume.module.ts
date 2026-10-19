@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common'
 import { AuditModule } from '../audit/audit.module'
 import { ResumeController } from './resume.controller'
 import { ResumeService } from './resume.service'
+import { ResumePdfController } from './resume-pdf.controller'
+import { ResumePdfRenderer, ResumePdfService } from './resume-pdf.service'
 
 /**
  * 简历模块。
@@ -12,7 +14,7 @@ import { ResumeService } from './resume.service'
  */
 @Module({
   imports: [AuditModule],
-  controllers: [ResumeController],
-  providers: [ResumeService],
+  controllers: [ResumeController, ResumePdfController],
+  providers: [ResumeService, ResumePdfService, ResumePdfRenderer],
 })
 export class ResumeModule {}

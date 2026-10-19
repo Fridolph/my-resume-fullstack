@@ -79,3 +79,4 @@
 > 顺带更正一条流传的判断：**「旧 mock 链已无引用」不成立** —— `useResumeContent` 仍被
 > `ResumeDraftWorkspace`、`ResumeSettingsSectionsTab`、`ResumeSectionEditorDrawer` **3 处引用**；
 > 确实已无引用的只有 `ResumePageHeader`。清理前要先决定那 3 处的去留，不能按"孤儿"直接删。
+

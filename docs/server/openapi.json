@@ -30,6 +30,91 @@
     }
   ],
   "paths": {
+    "/resume/{id}/pdf": {
+      "post": {
+        "tags": ["Resume"],
+        "summary": "下载与预览摘要一致的简历 PDF",
+        "operationId": "downloadResumePdf",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "description": "source=published 要求登录且目标已发布；draft 限本人。documentHash 是完整 document 的 canonicalResumeJson UTF-8 SHA-256，小写十六进制。内容或 display 变化返回 409；当前发布开关不代表历史发布快照。",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResumePdfExport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "直接下载 PDF，不包 JSON 成功壳，Cache-Control: no-store",
+            "headers": {
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "attachment; filename=\"resume-106.pdf\""
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResumeNotFound"
+          },
+          "409": {
+            "description": "文档摘要不一致，请刷新预览后重新下载",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Chromium 不可用、繁忙或超时，可稍后重试",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": ["Health"],
@@ -952,6 +1037,21 @@
       }
     },
     "schemas": {
+      "ResumePdfExport": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": ["published", "draft"]
+          },
+          "documentHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": ["source", "documentHash"],
+        "additionalProperties": false
+      },
       "ApiSuccess": {
         "type": "object",
         "required": ["code", "data", "message", "timestamp"],

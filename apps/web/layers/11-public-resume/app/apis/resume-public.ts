@@ -14,6 +14,15 @@ import type { ResumeDraftResponse } from '@rs/common'
 export function createPublicResumeApi() {
   const { $api } = useNuxtApp()
   return {
+    /** 登录后导出当前公开内容；摘要与预览一致才允许下载。 */
+    exportPdf: (id: number, documentHash: string) =>
+      $api<Blob>(`/resume/${id}/pdf`, {
+        method: 'POST',
+        body: { source: 'published', documentHash },
+        responseType: 'blob',
+        silent: true,
+        retry: 0,
+      }),
     /** 首页 `/` 的数据源：作者标为「默认展示」的那一份；没设默认时 404 */
     findDefault: () => $api<ResumeDraftResponse>('/resume/public', { silent: true, retry: 0 }),
     /** `/resume/:id` 的数据源：按 id 读某一份公开简历；不存在或作者已注销时 404 */

@@ -1,4 +1,4 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common'
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor, StreamableFile } from '@nestjs/common'
 import { createApiResponse } from '@rs/common'
 import type { Request } from 'express'
 import type { Observable } from 'rxjs'
@@ -22,6 +22,13 @@ export class ApiResponseInterceptor implements NestInterceptor {
 
     // 这里只负责"成功"的形状（code = 200）；失败一律走 ApiExceptionFilter。
     // 两个出口共用 `@rs/common` 的同一份契约 —— 这就是"唯一形状"的落地方式。
-    return next.handle().pipe(map(data => createApiResponse(data, 'ok', { traceId: request.traceId })))
+    // 文件由 Nest 的流适配器处理，不能被 JSON 成功壳吞掉；异常仍走统一过滤器。
+    return next
+      .handle()
+      .pipe(
+        map(data =>
+          data instanceof StreamableFile ? data : createApiResponse(data, 'ok', { traceId: request.traceId }),
+        ),
+      )
   }
 }

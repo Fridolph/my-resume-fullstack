@@ -13,7 +13,7 @@ import { applyEmptyStatus } from '#layers/public-resume/app/composables/usePubli
  * 那种要靠身份推断语义的设计。
  *
  * ⚠️ 作者侧路由已整体迁到 `/my-resumes`（列表）与 `/my-resumes/draft/:id`（工作台），
- * 所以 `resume/` 目录下现在**只有本页**，不存在与 `draft` 抢匹配的问题。
+ * 本页与 `[id]/pdf.vue` 是同级路由，分别承载公开展示与 PDF 工作台。
  */
 const route = useRoute()
 const resumeId = computed(() => Number(route.params.id))

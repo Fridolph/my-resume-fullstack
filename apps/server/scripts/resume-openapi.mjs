@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { z } from 'zod'
-import { resumeDocumentSchema, resumeDraftInputSchema } from '@rs/common'
+import { resumeDocumentSchema, resumeDraftInputSchema, resumePdfExportSchema } from '@rs/common'
 
 const spec = JSON.parse(readFileSync(new URL('../../../docs/server/openapi.json', import.meta.url), 'utf8'))
 const ref = name => ({ $ref: `#/components/schemas/${name}` })
@@ -227,6 +227,32 @@ spec.paths['/resume/{id}'] = {
       ...errors,
       403: responseRef('ResumeForbidden'),
       404: responseRef('ResumeNotFound'),
+    },
+  },
+}
+spec.components.schemas.ResumePdfExport = z.toJSONSchema(resumePdfExportSchema, { target: 'openapi-3.0' })
+spec.paths['/resume/{id}/pdf'] = {
+  post: {
+    tags: ['Resume'],
+    summary: '下载与预览摘要一致的简历 PDF',
+    operationId: 'downloadResumePdf',
+    security: [{ bearerAuth: [] }],
+    description:
+      'source=published 要求登录且目标已发布；draft 限本人。documentHash 是完整 document 的 canonicalResumeJson UTF-8 SHA-256，小写十六进制。内容或 display 变化返回 409；当前发布开关不代表历史发布快照。',
+    parameters: [resumeIdParam],
+    requestBody: { required: true, content: jsonContent(ref('ResumePdfExport')) },
+    responses: {
+      200: {
+        description: '直接下载 PDF，不包 JSON 成功壳，Cache-Control: no-store',
+        headers: {
+          'Content-Disposition': { schema: { type: 'string' }, example: 'attachment; filename="resume-106.pdf"' },
+        },
+        content: { 'application/pdf': { schema: { type: 'string', format: 'binary' } } },
+      },
+      ...errors,
+      404: responseRef('ResumeNotFound'),
+      409: { description: '文档摘要不一致，请刷新预览后重新下载', content: jsonContent(ref('ApiError')) },
+      503: { description: 'Chromium 不可用、繁忙或超时，可稍后重试', content: jsonContent(ref('ApiError')) },
     },
   },
 }

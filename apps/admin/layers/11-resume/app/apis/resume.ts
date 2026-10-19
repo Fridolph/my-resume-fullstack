@@ -15,6 +15,15 @@ export function createResumeApi() {
   const { $api } = useNuxtApp()
 
   return {
+    /** 导出本人草稿；服务端再次校验所有权与文档摘要。 */
+    exportPdf: (id: number, documentHash: string) =>
+      $api<Blob, 'blob'>(`/resume/${id}/pdf`, {
+        method: 'POST',
+        body: { source: 'draft', documentHash },
+        responseType: 'blob',
+        silent: true,
+        retry: 0,
+      }),
     /** 本人未删除的简历（概览页，**服务端分页**）；不返回正文，正文走 `getDraft` */
     list: (query: { page?: number; pageSize?: number } = {}) =>
       $api<ResumeSummaryPage>('/resume', { query, silent: true, retry: 0 }),
