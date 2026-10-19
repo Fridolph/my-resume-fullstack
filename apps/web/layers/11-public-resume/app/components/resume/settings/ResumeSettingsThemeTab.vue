@@ -6,6 +6,8 @@ import {
   resumeThemeFields,
   resumeThemePresets,
 } from '#layers/public-resume/app/mock/resume-display'
+import { normalizeApiError } from '@rs/common'
+import { createUploadApi } from '#layers/public-resume/app/apis/upload'
 import { useResumeDisplay } from '#layers/public-resume/app/composables/useResumeDisplay'
 import ResumeSettingsGroup from './ResumeSettingsGroup.vue'
 
@@ -58,6 +60,41 @@ const themeGroups: { mode: ResumeColorMode; label: string }[] = [
 function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
   return config.value.theme[mode][key]
 }
+
+// ── 背景图上传（DAO-036）───────────────────────────────────────────
+// 原来这里只是一个 URL 输入框（placeholder 写着"上传后置，本轮只建模"）——
+// 用户不可能自己找一个图床。现在直接传，把返回的 url 写进展示配置。
+const uploadApi = createUploadApi()
+const uploading = ref(false)
+const uploadError = ref('')
+
+/**
+ * 选文件 → 上传 → 写回 `background.image.url`。
+ *
+ * 只收 png / jpeg 与「大小上限」都由服务端强制（共享层
+ * `UPLOAD_ALLOWED_MIMES` / `UPLOAD_MAX_FILE_BYTES`）；这里的 `accept` 只是体验，
+ * 免得用户先选一个 20MB 的图再被拒。
+ */
+async function onPickBackground(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = '' // 允许重复选同一个文件
+  if (!file) return
+
+  uploading.value = true
+  uploadError.value = ''
+  try {
+    const uploaded = await uploadApi.upload(file, 'resume-asset')
+    setBackgroundType('image')
+    setBackgroundImage({ url: uploaded.url })
+  } catch (problem) {
+    uploadError.value = normalizeApiError(problem).message
+  } finally {
+    uploading.value = false
+  }
+}
+
+const backgroundFileInput = ref<HTMLInputElement | null>(null)
 </script>
 
 <template>
@@ -176,10 +213,29 @@ function themeValue(mode: ResumeColorMode, key: ResumeThemeColorKey): string {
       <template v-if="config.background.type === 'image'">
         <UInput
           size="xs"
-          placeholder="背景图 URL（上传后置，本轮只建模）"
+          placeholder="背景图 URL（也可以直接上传）"
           :model-value="config.background.image.url"
           @update:model-value="setBackgroundImage({ url: String($event) })"
         />
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            ref="backgroundFileInput"
+            type="file"
+            accept="image/png,image/jpeg"
+            class="hidden"
+            @change="onPickBackground"
+          />
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-upload"
+            :loading="uploading"
+            label="上传背景图"
+            @click="backgroundFileInput?.click()"
+          />
+          <span v-if="uploadError" class="text-xs text-error">{{ uploadError }}</span>
+        </div>
         <div class="flex items-center gap-3">
           <span class="resume-muted w-14 shrink-0 text-xs">遮罩</span>
           <USlider
