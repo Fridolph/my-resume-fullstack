@@ -62,6 +62,7 @@ export const API_ERROR_MESSAGES: Record<number, string> = {
   403: '没有权限执行该操作',
   404: '请求的内容不存在',
   409: '操作与当前状态冲突，请刷新后重试',
+  429: '操作过于频繁，请稍后再试',
   500: '服务暂时不可用，请稍后重试',
 }
 
@@ -69,6 +70,8 @@ export const API_ERROR_MESSAGES: Record<number, string> = {
 export const API_ERROR_CODE_MESSAGES: Record<string, string> = {
   'AUTH.Token:expired': '登录已过期，请重新登录',
   'AUTH.Token:invalid': '登录状态异常，请重新登录',
+  // 与 401 区分：这不是「你这次输了错密码」，而是「你已经试太多次，先停一会儿」
+  'AUTH.Login:throttled': '登录尝试过于频繁，请稍后再试',
   // 审计查阅：权限键本身就是最精确的那句话（403 页会优先用它）
   'Audit.Log:view': '仅超级管理员可查阅审计记录',
 }

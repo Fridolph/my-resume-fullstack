@@ -37,6 +37,10 @@ export interface EnvConfig {
    * `development` 有默认值（两个 Nuxt 应用）；`production` 必须显式配置，缺失即启动失败。
    */
   CORS_ORIGINS: string[]
+  /** 登录限流：窗口内允许的登录尝试次数（每个 IP）。默认 5 */
+  LOGIN_THROTTLE_LIMIT: number
+  /** 登录限流窗口长度，**毫秒**（throttler v5 起单位是毫秒）。默认 60000 */
+  LOGIN_THROTTLE_TTL_MS: number
 }
 
 const NODE_ENVS = ['development', 'test', 'production'] as const
@@ -175,6 +179,22 @@ export function validateEnv(raw: Record<string, unknown>): EnvConfig {
     errors.push('缺少 CORS_ORIGINS：生产环境必须显式列出允许的站点来源，否则浏览器端无法调用本接口')
   }
 
+  // ── 登录限流（B3）──────────────────────────────────────────────────────
+  // 两个数都必须是**正整数**：0 或负数在 throttler 里语义未定义（可能变成"永不限流"
+  // 或"一律拒绝"），而那两种都不会报错 —— 又一类"配错了却看不出来"。
+  // 空串沿用与 `LOG_FILE_ENABLED` 一致的约定：视为未配置，取默认值。
+  const throttleLimitRaw = String(raw.LOGIN_THROTTLE_LIMIT ?? '').trim()
+  const loginThrottleLimit = throttleLimitRaw === '' ? 5 : Number(throttleLimitRaw)
+  if (!Number.isInteger(loginThrottleLimit) || loginThrottleLimit <= 0) {
+    errors.push(`LOGIN_THROTTLE_LIMIT 必须是正整数，当前是 "${throttleLimitRaw}"`)
+  }
+
+  const throttleTtlRaw = String(raw.LOGIN_THROTTLE_TTL_MS ?? '').trim()
+  const loginThrottleTtlMs = throttleTtlRaw === '' ? 60_000 : Number(throttleTtlRaw)
+  if (!Number.isInteger(loginThrottleTtlMs) || loginThrottleTtlMs <= 0) {
+    errors.push(`LOGIN_THROTTLE_TTL_MS 必须是正整数（毫秒），当前是 "${throttleTtlRaw}"`)
+  }
+
   if (errors.length > 0) {
     throw new Error(`环境变量校验失败：\n  - ${errors.join('\n  - ')}`)
   }
@@ -189,5 +209,7 @@ export function validateEnv(raw: Record<string, unknown>): EnvConfig {
     LOG_FILE_ENABLED: logFileEnabled,
     LOG_FILE_DIR: logFileDir,
     CORS_ORIGINS: corsOrigins,
+    LOGIN_THROTTLE_LIMIT: loginThrottleLimit,
+    LOGIN_THROTTLE_TTL_MS: loginThrottleTtlMs,
   }
 }

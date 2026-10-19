@@ -1,9 +1,10 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common'
 import type { AuthUser } from '../common/http-context'
 import { AuthService } from './auth.service'
 import { CurrentUser } from './decorators/current-user.decorator'
 import { Public } from './decorators/public.decorator'
 import { loginSchema, type LoginDto } from './dto/login.schema'
+import { LoginThrottlerGuard } from './login-throttler.guard'
 
 /**
  * 鉴权接口。
@@ -27,6 +28,8 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  // 防密码爆破：守卫在 Controller **之前**执行，被限流的请求不会跑到 verifyPassword（bcrypt）
+  @UseGuards(LoginThrottlerGuard)
   login(@Body({ schema: loginSchema }) loginDto: LoginDto) {
     return this.authService.login(loginDto)
   }

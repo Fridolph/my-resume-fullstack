@@ -81,6 +81,13 @@ export const API_ERROR_CODES = {
   COMMON_STATE_CONFLICT: 'Common.Conflict:state',
   /** 服务端没配 JWT_SECRET —— 属于部署配置错误，应当在启动时就拦住 */
   AUTH_SECRET_MISSING: 'AUTH.Secret:missing',
+  /**
+   * 登录尝试过于频繁，被限流（429）。
+   *
+   * 与 `AUTH.Credentials:invalid` 的区别必须让前端分得清：后者是"这次输错了"，
+   * 前者是"你已经试太多次，先停一会儿" —— 两者的用户动作完全不同。
+   */
+  AUTH_LOGIN_THROTTLED: 'AUTH.Login:throttled',
   /** 请求参数没过校验 */
   VALIDATION_FAILED: 'Common.Validation:failed',
   /** 路由不存在 */
@@ -105,6 +112,12 @@ export function inferErrorCode(status: number): ApiErrorCode {
   }
   if (status === 404) {
     return API_ERROR_CODES.ROUTE_NOT_FOUND
+  }
+  // 429 目前只有登录限流一个来源。不给它兜底的话会落到 INTERNAL_ERROR，
+  // 前端就把"试太快"显示成"服务器内部错误" —— 那是误导。
+  // 将来若出现别的限流来源，应当为它单独定义错误码，而不是共用这个。
+  if (status === 429) {
+    return API_ERROR_CODES.AUTH_LOGIN_THROTTLED
   }
   return API_ERROR_CODES.INTERNAL_ERROR
 }

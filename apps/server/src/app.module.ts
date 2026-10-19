@@ -2,6 +2,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { LoggerModule } from 'nestjs-pino'
+import { ThrottlerModule } from '@nestjs/throttler'
 import { AppController } from './app.controller'
 import { AuthModule } from './auth/auth.module'
 import { PrismaModule } from './prisma/prisma.module'
@@ -64,6 +65,27 @@ import { validateEnv } from './config/env.validation'
           fileDir: config.get<string>('LOG_FILE_DIR') ?? 'logs',
         }),
       }),
+    }),
+    /**
+     * 登录限流的参数来源（B3）。
+     *
+     * 只在这里**注册模块与参数**；真正生效的位置是 `AuthController.login` 上的
+     * `@UseGuards(LoginThrottlerGuard)` —— 也就是**只有登录路由**受限。
+     * 不做全局限流是有意的：全局限制会顺带节流公开简历页读取与前端轮询，
+     * 那是另一个产品决策（防 DoS），与"防密码爆破"不是同一件事。
+     *
+     * `ThrottlerModule` 是 `@Global()`，所以在根模块注册一次，`AuthModule` 就能解析到守卫的依赖。
+     *
+     * ⚠️ `ttl` 的单位是**毫秒**（v5 起从秒改为毫秒）—— 变量名带 `_MS` 就是为了不再踩这个坑。
+     */
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          ttl: config.get<number>('LOGIN_THROTTLE_TTL_MS') ?? 60_000,
+          limit: config.get<number>('LOGIN_THROTTLE_LIMIT') ?? 5,
+        },
+      ],
     }),
     PrismaModule,
     UserModule,
