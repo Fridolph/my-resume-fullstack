@@ -73,6 +73,8 @@ export const API_ERROR_CODES = {
   USER_ROLE_CHANGE_FORBIDDEN: 'Users.Role:changeForbidden',
   /** 角色变更目标受到保护（自己或超级管理员）。 */
   USER_ROLE_CHANGE_PROTECTED: 'Users.Role:changeProtected',
+  /** 上传被拒：类型不在白名单、超出大小、用途非法或没有文件。 */
+  UPLOAD_INVALID: 'Upload.File:invalid',
   /** 通用唯一约束冲突。 */
   COMMON_UNIQUE_CONFLICT: 'Common.Conflict:unique',
   /** 通用关联数据冲突。 */

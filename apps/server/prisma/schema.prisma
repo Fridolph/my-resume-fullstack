@@ -245,3 +245,28 @@ model AuditLog {
   @@index([occurredAt])
   @@map("audit_logs")
 }
+
+/// 上传文件记录。
+///
+/// ## 为什么必须有这张表
+///
+/// 不建表就只能靠文件名猜归属：**孤儿文件无法可靠清理**（谁传的、什么时候传的都不知道），
+/// 也无法按用户做配额或鉴权。路径与 `purpose` 都冗余存一份 ——
+/// 文件系统结构给人看，DB 字段给查询用，一致性由写入路径保证（参 `DAO-036`）。
+model UploadedFile {
+  id Int @id @default(autoincrement())
+  /// 上传者（`User.id`）；不挂外键：与审计同理，账号清理后记录仍要能读懂
+  ownerId String @map("owner_id")
+  /// 用途：avatar / resume-import / resume-asset（决定磁盘一级目录）
+  purpose String @db.VarChar(40)
+  /// 相对 `static/upload` 的路径（不含前缀，便于将来换对象存储）
+  path String @db.VarChar(255)
+  originalName String @map("original_name") @db.VarChar(255)
+  mime String @db.VarChar(100)
+  size Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([ownerId])
+  @@index([purpose, createdAt])
+  @@map("uploaded_files")
+}
