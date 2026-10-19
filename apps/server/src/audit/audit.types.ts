@@ -90,6 +90,20 @@ export interface ResumeCreationAudit {
 }
 
 /** 设为默认展示时要记录的信息 */
+/**
+ * 「发布 / 取消发布」的审计入参。
+ *
+ * 一个动作 + `published` 布尔（与 `ResumeSetDefaultAudit` 的合成方式一致）。
+ * 不记 `publishedAt`：它在数据库里就有，而审计要回答的是**谁在什么时候做了这个决定**。
+ */
+export interface ResumeSetPublishedAudit {
+  resumeId: number
+  name: string
+  /** true = 发布（公开可见）；false = 取消发布 */
+  published: boolean
+  requestId?: string | null
+}
+
 export interface ResumeSetDefaultAudit {
   resumeId: number
   name: string

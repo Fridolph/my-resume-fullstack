@@ -138,13 +138,14 @@ export class ResumeService {
     id: number,
     published: boolean,
     currentUser: AuthUser,
+    context: AuditContext = {},
   ): Promise<{ id: number; publishedAt: string | null }> {
     this.assertEditable(currentUser)
 
     return this.prismaService.$transaction(async transaction => {
       const target = await transaction.resume.findFirst({
         where: this.ownedResume(id, currentUser),
-        select: { id: true, publishedAt: true, isDefault: true },
+        select: { id: true, name: true, publishedAt: true, isDefault: true },
       })
       if (!target) {
         throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
@@ -160,6 +161,14 @@ export class ResumeService {
       if (!published && target.isDefault) {
         await transaction.resume.update({ where: { id }, data: { isDefault: false } })
       }
+
+      // 与写状态**同一个事务**：审计缺席时这次可见性变更也不该成立（与删除、设默认同一口径）
+      await this.auditService.recordResumeSetPublished(transaction, currentUser, {
+        resumeId: id,
+        name: target.name,
+        published,
+        requestId: context.requestId,
+      })
 
       return { id: updated.id, publishedAt: updated.publishedAt?.toISOString() ?? null }
     })

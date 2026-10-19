@@ -41,6 +41,9 @@ function createService(fake: object): ResumeService {
     recordResumeSetDefault: async (...args: unknown[]) => {
       auditRecords.push(['recordResumeSetDefault', ...args])
     },
+    recordResumeSetPublished: async (...args: unknown[]) => {
+      auditRecords.push(['recordResumeSetPublished', ...args])
+    },
   }
   return new ResumeService(fake as unknown as PrismaServiceDouble, auditService as unknown as AuditServiceDouble)
 }
@@ -291,7 +294,7 @@ test('发布写时间戳；取消发布置 null，且命中默认那份时连带
   const tx = {
     resume: {
       // 未发布但仍是默认 —— 正是"取消发布要连带清默认"的场景
-      findFirst: async () => ({ id: 7, publishedAt: null, isDefault: true }),
+      findFirst: async () => ({ id: 7, name: '测试简历', publishedAt: null, isDefault: true }),
       update: async (args: { data: Record<string, unknown> }) => {
         updates.push(args.data)
         return { id: 7, publishedAt: args.data.publishedAt ?? null }
@@ -309,9 +312,19 @@ test('发布写时间戳；取消发布置 null，且命中默认那份时连带
   assert.ok(updates[0].publishedAt instanceof Date, '发布应写入当前时间')
   assert.equal(typeof published.publishedAt, 'string')
 
+  // 审计必须写：覆盖率测试只能证明"某处引用了常量"，证明"确实调用"要靠这里
+  const publishAudit = auditRecords[auditRecords.length - 1] as unknown[]
+  assert.equal(publishAudit[0], 'recordResumeSetPublished')
+  assert.equal((publishAudit[3] as { published: boolean }).published, true)
+  assert.equal((publishAudit[3] as { resumeId: number }).resumeId, 7)
+
   updates.length = 0
   const unpublished = await service.setPublished(7, false, admin)
   assert.equal(unpublished.publishedAt, null)
+
+  const unpublishAudit = auditRecords[auditRecords.length - 1] as unknown[]
+  assert.equal(unpublishAudit[0], 'recordResumeSetPublished')
+  assert.equal((unpublishAudit[3] as { published: boolean }).published, false)
   // 第一次 update 置 null，第二次清 isDefault —— 维持 `默认 ⇒ 已发布` 不变量
   assert.equal(updates.length, 2)
   assert.equal(updates[1].isDefault, false)

@@ -9,6 +9,7 @@ import type {
   ResumeCreationAudit,
   ResumeDeletionAudit,
   ResumeSetDefaultAudit,
+  ResumeSetPublishedAudit,
   RoleChangeAudit,
   UserCreationAudit,
   UserDeletionAudit,
@@ -122,6 +123,31 @@ export class AuditService {
       resourceId: String(input.resumeId),
       resourceSnapshot: { name: input.name },
       metadata: { previousDefaultId: input.previousDefaultId },
+      requestId: input.requestId,
+    })
+  }
+
+  /**
+   * 记录「发布 / 取消发布」。
+   *
+   * 为什么它值得审计：这个动作改变的是**外人能看到什么** —— 与"删除"同一性质。
+   * 一旦有人问「这份简历什么时候被公开的 / 谁把它撤下来的」，只有审计能回答：
+   * 当前数据只有 `publishedAt`，而取消发布之后它就是 `null`。
+   *
+   * 取消发布若连带取消了默认展示，那次 `isDefault` 变化**不单独记一条** ——
+   * 它由 `published: false` 这一条表达（是衍生结果，不是独立决定）。
+   */
+  async recordResumeSetPublished(
+    transaction: Prisma.TransactionClient,
+    actor: AuthUser,
+    input: ResumeSetPublishedAudit,
+  ): Promise<void> {
+    await this.record(transaction, actor, {
+      action: AUDIT_ACTIONS.resumeSetPublished,
+      resourceType: AUDIT_RESOURCE_TYPES.resume,
+      resourceId: String(input.resumeId),
+      resourceSnapshot: { name: input.name },
+      metadata: { published: input.published },
       requestId: input.requestId,
     })
   }

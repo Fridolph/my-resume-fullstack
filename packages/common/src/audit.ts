@@ -30,6 +30,14 @@ export const AUDIT_ACTIONS = {
   resumeDelete: 'resume.delete',
   /** 设为 / 取消默认展示（会取消别人的默认标记，属可追责的状态变更） */
   resumeSetDefault: 'resume.set_default',
+  /**
+   * 发布 / 取消发布 —— 改变的是**外人能不能看到**这份简历。
+   *
+   * 一个动作 + `published` 布尔，而不是 publish / unpublish 两个动作：
+   * 与 `resume.set_default`（设为/取消默认合成一个）保持一致 ——
+   * 同一件事的两个方向，两个动作会让查询分支与文案都翻倍。
+   */
+  resumeSetPublished: 'resume.set_published',
   /** 创建账号 */
   userCreate: 'user.create',
   /** 删除账号 */
@@ -61,6 +69,7 @@ export const AUDIT_METADATA_WHITELIST: Record<AuditAction, readonly string[]> = 
   [AUDIT_ACTIONS.resumeCreate]: ['locale'],
   [AUDIT_ACTIONS.resumeDelete]: ['revision', 'sectionCount', 'wasDefault'],
   [AUDIT_ACTIONS.resumeSetDefault]: ['previousDefaultId'],
+  [AUDIT_ACTIONS.resumeSetPublished]: ['published'],
   [AUDIT_ACTIONS.userCreate]: ['roleKeys'],
   [AUDIT_ACTIONS.userDelete]: ['roleKeys'],
   [AUDIT_ACTIONS.roleChange]: ['before', 'after'],

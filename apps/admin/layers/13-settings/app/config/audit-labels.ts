@@ -19,6 +19,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   [AUDIT_ACTIONS.resumeCreate]: '创建简历',
   [AUDIT_ACTIONS.resumeDelete]: '删除简历',
   [AUDIT_ACTIONS.resumeSetDefault]: '设为默认展示',
+  [AUDIT_ACTIONS.resumeSetPublished]: '发布 / 取消发布',
   [AUDIT_ACTIONS.userCreate]: '创建账号',
   [AUDIT_ACTIONS.userDelete]: '删除账号',
   [AUDIT_ACTIONS.roleChange]: '变更角色',
@@ -81,6 +82,11 @@ export function summarizeAudit(row: AuditLogRow): string {
     case AUDIT_ACTIONS.resumeSetDefault: {
       const previous = numberOf(meta.previousDefaultId)
       return previous === undefined ? '首个默认（没有顶掉别的）' : `顶掉了 #${previous}`
+    }
+
+    case AUDIT_ACTIONS.resumeSetPublished: {
+      if (typeof meta.published !== 'boolean') return '—'
+      return meta.published ? '已发布（公开可见）' : '已取消发布（不再公开）'
     }
 
     case AUDIT_ACTIONS.userCreate:

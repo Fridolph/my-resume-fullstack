@@ -150,8 +150,9 @@ export class ResumeController {
     @Param('id', { schema: resumePrimaryKeySchema }) id: number,
     @Body({ schema: resumePublishSchema }) resumePublishDto: ResumePublishDto,
     @CurrentUser() currentUser: AuthUser,
+    @TraceId() traceId: string,
   ) {
-    return this.resumeService.setPublished(id, resumePublishDto.published, currentUser)
+    return this.resumeService.setPublished(id, resumePublishDto.published, currentUser, { requestId: traceId })
   }
 
   /**
