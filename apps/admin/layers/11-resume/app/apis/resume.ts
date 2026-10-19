@@ -1,4 +1,10 @@
-import type { CreateResumeDto, ResumeDraftResponse, ResumeSummaryPage, SaveResumeDraftDto } from '@rs/common'
+import type {
+  ResumePdfConfig,
+  CreateResumeDto,
+  ResumeDraftResponse,
+  ResumeSummaryPage,
+  SaveResumeDraftDto,
+} from '@rs/common'
 
 /**
  * 简历主体的读写接口（admin 侧）。
@@ -16,10 +22,10 @@ export function createResumeApi() {
 
   return {
     /** 导出本人草稿；服务端再次校验所有权与文档摘要。 */
-    exportPdf: (id: number, documentHash: string) =>
+    exportPdf: (id: number, documentHash: string, pdfConfig?: ResumePdfConfig) =>
       $api<Blob, 'blob'>(`/resume/${id}/pdf`, {
         method: 'POST',
-        body: { source: 'draft', documentHash },
+        body: { source: 'draft', documentHash, pdfConfig },
         responseType: 'blob',
         silent: true,
         retry: 0,

@@ -1,6 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { z } from 'zod'
-import { resumeDocumentSchema, resumeDraftInputSchema, resumePdfExportSchema } from '@rs/common'
+import {
+  resumeDocumentSchema,
+  resumeDraftInputSchema,
+  resumePdfExportSchema,
+  resumePdfConfigSchema,
+  resumePdfConfigUpdateSchema,
+} from '@rs/common'
 
 const spec = JSON.parse(readFileSync(new URL('../../../docs/server/openapi.json', import.meta.url), 'utf8'))
 const ref = name => ({ $ref: `#/components/schemas/${name}` })
@@ -255,5 +261,55 @@ spec.paths['/resume/{id}/pdf'] = {
       503: { description: 'Chromium 不可用、繁忙或超时，可稍后重试', content: jsonContent(ref('ApiError')) },
     },
   },
+}
+spec.components.schemas.ResumePdfConfig = z.toJSONSchema(resumePdfConfigSchema, { target: 'openapi-3.0' })
+spec.components.schemas.ResumePdfConfigUpdate = z.toJSONSchema(resumePdfConfigUpdateSchema, { target: 'openapi-3.0' })
+for (const [path, isPreset] of [
+  ['/resume/pdf-preset', true],
+  ['/resume/{id}/pdf-config', false],
+]) {
+  const response = {
+    description: '配置（未保存为 null）',
+    content: jsonContent({
+      type: 'object',
+      properties: {
+        code: { type: 'integer', enum: [200] },
+        message: { type: 'string' },
+        data: {
+          type: 'object',
+          required: ['config'],
+          properties: { config: { allOf: [ref('ResumePdfConfig')], nullable: true } },
+        },
+      },
+    }),
+  }
+  const shared = {
+    tags: ['Resume'],
+    security: [{ bearerAuth: [] }],
+    ...(isPreset ? {} : { parameters: [resumeIdParam] }),
+  }
+  spec.paths[path] = {
+    get: {
+      ...shared,
+      summary: isPreset ? '读取本人公共 PDF 预设' : '读取本人简历 PDF 配置',
+      operationId: isPreset ? 'getResumePdfPreset' : 'getResumePdfConfig',
+      responses: { 200: response, ...errors, 404: responseRef('ResumeNotFound') },
+    },
+    patch: {
+      ...shared,
+      summary: isPreset ? '保存本人公共 PDF 预设（复制使用）' : '保存本人简历 PDF 配置',
+      operationId: isPreset ? 'saveResumePdfPreset' : 'saveResumePdfConfig',
+      description:
+        '要求 Resume.Display:edit；expectedConfig 为此前保存值，初次为 null；并发变化返回409；不修改正文revision。预设剔除模块实例ID。',
+      requestBody: { required: true, content: jsonContent(ref('ResumePdfConfigUpdate')) },
+      responses: {
+        200: response,
+        ...errors,
+        403: responseRef('ResumeForbidden'),
+        404: responseRef('ResumeNotFound'),
+        409: { description: '配置或文档已变化，需重新读取', content: jsonContent(ref('ApiError')) },
+      },
+    },
+  }
 }
 process.stdout.write(JSON.stringify(spec, null, 2) + '\n')

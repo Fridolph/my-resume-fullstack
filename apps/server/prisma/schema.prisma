@@ -149,6 +149,8 @@ model UserRole {
 }
 
 model ResumeWorkspace {
+  /// 本人的跨简历公共纸面预设；复制应用，不联动已保存简历。
+  pdfConfig Json? @db.JsonB @map("pdf_config")
   userId String @id @map("user_id")
   user User @relation(fields: [userId], references: [id], onDelete: Restrict)
   resumes Resume[]

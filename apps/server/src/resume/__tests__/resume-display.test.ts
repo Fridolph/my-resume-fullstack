@@ -57,9 +57,9 @@ test('updateDisplay：只替换 display，且不写 revision', async () => {
     {
       resumeDraft: {
         findFirst: async () => ({ id: 7, document }),
-        update: async (args: { data: Record<string, unknown> }) => {
+        updateMany: async (args: { data: Record<string, unknown> }) => {
           updateData = args.data
-          return {}
+          return { count: 1 }
         },
       },
     },

@@ -269,3 +269,18 @@ pnpm --filter @rs/server test:resume:pdf:http
 后两项为真实浏览器/HTTP 隔离验收；HTTP 测试使用固定身份和仓储替身，不连接项目数据库。
 服务器需要 Chromium 的系统依赖与中文字体；本轮未修改部署配置。方案、资源策略和验收记录见
 [导出与打印](./docs/dev/06_简历系统_导出与打印.md#11-2026-10-19双端分页预览与直接下载续作方案)。
+
+### PDF 配置与个人公共预设
+
+双端 PDF 页的「PDF 配置」支持模块/字段显隐、四边距、字号行高、主题色、页眉页脚与 slogan。
+每份简历保存于 `document.display.pdf`，本人公共预设保存于 `resume_workspaces.pdf_config`；应用预设为复制，不联动其他简历。
+先按已确认环境执行新增迁移 `20261019110000_resume_pdf_config`，再 generate/build；不需要 seed 或新增环境变量。
+旧文档缺少 `pdf` 时使用系统默认，公共预设未保存时返回 null。
+
+```bash
+pnpm --filter @rs/server test:resume:pdf:config
+pnpm --filter @rs/server test:resume:pdf:config:isolated
+```
+
+后一个命令仅写临时 PostgreSQL（55439）及测试服务（4159），退出后清理；不访问现有数据库。
+接口、交互与回滚见 [PDF 配置设计](./docs/dev/07_简历系统_PDF配置.md)。

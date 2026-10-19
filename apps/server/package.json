@@ -22,7 +22,9 @@
     "test:logging": "bash scripts/test-logging-isolated.sh",
     "test:audit:db": "vitest run --config vitest.integration.config.mts",
     "test:resume:pdf": "node scripts/resume-pdf-check.mjs",
-    "test:resume:pdf:http": "node scripts/resume-pdf-http.mjs"
+    "test:resume:pdf:http": "node scripts/resume-pdf-http.mjs",
+    "test:resume:pdf:config": "node scripts/pdf-config-layout-check.mjs",
+    "test:resume:pdf:config:isolated": "bash scripts/test-pdf-config-isolated.sh"
   },
   "dependencies": {
     "@nestjs/common": "^12.1.2",

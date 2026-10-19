@@ -1,4 +1,4 @@
-import type { ResumeDraftResponse } from '@rs/common'
+import type { ResumePdfConfig, ResumeDraftResponse } from '@rs/common'
 
 /**
  * 公开简历读取（访客无需登录）。
@@ -15,10 +15,10 @@ export function createPublicResumeApi() {
   const { $api } = useNuxtApp()
   return {
     /** 登录后导出当前公开内容；摘要与预览一致才允许下载。 */
-    exportPdf: (id: number, documentHash: string) =>
+    exportPdf: (id: number, documentHash: string, pdfConfig?: ResumePdfConfig) =>
       $api<Blob>(`/resume/${id}/pdf`, {
         method: 'POST',
-        body: { source: 'published', documentHash },
+        body: { source: 'published', documentHash, pdfConfig },
         responseType: 'blob',
         silent: true,
         retry: 0,

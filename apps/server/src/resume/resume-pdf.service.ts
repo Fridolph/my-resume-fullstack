@@ -1,6 +1,12 @@
 import { createHash } from 'node:crypto'
-import { ConflictException, Injectable, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common'
-import { canonicalResumeJson, type ResumeDocument, type ResumePdfExportDto } from '@rs/common'
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  OnModuleDestroy,
+  ServiceUnavailableException,
+} from '@nestjs/common'
+import { canonicalResumeJson, pdfConfigReferencesValid, type ResumeDocument, type ResumePdfExportDto } from '@rs/common'
 import { createResumePdfHtml } from '@rs/ui/pdf'
 import { chromium, type Browser, type BrowserContext } from 'playwright'
 import type { AuthUser } from '../common/http-context'
@@ -111,6 +117,18 @@ export class ResumePdfService {
     if (hash !== input.documentHash) {
       throw new ConflictException('简历内容或展示配置已变化，请刷新预览后重新下载', { errorCode: 'Resume.Pdf:changed' })
     }
-    return this.renderer.render(result.document)
+    if (
+      input.pdfConfig &&
+      !pdfConfigReferencesValid(
+        input.pdfConfig,
+        result.document.content.sections.map(section => section.id),
+      )
+    )
+      throw new BadRequestException('PDF 配置引用了不存在的模块')
+    return this.renderer.render(
+      input.pdfConfig
+        ? { ...result.document, display: { ...result.document.display, pdf: input.pdfConfig } }
+        : result.document,
+    )
   }
 }

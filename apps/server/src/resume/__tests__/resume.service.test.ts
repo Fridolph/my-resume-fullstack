@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'vitest'
 import { ResumeService } from '../resume.service'
+import { buildResumeDocument } from '@rs/common'
 import type { CreateResumeDto, SaveResumeDraftDto } from '@rs/common'
 import type { AuthUser } from '../../common/http-context'
 
@@ -114,6 +115,9 @@ test('条件更新失败返回冲突，停止后续写入', async () => {
           },
         },
         resumeDraft: {
+          findUnique: async () => ({
+            document: buildResumeDocument({ content: { sections: [{ type: 'profile', data: { name: '测试' } }] } }),
+          }),
           updateMany: async () => ({ count: 0 }),
           findUniqueOrThrow: async () => {
             laterWrites++
@@ -124,7 +128,10 @@ test('条件更新失败返回冲突，停止后续写入', async () => {
   await assert.rejects(
     service.saveDraft(
       'draft' as unknown as number,
-      { expectedRevision: 1, document: {} } as unknown as SaveResumeDraftDto,
+      {
+        expectedRevision: 1,
+        document: buildResumeDocument({ content: { sections: [{ type: 'profile', data: { name: '测试' } }] } }),
+      } as SaveResumeDraftDto,
       { userId: 'admin', roleKeys: ['admin'], permissionKeys: ['Resume.Sections:edit'] } as unknown as AuthUser,
     ),
     error => (error as { getStatus(): number }).getStatus() === 409,

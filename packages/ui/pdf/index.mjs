@@ -1,3 +1,5 @@
+import { defaultResumePdfConfig, resumePdfConfigSchema } from '@rs/common'
+
 /**
  * 双端预览与 Chromium 共用的纸面渲染入口。
  * 仅生成受控 HTML：所有用户文本转义，链接仅允许 http(s)，不执行用户富文本 HTML。
@@ -20,9 +22,16 @@ const bullets = items => items.map(item => paragraph(`• ${item.text}`, 'bullet
 /** 稳定地补齐排序、过滤隐藏模块；不修改原文档。 */
 export function orderedSections(document) {
   const sections = document.content.sections
-  const hidden = new Set(document.display.sections.hidden)
+  const config = document.display.pdf
+  const independent = config?.sections.mode === 'independent'
+  const hidden = new Set(independent ? config.sections.hidden : document.display.sections.hidden)
   const byId = new Map(sections.map(section => [section.id, section]))
-  return [...new Set([...document.display.sections.order, ...sections.map(section => section.id)])]
+  return [
+    ...new Set([
+      ...(independent ? config.sections.order : document.display.sections.order),
+      ...sections.map(section => section.id),
+    ]),
+  ]
     .map(id => byId.get(id))
     .filter(section => section && !hidden.has(section.id))
 }
@@ -65,6 +74,7 @@ function richNode(node, depth = 0) {
 /** 每条经历/能力组等成为可整块移动的单元；过长单元由分页器继续拆分。 */
 export function resumePdfBlocks(document) {
   const options = document.display.options
+  const fields = (document.display.pdf ?? defaultResumePdfConfig()).fields
   const blocks = []
   for (const section of orderedSections(document)) {
     const data = section.data
@@ -82,15 +92,15 @@ export function resumePdfBlocks(document) {
           .map(item => `${item.label}：${item.value}`)
           .join(' · ')
         items.push(
-          `<h1>${escape(data.name || '未命名')}</h1>${paragraph(data.headline, 'headline')}${paragraph(info, 'contact')}${paragraph(data.summary)}${paragraph(data.availability)}${data.links.length ? `<p class="contact">${data.links.map(item => link(item.label, item.url)).join(' · ')}</p>` : ''}`,
+          `<h1>${escape(data.name || '未命名')}</h1>${paragraph(data.headline, 'headline')}${paragraph(info, 'contact')}${fields.profileSummary ? paragraph(data.summary) : ''}${paragraph(data.availability)}${data.links.length ? `<p class="contact">${data.links.map(item => link(item.label, item.url)).join(' · ')}</p>` : ''}`,
         )
-        if (data.stats.length)
+        if (fields.stats && data.stats.length)
           items.push(
             paragraph(
               data.stats.map(item => `${item.label}：${item.value}${item.hint ? `（${item.hint}）` : ''}`).join(' · '),
             ),
           )
-        for (const interest of data.interests)
+        for (const interest of fields.interests ? data.interests : [])
           items.push(paragraph(`${interest.label}${interest.description ? `：${interest.description}` : ''}`))
         break
       }
@@ -112,20 +122,20 @@ export function resumePdfBlocks(document) {
         items.push(
           ...data.items.map(
             item =>
-              `<h3>${escape(section.type === 'experience' ? item.company : item.name)}<span class="date">${escape(date(item.date))}</span></h3>${paragraph([item.role, item.domain].filter(Boolean).join(' · '), 'muted')}${paragraph(item.overview)}${section.type === 'projects' ? bullets(item.features) : ''}${options.showAchievements ? bullets(section.type === 'experience' ? item.achievements : item.highlights) : ''}${options.showTechStack && item.tech.length ? paragraph(`技术栈：${item.tech.map(value => value.text).join(' · ')}`, 'muted') : ''}`,
+              `<h3>${escape(section.type === 'experience' ? item.company : item.name)}<span class="date">${escape(date(item.date))}</span></h3>${paragraph([item.role, item.domain].filter(Boolean).join(' · '), 'muted')}${fields.overviews ? paragraph(item.overview) : ''}${section.type === 'projects' ? bullets(item.features) : ''}${options.showAchievements ? bullets(section.type === 'experience' ? item.achievements : item.highlights) : ''}${options.showTechStack && item.tech.length ? paragraph(`技术栈：${item.tech.map(value => value.text).join(' · ')}`, 'muted') : ''}`,
           ),
         )
         break
       case 'capabilities':
         for (const group of data.groups)
           items.push(
-            `<h3>${escape(group.title)}</h3>${paragraph(group.summary, 'muted')}${group.items.map(item => `<p><strong>${escape(item.name)}</strong>${item.description ? `：${escape(item.description)}` : ''}${item.evidenceLinks.length ? ` ${item.evidenceLinks.map(value => link(value.label, value.url)).join(' · ')}` : ''}</p>`).join('')}`,
+            `<h3>${escape(group.title)}</h3>${fields.capabilitySummaries ? paragraph(group.summary, 'muted') : ''}${group.items.map(item => `<p><strong>${escape(item.name)}</strong>${item.description ? `：${escape(item.description)}` : ''}${item.evidenceLinks.length ? ` ${item.evidenceLinks.map(value => link(value.label, value.url)).join(' · ')}` : ''}</p>`).join('')}`,
           )
         const view = document.display.sections.overrides[section.id]?.capabilities
         const dimensions = view
           ? view.dimensionIds.map(id => data.dimensions.find(item => item.id === id)).filter(Boolean)
           : data.dimensions
-        if (dimensions.length)
+        if (fields.ratings && dimensions.length)
           items.push(
             `<h3>能力自评</h3>${paragraph(data.ratingScale.basis, 'muted')}${dimensions.map(item => `<p>${escape(item.label)}：${item.score === null ? '未评分' : `${item.score} / ${data.ratingScale.max}`}${item.description ? ` · ${escape(item.description)}` : ''}</p>`).join('')}`,
           )
@@ -153,11 +163,11 @@ export function resumePdfBlocks(document) {
       blocks.push({
         id: `${section.id}:title`,
         heading: true,
-        html: `<h2>${escape(section.title)}</h2>${paragraph(section.description, 'muted')}`,
+        html: `<h2>${escape(section.title)}</h2>${fields.sectionDescriptions ? paragraph(section.description, 'muted') : ''}`,
       })
     visible.forEach((html, index) => blocks.push({ id: `${section.id}:${index}`, heading: false, html }))
   }
-  if (document.content.footer.note)
+  if (fields.footerNote && document.content.footer.note)
     blocks.push({ id: 'footer-note', heading: false, html: paragraph(document.content.footer.note, 'note') })
   return blocks
 }
@@ -177,7 +187,7 @@ export const RESUME_PDF_CSS = `
  * 超长条目先按子块拆，超长段落按 DOM Range 拆并保留 inline marks/链接。
  * 有界迭代；失败显示错误并保持 ready=false，绝不裁切内容冒充成功。
  */
-export async function paginateResumePdf(doc, author = '') {
+export async function paginateResumePdf(doc, author = '', config) {
   const maxPages = 80
   const pagesRoot = doc.getElementById('pages')
   const source = doc.getElementById('source')
@@ -192,12 +202,11 @@ export async function paginateResumePdf(doc, author = '') {
     page.className = 'sheet'
     const content = doc.createElement('div')
     content.className = 'page-content'
+    const header = doc.createElement('header')
+    header.className = 'page-header'
     const footer = doc.createElement('footer')
     footer.className = 'page-footer'
-    const name = doc.createElement('span')
-    name.textContent = author
-    footer.append(name, doc.createElement('span'))
-    page.append(content, footer)
+    page.append(header, content, footer)
     pagesRoot.append(page)
     pages.push(page)
     current = content
@@ -213,7 +222,7 @@ export async function paginateResumePdf(doc, author = '') {
       // 超过整页的条目直接填满当前余量；普通条目优先整块移动。
       const probe = doc.createElement('div')
       probe.className = 'page-content'
-      probe.style.cssText = 'position:absolute;left:-10000px;width:180mm;visibility:hidden'
+      probe.style.cssText = `position:absolute;left:-10000px;width:${current.clientWidth}px;visibility:hidden`
       probe.append(node.cloneNode(true))
       doc.body.append(probe)
       const oversized = probe.scrollHeight > probe.clientHeight + 1
@@ -319,7 +328,19 @@ export async function paginateResumePdf(doc, author = '') {
     current.append(empty)
   }
   pages.forEach((page, index) => {
-    page.querySelector('.page-footer').lastChild.textContent = `${index + 1} / ${pages.length}`
+    for (const [key, selector] of [
+      ['header', '.page-header'],
+      ['footer', '.page-footer'],
+    ]) {
+      const edge = page.querySelector(selector)
+      const options = config[key]
+      edge.style.visibility = !options.enabled || (options.hideFirstPage && index === 0) ? 'hidden' : 'visible'
+      // replace 一次性替换，不二次解释姓名/slogan中的变量文本。
+      edge.textContent = options.text.replace(
+        /\{(name|page|pages)\}/g,
+        (_, token) => ({ name: author, page: index + 1, pages: pages.length })[token],
+      )
+    }
   })
   doc.body.dataset.ready = 'true'
   doc.body.dataset.pages = String(pages.length)
@@ -328,6 +349,7 @@ export async function paginateResumePdf(doc, author = '') {
 
 /** 同一 srcdoc 同时用于双端 iframe 与后端 setContent；文档中无外部请求。 */
 export function createResumePdfHtml(document, title = '简历') {
+  const config = resumePdfConfigSchema.parse(document.display.pdf ?? defaultResumePdfConfig())
   const author = orderedSections(document).find(section => section.type === 'profile')?.data.name ?? ''
   const blocks = resumePdfBlocks(document)
     .map(
@@ -336,6 +358,23 @@ export function createResumePdfHtml(document, title = '简历') {
     )
     .join('')
   const nonce = globalThis.crypto.randomUUID().replaceAll('-', '')
-  const script = `addEventListener('message',event=>{if(event.source===parent&&event.data?.type==='resume-pdf-print'&&document.body.dataset.ready==='true')window.print()});(${paginateResumePdf.toString()})(document,${JSON.stringify(author).replace(/</g, '\\u003c')}).then(count=>parent.postMessage({type:'resume-pdf-ready',pages:count},'*')).catch(()=>{document.getElementById('error').textContent='分页失败，请重新加载后重试';parent.postMessage({type:'resume-pdf-error'},'*')})`
-  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'; base-uri 'none'; form-action 'none'"><title>${escape(title)}</title><style>${RESUME_PDF_CSS}</style></head><body data-ready="false"><div id="source">${blocks}</div><main id="pages"></main><div id="error" role="alert"></div><script nonce="${nonce}">${script}</script></body></html>`
+  const safeJson = value => JSON.stringify(value).replace(/</g, String.fromCharCode(92) + 'u003c')
+  const script = `addEventListener('message',event=>{if(event.source===parent&&event.data?.type==='resume-pdf-print'&&document.body.dataset.ready==='true')window.print()});(${paginateResumePdf.toString()})(document,${safeJson(author)},${safeJson(config)}).then(count=>parent.postMessage({type:'resume-pdf-ready',pages:count},'*')).catch(()=>{document.getElementById('error').textContent='分页失败，请重新加载后重试';parent.postMessage({type:'resume-pdf-error'},'*')})`
+  const { page, typography, header, footer } = config
+  const contentHeight = 297 - page.marginTop - page.marginBottom - (header.enabled ? 8 : 0) - (footer.enabled ? 8 : 0)
+  const width = 210 - page.marginLeft - page.marginRight
+  const configCss = `
+    html,body{font-size:${typography.fontSize}px;line-height:${typography.lineHeight}}
+    .sheet{padding:${page.marginTop}mm ${page.marginRight}mm ${page.marginBottom}mm ${page.marginLeft}mm}
+    .page-content{height:${contentHeight}mm;width:${width}mm}
+    #source{width:${width}mm}.block{padding-bottom:${typography.blockSpacing}px}
+    h1{font-size:${typography.fontSize * 2.16}px}h2{font-size:${typography.fontSize * 1.25}px;border-color:${typography.primaryColor}}
+    h3{font-size:${typography.fontSize}px}.headline{font-size:${typography.fontSize * 1.16}px;color:${typography.primaryColor}}
+    a{color:${typography.primaryColor}}
+    .page-header,.page-footer{display:block;flex-shrink:0;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px;color:#718096;margin:0;padding:0;line-height:6mm}
+    .page-header{height:${header.enabled ? 8 : 0}mm;text-align:${header.align};border-bottom:${header.enabled && header.separator ? '1px solid #dbe2ea' : '0'}}
+    .page-footer{height:${footer.enabled ? 8 : 0}mm;text-align:${footer.align};border-top:${footer.enabled && footer.separator ? '1px solid #dbe2ea' : '0'}}
+  `
+
+  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'; base-uri 'none'; form-action 'none'"><title>${escape(title)}</title><style>${RESUME_PDF_CSS}\n${configCss}</style></head><body data-ready="false"><div id="source">${blocks}</div><main id="pages"></main><div id="error" role="alert"></div><script nonce="${nonce}">${script}</script></body></html>`
 }

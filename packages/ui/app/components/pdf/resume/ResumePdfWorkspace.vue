@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { canonicalResumeJson, normalizeApiError, resolveApiErrorMessage, type ResumeDocument } from '@rs/common'
 import { createResumePdfHtml } from '@rs/ui/pdf'
+import ResumePdfSettings from './ResumePdfSettings.vue'
+import type { ResumePdfSettingsAdapter } from '../../../composables/useResumePdfSettings'
+import { defaultResumePdfConfig, type ResumePdfConfig } from '@rs/common'
 import { useResizeObserver } from '@vueuse/core'
 
 /** 双端 PDF 工作台：隔离纸面 HTML，下载由宿主注入，不判断身份或接口路径。 */
@@ -8,7 +11,8 @@ const props = defineProps<{
   document: ResumeDocument
   name?: string
   backTo: string
-  exportPdf: (documentHash: string) => Promise<Blob>
+  exportPdf: (documentHash: string, config: ResumePdfConfig) => Promise<Blob>
+  settingsAdapter?: ResumePdfSettingsAdapter
 }>()
 const emit = defineEmits<{ refresh: [] }>()
 const frame = useTemplateRef<HTMLIFrameElement>('frame')
@@ -22,6 +26,12 @@ const width = ref(850)
 const zoom = ref('fit')
 const html = ref('')
 const generation = ref(0)
+const pdfConfig = ref<ResumePdfConfig>(props.document.display.pdf ?? defaultResumePdfConfig())
+const configInvalid = ref(false)
+const renderDocument = computed(() => ({
+  ...props.document,
+  display: { ...props.document.display, pdf: pdfConfig.value },
+}))
 // 随页面卸载恢复，避免打印规则影响其他业务页面。
 useHead({ bodyAttrs: { class: 'resume-pdf-print-host' } })
 const paperWidth = (210 * 96) / 25.4
@@ -46,7 +56,7 @@ function rebuild() {
   previewError.value = ''
   downloadError.value = ''
   try {
-    html.value = createResumePdfHtml(props.document, props.name || '简历')
+    html.value = createResumePdfHtml(renderDocument.value, props.name || '简历')
   } catch {
     previewError.value = '内容结构无法分页，请调整内容后重试'
     html.value = ''
@@ -80,10 +90,11 @@ async function download() {
   downloadError.value = ''
   let url: string | undefined
   try {
+    const exportConfig = JSON.parse(JSON.stringify(pdfConfig.value)) as ResumePdfConfig
     const bytes = new TextEncoder().encode(canonicalResumeJson(props.document))
     const digest = await crypto.subtle.digest('SHA-256', bytes)
     const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
-    const blob = await props.exportPdf(hash)
+    const blob = await props.exportPdf(hash, exportConfig)
     url = URL.createObjectURL(blob)
     const anchor = window.document.createElement('a')
     anchor.href = url
@@ -110,7 +121,7 @@ onMounted(() => {
   rebuild()
 })
 watch(
-  () => props.document,
+  () => renderDocument.value,
   () => {
     if (import.meta.client) rebuild()
   },
@@ -134,6 +145,13 @@ onBeforeUnmount(() => {
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
+        <ResumePdfSettings
+          :document="document"
+          :adapter="settingsAdapter"
+          @saved="emit('refresh')"
+          @change="pdfConfig = $event"
+          @invalid="configInvalid = $event"
+        />
         <UButton :to="backTo" color="neutral" variant="ghost" label="返回简历" />
         <label class="text-xs text-slate-500"
           >缩放
@@ -150,14 +168,14 @@ onBeforeUnmount(() => {
           variant="outline"
           icon="i-lucide-printer"
           label="打印"
-          :disabled="!ready"
+          :disabled="!ready || configInvalid"
           @click="frame?.contentWindow?.postMessage({ type: 'resume-pdf-print' }, '*')"
         />
         <UButton
           icon="i-lucide-download"
           label="下载 PDF"
           :loading="downloading"
-          :disabled="!ready || downloading"
+          :disabled="!ready || downloading || configInvalid"
           @click="download"
         />
       </div>

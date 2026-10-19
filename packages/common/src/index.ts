@@ -27,3 +27,5 @@ export * from './resume/content-mapper.js'
 export * from './resume/sections.js'
 export * from './pdf.js'
 export * from './resume/pdf.js'
+
+export * from './resume/pdf-config.js'

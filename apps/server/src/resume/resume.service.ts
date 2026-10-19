@@ -358,8 +358,9 @@ export class ResumeService {
    *
    * ## 并发
    *
-   * 在事务里"读文档 → 换掉 display → 写回"。两次并发调主题时后写覆盖先写（last-write-wins）——
-   * 主题是整体替换、没有增量，这个语义可以接受；不用乐观锁换复杂度。
+   * 在事务里读取文档后，仅替换网页配置并保留最新 PDF 配置。
+   * 写入带完整旧 JSON 的 CAS 条件：期间任何写路径改变文档都返回409，
+   * 不以旧快照覆盖新正文/纸面；正文 revision 仍保持不变。
    */
   async updateDisplay(
     id: number,
@@ -384,14 +385,21 @@ export class ResumeService {
 
       // 先按 schema 解析再合并：库里可能有旧版本文档，直接改字段会把形状问题带下去
       const document = resumeDocumentSchema.parse(draft.document)
-      const next: ResumeDocument = { ...document, display: resumeDisplayUpdateDto.display }
+      // 该路径只编辑网页，保留最新纸面配置，不能由旧客户端整块 display 覆盖。
+      const { pdf: ignoredPdf, ...webDisplay } = resumeDisplayUpdateDto.display
+      void ignoredPdf
+      const next: ResumeDocument = {
+        ...document,
+        display: { ...webDisplay, ...(document.display.pdf ? { pdf: document.display.pdf } : {}) },
+      }
 
-      await transaction.resumeDraft.update({
-        where: { id: draft.id },
+      const updated = await transaction.resumeDraft.updateMany({
+        where: { id: draft.id, document: { equals: draft.document as Prisma.InputJsonValue } },
         // 只写 document 与 updatedBy；**不碰 revision**（见方法注释）
         data: { document: next as Prisma.InputJsonValue, updatedBy: currentUser.userId },
       })
 
+      if (!updated.count) throw new ConflictException('简历已变化，请重新读取后保存外观')
       return { display: next.display }
     })
   }
@@ -483,14 +491,37 @@ export class ResumeService {
         select: { id: true },
       })
       if (!resume) throw new NotFoundException('简历不存在或不可访问', { errorCode: API_ERROR_CODES.RESUME_NOT_FOUND })
+      const current = await transaction.resumeDraft.findUnique({ where: { resumeId: id } })
+      if (!current) throw new NotFoundException('草稿不存在')
+      const currentDocument = resumeDocumentSchema.parse(current.document)
+      const { pdf: ignoredPdf, ...incomingDisplay } = saveResumeDraftDto.document.display
+      void ignoredPdf
+      const pdf = currentDocument.display.pdf
+      const sectionIds = new Set(saveResumeDraftDto.document.content.sections.map(section => section.id))
+      // 正文删除模块时清理纸面引用；排版选项仍保留最新保存值。
+      const nextPdf = pdf
+        ? {
+            ...pdf,
+            sections: {
+              ...pdf.sections,
+              order: pdf.sections.order.filter(value => sectionIds.has(value)),
+              hidden: pdf.sections.hidden.filter(value => sectionIds.has(value)),
+            },
+          }
+        : undefined
+      const nextDocument = {
+        ...saveResumeDraftDto.document,
+        display: { ...incomingDisplay, ...(nextPdf ? { pdf: nextPdf } : {}) },
+      }
       const updated = await transaction.resumeDraft.updateMany({
         where: {
           resumeId: id,
+          document: { equals: current.document as Prisma.InputJsonValue },
           revision: saveResumeDraftDto.expectedRevision,
           resume: this.ownedResume(id, currentUser),
         },
         data: {
-          document: saveResumeDraftDto.document as unknown as Prisma.InputJsonValue,
+          document: nextDocument as unknown as Prisma.InputJsonValue,
           schemaVersion: saveResumeDraftDto.document.schemaVersion,
           revision: { increment: 1 },
           updatedBy: currentUser.userId,

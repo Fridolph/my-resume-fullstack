@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ResumePdfConfig } from '@rs/common'
+import { createResumePdfConfigApi } from '../../../apis/resume-pdf-config'
 import ResumePdfWorkspace from '#layers/ui/app/components/pdf/resume/ResumePdfWorkspace.vue'
 import { usePublicResume } from '#layers/public-resume/app/composables/usePublicResume'
 import { createPublicResumeApi } from '#layers/public-resume/app/apis/resume-public'
@@ -16,7 +18,17 @@ await resume
 const name = computed(
   () => document.value?.content.sections.find(section => section.type === 'profile')?.data.name || '简历',
 )
-const exportPdf = (hash: string) => api.exportPdf(id.value, hash)
+const { hasPermission } = usePermission()
+const configApi = createResumePdfConfigApi(
+  () => id.value,
+  () => true,
+)
+const settingsAdapter = computed(() =>
+  hasPermission('Resume.Display:edit')
+    ? configApi
+    : { loadPreset: configApi.loadPreset, loadConfig: configApi.loadConfig },
+)
+const exportPdf = (hash: string, config: ResumePdfConfig) => api.exportPdf(id.value, hash, config)
 </script>
 
 <template>
@@ -26,6 +38,7 @@ const exportPdf = (hash: string) => api.exportPdf(id.value, hash)
     :name="name"
     :back-to="`/resume/${id}`"
     :export-pdf="exportPdf"
+    :settings-adapter="settingsAdapter"
     @refresh="refresh()"
   />
   <div

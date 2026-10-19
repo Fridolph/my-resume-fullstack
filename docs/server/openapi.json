@@ -602,38 +602,11 @@
     "/resume": {
       "get": {
         "tags": ["Resume"],
-        "summary": "列出本人未删除的简历（服务端分页）",
-        "description": "按 createdAt 新→旧，同时间以 id 为次级键（稳定分页）。page / pageSize 越界由服务端收敛并回显生效值。",
+        "summary": "列出本人未删除的简历",
         "operationId": "listResumes",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
-            }
-          }
-        ],
         "responses": {
           "200": {
-            "$ref": "#/components/responses/ResumeSummaryPageSuccess"
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
+            "$ref": "#/components/responses/ResumeSummaryListSuccess"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -1026,6 +999,298 @@
           }
         }
       }
+    },
+    "/resume/pdf-preset": {
+      "get": {
+        "tags": ["Resume"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "读取本人公共 PDF 预设",
+        "operationId": "getResumePdfPreset",
+        "responses": {
+          "200": {
+            "description": "配置（未保存为 null）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "enum": [200]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": ["config"],
+                      "properties": {
+                        "config": {
+                          "allOf": [
+                            {
+                              "$ref": "#/components/schemas/ResumePdfConfig"
+                            }
+                          ],
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResumeNotFound"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Resume"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "保存本人公共 PDF 预设（复制使用）",
+        "operationId": "saveResumePdfPreset",
+        "description": "要求 Resume.Display:edit；expectedConfig 为此前保存值，初次为 null；并发变化返回409；不修改正文revision。预设剔除模块实例ID。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResumePdfConfigUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "配置（未保存为 null）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "enum": [200]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": ["config"],
+                      "properties": {
+                        "config": {
+                          "allOf": [
+                            {
+                              "$ref": "#/components/schemas/ResumePdfConfig"
+                            }
+                          ],
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ResumeForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResumeNotFound"
+          },
+          "409": {
+            "description": "配置或文档已变化，需重新读取",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resume/{id}/pdf-config": {
+      "get": {
+        "tags": ["Resume"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "summary": "读取本人简历 PDF 配置",
+        "operationId": "getResumePdfConfig",
+        "responses": {
+          "200": {
+            "description": "配置（未保存为 null）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "enum": [200]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": ["config"],
+                      "properties": {
+                        "config": {
+                          "allOf": [
+                            {
+                              "$ref": "#/components/schemas/ResumePdfConfig"
+                            }
+                          ],
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResumeNotFound"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Resume"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "summary": "保存本人简历 PDF 配置",
+        "operationId": "saveResumePdfConfig",
+        "description": "要求 Resume.Display:edit；expectedConfig 为此前保存值，初次为 null；并发变化返回409；不修改正文revision。预设剔除模块实例ID。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResumePdfConfigUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "配置（未保存为 null）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "enum": [200]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": ["config"],
+                      "properties": {
+                        "config": {
+                          "allOf": [
+                            {
+                              "$ref": "#/components/schemas/ResumePdfConfig"
+                            }
+                          ],
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ResumeForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/ResumeNotFound"
+          },
+          "409": {
+            "description": "配置或文档已变化，需重新读取",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1043,6 +1308,189 @@
           "source": {
             "type": "string",
             "enum": ["published", "draft"]
+          },
+          "pdfConfig": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "number",
+                "enum": [1]
+              },
+              "sections": {
+                "type": "object",
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": ["followWeb", "independent"]
+                  },
+                  "order": {
+                    "maxItems": 30,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80,
+                      "pattern": "^[A-Za-z0-9_-]+$"
+                    }
+                  },
+                  "hidden": {
+                    "maxItems": 30,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80,
+                      "pattern": "^[A-Za-z0-9_-]+$"
+                    }
+                  }
+                },
+                "required": ["mode", "order", "hidden"],
+                "additionalProperties": false
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "interests": {
+                    "type": "boolean"
+                  },
+                  "stats": {
+                    "type": "boolean"
+                  },
+                  "profileSummary": {
+                    "type": "boolean"
+                  },
+                  "sectionDescriptions": {
+                    "type": "boolean"
+                  },
+                  "overviews": {
+                    "type": "boolean"
+                  },
+                  "capabilitySummaries": {
+                    "type": "boolean"
+                  },
+                  "ratings": {
+                    "type": "boolean"
+                  },
+                  "footerNote": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "interests",
+                  "stats",
+                  "profileSummary",
+                  "sectionDescriptions",
+                  "overviews",
+                  "capabilitySummaries",
+                  "ratings",
+                  "footerNote"
+                ],
+                "additionalProperties": false
+              },
+              "page": {
+                "type": "object",
+                "properties": {
+                  "marginTop": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  },
+                  "marginRight": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  },
+                  "marginBottom": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  },
+                  "marginLeft": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  }
+                },
+                "required": ["marginTop", "marginRight", "marginBottom", "marginLeft"],
+                "additionalProperties": false
+              },
+              "typography": {
+                "type": "object",
+                "properties": {
+                  "fontSize": {
+                    "type": "number",
+                    "minimum": 10,
+                    "maximum": 16
+                  },
+                  "lineHeight": {
+                    "type": "number",
+                    "minimum": 1.2,
+                    "maximum": 2
+                  },
+                  "blockSpacing": {
+                    "type": "number",
+                    "minimum": 2,
+                    "maximum": 16
+                  },
+                  "primaryColor": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$"
+                  }
+                },
+                "required": ["fontSize", "lineHeight", "blockSpacing", "primaryColor"],
+                "additionalProperties": false
+              },
+              "header": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "align": {
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "hideFirstPage": {
+                    "type": "boolean"
+                  },
+                  "separator": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+                "additionalProperties": false
+              },
+              "footer": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "align": {
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "hideFirstPage": {
+                    "type": "boolean"
+                  },
+                  "separator": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["version", "sections", "fields", "page", "typography", "header", "footer"],
+            "additionalProperties": false
           },
           "documentHash": {
             "type": "string",
@@ -2827,6 +3275,189 @@
           "display": {
             "type": "object",
             "properties": {
+              "pdf": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "number",
+                    "enum": [1]
+                  },
+                  "sections": {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": ["followWeb", "independent"]
+                      },
+                      "order": {
+                        "maxItems": 30,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80,
+                          "pattern": "^[A-Za-z0-9_-]+$"
+                        }
+                      },
+                      "hidden": {
+                        "maxItems": 30,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80,
+                          "pattern": "^[A-Za-z0-9_-]+$"
+                        }
+                      }
+                    },
+                    "required": ["mode", "order", "hidden"],
+                    "additionalProperties": false
+                  },
+                  "fields": {
+                    "type": "object",
+                    "properties": {
+                      "interests": {
+                        "type": "boolean"
+                      },
+                      "stats": {
+                        "type": "boolean"
+                      },
+                      "profileSummary": {
+                        "type": "boolean"
+                      },
+                      "sectionDescriptions": {
+                        "type": "boolean"
+                      },
+                      "overviews": {
+                        "type": "boolean"
+                      },
+                      "capabilitySummaries": {
+                        "type": "boolean"
+                      },
+                      "ratings": {
+                        "type": "boolean"
+                      },
+                      "footerNote": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "interests",
+                      "stats",
+                      "profileSummary",
+                      "sectionDescriptions",
+                      "overviews",
+                      "capabilitySummaries",
+                      "ratings",
+                      "footerNote"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "page": {
+                    "type": "object",
+                    "properties": {
+                      "marginTop": {
+                        "type": "number",
+                        "minimum": 5,
+                        "maximum": 30
+                      },
+                      "marginRight": {
+                        "type": "number",
+                        "minimum": 5,
+                        "maximum": 30
+                      },
+                      "marginBottom": {
+                        "type": "number",
+                        "minimum": 5,
+                        "maximum": 30
+                      },
+                      "marginLeft": {
+                        "type": "number",
+                        "minimum": 5,
+                        "maximum": 30
+                      }
+                    },
+                    "required": ["marginTop", "marginRight", "marginBottom", "marginLeft"],
+                    "additionalProperties": false
+                  },
+                  "typography": {
+                    "type": "object",
+                    "properties": {
+                      "fontSize": {
+                        "type": "number",
+                        "minimum": 10,
+                        "maximum": 16
+                      },
+                      "lineHeight": {
+                        "type": "number",
+                        "minimum": 1.2,
+                        "maximum": 2
+                      },
+                      "blockSpacing": {
+                        "type": "number",
+                        "minimum": 2,
+                        "maximum": 16
+                      },
+                      "primaryColor": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-fA-F]{6}$"
+                      }
+                    },
+                    "required": ["fontSize", "lineHeight", "blockSpacing", "primaryColor"],
+                    "additionalProperties": false
+                  },
+                  "header": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "text": {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      "align": {
+                        "type": "string",
+                        "enum": ["left", "center", "right"]
+                      },
+                      "hideFirstPage": {
+                        "type": "boolean"
+                      },
+                      "separator": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+                    "additionalProperties": false
+                  },
+                  "footer": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "text": {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      "align": {
+                        "type": "string",
+                        "enum": ["left", "center", "right"]
+                      },
+                      "hideFirstPage": {
+                        "type": "boolean"
+                      },
+                      "separator": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["version", "sections", "fields", "page", "typography", "header", "footer"],
+                "additionalProperties": false
+              },
               "brand": {
                 "type": "object",
                 "properties": {
@@ -4939,6 +5570,189 @@
           "display": {
             "type": "object",
             "properties": {
+              "pdf": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "number",
+                    "enum": [1]
+                  },
+                  "sections": {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": ["followWeb", "independent"]
+                      },
+                      "order": {
+                        "maxItems": 30,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80,
+                          "pattern": "^[A-Za-z0-9_-]+$"
+                        }
+                      },
+                      "hidden": {
+                        "maxItems": 30,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80,
+                          "pattern": "^[A-Za-z0-9_-]+$"
+                        }
+                      }
+                    },
+                    "required": ["mode", "order", "hidden"],
+                    "additionalProperties": false
+                  },
+                  "fields": {
+                    "type": "object",
+                    "properties": {
+                      "interests": {
+                        "type": "boolean"
+                      },
+                      "stats": {
+                        "type": "boolean"
+                      },
+                      "profileSummary": {
+                        "type": "boolean"
+                      },
+                      "sectionDescriptions": {
+                        "type": "boolean"
+                      },
+                      "overviews": {
+                        "type": "boolean"
+                      },
+                      "capabilitySummaries": {
+                        "type": "boolean"
+                      },
+                      "ratings": {
+                        "type": "boolean"
+                      },
+                      "footerNote": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "interests",
+                      "stats",
+                      "profileSummary",
+                      "sectionDescriptions",
+                      "overviews",
+                      "capabilitySummaries",
+                      "ratings",
+                      "footerNote"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "page": {
+                    "type": "object",
+                    "properties": {
+                      "marginTop": {
+                        "type": "number",
+                        "minimum": 5,
+                        "maximum": 30
+                      },
+                      "marginRight": {
+                        "type": "number",
+                        "minimum": 5,
+                        "maximum": 30
+                      },
+                      "marginBottom": {
+                        "type": "number",
+                        "minimum": 5,
+                        "maximum": 30
+                      },
+                      "marginLeft": {
+                        "type": "number",
+                        "minimum": 5,
+                        "maximum": 30
+                      }
+                    },
+                    "required": ["marginTop", "marginRight", "marginBottom", "marginLeft"],
+                    "additionalProperties": false
+                  },
+                  "typography": {
+                    "type": "object",
+                    "properties": {
+                      "fontSize": {
+                        "type": "number",
+                        "minimum": 10,
+                        "maximum": 16
+                      },
+                      "lineHeight": {
+                        "type": "number",
+                        "minimum": 1.2,
+                        "maximum": 2
+                      },
+                      "blockSpacing": {
+                        "type": "number",
+                        "minimum": 2,
+                        "maximum": 16
+                      },
+                      "primaryColor": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-fA-F]{6}$"
+                      }
+                    },
+                    "required": ["fontSize", "lineHeight", "blockSpacing", "primaryColor"],
+                    "additionalProperties": false
+                  },
+                  "header": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "text": {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      "align": {
+                        "type": "string",
+                        "enum": ["left", "center", "right"]
+                      },
+                      "hideFirstPage": {
+                        "type": "boolean"
+                      },
+                      "separator": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+                    "additionalProperties": false
+                  },
+                  "footer": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "text": {
+                        "type": "string",
+                        "maxLength": 100
+                      },
+                      "align": {
+                        "type": "string",
+                        "enum": ["left", "center", "right"]
+                      },
+                      "hideFirstPage": {
+                        "type": "boolean"
+                      },
+                      "separator": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["version", "sections", "fields", "page", "typography", "header", "footer"],
+                "additionalProperties": false
+              },
               "brand": {
                 "type": "object",
                 "properties": {
@@ -5297,7 +6111,7 @@
       "ResumeSummary": {
         "type": "object",
         "description": "列表项：不含正文；revision 与 updatedAt 取自该简历的当前草稿。",
-        "required": ["id", "name", "locale", "revision", "updatedAt", "isDefault", "publishedAt"],
+        "required": ["id", "name", "locale", "revision", "updatedAt"],
         "properties": {
           "id": {
             "type": "integer",
@@ -5321,15 +6135,6 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
-          },
-          "isDefault": {
-            "type": "boolean",
-            "description": "是否为「默认展示」的简历（每个用户至多一份）。"
-          },
-          "publishedAt": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "发布时间；`null` 表示**未发布** —— 公开读接口（`GET /resume/public*`）看不到它。"
           }
         }
       },
@@ -5388,6 +6193,563 @@
             "type": "integer"
           }
         }
+      },
+      "ResumePdfConfig": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "number",
+            "enum": [1]
+          },
+          "sections": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": ["followWeb", "independent"]
+              },
+              "order": {
+                "maxItems": 30,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                }
+              },
+              "hidden": {
+                "maxItems": 30,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                }
+              }
+            },
+            "required": ["mode", "order", "hidden"],
+            "additionalProperties": false
+          },
+          "fields": {
+            "type": "object",
+            "properties": {
+              "interests": {
+                "type": "boolean"
+              },
+              "stats": {
+                "type": "boolean"
+              },
+              "profileSummary": {
+                "type": "boolean"
+              },
+              "sectionDescriptions": {
+                "type": "boolean"
+              },
+              "overviews": {
+                "type": "boolean"
+              },
+              "capabilitySummaries": {
+                "type": "boolean"
+              },
+              "ratings": {
+                "type": "boolean"
+              },
+              "footerNote": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "interests",
+              "stats",
+              "profileSummary",
+              "sectionDescriptions",
+              "overviews",
+              "capabilitySummaries",
+              "ratings",
+              "footerNote"
+            ],
+            "additionalProperties": false
+          },
+          "page": {
+            "type": "object",
+            "properties": {
+              "marginTop": {
+                "type": "number",
+                "minimum": 5,
+                "maximum": 30
+              },
+              "marginRight": {
+                "type": "number",
+                "minimum": 5,
+                "maximum": 30
+              },
+              "marginBottom": {
+                "type": "number",
+                "minimum": 5,
+                "maximum": 30
+              },
+              "marginLeft": {
+                "type": "number",
+                "minimum": 5,
+                "maximum": 30
+              }
+            },
+            "required": ["marginTop", "marginRight", "marginBottom", "marginLeft"],
+            "additionalProperties": false
+          },
+          "typography": {
+            "type": "object",
+            "properties": {
+              "fontSize": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 16
+              },
+              "lineHeight": {
+                "type": "number",
+                "minimum": 1.2,
+                "maximum": 2
+              },
+              "blockSpacing": {
+                "type": "number",
+                "minimum": 2,
+                "maximum": 16
+              },
+              "primaryColor": {
+                "type": "string",
+                "pattern": "^#[0-9a-fA-F]{6}$"
+              }
+            },
+            "required": ["fontSize", "lineHeight", "blockSpacing", "primaryColor"],
+            "additionalProperties": false
+          },
+          "header": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "align": {
+                "type": "string",
+                "enum": ["left", "center", "right"]
+              },
+              "hideFirstPage": {
+                "type": "boolean"
+              },
+              "separator": {
+                "type": "boolean"
+              }
+            },
+            "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+            "additionalProperties": false
+          },
+          "footer": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "align": {
+                "type": "string",
+                "enum": ["left", "center", "right"]
+              },
+              "hideFirstPage": {
+                "type": "boolean"
+              },
+              "separator": {
+                "type": "boolean"
+              }
+            },
+            "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["version", "sections", "fields", "page", "typography", "header", "footer"],
+        "additionalProperties": false
+      },
+      "ResumePdfConfigUpdate": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "number",
+                "enum": [1]
+              },
+              "sections": {
+                "type": "object",
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": ["followWeb", "independent"]
+                  },
+                  "order": {
+                    "maxItems": 30,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80,
+                      "pattern": "^[A-Za-z0-9_-]+$"
+                    }
+                  },
+                  "hidden": {
+                    "maxItems": 30,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80,
+                      "pattern": "^[A-Za-z0-9_-]+$"
+                    }
+                  }
+                },
+                "required": ["mode", "order", "hidden"],
+                "additionalProperties": false
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "interests": {
+                    "type": "boolean"
+                  },
+                  "stats": {
+                    "type": "boolean"
+                  },
+                  "profileSummary": {
+                    "type": "boolean"
+                  },
+                  "sectionDescriptions": {
+                    "type": "boolean"
+                  },
+                  "overviews": {
+                    "type": "boolean"
+                  },
+                  "capabilitySummaries": {
+                    "type": "boolean"
+                  },
+                  "ratings": {
+                    "type": "boolean"
+                  },
+                  "footerNote": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "interests",
+                  "stats",
+                  "profileSummary",
+                  "sectionDescriptions",
+                  "overviews",
+                  "capabilitySummaries",
+                  "ratings",
+                  "footerNote"
+                ],
+                "additionalProperties": false
+              },
+              "page": {
+                "type": "object",
+                "properties": {
+                  "marginTop": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  },
+                  "marginRight": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  },
+                  "marginBottom": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  },
+                  "marginLeft": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  }
+                },
+                "required": ["marginTop", "marginRight", "marginBottom", "marginLeft"],
+                "additionalProperties": false
+              },
+              "typography": {
+                "type": "object",
+                "properties": {
+                  "fontSize": {
+                    "type": "number",
+                    "minimum": 10,
+                    "maximum": 16
+                  },
+                  "lineHeight": {
+                    "type": "number",
+                    "minimum": 1.2,
+                    "maximum": 2
+                  },
+                  "blockSpacing": {
+                    "type": "number",
+                    "minimum": 2,
+                    "maximum": 16
+                  },
+                  "primaryColor": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$"
+                  }
+                },
+                "required": ["fontSize", "lineHeight", "blockSpacing", "primaryColor"],
+                "additionalProperties": false
+              },
+              "header": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "align": {
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "hideFirstPage": {
+                    "type": "boolean"
+                  },
+                  "separator": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+                "additionalProperties": false
+              },
+              "footer": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "align": {
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "hideFirstPage": {
+                    "type": "boolean"
+                  },
+                  "separator": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["version", "sections", "fields", "page", "typography", "header", "footer"],
+            "additionalProperties": false
+          },
+          "expectedConfig": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "number",
+                "enum": [1]
+              },
+              "sections": {
+                "type": "object",
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": ["followWeb", "independent"]
+                  },
+                  "order": {
+                    "maxItems": 30,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80,
+                      "pattern": "^[A-Za-z0-9_-]+$"
+                    }
+                  },
+                  "hidden": {
+                    "maxItems": 30,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80,
+                      "pattern": "^[A-Za-z0-9_-]+$"
+                    }
+                  }
+                },
+                "required": ["mode", "order", "hidden"],
+                "additionalProperties": false
+              },
+              "fields": {
+                "type": "object",
+                "properties": {
+                  "interests": {
+                    "type": "boolean"
+                  },
+                  "stats": {
+                    "type": "boolean"
+                  },
+                  "profileSummary": {
+                    "type": "boolean"
+                  },
+                  "sectionDescriptions": {
+                    "type": "boolean"
+                  },
+                  "overviews": {
+                    "type": "boolean"
+                  },
+                  "capabilitySummaries": {
+                    "type": "boolean"
+                  },
+                  "ratings": {
+                    "type": "boolean"
+                  },
+                  "footerNote": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "interests",
+                  "stats",
+                  "profileSummary",
+                  "sectionDescriptions",
+                  "overviews",
+                  "capabilitySummaries",
+                  "ratings",
+                  "footerNote"
+                ],
+                "additionalProperties": false
+              },
+              "page": {
+                "type": "object",
+                "properties": {
+                  "marginTop": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  },
+                  "marginRight": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  },
+                  "marginBottom": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  },
+                  "marginLeft": {
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 30
+                  }
+                },
+                "required": ["marginTop", "marginRight", "marginBottom", "marginLeft"],
+                "additionalProperties": false
+              },
+              "typography": {
+                "type": "object",
+                "properties": {
+                  "fontSize": {
+                    "type": "number",
+                    "minimum": 10,
+                    "maximum": 16
+                  },
+                  "lineHeight": {
+                    "type": "number",
+                    "minimum": 1.2,
+                    "maximum": 2
+                  },
+                  "blockSpacing": {
+                    "type": "number",
+                    "minimum": 2,
+                    "maximum": 16
+                  },
+                  "primaryColor": {
+                    "type": "string",
+                    "pattern": "^#[0-9a-fA-F]{6}$"
+                  }
+                },
+                "required": ["fontSize", "lineHeight", "blockSpacing", "primaryColor"],
+                "additionalProperties": false
+              },
+              "header": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "align": {
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "hideFirstPage": {
+                    "type": "boolean"
+                  },
+                  "separator": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+                "additionalProperties": false
+              },
+              "footer": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "align": {
+                    "type": "string",
+                    "enum": ["left", "center", "right"]
+                  },
+                  "hideFirstPage": {
+                    "type": "boolean"
+                  },
+                  "separator": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["enabled", "text", "align", "hideFirstPage", "separator"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["version", "sections", "fields", "page", "typography", "header", "footer"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["config", "expectedConfig"],
+        "additionalProperties": false
       }
     },
     "responses": {

@@ -7,6 +7,7 @@
  * Zod 校验，不能只依赖编译期 TypeScript 类型。
  */
 import { z } from 'zod'
+import { resumePdfConfigSchema } from './pdf-config.js'
 import {
   capabilityDataSchema,
   capabilityViewSchema,
@@ -277,6 +278,8 @@ const palette = z.strictObject({
  * 后者用 `.partial()` 让七块都能省略，再由补全函数填默认值。
  */
 export const displaySchema = z.strictObject({
+  /** 省略时使用系统默认纸面，不对旧文档做批量迁移。 */
+  pdf: resumePdfConfigSchema.optional(),
   brand: z.strictObject({
     logoText: text.optional(),
     logoUrl: imageUrl.optional(),
@@ -609,6 +612,7 @@ export function buildResumeDocument(input: ResumeDraftInput): ResumeDocument {
     schemaVersion: 1,
     content: { sections, footer: input.content.footer ?? {} },
     display: {
+      ...(display.pdf ? { pdf: display.pdf } : {}),
       brand: display.brand ?? {},
       layout: display.layout ?? { mode: 'single', splitSide: 'left', stickySide: false, sideWidth: 'compact' },
       sections: {

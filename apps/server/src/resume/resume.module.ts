@@ -1,3 +1,5 @@
+import { ResumePdfConfigController } from './resume-pdf-config.controller'
+import { ResumePdfConfigService } from './resume-pdf-config.service'
 import { Module } from '@nestjs/common'
 import { AuditModule } from '../audit/audit.module'
 import { ResumeController } from './resume.controller'
@@ -14,7 +16,7 @@ import { ResumePdfRenderer, ResumePdfService } from './resume-pdf.service'
  */
 @Module({
   imports: [AuditModule],
-  controllers: [ResumeController, ResumePdfController],
-  providers: [ResumeService, ResumePdfService, ResumePdfRenderer],
+  controllers: [ResumePdfConfigController, ResumeController, ResumePdfController],
+  providers: [ResumePdfConfigService, ResumeService, ResumePdfService, ResumePdfRenderer],
 })
 export class ResumeModule {}

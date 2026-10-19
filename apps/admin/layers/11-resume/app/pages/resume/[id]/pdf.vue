@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ResumePdfConfig } from '@rs/common'
+import { createResumePdfConfigApi } from '../../../apis/resume-pdf-config'
 import ResumePdfWorkspace from '#layers/ui/app/components/pdf/resume/ResumePdfWorkspace.vue'
 import { createResumeApi } from '../../../apis/resume'
 
@@ -13,7 +15,17 @@ const { data, status, refresh } = await useAsyncData(
   { watch: [id] },
 )
 const document = computed(() => data.value?.document ?? null)
-const exportPdf = (hash: string) => api.exportPdf(id.value, hash)
+const { hasPermission } = usePermission()
+const configApi = createResumePdfConfigApi(
+  () => id.value,
+  () => true,
+)
+const settingsAdapter = computed(() =>
+  hasPermission('Resume.Display:edit')
+    ? configApi
+    : { loadPreset: configApi.loadPreset, loadConfig: configApi.loadConfig },
+)
+const exportPdf = (hash: string, config: ResumePdfConfig) => api.exportPdf(id.value, hash, config)
 </script>
 
 <template>
@@ -23,6 +35,7 @@ const exportPdf = (hash: string) => api.exportPdf(id.value, hash)
     :name="data?.resume.name"
     :back-to="`/resume/${id}`"
     :export-pdf="exportPdf"
+    :settings-adapter="settingsAdapter"
     @refresh="refresh()"
   />
   <div v-else class="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center">

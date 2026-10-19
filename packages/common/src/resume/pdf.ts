@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { resumePdfConfigSchema } from './pdf-config.js'
 
 /**
  * PDF 导出只接收资源身份与预览摘要；不接受 HTML、任意 URL 或长期令牌。
@@ -6,6 +7,8 @@ import { z } from 'zod'
  */
 export const resumePdfExportSchema = z.strictObject({
   source: z.enum(['published', 'draft']),
+  /** 本次临时纸面选项，仅影响此次导出，不修改作者文档。 */
+  pdfConfig: resumePdfConfigSchema.optional(),
   documentHash: z.string().regex(/^[a-f0-9]{64}$/),
 })
 export type ResumePdfExportDto = z.infer<typeof resumePdfExportSchema>

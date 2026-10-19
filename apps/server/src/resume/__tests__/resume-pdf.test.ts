@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { test } from 'vitest'
 import { ConflictException, NotFoundException } from '@nestjs/common'
-import { buildResumeDocument, canonicalResumeJson, resumePdfExportSchema } from '@rs/common'
+import { defaultResumePdfConfig, buildResumeDocument, canonicalResumeJson, resumePdfExportSchema } from '@rs/common'
 import { createResumePdfHtml, resumePdfBlocks } from '@rs/ui/pdf'
 import { ResumePdfRenderer, ResumePdfService } from '../resume-pdf.service'
 import type { ResumeService } from '../resume.service'
@@ -131,4 +131,33 @@ test('姓名含闭合 script 不会逃逸受控脚本，未知富文本节点不
   const html = createResumePdfHtml(doc)
   assert.equal((html.match(/<script /g) ?? []).length, 1)
   assert.equal((html.match(/<\/script>/g) ?? []).length, 1)
+})
+
+test('PDF 字段过滤和独立排序不受网页隐藏影响；页眉脚文本不逃逸', () => {
+  const doc = document()
+  const profile = doc.content.sections.find(section => section.type === 'profile')!
+  profile.data.summary = '隐藏的个人简介'
+  profile.data.interests = [{ id: 'interest', label: '隐藏的兴趣', images: [] }]
+  doc.content.sections.push({
+    id: 'extra',
+    type: 'custom',
+    title: '独立模块',
+    description: '隐藏模块说明',
+    data: { view: 'textList', items: [{ id: 'entry', text: '可见正文' }] },
+  })
+  doc.display.sections.hidden.push('extra')
+  const config = defaultResumePdfConfig()
+  config.sections = { mode: 'independent', order: ['extra'], hidden: [] }
+  config.fields.interests = false
+  config.fields.profileSummary = false
+  config.fields.sectionDescriptions = false
+  config.header = { ...config.header, enabled: true, text: '</script><script>boom</script>' }
+  doc.display.pdf = config
+  const html = createResumePdfHtml(doc)
+  assert.ok(html.includes('可见正文'))
+  assert.ok(!html.includes('隐藏的兴趣'))
+  assert.ok(!html.includes('隐藏的个人简介'))
+  assert.ok(!html.includes('隐藏模块说明'))
+  assert.equal((html.match(/<script /g) ?? []).length, 1)
+  assert.equal(resumePdfBlocks(doc)[0]?.id, 'extra:title')
 })
