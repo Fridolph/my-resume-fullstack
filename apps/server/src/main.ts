@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { Logger } from 'nestjs-pino'
 import { API_ERROR_CODES } from './common/error-codes'
+import { join } from 'node:path'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
@@ -22,6 +23,18 @@ async function bootstrap() {
   const config = app.get(ConfigService)
 
   app.setGlobalPrefix('api')
+
+  /**
+   * 上传文件的静态服务：`/static/upload/**` → `apps/server/static/upload/**`。
+   *
+   * **公开可读**（Owner 2026-10-15）：简历封面、头像本来就要给访客看。
+   * 若将来出现私密文件，另开 `GET /api/file/:id`（带鉴权）而不是收紧这条 ——
+   * 两种语义混在同一个前缀上，会让"哪些文件是公开的"变得说不清。
+   *
+   * 路径用 `process.cwd()` 而不是 `__dirname`：dev（ts-node / nest start）与生产（`dist/main`）
+   * 的工作目录都是包根，而 `__dirname` 会随构建产物位置漂移。
+   */
+  app.useStaticAssets(join(process.cwd(), 'static'), { prefix: '/static/' })
 
   // CORS 白名单：**只有** `CORS_ORIGINS` 里列出的来源会被放行。
   //

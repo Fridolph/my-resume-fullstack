@@ -4,6 +4,7 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { LoggerModule } from 'nestjs-pino'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { AppController } from './app.controller'
+import { UploadModule } from './upload/upload.module'
 import { AuthModule } from './auth/auth.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { UserModule } from './user/user.module'
@@ -92,6 +93,7 @@ import { validateEnv } from './config/env.validation'
     AuthModule,
     ResumeModule,
     AuditModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [

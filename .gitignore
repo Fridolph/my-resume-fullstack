@@ -153,3 +153,6 @@ vite.config.ts.timestamp-*
 
 # AI 会话本地产物
 .reasonix/
+
+# 上传落盘目录：内容是运行时数据，不入库
+apps/server/static/upload/
