@@ -7,7 +7,10 @@ import {
 } from '@nestjs/common'
 import {
   buildResumeDocument,
+  defaultResumePdfConfig,
   resumeDocumentSchema,
+  resumePdfConfigSchema,
+  toResumePdfPreset,
   type CreateResumeDto,
   type SaveResumeDraftDto,
   type RenameResumeDto,
@@ -220,6 +223,10 @@ export class ResumeService {
   /**
    * 原子创建空间、简历和唯一草稿，服务端从认证身份设置所有权。
    * 用户写入再次检查软删除；任何一步失败均回滚，不留下空简历。
+   *
+   * 显式传入的 PDF 配置（例如复制简历）优先保留；缺省时在创建事务中读取
+   * 本人公共预设，或采用系统默认，并存为新草稿的独立快照。预设后续更新
+   * 不追改既有简历；公共预设不携带其他简历的模块实例 ID。
    */
   async create(
     createResumeDto: CreateResumeDto,
@@ -237,7 +244,17 @@ export class ResumeService {
         select: { id: true },
       })
       if (!user) throw new NotFoundException('用户不可用', { errorCode: API_ERROR_CODES.AUTH_USER_UNAVAILABLE })
-      await transaction.resumeWorkspace.upsert({ where: { userId: user.id }, create: { userId: user.id }, update: {} })
+      const workspace = await transaction.resumeWorkspace.upsert({
+        where: { userId: user.id },
+        create: { userId: user.id },
+        update: {},
+        select: { pdfConfig: true },
+      })
+      if (!fullDocument.display.pdf) {
+        fullDocument.display.pdf = workspace.pdfConfig
+          ? toResumePdfPreset(resumePdfConfigSchema.parse(workspace.pdfConfig))
+          : defaultResumePdfConfig()
+      }
       const resume = await transaction.resume.create({
         data: {
           name: createResumeDto.name,

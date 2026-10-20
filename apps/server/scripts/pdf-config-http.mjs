@@ -53,6 +53,7 @@ try {
   )
   assert.equal(first.status, 201)
   const id = first.body.data.resume.id
+  assert.deepEqual(first.body.data.document.display.pdf, defaultResumePdfConfig())
   const second = await req(
     '/resume',
     'POST',
@@ -66,6 +67,7 @@ try {
   const secondId = second.body.data.resume.id
   assert.equal((await req('/resume/pdf-preset', 'GET', null, owner)).body.data.config, null)
   const config = defaultResumePdfConfig()
+  const initialConfig = first.body.data.document.display.pdf
   config.fields.interests = false
   config.header.enabled = true
   config.header.text = '隔离 slogan {page}/{pages}'
@@ -73,13 +75,50 @@ try {
   assert.equal((await req(`/resume/${id}/pdf-config`, 'GET', null, other)).status, 404)
   assert.equal((await req(`/resume/${id}/pdf-config`, 'PATCH', { config, expectedConfig: null }, other)).status, 404)
   const writes = await Promise.all(
-    [0, 1].map(() => req(`/resume/${id}/pdf-config`, 'PATCH', { config, expectedConfig: null }, owner)),
+    [0, 1].map(() => req(`/resume/${id}/pdf-config`, 'PATCH', { config, expectedConfig: initialConfig }, owner)),
   )
   assert.deepEqual(writes.map(x => x.status).sort(), [200, 409])
   assert.deepEqual((await req(`/resume/${id}/pdf-config`, 'GET', null, owner)).body.data.config, config)
-  assert.equal((await req(`/resume/${secondId}/pdf-config`, 'GET', null, owner)).body.data.config, null)
+  assert.deepEqual(
+    (await req(`/resume/${secondId}/pdf-config`, 'GET', null, owner)).body.data.config,
+    defaultResumePdfConfig(),
+  )
   assert.equal((await req('/resume/pdf-preset', 'PATCH', { config, expectedConfig: null }, owner)).status, 200)
   assert.equal((await req('/resume/pdf-preset', 'GET', null, other)).body.data.config, null)
+  const createInput = {
+    name: '继承预设',
+    locale: 'zh-CN',
+    document: { content: { sections: [{ type: 'profile', data: { name: '新建测试' } }] } },
+  }
+  const inherited = await req('/resume', 'POST', createInput, owner)
+  assert.equal(inherited.status, 201)
+  const inheritedId = inherited.body.data.resume.id
+  assert.deepEqual(inherited.body.data.document.display.pdf, config)
+  const changedPreset = structuredClone(config)
+  changedPreset.header.text = '后续预设'
+  assert.equal(
+    (await req('/resume/pdf-preset', 'PATCH', { config: changedPreset, expectedConfig: config }, owner)).status,
+    200,
+  )
+  const afterChange = await req('/resume', 'POST', createInput, owner)
+  assert.equal(afterChange.status, 201)
+  assert.deepEqual(afterChange.body.data.document.display.pdf, changedPreset)
+  assert.deepEqual((await req(`/resume/${inheritedId}/pdf-config`, 'GET', null, owner)).body.data.config, config)
+  assert.deepEqual(
+    (await req(`/resume/${secondId}/pdf-config`, 'GET', null, owner)).body.data.config,
+    defaultResumePdfConfig(),
+  )
+  const copied = await req(
+    '/resume',
+    'POST',
+    { ...createInput, name: '复制旧简历', document: inherited.body.data.document },
+    owner,
+  )
+  assert.equal(copied.status, 201)
+  assert.deepEqual(copied.body.data.document.display.pdf, config)
+  const isolatedOwner = await req('/resume', 'POST', createInput, other)
+  assert.equal(isolatedOwner.status, 201)
+  assert.deepEqual(isolatedOwner.body.data.document.display.pdf, defaultResumePdfConfig())
   const draft = (await req(`/resume/${id}/draft`, 'GET', null, owner)).body.data
   // 旧客户端正文保存不应删除刚存的PDF配置。
   delete draft.document.display.pdf
@@ -115,7 +154,7 @@ try {
     400,
   )
   console.log(
-    '隔离 HTTP/PG 验证通过：迁移、真实登录、本人持久化、他人404、未登录401、非法400、并发200/409、公共预设隔离、正文/外观保存保留PDF、临时下载不写库。',
+    '隔离 HTTP/PG 验证通过：迁移、真实登录、本人持久化、他人404、未登录401、非法400、并发200/409、公共预设隔离、新建继承/系统默认、旧简历快照不联动、复制优先、正文/外观保存保留PDF、临时下载不写库。',
   )
 } finally {
   await prisma.$disconnect()
