@@ -314,20 +314,36 @@ export class ResumeService {
     const page = Math.max(1, Math.trunc(query.page ?? 1))
     const pageSize = Math.min(100, Math.max(1, Math.trunc(query.pageSize ?? 20)))
 
+    // 查询条件分三段：**归属与有效性**（恒定）、**搜索**（可选）、**筛选**（可选）。
+    // 三段写在同一处而不是拆成一堆变量再 spread —— 读这个接口时就该能一眼看出"它能查到什么"。
+    const keyword = query.q?.trim()
+
     // 分页的两个查询用**同一个 where**：count 与 findMany 条件不一致时，
     // "共 N 条"与实际能翻到的条数会对不上，而这种错误只在跨页时才显形。
     const where: Prisma.ResumeWhereInput = {
       workspaceUserId: currentUser.userId,
       workspace: { user: { deletedAt: null } },
       draft: { isNot: null },
+      ...(keyword ? { name: { contains: keyword, mode: 'insensitive' } } : {}),
+      // ⚠️ 必须判 `=== undefined`，不能写成 `if (query.published)` ——
+      // 那会把"只看未发布"（false）当成"没传"，于是筛选静默失效
+      ...(query.published === undefined ? {} : { publishedAt: query.published ? { not: null } : null }),
     }
+
+    // 排序：白名单字段（见 dto 的 RESUME_LIST_SORTS）+ **稳定的次级键**。
+    // `name` / `createdAt` / 草稿的 `updatedAt` 都可能重复，没有 `id` 兜底时
+    // LIMIT/OFFSET 的顺序不稳定，会出现"同一条记录在两页里各出现一次"。
+    const sort = query.sort ?? 'updatedAt'
+    const order = query.order ?? 'desc'
+    const orderBy: Prisma.ResumeOrderByWithRelationInput[] = [
+      sort === 'name' ? { name: order } : sort === 'createdAt' ? { createdAt: order } : { draft: { updatedAt: order } },
+      { id: 'desc' },
+    ]
 
     const [resumes, total] = await this.prismaService.$transaction([
       this.prismaService.resume.findMany({
         where,
-        // 次级排序键 `id` 是**稳定分页的前提**：createdAt 相同的两行在
-        // LIMIT/OFFSET 下顺序不稳定，会出现"同一条记录在两页里各出现一次"。
-        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
         select: {

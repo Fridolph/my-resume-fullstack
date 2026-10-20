@@ -244,7 +244,7 @@ test('list：分页参数推出 skip/take，count 与 findMany 共用一个 wher
   assert.equal(findManyArgs[0]?.take, 10)
   assert.deepEqual(countWheres[0], findManyArgs[0]?.where, 'count 的 where 必须与列表一致')
   // 次级排序键保证同时间戳的行在两页里不会重复出现
-  assert.deepEqual(findManyArgs[0]?.orderBy, [{ createdAt: 'desc' }, { id: 'desc' }])
+  assert.deepEqual(findManyArgs[0]?.orderBy, [{ draft: { updatedAt: 'desc' } }, { id: 'desc' }])
   assert.deepEqual(result, { items: [], total: 0, page: 3, pageSize: 10 })
 })
 
@@ -369,4 +369,82 @@ test('把未发布的简历设为默认 → 400 且带可引导的错误码（�
   )
   // 关键：拒绝发生在**任何写入之前**，不存在"先偷偷发布再设默认"
   assert.equal(wrote, false)
+})
+
+/**
+ * P0-1（列表查询）的三条契约。
+ *
+ * 这里断言的是**生成的 where / orderBy 形状**，不是"接口返回了什么" ——
+ * 后者要靠真实请求验。形状断言能钉住两类最容易出的错：
+ *
+ * 1. **`published=false` 被当成"没传"**（写成 `if (query.published)` 就会这样）——
+ *    筛选静默失效，用户以为筛了其实没有；
+ * 2. **关键词没 trim**，退化成 `LIKE '%  前端  %'`，一个字符都不匹配却不报错。
+ */
+
+function createListService() {
+  const calls = { findMany: [] as Array<Record<string, unknown>>, count: [] as Array<Record<string, unknown>> }
+  const prismaService = {
+    resume: {
+      findMany: async (args: Record<string, unknown>) => {
+        calls.findMany.push(args)
+        return []
+      },
+      count: async (args: Record<string, unknown>) => {
+        calls.count.push(args)
+        return 0
+      },
+    },
+    // service 用的是**数组形式**的 $transaction（与 count 一起发）
+    $transaction: async (ops: unknown) => Promise.all(ops as Array<Promise<unknown>>),
+  }
+  return { service: createService(prismaService), calls }
+}
+
+const anyUser = { userId: 'u-1', roleKeys: ['admin'], permissionKeys: ['Resume.Sections:edit'] } as unknown as AuthUser
+
+test('列表查询：关键词 trim 后进 where，且不区分大小写', async () => {
+  const { service, calls } = createListService()
+
+  await service.list(anyUser, { q: '  前端  ' })
+
+  assert.deepEqual(calls.findMany[0].where, {
+    ...(calls.findMany[0].where as Record<string, unknown>),
+    name: { contains: '前端', mode: 'insensitive' },
+  })
+})
+
+test('列表查询：published=false 必须真的筛"未发布"（不能被当成没传）', async () => {
+  const { service, calls } = createListService()
+
+  await service.list(anyUser, { published: false })
+  assert.equal((calls.findMany[0].where as Record<string, unknown>).publishedAt, null)
+
+  await service.list(anyUser, { published: true })
+  assert.deepEqual((calls.findMany[1].where as Record<string, unknown>).publishedAt, { not: null })
+
+  // 不传时**不加**这个条件（否则会把"全部"误筛成某一半）
+  await service.list(anyUser, {})
+  assert.equal('publishedAt' in (calls.findMany[2].where as Record<string, unknown>), false)
+})
+
+test('列表查询：排序白名单生效，且始终带稳定次级键 id', async () => {
+  const { service, calls } = createListService()
+
+  await service.list(anyUser, {})
+  assert.deepEqual(calls.findMany[0].orderBy, [{ draft: { updatedAt: 'desc' } }, { id: 'desc' }])
+
+  await service.list(anyUser, { sort: 'name', order: 'asc' })
+  assert.deepEqual(calls.findMany[1].orderBy, [{ name: 'asc' }, { id: 'desc' }])
+
+  await service.list(anyUser, { sort: 'createdAt', order: 'asc' })
+  assert.deepEqual(calls.findMany[2].orderBy, [{ createdAt: 'asc' }, { id: 'desc' }])
+})
+
+test('列表查询：count 与 findMany 用同一个 where（否则"共 N 条"会与实际翻页对不上）', async () => {
+  const { service, calls } = createListService()
+
+  await service.list(anyUser, { q: 'x', published: true })
+
+  assert.deepEqual(calls.count[0].where, calls.findMany[0].where)
 })

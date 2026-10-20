@@ -611,7 +611,49 @@
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "按名称模糊搜索（不区分大小写）；空白视为未传",
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "published",
+            "in": "query",
+            "required": false,
+            "description": "只看已发布（true）/ 只看未发布（false）；不传 = 全部",
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "排序字段；默认 updatedAt（草稿更新时间）",
+            "schema": {
+              "type": "string",
+              "enum": ["updatedAt", "createdAt", "name"]
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "description": "排序方向；默认 desc",
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"]
+            }
+          }
+        ]
       },
       "post": {
         "tags": ["Resume"],
