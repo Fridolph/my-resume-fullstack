@@ -44,6 +44,14 @@ const loadMessage = computed(() => {
       <div class="flex items-center gap-2">
         <UButton to="/resume" color="neutral" variant="ghost" icon="i-lucide-arrow-left" label="返回列表" />
         <UButton :to="`/resume/${resumeId}/edit`" icon="i-lucide-pencil" label="编辑" />
+        <!-- PDF 预览：管理侧能打所有简历（含未发布草稿） -->
+        <UButton
+          :to="`/resume/${resumeId}/pdf`"
+          icon="i-lucide-printer"
+          color="neutral"
+          variant="outline"
+          label="PDF 预览"
+        />
       </div>
     </header>
 

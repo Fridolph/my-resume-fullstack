@@ -324,32 +324,43 @@ async function confirmDelete() {
 
         <template #actions-cell="{ row }">
           <div class="flex items-center justify-end gap-1">
-            <UButton
-              icon="i-lucide-star"
-              size="xs"
-              color="neutral"
-              :variant="row.original.isDefault ? 'soft' : 'ghost'"
-              :disabled="row.original.isDefault"
-              :aria-label="row.original.isDefault ? '已是默认展示' : `把「${row.original.name}」设为默认展示`"
-              :title="row.original.isDefault ? '已是默认展示' : '设为默认展示'"
-              @click="setDefault(row.original.id)"
-            />
-            <UButton
-              :to="`/resume/${row.original.id}`"
-              icon="i-lucide-eye"
-              size="xs"
-              color="neutral"
-              variant="ghost"
-              :aria-label="`查看「${row.original.name}」`"
-            />
-            <UButton
-              :to="`/resume/${row.original.id}/edit`"
-              icon="i-lucide-pencil"
-              size="xs"
-              color="neutral"
-              variant="ghost"
-              :aria-label="`编辑「${row.original.name}」`"
-            />
+            <!--
+              纯图标按钮**必须**有 tooltip（Owner 2026-10-19）：没有文案时用户只能靠猜。
+              用 `UTooltip` 而不是原生 `title` —— `title` 延迟 1s、样式不可控、触屏没有。
+              默认星：**空心 = 未生效、实心 = 已生效**（Lucide 无 filled 变体，用 `fill-current` 填）。
+            -->
+            <UTooltip text="设为默认展示（公开首页展示这一份）">
+              <UButton
+                icon="i-lucide-star"
+                size="xs"
+                color="neutral"
+                :variant="row.original.isDefault ? 'soft' : 'outline'"
+                :class="row.original.isDefault ? 'fill-current' : ''"
+                :disabled="row.original.isDefault"
+                :aria-label="row.original.isDefault ? '已是默认展示' : `把「${row.original.name}」设为默认展示`"
+                @click="setDefault(row.original.id)"
+              />
+            </UTooltip>
+            <UTooltip text="查看（只读预览）">
+              <UButton
+                :to="`/resume/${row.original.id}`"
+                icon="i-lucide-eye"
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                :aria-label="`查看「${row.original.name}」`"
+              />
+            </UTooltip>
+            <UTooltip text="编辑">
+              <UButton
+                :to="`/resume/${row.original.id}/edit`"
+                icon="i-lucide-pencil"
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                :aria-label="`编辑「${row.original.name}」`"
+              />
+            </UTooltip>
             <UButton
               icon="i-lucide-trash-2"
               size="xs"

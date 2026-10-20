@@ -246,45 +246,88 @@ function formatUpdatedAt(value: string) {
               </div>
 
               <div class="flex items-center gap-1">
-                <UButton
-                  :icon="item.publishedAt ? 'i-lucide-globe' : 'i-lucide-globe-lock'"
-                  size="xs"
-                  color="neutral"
-                  :variant="item.publishedAt ? 'soft' : 'ghost'"
-                  :loading="publishBusyId === item.id"
-                  :aria-label="item.publishedAt ? `取消发布「${item.name}」` : `发布「${item.name}」`"
-                  :title="publishTitle(item)"
-                  @click="togglePublished(item)"
-                />
-                <UButton
-                  icon="i-lucide-star"
-                  size="xs"
-                  color="neutral"
-                  :variant="item.isDefault ? 'soft' : 'ghost'"
-                  :disabled="item.isDefault || !item.publishedAt"
-                  :loading="defaultBusyId === item.id"
-                  :aria-label="item.isDefault ? '已是默认展示' : `把「${item.name}」设为默认展示`"
-                  :title="starTitle(item)"
-                  @click="setDefault(item.id)"
-                />
-                <UButton
-                  icon="i-lucide-text-cursor-input"
-                  size="xs"
-                  color="neutral"
-                  variant="ghost"
-                  label="重命名"
-                  @click="askRename(item)"
-                />
-                <UButton :to="`/my-resumes/draft/${item.id}`" icon="i-lucide-pencil" size="xs" label="继续编辑" />
-                <UButton
-                  icon="i-lucide-trash-2"
-                  size="xs"
-                  color="error"
-                  variant="ghost"
-                  label="删除"
-                  :loading="busyId === item.id"
-                  @click="removeResume(item.id, item.name)"
-                />
+                <!--
+                  图标语义（Owner 2026-10-19）：**line = 未生效 / fill = 已生效**。
+                  用 Remix Icon（`ri:`）的成对变体，而不是 Lucide + `fill-current`：
+                  ri 原生就有 `-line` / `-fill` 两版同形状，跨主题（含深色）表现一致；
+                  靠 CSS 填色在不同主题下可能糊成一团。
+                  `UTooltip` 而不是原生 `title`：`title` 有 1s 延迟、样式不可控、触屏不可用。
+                -->
+                <UTooltip :text="publishTitle(item)">
+                  <UButton
+                    :icon="item.publishedAt ? 'ri:global-fill' : 'ri:global-line'"
+                    size="xs"
+                    color="neutral"
+                    :variant="item.publishedAt ? 'soft' : 'outline'"
+                    :loading="publishBusyId === item.id"
+                    :aria-label="item.publishedAt ? `取消发布「${item.name}」` : `发布「${item.name}」`"
+                    @click="togglePublished(item)"
+                  />
+                </UTooltip>
+                <UTooltip :text="starTitle(item)">
+                  <UButton
+                    :icon="item.isDefault ? 'ri:slideshow-4-fill' : 'ri:slideshow-4-line'"
+                    size="xs"
+                    color="neutral"
+                    variant="link"
+                    :disabled="item.isDefault || !item.publishedAt"
+                    :loading="defaultBusyId === item.id"
+                    :aria-label="
+                      item.isDefault ? '已是默认展示（公开首页展示这一份）' : `把「${item.name}」设为默认展示`
+                    "
+                    @click="setDefault(item.id)"
+                  />
+                </UTooltip>
+                <!--
+                  Owner 2026-10-19：**操作类按钮一律图标化**，文字由 tooltip 承担。
+                  纯图标必须配 tooltip —— 否则用户只能靠猜（尤其删除这种破坏性动作）。
+                -->
+                <!--
+                  PDF 预览入口（Owner 2026-10-19）：**按份**给，且**只对已发布**出现 ——
+                  未发布的简历公开读是 404，给它入口只会让人点进一个打不开的页面。
+                -->
+                <UTooltip v-if="item.publishedAt" text="PDF 预览 / 打印">
+                  <UButton
+                    :to="`/resume/${item.id}/pdf`"
+                    icon="i-lucide-printer"
+                    size="xs"
+                    color="neutral"
+                    variant="ghost"
+                    :aria-label="`PDF 预览「${item.name}」`"
+                  />
+                </UTooltip>
+
+                <UTooltip text="重命名">
+                  <UButton
+                    icon="i-lucide-text-cursor-input"
+                    size="xs"
+                    color="neutral"
+                    variant="ghost"
+                    :aria-label="`重命名「${item.name}」`"
+                    @click="askRename(item)"
+                  />
+                </UTooltip>
+                <UTooltip text="继续编辑">
+                  <UButton
+                    :to="`/my-resumes/draft/${item.id}`"
+                    icon="i-lucide-pencil"
+                    size="xs"
+                    color="neutral"
+                    variant="ghost"
+                    :aria-label="`继续编辑「${item.name}」`"
+                  />
+                </UTooltip>
+                <UTooltip text="删除（不可恢复）">
+                  <UButton
+                    icon="i-lucide-trash-2"
+                    size="xs"
+                    color="error"
+                    variant="ghost"
+                    :loading="busyId === item.id"
+                    :aria-label="`删除「${item.name}」`"
+                    @click="removeResume(item.id, item.name)"
+                  />
+                </UTooltip>
               </div>
             </div>
           </UCard>

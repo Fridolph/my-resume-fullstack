@@ -1,0 +1,61 @@
+/**
+ * 打印规则（A4）—— **两端共用**，从 admin 的 `main.css` 提出来。
+ *
+ * ## 为什么用「命名页」
+ *
+ * `@page` 的 `size` 是**文档级**的，无法用选择器条件化。所以用命名页
+ *（`@page portrait` / `@page landscape`）+ 元素上的 `page` 属性，
+ * 才能在同一份文档里混排纵向与横向页。
+ *
+ * ## 为什么 margin 是 0
+ *
+ * 边距由 `.pdf-page` 内部留白控制，而不是纸张 margin：
+ * 纸张 margin 在不同浏览器里会叠加各自的默认页眉页脚，结果不可控。
+ */
+@page portrait {
+  size: 210mm 297mm;
+  margin: 0;
+}
+
+@page landscape {
+  size: 297mm 210mm;
+  margin: 0;
+}
+
+@page {
+  size: 210mm 297mm;
+  margin: 0;
+}
+
+html {
+  page: portrait;
+}
+
+.pdf-page[data-orientation='portrait'] {
+  page: portrait;
+}
+
+.pdf-page[data-orientation='landscape'] {
+  page: landscape;
+}
+
+@media print {
+  /* 打印时不该出现的整块 UI（工具栏、导航、编排区） */
+  .pdf-hide {
+    display: none !important;
+  }
+
+  /* 主题色在打印时默认会被浏览器改成灰白，这一行保住颜色 */
+  .pdf-page,
+  .pdf-page * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* 影子与圆角是屏幕观感，纸上只会变成灰边 */
+  .pdf-page {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+}
