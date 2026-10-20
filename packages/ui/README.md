@@ -185,4 +185,15 @@ Vue 运行，可由前端 iframe 和后端 Chromium 同时消费。它包含纸�
 
 PDF 工作台的 `settingsAdapter` 接收读取/保存当前配置及个人公共预设的回调；权限与接口仍由宿主注入。
 `ResumePdfSettings` 管编辑和保存状态，`ResumePdfConfigPanel` 只负责表单；有效配置传给同一纸面渲染器及导出回调。
+`ResumePdfConfigPanel` 的 `document` 可选：传入时编辑具体简历的实例编排；不传时只显示可复用字段，供 admin `/settings/print-config` 管理公共预设。公共预设的接口与权限仍留在业务层。
 未保存配置可以临时导出，非法配置阻止打印/下载。页眉脚只接受纯文本与 `{name}` / `{page}` / `{pages}`。
+
+PDF配置字段使用Nuxt UI；Drawer的快捷操作和保存动作统一放在footer，说明只保留header。覆盖预设、恢复默认和丢弃修改须确认，取消无副作用；确认恢复只改本地，保存才持久化。
+
+## 侧边面板 design token 与返回按钮
+
+`app/assets/css/tokens.css` 的 `--ui-drawer-min-width: 600px` 经共享 `app/app.config.ts` 应用于左右 `UDrawer` / `USlideover`（含 `MyDrawer`）。手机限制到视口，inset 面板扣除两侧留白；上下抽屉不受影响。宿主可覆盖变量统一调节宽度，无需每个页面重复设置。
+
+`MyBackButton` 是空布局 Header 的左箭头 Icon Button：`to` 指定站内目标优先，否则返回站内历史；无历史时使用 `fallbackTo`（默认 `/`）。`label` 同时用于 tooltip 与无障碍名称；不接收业务权限或简历类型。PDF Header 已采用该组件。
+
+PDF 修改实时预览，唯一主操作“保存配置”只保存当前简历；公共预设在设置页管理。当前配置和公共预设独立加载，预设失败不会阻断本人保存。保存中禁重复提交，失败/冲突保留编辑；“放弃修改”恢复最近成功读取/保存的基线，重读失败不清输入。

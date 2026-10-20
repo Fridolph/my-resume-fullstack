@@ -9,6 +9,9 @@ export type SettingsNavigationItem = NavigationMenuItem & {
  * `type: 'label'` 为分组标题；普通项用 `to` 指向子页面。
  */
 export const settingsNavigation: SettingsNavigationItem[] = [
+  { type: 'label', label: '简历' },
+  { label: 'PDF 与打印预设', icon: 'i-lucide-printer', to: '/settings/print-config' },
+
   { type: 'label', label: 'Organization' },
   { label: 'Company profile', icon: 'i-lucide-building-2', to: '/settings/company' },
 

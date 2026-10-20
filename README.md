@@ -274,6 +274,8 @@ pnpm --filter @rs/server test:resume:pdf:http
 
 双端 PDF 页的「PDF 配置」支持模块/字段显隐、四边距、字号行高、主题色、页眉页脚与 slogan。
 每份简历保存于 `document.display.pdf`，本人公共预设保存于 `resume_workspaces.pdf_config`；应用预设为复制，不联动其他简历。
+admin `/settings/print-config` 集中管理本人公共预设，设置导航支持桌面与手机。新建简历优先保留明确传入的PDF配置（如复制），否则继承本人预设，没有预设时保存系统默认快照；修改预设不追改旧简历。
+设置页业务组件位于 `13-settings/app/components/print-config`，沿用现有接口及共享表单，无新增数据库结构；撤销本轮页面与创建逻辑可回滚。
 先按已确认环境执行新增迁移 `20261019110000_resume_pdf_config`，再 generate/build；不需要 seed 或新增环境变量。
 旧文档缺少 `pdf` 时使用系统默认，公共预设未保存时返回 null。
 
@@ -284,3 +286,5 @@ pnpm --filter @rs/server test:resume:pdf:config:isolated
 
 后一个命令仅写临时 PostgreSQL（55439）及测试服务（4159），退出后清理；不访问现有数据库。
 接口、交互与回滚见 [PDF 配置设计](./docs/dev/07_简历系统_PDF配置.md)。
+
+PDF 预览配置采用“即时预览、显式保存”：当前简历配置与公共预设独立读取；公共预设维护入口是 admin `/settings/print-config`。共享 UI 的左右 Drawer/Slideover 使用 600px 最小阅读宽度 token，并在手机上约束到视口；空布局 Header 可使用 `MyBackButton`。详见 `packages/ui/README.md`。

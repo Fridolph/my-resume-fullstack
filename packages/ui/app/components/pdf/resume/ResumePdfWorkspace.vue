@@ -24,6 +24,12 @@ const downloadError = ref('')
 const downloading = ref(false)
 const width = ref(850)
 const zoom = ref('fit')
+const zoomOptions = [
+  { label: '适合宽度', value: 'fit' },
+  { label: '75%', value: '0.75' },
+  { label: '100%', value: '1' },
+  { label: '125%', value: '1.25' },
+]
 const html = ref('')
 const generation = ref(0)
 const pdfConfig = ref<ResumePdfConfig>(props.document.display.pdf ?? defaultResumePdfConfig())
@@ -134,15 +140,18 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="resume-pdf-workspace min-h-dvh bg-slate-100 text-slate-800">
+  <div class="resume-pdf-workspace min-h-dvh bg-muted text-default">
     <header
-      class="resume-pdf-controls sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3"
+      class="resume-pdf-controls sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-default bg-default px-4 py-3"
     >
-      <div>
-        <h1 class="text-sm font-semibold">{{ name || '简历' }} · PDF 预览</h1>
-        <p class="mt-1 text-xs text-slate-500" aria-live="polite">
-          A4 · {{ ready ? `共 ${pages} 页` : '正在分页…' }} · 按模块排序与显隐
-        </p>
+      <div class="flex items-center gap-3">
+        <MyBackButton :to="backTo" label="返回简历" />
+        <div>
+          <h1 class="text-sm font-semibold">{{ name || '简历' }} · PDF 预览</h1>
+          <p class="mt-1 text-xs text-muted" aria-live="polite">
+            A4 · {{ ready ? `共 ${pages} 页` : '正在分页…' }} · 按模块排序与显隐
+          </p>
+        </div>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <ResumePdfSettings
@@ -152,17 +161,7 @@ onBeforeUnmount(() => {
           @change="pdfConfig = $event"
           @invalid="configInvalid = $event"
         />
-        <UButton :to="backTo" color="neutral" variant="ghost" label="返回简历" />
-        <label class="text-xs text-slate-500"
-          >缩放
-          <select v-model="zoom" class="ml-1 rounded border border-slate-300 bg-white px-2 py-1 text-slate-800">
-            <option value="fit">适合宽度</option>
-            <option value="0.75">75%</option>
-            <option value="1">100%</option>
-            <option value="1.25">125%</option>
-          </select>
-        </label>
-        <UButton color="neutral" variant="outline" label="刷新内容" :disabled="downloading" @click="emit('refresh')" />
+        <USelect v-model="zoom" :items="zoomOptions" aria-label="缩放" class="w-32" />
         <UButton
           color="neutral"
           variant="outline"
@@ -183,7 +182,7 @@ onBeforeUnmount(() => {
     <div
       v-if="previewError || downloadError"
       role="alert"
-      class="resume-pdf-controls mx-auto my-4 flex max-w-3xl flex-wrap items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+      class="resume-pdf-controls mx-auto my-4 flex max-w-3xl flex-wrap items-center gap-3 rounded-lg border border-error/30 bg-error/5 p-4 text-sm text-error"
     >
       <span>{{ previewError || downloadError }}</span>
       <UButton v-if="previewError" label="重新分页" color="neutral" variant="outline" @click="rebuild" />

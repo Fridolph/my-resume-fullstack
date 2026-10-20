@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { settingsNavigation } from '../config/settings-navigation'
+const mobileNavigation = settingsNavigation.filter(item => item.type !== 'label')
 
 /**
  * Settings 父页：在 has-sidebar 布局内再叠一层「二级左侧 sidebar」。
@@ -32,6 +33,18 @@ definePageMeta({
     </aside>
 
     <div class="min-h-0 min-w-0 flex-1 overflow-y-auto content-pad">
+      <nav aria-label="设置页面" class="mb-6 flex flex-wrap gap-2 lg:hidden">
+        <UButton
+          v-for="item in mobileNavigation"
+          :key="item.to?.toString()"
+          :to="item.to"
+          :label="item.label"
+          :icon="item.icon"
+          color="neutral"
+          variant="outline"
+          size="sm"
+        />
+      </nav>
       <NuxtPage />
     </div>
   </section>

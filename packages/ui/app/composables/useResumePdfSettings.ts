@@ -3,14 +3,13 @@ import {
   normalizeApiError,
   defaultResumePdfConfig,
   resumePdfConfigSchema,
-  toResumePdfPreset,
   resolveApiErrorMessage,
   type ResumeDocument,
   type ResumePdfConfig,
   type ResumePdfConfigResponse,
   type ResumePdfConfigUpdateDto,
 } from '@rs/common'
-import { computed, ref, toValue, watch, type MaybeRefOrGetter } from 'vue'
+import { computed, ref, shallowRef, toValue, watch, type MaybeRefOrGetter } from 'vue'
 
 /** 宿主注入持久化能力，公共 UI 不推断身份、所有权或接口地址。 */
 export interface ResumePdfSettingsAdapter {
@@ -20,12 +19,12 @@ export interface ResumePdfSettingsAdapter {
   saveConfig?: (input: ResumePdfConfigUpdateDto) => Promise<ResumePdfConfigResponse>
 }
 
-/**
- * 本地编辑、有效预览与持久化分开。非法表单不进入渲染器，保存失败不清输入。
- * 源文档刷新后不覆盖未保存编辑；提示用户主动恢复或重新读取。
- */
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 
+/**
+ * 表单实时驱动预览，显式保存才持久化。公共预设与本人配置独立读取，任一失败不阻断另一项。
+ * 当前配置读取成功后才允许保存；CAS 失败保留编辑与原基线，不自动覆盖或重试。
+ */
 export function useResumePdfSettings(
   document: MaybeRefOrGetter<ResumeDocument>,
   adapter: MaybeRefOrGetter<ResumePdfSettingsAdapter | undefined>,
@@ -35,89 +34,117 @@ export function useResumePdfSettings(
   const active = ref<ResumePdfConfig>(initial())
   const saved = ref<ResumePdfConfig | null>(clone(toValue(document).display.pdf ?? null))
   const preset = ref<ResumePdfConfig | null>(null)
-  const owned = ref(false)
-  const busy = ref(false)
-  const message = ref('')
-  const error = ref('')
+  const configLoaded = shallowRef(false)
+  const readOnly = shallowRef(false)
+  const loadFailed = shallowRef(false)
+  const loading = shallowRef(false)
+  const saving = shallowRef(false)
+  const message = shallowRef('')
+  const error = shallowRef('')
+  const presetError = shallowRef('')
+  const busy = computed(() => loading.value || saving.value)
   const validation = computed(() => resumePdfConfigSchema.safeParse(draft.value))
   const invalid = computed(() => !validation.value.success)
   const dirty = computed(
     () => canonicalResumeJson(draft.value) !== canonicalResumeJson(saved.value ?? defaultResumePdfConfig()),
   )
-  const canSave = computed(() => owned.value && !!toValue(adapter)?.saveConfig)
+  const showSave = computed(() => !!toValue(adapter)?.saveConfig && !readOnly.value)
+  const canSave = computed(() => showSave.value && configLoaded.value && !loadFailed.value)
   const validationMessage = computed(() =>
     validation.value.success ? '' : validation.value.error.issues[0]?.message || '配置不合法',
   )
   watch(
     draft,
     () => {
+      message.value = ''
       const parsed = resumePdfConfigSchema.safeParse(draft.value)
       if (parsed.success) active.value = parsed.data
     },
-    { deep: true },
+    { deep: true, flush: 'sync' },
   )
   watch(
     () => toValue(document),
     value => {
+      // 网页展示可能仍是旧发布版本；已读到的本人草稿配置才是保存/放弃的基线。
+      if (configLoaded.value) return
       if (!dirty.value) {
         saved.value = clone(value.display.pdf ?? null)
         draft.value = initial()
         active.value = initial()
-      } else message.value = '源简历已刷新，本地配置尚未保存；保存冲突时请先备份，再重新读取。'
+      }
     },
     { deep: true },
   )
 
-  /** 404 只表达不可保存当前简历；不妨碍访客调整本次临时导出。 */
-  async function load() {
+  /**
+   * 普通读取保留未保存编辑及其 CAS 基线；显式重读仅在接口成功后替换本地内容。
+   * 403/404 表示当前配置只读，500/断网则保留重试入口，不冒充无权限或空配置。
+   */
+  async function load(replaceLocal = false) {
     const api = toValue(adapter)
     if (!api || busy.value) return
-    busy.value = true
+    loading.value = true
     error.value = ''
+    loadFailed.value = false
+    presetError.value = ''
     try {
-      preset.value = (await api.loadPreset()).config
-      if (api.loadConfig) {
-        try {
-          const result = await api.loadConfig()
-          owned.value = true
-          if (!dirty.value) {
-            saved.value = clone(result.config)
-            draft.value = clone(result.config ?? defaultResumePdfConfig())
+      await Promise.all([
+        (async () => {
+          try {
+            preset.value = clone((await api.loadPreset()).config)
+          } catch {
+            preset.value = null
+            presetError.value = '公共预设暂不可用；可继续调整当前预览。'
           }
-        } catch {
-          owned.value = false
-        }
-      }
-    } catch (cause) {
-      error.value = resolveApiErrorMessage(normalizeApiError(cause))
+        })(),
+        (async () => {
+          if (!api.loadConfig) return
+          try {
+            const result = await api.loadConfig()
+            const replaceDraft = replaceLocal || !dirty.value
+            if (replaceDraft || !configLoaded.value) saved.value = clone(result.config)
+            if (replaceDraft) draft.value = clone(result.config ?? defaultResumePdfConfig())
+            configLoaded.value = true
+            readOnly.value = false
+          } catch (cause) {
+            const normalized = normalizeApiError(cause)
+            loadFailed.value = true
+            readOnly.value = [401, 403, 404].includes(normalized.code)
+            if (!readOnly.value) error.value = `当前配置读取失败：${resolveApiErrorMessage(normalized)}`
+          }
+        })(),
+      ])
     } finally {
-      busy.value = false
+      loading.value = false
     }
   }
 
-  /** 保存的是点击瞬间快照，保存中禁用编辑；并发冲突不自动重试。 */
-  async function save(target: 'resume' | 'preset') {
+  /** 保存点击瞬间快照；只有真实成功才返回 true，防止空操作或失败被宿主误认为已保存。 */
+  async function save(): Promise<boolean> {
     const api = toValue(adapter)
     const parsed = resumePdfConfigSchema.safeParse(draft.value)
-    if (!api || !parsed.success || busy.value) return
-    const action = target === 'resume' ? api.saveConfig : api.savePreset
-    if (!action || (target === 'resume' && !owned.value)) return
-    busy.value = true
+    if (!api?.saveConfig || !parsed.success || busy.value || !canSave.value || !dirty.value) return false
+    saving.value = true
     error.value = ''
+    message.value = ''
     try {
-      const config = target === 'preset' ? toResumePdfPreset(parsed.data) : parsed.data
-      const result = await action({ config, expectedConfig: target === 'resume' ? saved.value : preset.value })
-      if (target === 'resume') saved.value = clone(result.config)
-      else preset.value = clone(result.config)
-      message.value = target === 'resume' ? '已保存到当前简历' : '公共预设已保存；其他简历不会自动改变'
+      const result = await api.saveConfig({ config: clone(parsed.data), expectedConfig: clone(saved.value) })
+      saved.value = clone(result.config)
+      message.value = '配置已保存到当前简历'
+      return true
     } catch (cause) {
-      error.value = resolveApiErrorMessage(normalizeApiError(cause))
+      const normalized = normalizeApiError(cause)
+      error.value =
+        normalized.code === 409
+          ? '配置已被其他窗口修改。本地调整已保留，请备份后重新读取配置。'
+          : `保存失败：${resolveApiErrorMessage(normalized)}`
+      return false
     } finally {
-      busy.value = false
+      saving.value = false
     }
   }
 
-  /** 模块选择属于当前简历，应用公共样式时不携带其他简历实例 ID。 */
+  /** 公共预设不携带其他简历的实例 ID，应用时保留当前模块编排。 */
   function applyPreset() {
     if (preset.value) draft.value = { ...clone(preset.value), sections: clone(draft.value.sections) }
   }
@@ -125,13 +152,12 @@ export function useResumePdfSettings(
     draft.value = defaultResumePdfConfig()
   }
   async function reload() {
-    discard()
-    await load()
+    await load(true)
   }
+  /** 恢复最近一次成功读取/保存的基线，不回退到可能过期的网页发布内容。 */
   function discard() {
-    saved.value = clone(toValue(document).display.pdf ?? null)
-    draft.value = initial()
-    error.value = ''
+    draft.value = clone(saved.value ?? defaultResumePdfConfig())
+    message.value = ''
   }
   return {
     draft,
@@ -141,8 +167,12 @@ export function useResumePdfSettings(
     validationMessage,
     preset,
     busy,
+    loading,
+    saving,
     message,
     error,
+    presetError,
+    showSave,
     canSave,
     load,
     save,
