@@ -8,7 +8,7 @@
 - 目标/非目标/契约/回滚/验收：以上设计文档为本任务详细设计；不修改历史发布与分享。
 - 文件：common resume/pdf-config与文档契约；Prisma schema/migration；server resume配置service/controller及存量写入保留；ui PDF引擎/面板/composable；双端页面与apis；OpenAPI、README、测试。
 - 风险：旧JSON兼容、配置互相覆盖、模块ID跨简历泄漏、页眉页脚挤占、双端与下载不一致。
-- 下一步：Owner 确认现有开发库迁移环境后应用迁移，并实看桌面/移动配置体验；本轮实现与隔离验证已收口。
+- 下一步：历史迁移的注释校验和差异已只读定位；按Owner最新指示暂不应用PDF迁移，元数据修复及应用迁移待另行授权。仍需实看桌面/移动配置体验；本轮实现与隔离验证已收口。
 - 验证：本轮实际执行结果见下方实施与收口记录。
 
 ## 实施与 Review
@@ -28,3 +28,9 @@
 - 实现提交：`37b7cd7 feat(pdf): persist per-resume settings and reusable personal preset`。
 - 集成：`fys-dev/59-pdf-config` 已推送；主工作区 `dev` fast-forward 至 `37b7cd7` 并推送 `origin/dev`，未操作 `main`、tag 或发布。
 - Issue #59 已回填验证证据、现有库未迁移及字体验收边界，并关闭。
+
+## 2026-10-20 本机迁移后续
+
+- Owner授权本机开发库迁移后，预检发现旧迁移 `20261015070500_role_fk_cascade` 校验和不同；Owner随后明确要求先排查、暂不应用PDF迁移。
+- 只读核验：去掉文件开头8行说明注释后SHA-256精确匹配库内记录；三条目标外键的删除/更新级联与验证状态均符合预期。其余14条迁移校验和一致，无未完成迁移。
+- 未执行任何数据库写入；PDF新列仍未应用。证据、范围限制及候选处理方式见设计文档的同日预检记录。本卡done指已交付实现与隔离验证，不代表本机环境迁移已完成。
