@@ -31,8 +31,20 @@ export function createResumeApi() {
         retry: 0,
       }),
     /** 本人未删除的简历（概览页，**服务端分页**）；不返回正文，正文走 `getDraft` */
-    list: (query: { page?: number; pageSize?: number } = {}) =>
-      $api<ResumeSummaryPage>('/resume', { query, silent: true, retry: 0 }),
+    /**
+     * 本人简历列表（**服务端分页 + 搜索 + 筛选 + 排序**）。
+     * 参数与 web 端同一套（后端 `resume-list.schema.ts` 是唯一契约源）。
+     */
+    list: (
+      query: {
+        page?: number
+        pageSize?: number
+        q?: string
+        published?: boolean
+        sort?: 'updatedAt' | 'createdAt' | 'name'
+        order?: 'asc' | 'desc'
+      } = {},
+    ) => $api<ResumeSummaryPage>('/resume', { query, silent: true, retry: 0 }),
 
     create: (input: CreateResumeDto) =>
       $api<ResumeDraftResponse>('/resume', { method: 'POST', body: input, silent: true, retry: 0 }),

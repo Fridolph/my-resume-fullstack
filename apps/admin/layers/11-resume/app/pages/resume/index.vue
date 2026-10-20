@@ -28,7 +28,22 @@ const toast = useToast()
 const api = createResumeApi()
 const queryCache = useQueryCache()
 const { signOut } = useAuthState()
-const { summaries, total, page, pageSize, status, error, refresh } = useResumeList()
+const {
+  summaries,
+  total,
+  page,
+  pageSize,
+  status,
+  error,
+  refresh,
+  q,
+  published,
+  sort,
+  order,
+  hasQuery,
+  clearQuery,
+  applySearchNow,
+} = useResumeList()
 
 type ResumeViewMode = 'card' | 'list'
 
@@ -53,12 +68,41 @@ const viewOptions = [
   { value: 'list' as const, icon: 'i-lucide-table', label: '列表' },
 ]
 
-const columns: TableColumn<ResumeSummary>[] = [
-  { accessorKey: 'name', header: '简历名' },
+// `meta.sortable` 是**给 `MyDataTable` 的唯一信号**：组件不认识业务字段，
+// 只按这个开关决定哪些表头可点（见 packages/ui 的 MyDataTable 说明）。
+// ⚠️ `meta.sortable` 是给 `MyDataTable` 的信号，但 TanStack 的 `ColumnMeta` 是**空接口**，
+// 直接写字面量会触发 excess property 检查。这里用一次断言把"扩展列元数据"显式化，
+// 而不是把整列类型降级 —— `#name-cell` 等插槽仍按 `ResumeSummary` 推导。
+const columns = [
+  { accessorKey: 'name', header: '简历名', meta: { sortable: true } },
   { accessorKey: 'locale', header: '语言' },
   { accessorKey: 'revision', header: '版本' },
-  { accessorKey: 'updatedAt', header: '最近改动' },
+  { accessorKey: 'updatedAt', header: '最近改动', meta: { sortable: true } },
   { id: 'actions', header: '操作' },
+] as unknown as TableColumn<ResumeSummary>[]
+
+/**
+ * 排序回调。
+ *
+ * `MyDataTable` 在 `packages/ui`，它不可能知道本页的排序白名单，所以回传的是 `string`。
+ * 收敛放在页面（知道白名单的一侧），组件保持通用。
+ */
+function onSortChange(key: string): void {
+  if (key === 'updatedAt' || key === 'createdAt' || key === 'name') {
+    sort.value = key
+  }
+}
+
+/** 发布态筛选与排序的可选值（组件持有 UI，状态在 composable 里） */
+const PUBLISHED_OPTIONS: Array<{ label: string; value: 'all' | 'published' | 'draft' }> = [
+  { label: '全部状态', value: 'all' },
+  { label: '已发布', value: 'published' },
+  { label: '未发布', value: 'draft' },
+]
+const SORT_OPTIONS: Array<{ label: string; value: 'updatedAt' | 'createdAt' | 'name' }> = [
+  { label: '最近更新', value: 'updatedAt' },
+  { label: '最近创建', value: 'createdAt' },
+  { label: '按名称', value: 'name' },
 ]
 
 const isLoading = computed(() => status.value === 'pending')
@@ -182,6 +226,30 @@ async function confirmDelete() {
     </header>
 
     <!-- 加载中 -->
+    <!--
+        搜索 / 筛选 / 排序：**与视图无关**，所以放在 card/table 分支**之上**。
+        （曾经放在 `MyDataTable` 的 `#toolbar` 插槽里 → 切到卡片后搜索就消失了。）
+      -->
+    <div class="flex flex-wrap items-center gap-2">
+      <UInput
+        v-model="q"
+        icon="i-lucide-search"
+        placeholder="搜索简历名称（回车立即搜索）"
+        class="w-full sm:w-56"
+        @keydown.enter.prevent="applySearchNow"
+      />
+      <USelect v-model="published" :items="PUBLISHED_OPTIONS" value-key="value" label-key="label" class="w-32" />
+      <USelect v-model="sort" :items="SORT_OPTIONS" value-key="value" label-key="label" class="w-36" />
+      <UButton
+        v-if="hasQuery"
+        color="neutral"
+        variant="ghost"
+        icon="i-lucide-list-x"
+        label="清除条件"
+        @click="clearQuery"
+      />
+    </div>
+
     <div v-if="isLoading" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       <UCard v-for="index in 3" :key="index" :ui="{ body: 'p-5 sm:p-5' }">
         <USkeleton class="h-4 w-2/3" />
@@ -294,9 +362,15 @@ async function confirmDelete() {
         :total="total"
         :page="page"
         :page-size="pageSize"
+        show-page-size
+        :sort="sort"
+        :order="order"
         empty-text="还没有简历"
         unit="份简历"
         @update:page="page = $event"
+        @update:page-size="pageSize = $event"
+        @update:sort="onSortChange"
+        @update:order="order = $event"
       >
         <template #name-cell="{ row }">
           <div class="flex items-center gap-2">
@@ -373,6 +447,23 @@ async function confirmDelete() {
         </template>
       </MyDataTable>
     </UCard>
+
+    <!--
+      卡片视图的页脚：表格视图由 `MyDataTable` 自带一个，卡片视图原先**完全没有** ——
+      切到卡片后既看不到总数、也翻不了页。
+      位置在整条 `v-if / v-else` 链之后（不能插在链中间：`v-else` 必须紧邻 `v-if`）。
+    -->
+    <div
+      v-if="viewMode === 'card'"
+      class="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-default pt-3"
+    >
+      <div class="flex flex-wrap items-center gap-2">
+        <p class="text-sm text-muted">共 {{ total }} 份简历</p>
+        <USelect v-model="pageSize" :items="RESUME_PAGE_SIZE_OPTIONS" size="sm" class="w-20" aria-label="每页条数" />
+        <span class="text-sm text-muted">条/页</span>
+      </div>
+      <UPagination v-model:page="page" :items-per-page="pageSize" :total="total" />
+    </div>
 
     <ModalDeleteConfirm
       v-model:open="deleteOpen"
