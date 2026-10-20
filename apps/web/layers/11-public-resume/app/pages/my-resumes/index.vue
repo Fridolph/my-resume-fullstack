@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { normalizeApiError } from '@rs/common'
+import { useQuery } from '@pinia/colada'
+import { queryKeys } from '~/lib/query-keys'
 import { createResumeDraftApi } from '#layers/public-resume/app/apis/resume-draft'
 import { createDemoResumeDocument } from '#layers/public-resume/app/utils/resume-document'
 import { capabilitySample } from '#layers/public-resume/app/config/capability-sample'
@@ -27,23 +29,137 @@ const loginOpen = ref(false)
 const busyId = ref<number | null>(null)
 const creating = ref(false)
 
-/** 每页条数：卡片网格一屏放得下的数量 */
-const PAGE_SIZE = 12
+/** 每页条数的可选值（卡片网格一屏放得下的档位；后端上限 100） */
+const PAGE_SIZE_OPTIONS: number[] = [12, 24, 48]
+/** 默认每页条数 */
+const pageSize = ref(12)
 const page = ref(1)
 
 /**
  * 列表现在是**服务端分页**的：`data` 是 `{ items, total, page, pageSize }`。
  * 页码进请求参数，所以 `page` 也必须进 `watch` —— 否则翻页不会重新取数。
  */
+// ── 查询：搜索 / 发布态筛选 / 排序（全部在服务端执行，见 P0-1）──────────────
+// 不用 `as const`：那会让数组变 readonly，`USelect` 的 items 只接受可变数组。
+// 用显式类型既保住了 value 的联合类型，也让 v-model 的类型能对上。
+type PublishedFilter = 'all' | 'published' | 'draft'
+type SortKey = 'updatedAt' | 'createdAt' | 'name'
+
+const PUBLISHED_OPTIONS: Array<{ label: string; value: PublishedFilter }> = [
+  { label: '全部状态', value: 'all' },
+  { label: '已发布', value: 'published' },
+  { label: '未发布', value: 'draft' },
+]
+const SORT_OPTIONS: Array<{ label: string; value: SortKey }> = [
+  { label: '最近更新', value: 'updatedAt' },
+  { label: '最近创建', value: 'createdAt' },
+  { label: '按名称', value: 'name' },
+]
+
+const publishedFilter = ref<PublishedFilter>('all')
+const sortKey = ref<SortKey>('updatedAt')
+
+/** 输入框里的原始值 */
+const q = ref('')
+/**
+ * 真正进请求的关键词（**防抖后**）。
+ *
+ * 直接绑 `q` 会让每敲一个字符发一次请求 —— 既是无谓的往返，也让
+ * `useAsyncData` 的竞态难以推理。300ms 是"打字停顿"与"响应及时"的折中。
+ */
+/** 防抖时长（Owner 2026-10-19：300ms 太快，打字中途就触发，容易误操作 → 1000ms） */
+const SEARCH_DEBOUNCE_MS = 1000
+
+const keyword = ref('')
+let searchTimer: ReturnType<typeof setTimeout> | undefined
+watch(q, value => {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    keyword.value = value.trim()
+    page.value = 1 // 换关键词必须回第 1 页，否则会停在越界页码上看到空列表
+  }, SEARCH_DEBOUNCE_MS)
+})
+
+/**
+ * 按 Enter：**跳过防抖，立即按当前输入搜索**。
+ *
+ * 防抖是"边打边看"的优化，Enter 是"我已经打完了"的显式表达 ——
+ * 后者若还要等 1 秒，会让人觉得按键没生效。
+ */
+function applySearchNow() {
+  if (searchTimer) clearTimeout(searchTimer)
+  keyword.value = q.value.trim()
+  page.value = 1
+}
+onScopeDispose(() => {
+  if (searchTimer) clearTimeout(searchTimer)
+})
+
+// 改筛选或排序同样要回第 1 页 —— 理由同上
+watch([publishedFilter, sortKey], () => {
+  page.value = 1
+})
+
+// 改每页条数同样回第 1 页（原来第 2 页在更小的页长下可能已越界）
+watch(pageSize, () => {
+  page.value = 1
+})
+
+/** 有任一查询条件生效时，才显示"清除" —— 否则是个永远无意义的按钮 */
+const hasQuery = computed(
+  () => Boolean(keyword.value) || publishedFilter.value !== 'all' || sortKey.value !== 'updatedAt',
+)
+function clearQuery() {
+  q.value = ''
+  keyword.value = ''
+  publishedFilter.value = 'all'
+  sortKey.value = 'updatedAt'
+  page.value = 1
+}
+
+/**
+ * 列表现在是**服务端分页 + 服务端查询**的：`data` 是 `{ items, total, page, pageSize }`。
+ * 页码与三个查询参数都进请求，所以都必须进 `watch` —— 否则改了不会重新取数。
+ *
+ * 数据层用 `@pinia/colada` 的 `useQuery`（Owner 2026-10-19 定）：
+ * 列表属于"频繁但不常变"的数据 —— 往返编辑页时直接命中缓存，改完由 `refresh()`
+ * 触发重新取数；这与 admin 的 `useResumeList` 是同一套写法。
+ * ⚠️ 首屏 SSR 的数据注入依赖 `@pinia/colada-nuxt` 的 payload 插件，
+ * 首次加载的观感需要实看确认（缓存命中的二次进入才体现收益）。
+ */
 const {
   data: listPage,
   refresh,
   status,
-} = await useAsyncData(
-  'my-resumes',
-  () => (isAuthed.value ? api.list({ page: page.value, pageSize: PAGE_SIZE }) : Promise.resolve(null)),
-  { watch: [isAuthed, page] },
-)
+} = useQuery({
+  /**
+   * **全部查询条件都进 key**（Owner 2026-10-19 定的口径：列表也走 colada 缓存 + 后台重新验证）。
+   *
+   * 少放一个条件，改它就不会重新取数，而是**命中旧缓存** —— 表现是"筛选没反应"，
+   * 而不会报错。所以 page / keyword / published / sort 一个都不能漏。
+   *
+   * 未登录时不查：返回 `null` 让页面走"请登录"分支。
+   */
+  key: () => [
+    ...queryKeys.resume.list(),
+    isAuthed.value ? 'auth' : 'anon',
+    String(page.value),
+    String(pageSize.value),
+    keyword.value,
+    publishedFilter.value,
+    sortKey.value,
+  ],
+  query: () =>
+    isAuthed.value
+      ? api.list({
+          page: page.value,
+          pageSize: pageSize.value,
+          q: keyword.value || undefined,
+          published: publishedFilter.value === 'all' ? undefined : publishedFilter.value === 'published',
+          sort: sortKey.value,
+        })
+      : Promise.resolve(null),
+})
 
 const resumes = computed(() => listPage.value?.items ?? [])
 const total = computed(() => listPage.value?.total ?? 0)
@@ -215,14 +331,59 @@ function formatUpdatedAt(value: string) {
     </UCard>
 
     <template v-else>
+      <!--
+        查询栏（P0-1 / P0-2）：搜索 + 发布态筛选 + 排序，**全部在服务端执行**。
+        不用 `MyDataTable`：这里是卡片网格，不是表格；组件只在 admin 的表格页用。
+      -->
+      <div class="mt-6 flex flex-wrap items-center gap-2">
+        <UInput
+          v-model="q"
+          icon="i-lucide-search"
+          placeholder="搜索简历名称（回车立即搜索）"
+          class="w-full sm:w-56"
+          :ui="{ trailing: 'pe-1' }"
+          @keydown.enter.prevent="applySearchNow"
+        >
+          <template v-if="q" #trailing>
+            <UButton
+              color="neutral"
+              variant="link"
+              icon="i-lucide-x"
+              size="xs"
+              aria-label="清空关键词"
+              @click="q = ''"
+            />
+          </template>
+        </UInput>
+        <USelect
+          v-model="publishedFilter"
+          :items="PUBLISHED_OPTIONS"
+          value-key="value"
+          label-key="label"
+          class="w-32"
+        />
+        <USelect v-model="sortKey" :items="SORT_OPTIONS" value-key="value" label-key="label" class="w-36" />
+        <UButton
+          v-if="hasQuery"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-list-x"
+          label="清除条件"
+          @click="clearQuery"
+        />
+      </div>
+
       <div v-if="isLoading" class="mt-6 grid gap-3">
         <USkeleton class="h-20 w-full" />
         <USkeleton class="h-20 w-full" />
       </div>
 
-      <UCard v-else-if="!resumes?.length" class="mt-6">
+      <UCard v-else-if="!resumes?.length && !hasQuery" class="mt-6">
         <p class="text-sm text-muted">还没有简历。点右上角「新建简历」开始。</p>
       </UCard>
+
+      <!-- "筛完是空的"与"一份都没有"是两件事，文案必须分开 -->
+      <p v-else-if="!resumes?.length" class="mt-6 text-sm text-muted">没有符合当前条件的简历。</p>
 
       <ul v-else class="mt-6 grid gap-3">
         <li v-for="item in resumes" :key="item.id">
@@ -334,9 +495,18 @@ function formatUpdatedAt(value: string) {
         </li>
       </ul>
       <!-- 服务端分页：总数来自接口，翻页改 `page` 后由 useAsyncData 的 watch 重新取数 -->
-      <div v-if="total > PAGE_SIZE" class="mt-4 flex items-center justify-between gap-3">
-        <p class="text-sm text-muted">共 {{ total }} 份简历</p>
-        <UPagination v-model:page="page" :items-per-page="PAGE_SIZE" :total="total" />
+      <!--
+        页脚**始终展示**（Owner 2026-10-19）：即使当前只有一页，也要有
+        "共 N 份"与分页器 —— 否则"到底还有没有更多"只能靠数格子猜，
+        而且数据从 12 变成 13 份时分页器突然冒出来，会让人以为界面跳了。
+      -->
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-default pt-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <p class="text-sm text-muted">共 {{ total }} 份简历</p>
+          <USelect v-model="pageSize" :items="PAGE_SIZE_OPTIONS" size="sm" class="w-20" aria-label="每页条数" />
+          <span class="text-sm text-muted">条/页</span>
+        </div>
+        <UPagination v-model:page="page" :items-per-page="pageSize" :total="total" />
       </div>
 
       <UModal v-model:open="renameOpen" title="重命名简历">

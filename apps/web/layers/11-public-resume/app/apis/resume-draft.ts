@@ -6,8 +6,24 @@ export function createResumeDraftApi() {
     /** 默认展示的简历草稿（首页用它决定直接展示哪一份）；没设默认时 404 */
     findDefault: () => $api<ResumeDraftResponse>('/resume/default', { silent: true, retry: 0 }),
     /** 本人未删除的简历列表（工作台的入口用它）；**服务端分页** */
-    list: (query: { page?: number; pageSize?: number } = {}) =>
-      $api<ResumeSummaryPage>('/resume', { query, silent: true, retry: 0 }),
+    /**
+     * 本人简历列表（**服务端分页 + 搜索 + 筛选 + 排序**）。
+     *
+     * 分页/查询都在服务端执行（见后端 `resume-list.schema.ts`）：
+     * 前端只传参数、不切片 —— 在前端切 `total` 会让页码与真实总数脱节。
+     */
+    list: (
+      query: {
+        page?: number
+        pageSize?: number
+        /** 按名称模糊搜索（不区分大小写）；空白视为不传 */
+        q?: string
+        /** true 只看已发布 / false 只看未发布 / 不传 = 全部 */
+        published?: boolean
+        sort?: 'updatedAt' | 'createdAt' | 'name'
+        order?: 'asc' | 'desc'
+      } = {},
+    ) => $api<ResumeSummaryPage>('/resume', { query, silent: true, retry: 0 }),
     create: (input: CreateResumeDto) =>
       $api<ResumeDraftResponse>('/resume', { method: 'POST', body: input, silent: true, retry: 0 }),
     read: (id: string) =>
