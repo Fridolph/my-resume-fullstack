@@ -22,6 +22,7 @@
     "lint": "echo \"layer 的 lint 由根 oxlint 覆盖\""
   },
   "dependencies": {
+    "@internationalized/date": "^3.12.4",
     "@nuxt/ui": "^4.3.0",
     "@rs/common": "workspace:*",
     "@tiptap/core": "^3.0.0",
