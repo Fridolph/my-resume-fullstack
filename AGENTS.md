@@ -31,8 +31,13 @@
 - **新 worktree 必须走引导序列**，否则 `typecheck` 会报一堆"模块找不到"的假错误
   （本轮实测 49 个，全都不是代码问题）：
   1. `pnpm install --frozen-lockfile`（`node_modules` 不跨 worktree 共享）
-  2. `pnpm --filter @rs/common build`（共享包产物 `dist/` 不在版本控制里）
+  2. **`pnpm build`**（把所有有产物的包都编一遍 —— 至少 `@rs/common` 与 `@rs/utils`）
   3. `pnpm --filter @rs/server exec prisma generate`（Prisma client 生成到 `src/generated/`，同样不入库）
+
+  ⚠️ **第 2 步不要只 build `@rs/common`**。`@rs/utils` 的 `exports` 同样指向 `dist/`
+  （`./file-upload` / `./pdf` / `./fileValidation` …），漏了它会报 **41 个看起来毫不相关**的
+  `Cannot find module '@rs/utils/...'` 与缺导出的错误，非常容易误判成"别人把 `dev` 改坏了"。
+  2026-10-19 实际发生过一次，排查了半天才回到"产物没编"。
 - ⚠️ 判断命令成败时**不要用 `cmd | tail`** 看结果：管道的退出码是 `tail` 的，失败会被吞掉
   （本轮我因此把一次 `typecheck` 失败误当成通过并照常提交）。要么不加管道，要么 `set -o pipefail`。
 - 分支模型：**所有开发只在 `dev` 或从 `dev` 检出的短分支上进行**
