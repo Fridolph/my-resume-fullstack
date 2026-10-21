@@ -1,3 +1,4 @@
+import type { ResumeDraftResponse } from '@rs/common'
 import type { ShareExpiryOption } from '#layers/public-resume/app/config/share'
 
 export interface ShareLinkCreated {
@@ -18,6 +19,13 @@ export interface ShareLinkCreated {
 export function createShareApi() {
   const { $api } = useNuxtApp()
   return {
+    /**
+     * 访客按链接读简历（`/api/s/:token`）。
+     *
+     * `silent: true`：失效是**预期路径**之一（过期/撤销/未发布），不该触发全局错误提示 ——
+     * 页面自己会把原因渲染出来。
+     */
+    read: (token: string) => $api<ResumeDraftResponse>(`/s/${encodeURIComponent(token)}`, { silent: true, retry: 0 }),
     create: (
       resumeId: number,
       input: { expiresIn: ShareExpiryOption; customDays?: number; allowAi?: boolean; allowPdf?: boolean },
