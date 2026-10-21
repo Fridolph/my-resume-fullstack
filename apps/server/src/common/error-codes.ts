@@ -110,6 +110,13 @@ export const API_ERROR_CODES = {
   SHARE_UNPUBLISHED: 'Share.Link:unpublished',
   /** 该链接不允许下载 PDF（`allowPdf = false`） */
   SHARE_PDF_FORBIDDEN: 'Share.Link:pdfForbidden',
+  /**
+   * 分享链接被限流（429）。
+   *
+   * 与 `AUTH.Login:throttled` 分开：前者是"有人在猜 token"，后者是"有人在猜密码" ——
+   * 两者的处置完全不同（可以给链接加验证，但改密码没用）。
+   */
+  SHARE_RATE_LIMITED: 'Share.Link:rateLimited',
   /** 请求参数没过校验 */
   VALIDATION_FAILED: 'Common.Validation:failed',
   /** 路由不存在 */

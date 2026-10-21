@@ -110,6 +110,31 @@ export class ResumePdfService {
    * 校验发生在启动 Chromium 前。摘要覆盖整份文档，display 独立保存也会触发 409。
    * 读取后生成的是该次读取的快照，不把本轮导出冒充历史发布版本。
    */
+  /**
+   * **分享链接**的导出路径：没有登录态，因此也没有 `documentHash` 的前置校验。
+   *
+   * 与 `export` 的分工：
+   * - `export` 由**作者**调用，`currentUser` 用于归属校验，并要求客户端带上
+   *   `documentHash`（"预览后内容变了就重来"）—— 那是作者的操作流程
+   * - 本方法由**访客**经分享链接调用，归属已经由 `ShareLink` 校验过，
+   *   访客也没有"先预览再下载"的流程，所以直接按**简历自己的** pdf 配置渲染
+   *
+   * ⚠️ 若库里存的 pdf 配置引用了已被删除的模块，这里会**回落到不含该配置**的文档 ——
+   * 宁可少一点样式，也不该给访客一个渲染失败的 PDF。
+   */
+  async exportForShare(resumeId: number): Promise<Buffer> {
+    const result = await this.resumes.findPublished(resumeId)
+    const ids = result.document.content.sections.map(section => section.id)
+    const stored = result.document.display?.pdf
+
+    if (stored && !pdfConfigReferencesValid(stored, ids)) {
+      const { pdf: _dropped, ...restDisplay } = result.document.display
+      return this.renderer.render({ ...result.document, display: restDisplay })
+    }
+
+    return this.renderer.render(result.document)
+  }
+
   async export(id: number, input: ResumePdfExportDto, currentUser: AuthUser): Promise<Buffer> {
     const result =
       input.source === 'draft' ? await this.resumes.findDraft(id, currentUser) : await this.resumes.findPublished(id)

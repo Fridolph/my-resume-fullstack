@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { API_ERROR_CODES } from '../common/error-codes'
 import type { AuthUser } from '../common/http-context'
 import { PrismaService } from '../prisma/prisma.service'
@@ -107,6 +107,44 @@ export class ShareService {
       select: { id: true, revokedAt: true },
     })
     return { id: updated.id, revokedAt: updated.revokedAt?.toISOString() ?? '' }
+  }
+
+  /**
+   * 校验 token 有效**且**该链接允许下载 PDF，返回 `resumeId`。
+   *
+   * 复用与 `readByToken` 同一套失效判定（顺序也一致），只是多了 `allowPdf` 这一道。
+   */
+  async assertPdfAllowed(token: string): Promise<{ resumeId: number }> {
+    const link = await this.prisma.shareLink.findUnique({
+      where: { token },
+      select: {
+        resumeId: true,
+        expiresAt: true,
+        revokedAt: true,
+        allowPdf: true,
+        resume: {
+          select: { publishedAt: true, workspace: { select: { user: { select: { deletedAt: true } } } } },
+        },
+      },
+    })
+
+    if (!link) {
+      throw new NotFoundException('分享链接不存在', { errorCode: API_ERROR_CODES.SHARE_NOT_FOUND })
+    }
+    if (link.revokedAt) {
+      throw new NotFoundException('这条分享链接已被撤销', { errorCode: API_ERROR_CODES.SHARE_REVOKED })
+    }
+    if (link.expiresAt.getTime() <= Date.now()) {
+      throw new NotFoundException('这条分享链接已过期', { errorCode: API_ERROR_CODES.SHARE_EXPIRED })
+    }
+    if (!link.resume.publishedAt || link.resume.workspace.user.deletedAt) {
+      throw new NotFoundException('这份简历已不再公开', { errorCode: API_ERROR_CODES.SHARE_UNPUBLISHED })
+    }
+    if (!link.allowPdf) {
+      throw new ForbiddenException('这条分享链接不允许下载 PDF', { errorCode: API_ERROR_CODES.SHARE_PDF_FORBIDDEN })
+    }
+
+    return { resumeId: link.resumeId }
   }
 
   /**

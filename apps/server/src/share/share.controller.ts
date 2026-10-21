@@ -1,4 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Header, HttpCode, Param, Post, StreamableFile, UseGuards } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
+import { ResumePdfService } from '../resume/resume-pdf.service'
+import { ShareThrottlerGuard } from './share-throttler.guard'
 import { resumePrimaryKeySchema } from '@rs/common'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { Public } from '../auth/decorators/public.decorator'
@@ -15,7 +18,10 @@ import { ShareService } from './share.service'
  */
 @Controller()
 export class ShareController {
-  constructor(private readonly shareService: ShareService) {}
+  constructor(
+    private readonly shareService: ShareService,
+    private readonly pdf: ResumePdfService,
+  ) {}
 
   /** 建链接：要求简历属于本人且**已发布** */
   @Post('resume/:id/shares')
@@ -44,7 +50,32 @@ export class ShareController {
    */
   @Public()
   @Get('s/:token')
+  // 阈值覆盖模块级的默认值（那个是给登录用的 5 次/分钟）：分享是"打开页面"，不是"手动尝试"
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @UseGuards(ShareThrottlerGuard)
   read(@Param('token', { schema: shareTokenSchema }) token: string) {
     return this.shareService.readByToken(token)
+  }
+
+  /**
+   * 访客按链接下载 PDF（受 `allowPdf` 控制）。
+   *
+   * 访客没有登录态，所以走 `exportForShare`（归属已由 token 校验，也不需要 `documentHash`）。
+   */
+  @Public()
+  @Post('s/:token/pdf')
+  @HttpCode(200)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @UseGuards(ShareThrottlerGuard)
+  @Header('Cache-Control', 'no-store')
+  @Header('X-Content-Type-Options', 'nosniff')
+  async downloadPdf(@Param('token', { schema: shareTokenSchema }) token: string): Promise<StreamableFile> {
+    const { resumeId } = await this.shareService.assertPdfAllowed(token)
+    const bytes = await this.pdf.exportForShare(resumeId)
+    return new StreamableFile(bytes, {
+      type: 'application/pdf',
+      disposition: `attachment; filename="resume.pdf"`,
+      length: bytes.length,
+    })
   }
 }
