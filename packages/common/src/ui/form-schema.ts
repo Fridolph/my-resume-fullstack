@@ -18,7 +18,14 @@
  *   与 `tags` 的区别不在交互（都是回车添加、点标签删除），而在**值的形状**：
  *   契约要求每条文字带稳定 id，组件负责生成与保留，页面不必自己包一层转换。
  */
-export type FormFieldType = 'text' | 'textarea' | 'tags' | 'number' | 'textItems'
+/**
+ * 字段控件类型。
+ *
+ * `date` 与其它类型的本质区别：它承载的**不是标量**，而是契约里的判别联合
+ * （`custom` 文本 / `structured` 起止日 + 至今）。所以它的 v-model 值是一个
+ * `ResumeDate` 对象，而不是字符串 —— 控件必须整体替换对象，不能做 merge。
+ */
+export type FormFieldType = 'text' | 'textarea' | 'tags' | 'number' | 'textItems' | 'date'
 
 export interface FormFieldSchema {
   /** `fields` 模式：相对根对象的路径，如 `profile.name` / `profile.hero.slogans` */

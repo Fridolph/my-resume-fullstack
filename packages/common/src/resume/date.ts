@@ -68,9 +68,20 @@ export function isValidResumeDayIso(value: string): boolean {
   return parsed.isValid() && parsed.startOf('day').toISOString() === value
 }
 
-/** 存储形态 → 展示串（默认 `2020.09.01`；展示层可按需换 pattern） */
-export function formatResumeDay(iso: string, pattern = 'YYYY.MM.DD'): string {
+/**
+ * 存储形态 → 展示串。
+ *
+ * 默认只到**年月**（Owner 2026-10-19）：数据精确到天是为了可比较、可排序、以后可配置，
+ * 而简历上的"2020.09 ~ 2023.06"本来就是月级表达 —— 显示到日反而噪声更大。
+ * 将来若要开放给用户配置，改这里的默认 pattern 即可，存储不必动。
+ */
+export function formatResumeDay(iso: string, pattern = 'YYYY.MM'): string {
   return dayjs.utc(iso).format(pattern)
+}
+
+/** 今天的存储形态（新建结构化日期的默认值；按 UTC 日历日，与存储口径一致） */
+export function todayResumeDayIso(): string {
+  return toResumeDayIso(dayjs.utc().format(RESUME_DAY_FORMAT)) ?? ''
 }
 
 /**

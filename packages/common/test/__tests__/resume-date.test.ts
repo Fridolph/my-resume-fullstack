@@ -55,7 +55,7 @@ test('存储形态 ⇄ 输入：往返不丢天', () => {
 
 test('格式化走 UTC，不受本机时区影响', () => {
   // 若实现里用了本地时区的 dayjs(...)，UTC 以西的环境会显示成 10-07
-  assert.equal(formatResumeDay('2026-10-08T00:00:00.000Z'), '2026.10.08')
+  assert.equal(formatResumeDay('2026-10-08T00:00:00.000Z'), '2026.10')
   assert.equal(formatResumeDay('2026-10-08T00:00:00.000Z', 'YYYY-MM-DD'), '2026-10-08')
 })
 
@@ -65,7 +65,7 @@ test('三端共用的摘要：custom / 至今 / 有结束日 / 空', () => {
   assert.equal(formatResumeDate(undefined), '未填写')
   assert.equal(
     formatResumeDate({ mode: 'structured', start: '2020-09-01T00:00:00.000Z', end: null, isCurrent: true }),
-    '2020.09.01 ~ 至今',
+    '2020.09 ~ 至今',
   )
   assert.equal(
     formatResumeDate({
@@ -74,6 +74,6 @@ test('三端共用的摘要：custom / 至今 / 有结束日 / 空', () => {
       end: '2023-06-30T00:00:00.000Z',
       isCurrent: false,
     }),
-    '2020.09.01 ~ 2023.06.30',
+    '2020.09 ~ 2023.06',
   )
 })

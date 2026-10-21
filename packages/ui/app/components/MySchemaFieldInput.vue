@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FormFieldSchema } from '@rs/common'
+import MyResumeDateInput from './MyResumeDateInput.vue'
 
 /**
  * 单个字段的输入控件（按 schema 的类型分发）。
@@ -71,6 +72,14 @@ function removeEntry(index: number) {
 </script>
 
 <template>
+  <!-- date：契约里是判别联合，必须整体替换对象（见组件说明） -->
+  <MyResumeDateInput
+    v-if="field.type === 'date'"
+    :field="field"
+    :value="value"
+    @update:value="emit('update:value', $event)"
+  />
+
   <div v-if="isTagLike" class="space-y-2">
     <div class="flex flex-wrap gap-1.5">
       <UBadge

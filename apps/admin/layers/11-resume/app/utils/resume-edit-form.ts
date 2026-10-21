@@ -1,3 +1,4 @@
+import { formatResumeDate as sharedFormatResumeDate } from '@rs/common'
 import type { ResumeDate, ResumeDocument } from '@rs/common'
 
 /**
@@ -52,14 +53,7 @@ export function assignMissingIds(document: ResumeDocument): ResumeDocument {
  * 但完全不显示时间会让人以为内容丢了 —— 所以统一渲染成人能读的一行。
  */
 export function formatResumeDate(date: ResumeDate | undefined): string {
-  if (!date) {
-    return '未填写'
-  }
-
-  if (date.mode === 'custom') {
-    return date.text.trim() === '' ? '未填写' : date.text
-  }
-
-  const end = date.isCurrent ? '至今' : (date.end ?? '')
-  return end ? `${date.start} ~ ${end}` : date.start
+  // 实现只有一份：`@rs/common` 的 `formatResumeDate`（三端共用）。
+  // 这里保留同名导出，是为了不动调用面（AGENTS.md §4.6「迁移保留调用面」）。
+  return sharedFormatResumeDate(date)
 }

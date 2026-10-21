@@ -18,7 +18,7 @@ import CustomSectionField from '#layers/ui/app/components/resume/CustomSectionFi
 import ResumeModuleList from '#layers/ui/app/components/resume/ResumeModuleList.vue'
 import { createResumeApi } from '../../../apis/resume'
 import { resumeEditSegments } from '../../../config/resume-edit-schemas'
-import { assignMissingIds, formatResumeDate } from '../../../utils/resume-edit-form'
+import { assignMissingIds } from '../../../utils/resume-edit-form'
 import { describeContractIssues } from '../../../utils/schema-issues'
 
 /**
@@ -212,11 +212,6 @@ function removeCustom(id: string) {
 
 const isLoading = computed(() => loadStatus.value === 'pending')
 
-/** 哪些条目带日期：用于 `list-item-extra` 插槽的只读摘要 */
-function hasDate(item: Record<string, unknown>): boolean {
-  return 'date' in item
-}
-
 async function save() {
   if (!document.value) {
     return
@@ -388,12 +383,6 @@ async function save() {
               :segments="selectedSection.segments"
             >
               <!-- 日期只读：字段类型表达不了契约的日期联合，先如实展示，不做一个会写坏数据的文本框 -->
-              <template #list-item-extra="{ item }">
-                <p v-if="hasDate(item)" class="text-xs text-muted">
-                  时间：{{ formatResumeDate(item.date as ResumeDate) }}
-                  <span class="ml-1 text-dimmed">（本页暂不可编辑）</span>
-                </p>
-              </template>
             </MySchemaForm>
 
             <!-- 自定义模块：复用 `packages/ui` 的字段适配层（与 web 工作台同一份），

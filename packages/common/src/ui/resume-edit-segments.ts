@@ -83,6 +83,7 @@ export const educationEditSegments: FormSegmentSchema[] = [
     blank: { id: '', school: '', date: { mode: 'custom', text: '' }, degree: '', major: '' },
     fields: [
       { key: 'school', label: '学校（必填）', type: 'text' },
+      { key: 'date', label: '时间', type: 'date', wide: true },
       { key: 'degree', label: '学位', type: 'text' },
       { key: 'major', label: '专业', type: 'text' },
     ],
@@ -107,6 +108,7 @@ export const experienceEditSegments: FormSegmentSchema[] = [
     },
     fields: [
       { key: 'company', label: '公司（必填）', type: 'text' },
+      { key: 'date', label: '时间', type: 'date', wide: true },
       { key: 'role', label: '职位', type: 'text' },
       { key: 'domain', label: '行业 / 类型', type: 'text' },
       { key: 'overview', label: '工作概述', type: 'textarea', wide: true },
@@ -134,6 +136,7 @@ export const projectsEditSegments: FormSegmentSchema[] = [
     },
     fields: [
       { key: 'name', label: '项目名（必填）', type: 'text' },
+      { key: 'date', label: '时间', type: 'date', wide: true },
       { key: 'role', label: '角色', type: 'text' },
       { key: 'overview', label: '项目概述', type: 'textarea', wide: true },
       { key: 'features', label: '功能点（回车添加）', type: 'textItems', wide: true },
