@@ -171,6 +171,7 @@ function removeEntry(index: number) {
           v-if="dateValue.mode === 'structured'"
           :model-value="dateRange as never"
           range
+          locale="zh-CN"
           class="p-2"
           @update:model-value="onDateRangeChange"
         />
@@ -204,7 +205,8 @@ function removeEntry(index: number) {
     </template>
   </UPopover>
 
-  <div v-if="isTagLike" class="space-y-2">
+  <!-- 接在 date 分支之后：必须用 v-else-if，否则日期字段会同时渲染下面这条链的兜底输入框 -->
+  <div v-else-if="isTagLike" class="space-y-2">
     <div class="flex flex-wrap gap-1.5">
       <UBadge
         v-for="(label, index) in labels"
