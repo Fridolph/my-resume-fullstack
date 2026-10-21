@@ -3,7 +3,7 @@ import { ThrottlerGuard, type ThrottlerLimitDetail } from '@nestjs/throttler'
 import { API_ERROR_CODES } from '../common/error-codes'
 
 /**
- * `/s/:token` 的限流守卫。
+ * `/share/:token` 的限流守卫。
  *
  * ## 为什么公开读也必须限流
  *

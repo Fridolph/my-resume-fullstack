@@ -49,7 +49,7 @@ export class ShareController {
    * ⚠️ 该路由**必须限流**（见 DAO-050 R1 剩余项）：公开端点 + 唯一凭证 = 暴力枚举的靶子。
    */
   @Public()
-  @Get('s/:token')
+  @Get('share/:token')
   // 阈值覆盖模块级的默认值（那个是给登录用的 5 次/分钟）：分享是"打开页面"，不是"手动尝试"
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
   @UseGuards(ShareThrottlerGuard)
@@ -63,7 +63,7 @@ export class ShareController {
    * 访客没有登录态，所以走 `exportForShare`（归属已由 token 校验，也不需要 `documentHash`）。
    */
   @Public()
-  @Post('s/:token/pdf')
+  @Post('share/:token/pdf')
   @HttpCode(200)
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseGuards(ShareThrottlerGuard)

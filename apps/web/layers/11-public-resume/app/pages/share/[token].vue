@@ -4,7 +4,7 @@ import { applyEmptyStatus } from '#layers/public-resume/app/composables/usePubli
 import { createShareApi } from '#layers/public-resume/app/apis/share'
 
 /**
- * `/s/:token` —— **受控分享**链接的访客页面。
+ * `/share/:token` —— **受控分享**链接的访客页面。
  *
  * ## 为什么复用 `ResumePublicShell` 而不是另写一套
  *
@@ -14,7 +14,7 @@ import { createShareApi } from '#layers/public-resume/app/apis/share'
  *
  * ## 与 `/resume/:id` 的三处区别
  *
- * 1. 数据源：`GET /api/s/:token`（token 换来授权），而不是 `/api/resume/public/:id`
+ * 1. 数据源：`GET /api/share/:token`（token 换来授权），而不是 `/api/resume/public/:id`
  * 2. **`noindex`**：受控分享不该被搜索引擎收录
  * 3. 失效时显示**具体原因**（已过期 / 已撤销 / 未发布），而不是笼统的"不存在"
  */
