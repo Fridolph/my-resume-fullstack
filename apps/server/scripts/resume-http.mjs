@@ -2,7 +2,10 @@ import assert from 'node:assert/strict'
 import { PrismaClient } from '../dist/generated/prisma/client.js'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { hashPassword } from '../dist/common/password.js'
-import { resumeFixture } from '../../../packages/common/test/fixtures/resume.mjs'
+// ⚠️ 这个 fixture **不在** `@rs/common` 的构建产物里（它的 tsconfig 只编 `src`），
+// 所以必须指向 `.ts` 源文件，并由 `tsx` 直接运行本脚本（见 package.json 的 test:resume:http）。
+// 之前写的是 `.mjs` —— 扩展名与产物都不对，脚本一启动就 import 失败。
+import { resumeFixture } from '../../../packages/common/test/fixtures/resume.ts'
 
 const databaseUrl = process.env.RESUME_TEST_DATABASE_URL
 assert.ok(databaseUrl?.startsWith('postgresql://resume_test@127.0.0.1:55433/'), '仅允许指定的隔离数据库')

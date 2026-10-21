@@ -16,7 +16,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --passWithNoTests=false",
-    "test:resume:http": "node scripts/resume-http.mjs",
+    "test:resume:http": "tsx scripts/resume-http.mjs",
     "docs:resume": "node scripts/resume-openapi.mjs",
     "test:logging:http": "node scripts/logging-http.mjs",
     "test:logging": "bash scripts/test-logging-isolated.sh",
