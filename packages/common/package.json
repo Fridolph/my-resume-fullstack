@@ -19,6 +19,7 @@
     "test": "vitest run --passWithNoTests=false"
   },
   "dependencies": {
+    "dayjs": "^1.11.23",
     "zod": "^4.6.5"
   },
   "devDependencies": {

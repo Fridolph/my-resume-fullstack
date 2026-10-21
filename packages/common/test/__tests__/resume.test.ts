@@ -118,14 +118,64 @@ test('换量尺显式换算或清空，不把未评分当零', () => {
 })
 
 test('日期模式有独立语义与明确边界', () => {
+  // 精确到天（Owner 2026-10-19），存 UTC 零点 ISO
+  const at = (day: string) => `${day}T00:00:00.000Z`
+
   assert.ok(resumeDateSchema.safeParse({ mode: 'custom', text: '2024年至今' }).success)
-  assert.ok(resumeDateSchema.safeParse({ mode: 'structured', start: '2024-01', end: null, isCurrent: true }).success)
+  assert.ok(
+    resumeDateSchema.safeParse({ mode: 'structured', start: at('2024-01-01'), end: null, isCurrent: true }).success,
+  )
+
+  // 结束早于开始 → 拒绝（等长字符串，字典序即时间序）
   assert.equal(
-    resumeDateSchema.safeParse({ mode: 'structured', start: '2024-02', end: '2024-01', isCurrent: false }).success,
+    resumeDateSchema.safeParse({
+      mode: 'structured',
+      start: at('2024-02-01'),
+      end: at('2024-01-01'),
+      isCurrent: false,
+    }).success,
     false,
   )
+
+  // 「至今」与非空 end 互斥
   assert.equal(
-    resumeDateSchema.safeParse({ mode: 'structured', start: '2024-13', end: null, isCurrent: true }).success,
+    resumeDateSchema.safeParse({
+      mode: 'structured',
+      start: at('2024-01-01'),
+      end: at('2024-02-01'),
+      isCurrent: true,
+    }).success,
+    false,
+  )
+
+  // 非「至今」必须有 end
+  assert.equal(
+    resumeDateSchema.safeParse({ mode: 'structured', start: at('2024-01-01'), end: null, isCurrent: false }).success,
+    false,
+  )
+
+  // 月份越界
+  assert.equal(
+    resumeDateSchema.safeParse({ mode: 'structured', start: at('2024-13-01'), end: null, isCurrent: true }).success,
+    false,
+  )
+
+  // 日子不存在（2024 不是闰年）—— 格式对但日历不对，必须拒
+  assert.equal(
+    resumeDateSchema.safeParse({ mode: 'structured', start: at('2024-02-30'), end: null, isCurrent: true }).success,
+    false,
+  )
+
+  // 只有年月（旧格式）不再被接受
+  assert.equal(
+    resumeDateSchema.safeParse({ mode: 'structured', start: '2024-01', end: null, isCurrent: true }).success,
+    false,
+  )
+
+  // 非零点 / 带偏移量的时刻也不接受：契约只认"零点"这一条规则
+  assert.equal(
+    resumeDateSchema.safeParse({ mode: 'structured', start: '2024-01-01T08:00:00.000Z', end: null, isCurrent: true })
+      .success,
     false,
   )
 })

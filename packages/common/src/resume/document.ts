@@ -6,6 +6,7 @@
  * 重排或隐藏，而不需要修改简历事实本身。所有外部输入都必须经过这里的
  * Zod 校验，不能只依赖编译期 TypeScript 类型。
  */
+import { isValidResumeDayIso } from './date.js'
 import { z } from 'zod'
 import { resumePdfConfigSchema } from './pdf-config.js'
 import {
@@ -47,8 +48,14 @@ const base = {
   description: resumeDescriptionSchema.optional(),
   icon: icon.optional(),
 }
-/** 结构化日期使用的 YYYY-MM 格式。 */
-const month = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+/**
+ * 结构化日期使用的**年月日**，存 **UTC 零点的 ISO**（`2026-10-08T00:00:00.000Z`）。
+ *
+ * 为什么不是 `YYYY-MM`：Owner 2026-10-19 定"精确到天"。
+ * 为什么不是任意 datetime 或带偏移量：见 `resume/date.ts` 的说明 ——
+ * 只有"零点"这一条规则能让"同一天"在字符串层面唯一，比较与去重才不会出错。
+ */
+const day = z.string().refine(isValidResumeDayIso, '不是合法的日期（需为 UTC 零点的 ISO 年月日）')
 
 /**
  * 日期的两种互斥表达：用户可直接填写自定义文本，也可使用可比较的结构化日期。
@@ -56,14 +63,14 @@ const month = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/)
  *
  * @remarks
  * custom 模式只有 mode 与 text，文本最多 500 且允许为空，不推断时间先后。
- * structured 模式必填 start、end、isCurrent：start/end 使用 YYYY-MM；至今时
- * end 必须为 null，非至今时必须有结束月份，允许开始与结束为同月。
+ * structured 模式必填 start、end、isCurrent：start/end 使用「UTC 零点的 ISO 年月日」；至今时
+ * end 必须为 null，非至今时必须有结束日期，允许开始与结束为同一天。
  * 分支都拒绝未知字段，不允许混用自定义文本与结构化字段。
  */
 export const resumeDateSchema = z
   .discriminatedUnion('mode', [
     z.strictObject({ mode: z.literal('custom'), text }),
-    z.strictObject({ mode: z.literal('structured'), start: month, end: month.nullable(), isCurrent: z.boolean() }),
+    z.strictObject({ mode: z.literal('structured'), start: day, end: day.nullable(), isCurrent: z.boolean() }),
   ])
   .superRefine((date, context) => {
     if (date.mode !== 'structured') return
