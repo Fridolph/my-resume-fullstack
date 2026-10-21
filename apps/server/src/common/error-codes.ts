@@ -97,6 +97,19 @@ export const API_ERROR_CODES = {
    * （「请先发布该简历」），而不是一句笼统的「参数有误」。
    */
   RESUME_NOT_PUBLISHED: 'Resume.Publish:required',
+  /**
+   * 分享链接相关。
+   *
+   * 分成五个码而**不复用一句"链接无效"**：失效原因不同，访客该做的事也不同 ——
+   * 「已过期」该找作者要新链接，「已取消」可能作者主动收回，「简历未发布」是作者还没发。
+   * 前提是：这些码**只说明链接状态，不含简历内容**，所以不构成信息泄露。
+   */
+  SHARE_NOT_FOUND: 'Share.Link:notFound',
+  SHARE_EXPIRED: 'Share.Link:expired',
+  SHARE_REVOKED: 'Share.Link:revoked',
+  SHARE_UNPUBLISHED: 'Share.Link:unpublished',
+  /** 该链接不允许下载 PDF（`allowPdf = false`） */
+  SHARE_PDF_FORBIDDEN: 'Share.Link:pdfForbidden',
   /** 请求参数没过校验 */
   VALIDATION_FAILED: 'Common.Validation:failed',
   /** 路由不存在 */

@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { UserModule } from './user/user.module'
 import { ResumeModule } from './resume/resume.module'
+import { ShareModule } from './share/share.module'
 import { AuditModule } from './audit/audit.module'
 import { JwtAuthGuard } from './auth/jwt-auth.guard'
 import { ApiExceptionFilter } from './common/api-exception.filter'
@@ -93,6 +94,7 @@ import { validateEnv } from './config/env.validation'
     AuthModule,
     ResumeModule,
     AuditModule,
+    ShareModule,
     UploadModule,
   ],
   controllers: [AppController],
