@@ -66,7 +66,7 @@ export interface PdfDocConfig {
 /**
  * 后端导出请求体。
  *
- * 与 greensketch 的 `/sketch/share/project/download` 对齐：前端把自己这个预览页的
+ * 与 早期项目 的 `/sketch/share/project/download` 对齐：前端把自己这个预览页的
  * 完整 URL 交给后端，后端用无头浏览器打开并等待就绪锚点后生成 PDF。
  */
 export interface PdfExportPayload {

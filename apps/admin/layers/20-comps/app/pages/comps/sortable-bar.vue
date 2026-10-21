@@ -202,7 +202,7 @@ const order = computed(() => designs.value.map((_d, i) => `#${i + 1}`).join('  �
     </div>
 
     <div class="mt-6 rounded-lg border border-default bg-muted/30 p-4 text-xs leading-6 text-muted">
-      <p class="font-medium text-highlighted">与 greensketch 的差异</p>
+      <p class="font-medium text-highlighted">与 早期项目 的差异</p>
       <ul class="mt-1 list-disc space-y-0.5 ps-5">
         <li>
           去掉了 <code>useProjectDetail</code> / <code>useDesignsListQuery</code> /

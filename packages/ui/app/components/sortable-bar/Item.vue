@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * SortableBarItem —— 可排序条里的单条（参考 greensketch design/OptionItem）。
+ * SortableBarItem —— 可排序条里的单条（参考 早期项目 design/OptionItem）。
  * 结构：拖拽把手 + 序号徽标 + 名称 + 可选状态 badge + `#actions` 插槽。
  * 颜色走 `--sb-*` CSS 变量（由 SortableBar 按 theme 注入，可继承）。
  */

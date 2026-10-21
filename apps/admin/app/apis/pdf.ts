@@ -3,7 +3,7 @@ import type { PdfExportPayload } from '@rs/common'
 /**
  * 后端 PDF 导出接口。
  *
- * 接入后端时按实际路由调整：greensketch 用的是
+ * 接入后端时按实际路由调整：早期项目 用的是
  * `POST /sketch/share/project/download`，请求体 `{ url, outerId, designId, labelId, scene }`，
  * 响应体是**可直接下载的 PDF 文件 URL**（字符串）。
  *

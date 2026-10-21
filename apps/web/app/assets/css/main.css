@@ -20,7 +20,7 @@
   --container-1920: 1920px;
 
   /*
-   * 断点：9 档。来源是参考项目（greensketch-basic）的 config/unocss/breakpoints.ts，
+   * 断点：9 档。来源是参考项目（早期项目）的 config/unocss/breakpoints.ts，
    * 并采纳了对它的一轮修正建议 —— 而不是直接照抄，两处改动的原因：
    *
    * 1. `xs` 320px → **480px**：320px 实际设备太少，作为"手机下限"过于局促；

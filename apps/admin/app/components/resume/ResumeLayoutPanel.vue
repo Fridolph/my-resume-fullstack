@@ -12,7 +12,7 @@ type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>
 import type { ResumeSection } from '~/composables/useResumeLayout'
 
 /**
- * ResumeLayoutPanel —— 模块排序 + 显隐 + 配置入口的面板（参考 greensketch PageLayoutPanel）。
+ * ResumeLayoutPanel —— 模块排序 + 显隐 + 配置入口的面板（参考 早期项目 PageLayoutPanel）。
  *
  * - 垂直拖拽排序（SortableJS，`useSortable`）
  * - 每行：锁定/拖拽把手 + 名称 + 配置图标（actionKey）+ 显隐眼睛

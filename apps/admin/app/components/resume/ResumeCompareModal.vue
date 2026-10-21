@@ -4,7 +4,7 @@ import type { Resume, ResumeCompareField } from '~/config/resume-demo'
 import { RESUME_STATUS_META } from '~/config/resume-demo'
 
 /**
- * ResumeCompareModal —— 多份简历差异对比弹窗（参考 greensketch OptionCompareModal）。
+ * ResumeCompareModal —— 多份简历差异对比弹窗（参考 早期项目 OptionCompareModal）。
  *
  * - 响应式壳：桌面 UModal / 移动 UDrawer（ModalResponsive）
  * - PC：一次最多展示 4 列，超出用左右箭头翻页

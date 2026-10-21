@@ -2,7 +2,7 @@
 import { useResumeLayout } from '~/composables/useResumeLayout'
 
 /**
- * 布局编辑器 demo（参考 greensketch proposal 的布局配置能力）。
+ * 布局编辑器 demo（参考 早期项目 proposal 的布局配置能力）。
  *
  * 左侧图标条 + 可拖宽面板（布局 / 主题 / 敏感数据 / 导出），
  * 右侧实时预览；拖拽排序、显隐切换、主题色修改都会实时反映到预览，

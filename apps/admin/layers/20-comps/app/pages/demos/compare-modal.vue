@@ -3,7 +3,7 @@ import type { Resume } from '~/config/resume-demo'
 import { RESUMES, RESUME_COMPARE_FIELDS } from '~/config/resume-demo'
 
 /**
- * 对比对话框 demo（参考 greensketch OptionCompareModal）。
+ * 对比对话框 demo（参考 早期项目 OptionCompareModal）。
  *
  * - PC 一次最多 4 列（超出左右翻页），移动端左右两份下拉
  * - 字段由 `RESUME_COMPARE_FIELDS` 配置驱动：分组标题 + 数据行 + `best: min|max` 最优高亮
@@ -23,7 +23,7 @@ const resumes = ref<Resume[]>(RESUMES)
     <div class="mb-6">
       <h1 class="text-lg font-semibold text-highlighted">差异对比对话框</h1>
       <p class="mt-1 text-sm text-muted">
-        对应 greensketch OptionCompareModal：多份对象逐字段对比，最优项自动高亮（渐变 + 奖杯）。
+        对应 早期项目 OptionCompareModal：多份对象逐字段对比，最优项自动高亮（渐变 + 奖杯）。
       </p>
     </div>
 

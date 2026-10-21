@@ -15,7 +15,7 @@ type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>
 type ScrollAreaExposed = ComponentPublicInstance & { $el: HTMLElement }
 
 /**
- * SortableBar —— 横向可拖拽排序的选项条（参考 greensketch design/OptionBar，解耦业务）。
+ * SortableBar —— 横向可拖拽排序的选项条（参考 早期项目 design/OptionBar，解耦业务）。
  *
  * - 响应式：横向滚动 + 溢出时的左右滚动按钮 + ResizeObserver 自适应
  * - 交互：拖拽排序（本地即时生效）、点击选中（`activeId`）

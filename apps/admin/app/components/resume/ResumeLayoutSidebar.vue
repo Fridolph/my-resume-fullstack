@@ -2,7 +2,7 @@
 import { useEventListener, useDebounceFn } from '@vueuse/core'
 
 /**
- * ResumeLayoutSidebar —— 图标条 + 可拖宽面板（参考 greensketch proposal/layout/ProposalSidebar）。
+ * ResumeLayoutSidebar —— 图标条 + 可拖宽面板（参考 早期项目 proposal/layout/ProposalSidebar）。
  *
  * - 左侧常驻图标条：顶部 toggle 按钮 + 每个 panel 一个图标
  * - 右侧可展开面板：宽度可拖拽调整（240~480px），通过命名插槽渲染各 panel 内容

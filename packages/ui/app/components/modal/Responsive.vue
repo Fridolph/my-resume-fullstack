@@ -2,7 +2,7 @@
 import { useMediaQuery } from '@vueuse/core'
 
 /**
- * ModalResponsive —— 响应式对话框（参考 greensketch modal/Responsive.vue）
+ * ModalResponsive —— 响应式对话框（参考 早期项目 modal/Responsive.vue）
  *
  * 桌面（≥768px）用 UModal，移动端用 UDrawer；对外暴露统一的一组槽位：
  * content / header / title / description / actions / close / footer，以及默认槽（body）。

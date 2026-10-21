@@ -12,7 +12,7 @@ import { moveArrayElement, useSortable } from '@vueuse/integrations/useSortable'
 type SortableEvent = NonNullable<Parameters<typeof moveArrayElement>[3]>
 
 /**
- * ColumnSortList —— 可拖拽排序 + 显隐勾选的列表（参考 greensketch 同名组件）。
+ * ColumnSortList —— 可拖拽排序 + 显隐勾选的列表（参考 早期项目 同名组件）。
  * `v-model` 绑定 `ColumnDraftItem[]`，拖拽后数组顺序同步更新。
  */
 const items = defineModel<ColumnDraftItem[]>({ required: true })

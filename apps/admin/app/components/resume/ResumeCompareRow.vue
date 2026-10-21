@@ -2,7 +2,7 @@
 import type { Resume } from '~/config/resume-demo'
 
 /**
- * ResumeCompareRow —— 对比弹窗里的一行数据（参考 greensketch OptionCompareItem）。
+ * ResumeCompareRow —— 对比弹窗里的一行数据（参考 早期项目 OptionCompareItem）。
  * 每个可见 option 渲染一个 ResumeCompareCell（字段名 + 值 + 最优高亮）。
  */
 defineProps<{

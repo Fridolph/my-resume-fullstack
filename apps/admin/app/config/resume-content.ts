@@ -1,7 +1,7 @@
 /**
  * 简历内容 mock 数据（demo 用）—— 与布局配置解耦。
  *
- * 对标 greensketch：`proposalDetail`（内容）与 `customSettings`（排版配置）分离。
+ * 对标 早期项目：`proposalDetail`（内容）与 `customSettings`（排版配置）分离。
  * 这里 `RESUME_CONTENT` 是内容，`useResumeLayout` 的 order/switches/theme 是配置。
  */
 

@@ -7,7 +7,7 @@
 - 状态：`done`
 - Owner：`昇哥逐项确认设计与范围（9 项）；归枢协作执行`
 - 创建日期：`2026-10-07`
-- 关联：`Issue #13`、`DAO-007`（展示域本体，review-ready）、`docs/web/07_简历风格_三档实现.md`（本卡设计稿）、`docs/web/06_简历展示_架构设计.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、旧站契约 `/Users/fri/Desktop/personal/my-resume/packages/api-client/src/types/resume.types.ts`、机制参考 `/Users/fri/Desktop/greensketch-basic/app/pages/projects/[projectId]/@components/proposal/layout/{ProposalModuleList.vue,templates/*}`
+- 关联：`Issue #13`、`DAO-007`（展示域本体，review-ready）、`docs/web/07_简历风格_三档实现.md`（本卡设计稿）、`docs/web/06_简历展示_架构设计.md`、旧站参考 `/Users/fri/Desktop/personal/my-resume/apps/web/app/[locale]/_resume/*`、旧站契约 `/Users/fri/Desktop/personal/my-resume/packages/api-client/src/types/resume.types.ts`、机制参考 `/Users/fri/Desktop/早期项目/app/pages/projects/[projectId]/@components/proposal/layout/{ProposalModuleList.vue,templates/*}`
 
 ## 状态轨迹
 

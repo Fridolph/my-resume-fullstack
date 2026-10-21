@@ -3,7 +3,7 @@ import type { ResumeSectionChild } from '~/composables/useResumeLayout'
 
 /**
  * ResumeLayoutChildItem —— 布局面板里的子模块行（可递归嵌套）。
- * 参考 greensketch proposal/layout/PageLayoutChildItem。
+ * 参考 早期项目 proposal/layout/PageLayoutChildItem。
  */
 const props = defineProps<{
   child: ResumeSectionChild

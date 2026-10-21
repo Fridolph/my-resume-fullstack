@@ -5,7 +5,7 @@ import type { Resume } from '~/config/resume-demo'
 import { RESUMES, RESUME_COMPARE_FIELDS, RESUME_STATUS_META } from '~/config/resume-demo'
 
 /**
- * 多份简历 tabs demo（参考 greensketch ProposalOptionsTab）。
+ * 多份简历 tabs demo（参考 早期项目 ProposalOptionsTab）。
  *
  * - 顶部 tab 条切换 / 查看 / 对比（options > 1 时显示对比按钮）
  * - 下方展示当前简历详情
@@ -77,7 +77,7 @@ const salaryItems = [
     <div class="mb-6">
       <h1 class="text-lg font-semibold text-highlighted">多份简历 · 标签页切换 / 编辑 / 对比</h1>
       <p class="mt-1 text-sm text-muted">
-        对应 greensketch ProposalOptionsTab：每份简历一个 tab，可切换查看、编辑、对比差异。
+        对应 早期项目 ProposalOptionsTab：每份简历一个 tab，可切换查看、编辑、对比差异。
       </p>
     </div>
 

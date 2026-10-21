@@ -3,12 +3,12 @@ import type { Resume } from '~/config/resume-demo'
 import { RESUME_STATUS_META } from '~/config/resume-demo'
 
 /**
- * ResumeOptionsTab —— 多份简历的标签页（参考 greensketch ProposalOptionsTab）。
+ * ResumeOptionsTab —— 多份简历的标签页（参考 早期项目 ProposalOptionsTab）。
  *
  * - 横向滚动 + 溢出时的左右滚动按钮 + ResizeObserver 自适应
  * - 每个 tab：序号 + 名称 + 状态徽标 + 更新时间
  * - 右侧「对比」按钮：options > 1 时显示，emit compare
- * - 移动端不单独做下拉选择（greensketch 有，这里简化为统一横向滚动）
+ * - 移动端不单独做下拉选择（早期项目 有，这里简化为统一横向滚动）
  */
 const props = withDefaults(
   defineProps<{

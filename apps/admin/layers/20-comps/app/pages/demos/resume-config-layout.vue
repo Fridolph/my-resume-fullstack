@@ -3,7 +3,7 @@ import { useResumeLayout } from '~/composables/useResumeLayout'
 import { RESUME_CONTENT } from '~/config/resume-content'
 
 /**
- * 简历综合配置展示页（参考 greensketch proposal 页的布局配置 + 主题模板能力）。
+ * 简历综合配置展示页（参考 早期项目 proposal 页的布局配置 + 主题模板能力）。
  *
  * 左侧：图标条 + 可拖宽面板（布局 / 主题 / 敏感数据 / 导出）
  * 右侧：真实简历内容实时预览

@@ -1,7 +1,7 @@
 /**
  * 简历 mock 数据 + 对比字段配置（demo 用）。
  *
- * 对应 greensketch 的 option / showFields：
+ * 对应 早期项目 的 option / showFields：
  * - `Resume` 相当于一份 option（多份简历版本）
  * - `ResumeCompareField` 相当于 showFields（对比弹窗按此逐行渲染，可自定义分组、取值、最优高亮）
  */

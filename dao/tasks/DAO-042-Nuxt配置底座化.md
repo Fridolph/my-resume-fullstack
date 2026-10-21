@@ -5,7 +5,7 @@
 ## 身份
 
 - 状态：`done`（2026-10-16 收口：A + B1 + C 全部实现、机器验证、**已合入 `dev` 并推送**；Owner 意图验收写入下方「确认门与续跑」）
-- Owner：`昇哥（2026-10-16：参考我另一个项目 greensketch-website 的 nuxt.config.ts 对本仓进行优化；后续也希望本仓成为我的 Nuxt monorepo 基础脚手架）`
+- Owner：`昇哥（2026-10-16：参考我另一个项目 早期项目 的 nuxt.config.ts 对本仓进行优化；后续也希望本仓成为我的 Nuxt monorepo 基础脚手架）`
 - 创建日期：`2026-10-16`
 - 分支：`feat/51-rs-config`
   - ⚠️ **本轮按 Owner 2026-10-16 的多会话约定在独立 worktree 中开发**（见 `AGENTS.md` §1）：
@@ -36,7 +36,7 @@
   - 附带 **B1**：`pages.pattern` 排除 `**/components/**` + 页面私有组件自动注册
   - 附带 **C**：分环境 sourcemap、`runtimeConfig.public.version/commit`、安全响应头
 - **不做**：
-  - 不移植 greensketch 的部署与业务选型：`nitro.preset: 'aws-amplify'`、i18n、content、nuxt-auth、posthog、nuxt-image、rive、echarts、dayjs、scripts、seo/ogImage/socialShare、`@teages/nuxt-legacy`
+  - 不移植 早期项目 的部署与业务选型：`nitro.preset: 'aws-amplify'`、i18n、content、nuxt-auth、posthog、nuxt-image、rive、echarts、dayjs、scripts、seo/ogImage/socialShare、`@teages/nuxt-legacy`
   - 不引入 `devServer.host/port`（本仓多应用端口各异，留在各自 `package.json` 的 `dev` script 里更灵活）
   - 不做 `typescript.tsConfig.include: ['../@types/**']`（本仓暂无该目录，先有需求再加）
   - 不引入 `postcss.autoprefixer`（Tailwind 4 自带前缀处理）
@@ -50,8 +50,8 @@
   - `pnpm-lock.yaml`
   - `README.md`（§1 要求新增包同步更新 README）
 - **风险与未知**：
-  1. **最大未知（go/no-go）**：`nuxt.config.ts` 由 c12 + jiti 加载，时机早于任何 build。`@rs/config` 的 `exports` 必须直指 `src/index.ts` 源码，依赖 jiti 转译 workspace 内的 TS。跑不通则退：**退路 A** `exports` 指向 `.mjs` 薄壳 + `tsc` 预构建到 `dist`（代价：新克隆必须先 build）；**退路 B** 退回 Nuxt layer 形态（`extends`），与 greensketch 的 `layers/00-shared` 一致。
-  2. `$development` 是否被当前 Nuxt 版本支持（greensketch 在用，方向可靠，仍需实测）。
+  1. **最大未知（go/no-go）**：`nuxt.config.ts` 由 c12 + jiti 加载，时机早于任何 build。`@rs/config` 的 `exports` 必须直指 `src/index.ts` 源码，依赖 jiti 转译 workspace 内的 TS。跑不通则退：**退路 A** `exports` 指向 `.mjs` 薄壳 + `tsc` 预构建到 `dist`（代价：新克隆必须先 build）；**退路 B** 退回 Nuxt layer 形态（`extends`），与 早期项目 的 `layers/00-shared` 一致。
+  2. `$development` 是否被当前 Nuxt 版本支持（早期项目 在用，方向可靠，仍需实测）。
   3. `hooks['components:dirs']` 遍历 `nuxt.options._layers` 时，`layers/11-public-resume` 是否在其中 —— 它靠 Nuxt 4 的 `layers/` 自动发现挂载，不是显式 `extends`。这决定 B1 能否覆盖业务 layer 的页面组件。
   4. git sha 注入在 shallow clone / 无 git 环境会抛异常 → 必须 try/catch 回退 `'unknown'`。
 - **验收**：
@@ -73,7 +73,7 @@
 | 包名用 `@rs/config`（而非 `@rs/nuxt-base`）         | Owner 目标是「Nuxt monorepo 基础脚手架」，tsconfig / oxlint / tailwind 基线未来都要有落点，一次命名到位，避免二次改名                                  | 昇哥             | 2026-10-16 |
 | 用纯函数包，不用 Nuxt layer                         | layer 会同时承担「页面/组件/样式」与「构建基线」两种职责，违反 §4.6 三层判据；配置工厂不碰 Vue/Nuxt UI，属「能脱离运行时」那一层                        | 昇哥（选定形态） | 2026-10-16 |
 | 业务 alias（`#rs/resume-content`）留在各 app        | 它是展示域契约，塞进通用底座等于让底座认识业务。底座只负责合并 `overrides.alias`                                                                      | AI               | 2026-10-16 |
-| B1 用 `pathPrefix: true` **且去掉 `Components` 段** | 初判"不移植 greensketch 的名称归一"，**实测后修正**：`pathPrefix` 会把 `components` 目录名拼进组件名（得到 `ProbeComponentsProbeCard`，模板里不可用）；加 `extendComponent` 归一后为 `ProbeProbeCard`（真实场景如 `CapabilitiesCard`）—— 保留页面作用域，又不把"组件放在哪个目录"写进标签名 | AI（实测修正）   | 2026-10-16 |
+| B1 用 `pathPrefix: true` **且去掉 `Components` 段** | 初判"不移植 早期项目 的名称归一"，**实测后修正**：`pathPrefix` 会把 `components` 目录名拼进组件名（得到 `ProbeComponentsProbeCard`，模板里不可用）；加 `extendComponent` 归一后为 `ProbeProbeCard`（真实场景如 `CapabilitiesCard`）—— 保留页面作用域，又不把"组件放在哪个目录"写进标签名 | AI（实测修正）   | 2026-10-16 |
 | 两端 Tiptap 注释合并为一份                          | 两端讲的是同一个坑（`@tiptap/pm` 无根导出 / `prosemirror-*` 需 `@nuxt/ui >` 前缀），保留信息更全的一版                                             | AI               | 2026-10-16 |
 | **模块提供的配置键只能"局部放弃静态校验"**          | `NuxtConfig` **没有索引签名**，且 `icon`（由 `@nuxt/icon`）、`routeRules`（由 `@nuxt/nitro-server` 的 `augments`）都**不在 `@nuxt/schema` 核心**里，而是由内部包/模块 `declare module` 增强 —— 这些类型不是任何可 import 的单一入口。故用 `AUGMENTED_OPTIONS` 这一个显式白名单收口，其余键仍完整受类型检查；加错键不会有编译错误，已写进代码注释警示 | AI（实测得出）   | 2026-10-16 |
 | `$production` / `$development` 需 `RsNuxtConfigInput` | 它们是 **c12** 的 `C12InputConfig` 键（`$test`/`$development`/`$production`/`$env`），不在 `NuxtConfig` 上。**只在类型层加宽**，运行时 Nuxt/c12 本来就支持这些分段键                        | AI（实测得出）   | 2026-10-16 |

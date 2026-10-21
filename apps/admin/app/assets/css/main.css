@@ -11,7 +11,7 @@
  * 2) 间距：移动端 p-1~p-2；md/lg 内边距 8px、外边距 ≤16px；xl+ 16~24px
  * 3) 单个 class 超过 12 个类时，抽离为 BEM 命名 + @apply
  *
- * 参考自 greensketch 的 app/assets/css/main.css：只取通用项（cursor/ms-reveal/
+ * 参考自 早期项目 的 app/assets/css/main.css：只取通用项（cursor/ms-reveal/
  * 滚动条隐藏/PDF 打印）与 tw-animate-css；品牌色/渐变/自定义列表/shimmer 等
  * 项目特有样式不搬。
  */
@@ -21,7 +21,7 @@
   --container-1920: 1920px;
 
   /*
-   * 断点：9 档。来源是参考项目（greensketch-basic）的 config/unocss/breakpoints.ts，
+   * 断点：9 档。来源是参考项目（早期项目）的 config/unocss/breakpoints.ts，
    * 并采纳了对它的一轮修正建议 —— 而不是直接照抄，两处改动的原因：
    *
    * 1. `xs` 320px → **480px**：320px 实际设备太少，作为"手机下限"过于局促；
@@ -94,7 +94,7 @@ body {
 }
 
 /* ============================================================
- * 打印 / PDF 相关样式（参考 greensketch，供后续 PDF 页面复用）
+ * 打印 / PDF 相关样式（参考 早期项目，供后续 PDF 页面复用）
  * ============================================================ */
 @media print {
   /**

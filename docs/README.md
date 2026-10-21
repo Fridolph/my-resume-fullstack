@@ -70,4 +70,4 @@ pnpm format:check && pnpm lint && pnpm typecheck && pnpm test
 
 ## 上游参考
 
-本仓库的实践源自 `greensketch-website` 的架构重构。更完整、更体系化的最佳实践（请求层封装、Pinia Colada 数据层、i18n 方案、nuxt.config 分层等）见该仓库的 `.vscode/graduate/` 目录（01~08 篇）。本目录只沉淀「admin 脚手架」这个切面落地时踩的坑与统一规范，两者互补。
+本仓库的实践源自 `早期项目` 的架构重构。更完整、更体系化的最佳实践（请求层封装、Pinia Colada 数据层、i18n 方案、nuxt.config 分层等）见该仓库的 `.vscode/graduate/` 目录（01~08 篇）。本目录只沉淀「admin 脚手架」这个切面落地时踩的坑与统一规范，两者互补。

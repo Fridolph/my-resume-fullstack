@@ -2,7 +2,7 @@
 import type { ResumeThemePreset } from '~/composables/useResumeLayout'
 
 /**
- * ResumeThemePanel —— 主题面板（参考 greensketch proposal/layout/ThemePanel）。
+ * ResumeThemePanel —— 主题面板（参考 早期项目 proposal/layout/ThemePanel）。
  *
  * - 顶部：预设主题卡片（对标 standard / vivid / silicon 三套模板，点击一键切换）
  * - 中部：主题色 / 渐变起止色（原生 <input type="color"> 微调，改完实时生效）

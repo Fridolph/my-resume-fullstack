@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defu } from 'defu'
 import { defineNuxtConfig } from 'nuxt/config'
@@ -54,6 +56,48 @@ export type RsNuxtConfigInput = NuxtConfig & {
   $development?: NuxtConfig
   $production?: NuxtConfig
   $env?: Record<string, NuxtConfig>
+}
+
+/**
+ * 演示 / 示例页面的目录约定 —— **生产构建不进路由**。
+ *
+ * 约定（参考 `早期项目` 的做法）：演示页只能放在 `app/pages/_demo` 或
+ * `app/pages/_examples` 下。
+ *
+ * ## 为什么 `_` 前缀挡不住
+ *
+ * `_` 前缀确实不会被当成正常路由段，但 `pages.pattern` 扫的是所有 .vue 文件 ——
+ * 光有前缀挡不住它，必须显式排除（排除项形如：取反 + 双星号 + 目录名）。
+ *
+ * ## 为什么默认什么都不排除
+ *
+ * 本项目当前**没有**这两个目录，所以下面的排除项默认不产生任何条目，
+ * 路由表与加这段之前**逐字一致**。等真的建了演示页就自动生效，不必再改这份配置。
+ *
+ * ## 为什么不只在生产排除
+ *
+ * 沿用参考项目的策略：**生产排除，本地/staging 仍可访问** —— 开发时要能点开看，
+ * 上线时不该把 demo 页发给用户。
+ *
+ * ⚠️ 用 `pages.pattern` 而不是别的键：`pattern` 是本文件**已在用**的机制
+ * （见下方私有组件的排除），行为确定；换一个未在此验证过的键等于给共享基线
+ * 引入不确定性。
+ */
+const DEMO_PAGE_DIRS = ['_demo', '_examples'] as const
+
+/**
+ * 算出要排除的演示页通配符。
+ *
+ * ⚠️ 必须从**调用方传入 `appDir`**，不能用 `process.cwd()`：
+ * 从仓库根执行（如 `pnpm -w ...`）时 cwd 不是应用目录，那会**静默地什么都不排除** ——
+ * 配错了却看不出来。用 `options.from` 推导出的绝对路径才和调用方的意图一致。
+ *
+ * @param appDir 应用根目录（由 `options.from` 推导）
+ * @returns 生产构建时排除演示页的通配符；开发 / staging 或目录不存在时为空数组
+ */
+function resolveDemoPageExcludes(appDir: string): string[] {
+  if (process.env.NODE_ENV !== 'production') return []
+  return DEMO_PAGE_DIRS.filter(name => existsSync(join(appDir, 'app/pages', name))).map(name => `!**/${name}/**`)
 }
 
 /**
@@ -174,7 +218,8 @@ export function defineRsNuxtConfig(options: RsNuxtOptions, overrides: RsNuxtConf
       ...rsPagePrivateComponents(),
     },
     pages: {
-      pattern: ['**/*.vue', '!**/components/**'],
+      // 私有组件排除（上一行的 hooks 负责注册它们）+ 生产构建时排除演示页
+      pattern: ['**/*.vue', '!**/components/**', ...resolveDemoPageExcludes(appDir)],
     },
 
     typescript: { strict: true, typeCheck: true },
@@ -198,6 +243,69 @@ export function defineRsNuxtConfig(options: RsNuxtOptions, overrides: RsNuxtConf
     $production: {
       sourcemap: { client: false, server: false },
     },
+
+    // ── 环境分段与构建细节：**模板**，需要时取消注释 ────────────────────────────
+    //
+    // 参考 早期项目/nuxt.config.ts 的做法整理。那一份用的是 UnoCSS + PrimeVue +
+    // Vite 8（Rolldown），本项目是 Tailwind v4 + Nuxt 4 内置 Vite —— **能搬的是思路，不是原文**。
+    // 下面每一条都注明了"什么情况下才需要开"。
+    //
+    // ⚠️ 别整块打开：这些键大多只在特定阶段有意义，全开会给两端都加上无谓的构建成本。
+    /*
+    $development: {
+      // 开发时保留 sourcemap，方便断点进源码
+      sourcemap: { client: true, server: true },
+    },
+    */
+
+    /*
+    vite: {
+      build: {
+        // 单个 chunk 超过 1024 KB 才告警（默认 500 KB）。本项目页面少、依赖偏重，
+        // 默认阈值会一直刷警告，反而让人忽略真正的体积问题
+        chunkSizeWarningLimit: 1024,
+        // 按入口拆分 CSS（默认已按 chunk 拆，这里显式写出来是为了"意图可见"）
+        cssCodeSplit: true,
+      },
+      $client: {
+        build: {
+          // 客户端产物去掉 console / debugger。⚠️ 只在构建期生效，
+          // dev 仍保留 —— 否则本地调试时 console 全哑
+          // （Nuxt 4 内置 Vite 的写法；Vite 8/Rolldown 要改用 rolldownOptions.output.minify）
+          terserOptions: { compress: { drop_console: true, drop_debugger: true } },
+        },
+      },
+    },
+    */
+
+    /*
+    // Nuxt UI 的主题前缀 —— **只在 Tailwind 与 UnoCSS/PrimeVue 共存时才需要**。
+    // 本项目不装 UnoCSS，所以不加：加了会把所有 Nuxt UI 的类名变成 tw: 前缀，
+    // 现有样式全部失效。
+    ui: {
+      theme: { prefix: 'tw' },
+    },
+    */
+
+    /*
+    // 关掉 Nuxt UI 自带的字体与暗色模式 —— 只有在"已经有自己的字体方案 / 明确不做暗色"时开。
+    // 本项目暂时保持 Nuxt UI 默认，两边都还没定。
+    ui: {
+      fonts: false,
+      colorMode: false,
+    },
+    */
+
+    /*
+    // 自动导入额外的目录与第三方工具函数（参考项目用了 radashi）。
+    // 本项目目前没有 stores 目录，也没有引这类工具库 —— 需要时再开。
+    imports: {
+      dirs: ['stores'],
+      presets: [
+        // { from: 'radashi', imports: ['isArray', 'isEqual', 'tryit'] },
+      ],
+    },
+    */
 
     vite: {
       optimizeDeps: {

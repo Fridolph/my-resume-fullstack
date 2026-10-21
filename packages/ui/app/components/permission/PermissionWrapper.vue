@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * PermissionWrapper —— 按权限控制内容显隐（参考 greensketch PermissionWrapper）
+ * PermissionWrapper —— 按权限控制内容显隐（参考 早期项目 PermissionWrapper）
  *
  * - `permissions`：需要的权限（字符串，或数组——数组要求全部满足）；不传 → 始终显示。
  * - 权限来源见 `usePermission()`；接入认证后在 session 就绪时写入。

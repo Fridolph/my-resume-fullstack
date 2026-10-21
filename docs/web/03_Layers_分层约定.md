@@ -1,6 +1,6 @@
 # Nuxt Layers 分层约定
 
-`apps/web` 与 `apps/admin` 都用 Nuxt 4 **layers** 组织功能域（参考 greensketch 的 `layers/` 架构）。layers 放在 `<app>/layers/` 下，**自动发现**：每个 layer 需要一份 `nuxt.config.ts`，并用 `$meta.name` 命名。
+`apps/web` 与 `apps/admin` 都用 Nuxt 4 **layers** 组织功能域（参考 早期项目 的 `layers/` 架构）。layers 放在 `<app>/layers/` 下，**自动发现**：每个 layer 需要一份 `nuxt.config.ts`，并用 `$meta.name` 命名。
 
 ## 1. 依赖方向（硬约束）
 

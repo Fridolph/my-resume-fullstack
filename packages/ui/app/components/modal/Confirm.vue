@@ -2,7 +2,7 @@
 import { useDebounceFn } from '@vueuse/core'
 
 /**
- * ModalConfirm —— 标准确认弹窗（参考 greensketch modal/Base.vue）
+ * ModalConfirm —— 标准确认弹窗（参考 早期项目 modal/Base.vue）
  *
  * 结构：icon（槽位 #icon）+ 内容（槽位 #default）+ 取消/确认按钮。
  * - 支持 v-model:open，也兼容 useOverlay 挂载（默认 open = true）。

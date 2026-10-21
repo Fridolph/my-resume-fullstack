@@ -127,4 +127,4 @@ Settings 迁入 `layers/13-settings`：父页 `settings.vue`（`layout: "has-sid
 ## 相关文档
 
 - 本地开发规范与踩坑：[docs/dev/](../../docs/dev/README.md)（命名规则 / 布局组件模板 / 样式约定 / layers 分层）
-- 上游架构经验沉淀：greensketch-website 的 `.vscode/graduate/`（请求层 / 数据层 / i18n / nuxt.config 分层等更完整的最佳实践）
+- 上游架构经验沉淀：早期项目 的 `.vscode/graduate/`（请求层 / 数据层 / i18n / nuxt.config 分层等更完整的最佳实践）

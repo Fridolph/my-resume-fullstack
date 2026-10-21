@@ -1,7 +1,7 @@
 import { useLocalStorage } from '@vueuse/core'
 
 /**
- * 简历布局配置（参考 greensketch 的 useProposalPageLayout，解耦成简历域）。
+ * 简历布局配置（参考 早期项目 的 useProposalPageLayout，解耦成简历域）。
  *
  * 思路：把「一页简历有哪些 section、顺序如何、各自显隐、主题色/预设主题」都变成数据，
  * 编辑态实时驱动预览，点 Save 才持久化（localStorage 模拟后端）。
@@ -41,7 +41,7 @@ export interface ResumeSwitchOption {
   hint?: string
 }
 
-/** 预设主题（对标 greensketch 的 standard / vivid_verde / silicon_horizon 模板） */
+/** 预设主题（对标 早期项目 的 standard / vivid_verde / silicon_horizon 模板） */
 export interface ResumeThemePreset {
   id: string
   label: string

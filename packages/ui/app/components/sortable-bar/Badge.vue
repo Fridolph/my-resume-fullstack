@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * SortableBarBadge —— 序号徽标（参考 greensketch design/NumBadge，解耦业务）。
+ * SortableBarBadge —— 序号徽标（参考 早期项目 design/NumBadge，解耦业务）。
  * `active` 为绿（正常/可见），false 为灰。
  */
 const {

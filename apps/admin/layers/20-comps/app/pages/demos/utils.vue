@@ -132,7 +132,7 @@ function logConsole() {
     <div class="space-y-2">
       <h1 class="text-xl font-semibold tracking-tight text-highlighted">app/utils</h1>
       <p class="text-sm leading-6 text-muted">
-        迁移自 greensketch
+        迁移自 早期项目
         <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">app/utils</code>
         的公共工具函数。Nuxt 的
         <code class="rounded bg-elevated px-1.5 py-0.5 text-xs">utils/</code>

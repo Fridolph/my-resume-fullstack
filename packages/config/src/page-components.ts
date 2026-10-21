@@ -11,7 +11,7 @@ import type { NuxtConfig } from 'nuxt/schema'
  * 去掉它之后是 `CapabilitiesCard`：既保留了"哪个页面"的作用域（避免不同页面的同名组件
  * 静默冲突），又不把一个实现细节（组件放在哪个目录）写进模板标签名。
  *
- * 这两个正则就是 greensketch-website 里那段 `RE_COMPONENTS` / `RE_COMPONENTS_KEBAB` 归一。
+ * 这两个正则就是 早期项目 里那段 `RE_COMPONENTS` / `RE_COMPONENTS_KEBAB` 归一。
  * 起初判断"那是那个仓自己的命名约定、不必移植"——**实测后修正**：它是 `pathPrefix: true`
  * 的必要配套，不这么做得到的名字不可用（`<ProbeComponentsProbeCard />`）。
  */

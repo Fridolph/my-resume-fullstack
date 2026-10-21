@@ -2,7 +2,7 @@
 import type { ResumeSwitchOption } from '~/composables/useResumeLayout'
 
 /**
- * ResumeSwitchPanel —— 通用开关列表面板（合并 greensketch 的 SensitiveDataPanel / PageExportPanel）。
+ * ResumeSwitchPanel —— 通用开关列表面板（合并 早期项目 的 SensitiveDataPanel / PageExportPanel）。
  * 用 `options` 描述每行：label + switchKey + 可选 inverted / hint。
  */
 defineProps<{
