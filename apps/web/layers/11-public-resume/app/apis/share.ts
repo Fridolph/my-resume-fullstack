@@ -20,13 +20,18 @@ export function createShareApi() {
   const { $api } = useNuxtApp()
   return {
     /**
-     * 访客按链接读简历（`/api/s/:token`）。
+     * 访客按链接读简历（`/api/share/:token`）。
      *
      * `silent: true`：失效是**预期路径**之一（过期/撤销/未发布），不该触发全局错误提示 ——
      * 页面自己会把原因渲染出来。
+     *
+     * ⚠️ 返回的是 **`{ draft }`**，不是裸的 `ResumeDraftResponse` ——
+     * `$api` 只解包最外层的 `{ code, data }`，`data` 里的 `draft` 仍然在。
+     * 这里写错会在页面上表现成"取到了但渲染不出"（`undefined !== null` 恰为真），
+     * 2026-10-22 实际踩过一次：页面 200、无报错、整页空白。
      */
     read: (token: string) =>
-      $api<ResumeDraftResponse>(`/share/${encodeURIComponent(token)}`, { silent: true, retry: 0 }),
+      $api<{ draft: ResumeDraftResponse }>(`/share/${encodeURIComponent(token)}`, { silent: true, retry: 0 }),
     create: (
       resumeId: number,
       input: { expiresIn: ShareExpiryOption; customDays?: number; allowAi?: boolean; allowPdf?: boolean },

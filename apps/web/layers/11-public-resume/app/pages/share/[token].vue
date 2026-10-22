@@ -41,7 +41,7 @@ const { data, status } = await useAsyncData(
       return { ok: false as const, code: 'Share.Link:notFound' }
     }
     try {
-      return { ok: true as const, draft: await shareApi.read(token.value) }
+      return { ok: true as const, payload: await shareApi.read(token.value) }
     } catch (problem) {
       const code =
         (problem as { data?: { errorCode?: string } })?.data?.errorCode ??
@@ -54,8 +54,18 @@ const { data, status } = await useAsyncData(
 )
 
 const failureCode = computed(() => (data.value && !data.value.ok ? data.value.code : null))
-const document = computed(() => (data.value?.ok ? data.value.draft.document : null))
-const hasDocument = computed(() => document.value !== null)
+/** `payload` 是 `{ draft }` —— `$api` 只解包外层 `{ code, data }`，`draft` 还在里面 */
+const document = computed(() => (data.value?.ok ? data.value.payload.draft.document : null))
+
+/**
+ * ⚠️ 判断"有没有文档"必须用 `Boolean(...)`，**不能写 `!== null`**。
+ *
+ * 取错层级时 `document.value` 是 `undefined`，而 `undefined !== null` 恰为 **true** ——
+ * 于是"取数失败"被伪装成"取到了"：既不设 404、也不走失效分支，
+ * 只是把一个 `undefined` 传给渲染组件，最后整页空白（HTTP 还是 200）。
+ * 2026-10-22 实际踩过：页面 200、控制台无报错、整页什么都没有。
+ */
+const hasDocument = computed(() => Boolean(document.value))
 
 // 未取到文档 ⇒ 404（与公开页同一套口径：不存在的资源就该是 404，而不是 200 空态）
 if (!hasDocument.value && status.value !== 'pending') {
