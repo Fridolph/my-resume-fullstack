@@ -88,6 +88,18 @@ export const SHARE_EVENT_TYPES = {
 
 export type ShareEventTypeKey = keyof typeof SHARE_EVENT_TYPES
 
+/**
+ * 访客上下文：由**控制器**从请求里取，再交给 service。
+ *
+ * 为什么不让 service 自己去读请求：service 不该认识 HTTP。
+ * 为什么必须由服务端填而不信客户端上报：否则任何人都能伪造 IP 与 UA。
+ */
+export interface ShareVisitorContext {
+  ipAddress?: string
+  userAgent?: string
+  referrer?: string
+}
+
 /** 一次事件上报的输入（服务端补齐访客维度，见 `ShareEventSink`） */
 export interface ShareEventInput {
   shareId: string

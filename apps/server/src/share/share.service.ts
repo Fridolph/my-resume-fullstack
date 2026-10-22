@@ -4,6 +4,8 @@ import { API_ERROR_CODES } from '../common/error-codes'
 import type { AuthUser } from '../common/http-context'
 import { PrismaService } from '../prisma/prisma.service'
 import { ResumeService } from '../resume/resume.service'
+import { PostgresShareEventSink } from './share-event.sink'
+import type { ShareVisitorContext } from './share.types'
 import type { ShareCreateDto } from './dto/share-create.schema'
 import { SHARE_MAX_DAYS, resolveShareExpiry } from './share.types'
 
@@ -46,6 +48,8 @@ export class ShareService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly resumeService: ResumeService,
+    /** 事件出口。业务代码只认 `ShareEventSink` 接口，换实现不动这里 */
+    private readonly events: PostgresShareEventSink,
   ) {}
 
   /** 建链。要求简历**属于本人且已发布** —— 未发布时建出来的链接也读不到，不如直接拒 */
@@ -120,10 +124,11 @@ export class ShareService {
    *
    * 复用与 `readByToken` 同一套失效判定（顺序也一致），只是多了 `allowPdf` 这一道。
    */
-  async assertPdfAllowed(token: string): Promise<{ resumeId: number }> {
+  async assertPdfAllowed(token: string): Promise<{ shareId: string; resumeId: number }> {
     const link = await this.prisma.shareLink.findUnique({
       where: { token },
       select: {
+        id: true,
         resumeId: true,
         expiresAt: true,
         revokedAt: true,
@@ -153,7 +158,16 @@ export class ShareService {
       throw new ForbiddenException('这条分享链接不允许下载 PDF', { errorCode: API_ERROR_CODES.SHARE_PDF_FORBIDDEN })
     }
 
-    return { resumeId: link.resumeId }
+    return { shareId: link.id, resumeId: link.resumeId }
+  }
+
+  /**
+   * 记录"访客按链接下载了 PDF"。
+   *
+   * fire-and-forget：埋点失败只 warn（在 sink 里吞），**绝不能让记录失败导致下载失败**。
+   */
+  recordPdfDownload(shareId: string, visitor: ShareVisitorContext = {}): void {
+    void this.events.record({ shareId, type: 'pdfDownloaded', pagePath: '/share', ...visitor })
   }
 
   /**
@@ -165,7 +179,10 @@ export class ShareService {
    *
    * 这些码**只说明链接状态，不含简历内容**，所以不构成信息泄露。
    */
-  async readByToken(token: string): Promise<{ draft: Awaited<ReturnType<ResumeService['findPublished']>> }> {
+  async readByToken(
+    token: string,
+    visitor: ShareVisitorContext = {},
+  ): Promise<{ draft: Awaited<ReturnType<ResumeService['findPublished']>> }> {
     const link = await this.prisma.shareLink.findUnique({
       where: { token },
       select: {
@@ -203,7 +220,18 @@ export class ShareService {
       .update({ where: { id: link.id }, data: { lastAccessAt: new Date() } })
       .catch(() => undefined)
 
-    return { draft: await this.resumeService.findPublished(link.resumeId) }
+    const draft = await this.resumeService.findPublished(link.resumeId)
+
+    // 记录浏览。**用文档里的 `revision`**：它能回答"改完这一版之后还有没有人看"
+    void this.events.record({
+      shareId: link.id,
+      type: 'linkViewed',
+      revision: draft.revision,
+      pagePath: '/share',
+      ...visitor,
+    })
+
+    return { draft }
   }
 }
 

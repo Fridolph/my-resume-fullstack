@@ -1,4 +1,18 @@
-import { Body, Controller, Delete, Get, Header, HttpCode, Param, Post, StreamableFile, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Header,
+  Headers,
+  HttpCode,
+  Ip,
+  Param,
+  Post,
+  StreamableFile,
+  UseGuards,
+} from '@nestjs/common'
+import type { ShareVisitorContext } from './share.types'
 import { Throttle } from '@nestjs/throttler'
 import { ResumePdfService } from '../resume/resume-pdf.service'
 import { ShareThrottlerGuard } from './share-throttler.guard'
@@ -53,8 +67,15 @@ export class ShareController {
   // 阈值覆盖模块级的默认值（那个是给登录用的 5 次/分钟）：分享是"打开页面"，不是"手动尝试"
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
   @UseGuards(ShareThrottlerGuard)
-  read(@Param('token', { schema: shareTokenSchema }) token: string) {
-    return this.shareService.readByToken(token)
+  read(
+    @Param('token', { schema: shareTokenSchema }) token: string,
+    // 访客维度**由服务端从请求里取**，不接受客户端上报 —— 否则 IP/UA 可被伪造
+    @Ip() ip: string,
+    @Headers('user-agent') userAgent?: string,
+    @Headers('referer') referrer?: string,
+  ) {
+    const visitor: ShareVisitorContext = { ipAddress: ip, userAgent, referrer }
+    return this.shareService.readByToken(token, visitor)
   }
 
   /**
@@ -69,9 +90,16 @@ export class ShareController {
   @UseGuards(ShareThrottlerGuard)
   @Header('Cache-Control', 'no-store')
   @Header('X-Content-Type-Options', 'nosniff')
-  async downloadPdf(@Param('token', { schema: shareTokenSchema }) token: string): Promise<StreamableFile> {
-    const { resumeId } = await this.shareService.assertPdfAllowed(token)
+  async downloadPdf(
+    @Param('token', { schema: shareTokenSchema }) token: string,
+    @Ip() ip: string,
+    @Headers('user-agent') userAgent?: string,
+    @Headers('referer') referrer?: string,
+  ): Promise<StreamableFile> {
+    const { shareId, resumeId } = await this.shareService.assertPdfAllowed(token)
     const bytes = await this.pdf.exportForShare(resumeId)
+    // 渲染成功之后才记：下载失败不该计入"下载过"
+    this.shareService.recordPdfDownload(shareId, { ipAddress: ip, userAgent, referrer })
     return new StreamableFile(bytes, {
       type: 'application/pdf',
       disposition: `attachment; filename="resume.pdf"`,

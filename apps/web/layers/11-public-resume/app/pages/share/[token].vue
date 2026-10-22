@@ -62,6 +62,29 @@ if (!hasDocument.value && status.value !== 'pending') {
   applyEmptyStatus('not-found')
 }
 
+/**
+ * **访客信息记录的告知**（Owner 2026-10-19 定的口径）。
+ *
+ * ⚠️ 必须记住：这是**告知**，不是**同意** —— 没有同意门，`share.link.viewed`
+ * 在页面加载时就已经写入了，采集是**全量**的。代码与文档都不能反过来宣称"已获访客同意"。
+ *
+ * 每次会话只弹一次（`sessionStorage`）：刷一次弹一次的结果是访客直接无视它。
+ */
+const NOTICE_KEY = 'share-visit-notice-shown'
+const toast = useToast()
+
+onMounted(() => {
+  if (!hasDocument.value || sessionStorage.getItem(NOTICE_KEY)) {
+    return
+  }
+  sessionStorage.setItem(NOTICE_KEY, '1')
+  toast.add({
+    title: '访问信息记录说明',
+    description: '本页会记录访问的基础信息（IP、浏览器标识、浏览行为），仅用于学习与功能演示，不用于商业用途。',
+    duration: 8000,
+  })
+})
+
 // 受控分享一律不收录
 useSeoMeta({
   title: () => (hasDocument.value ? '简历' : '分享链接不可用'),
