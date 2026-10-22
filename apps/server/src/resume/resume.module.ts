@@ -18,5 +18,18 @@ import { ResumePdfRenderer, ResumePdfService } from './resume-pdf.service'
   imports: [AuditModule],
   controllers: [ResumePdfConfigController, ResumeController, ResumePdfController],
   providers: [ResumePdfConfigService, ResumeService, ResumePdfService, ResumePdfRenderer],
+  /**
+   * 只导出**别的模块真正需要**的两个：
+   * - `ResumeService`：`ShareModule` 要用 `findPublished`（它已带 `publishedAt` 过滤）
+   * - `ResumePdfService`：分享的 PDF 下载要用 `exportForShare`
+   *
+   * 不整包导出：`exports` 一旦铺开，模块边界就靠自觉了 —— 以后谁想用什么直接就能拿到，
+   * 依赖关系也就不再可读。
+   *
+   * ⚠️ 少了这一行，`ShareModule` 会在**启动时**抛
+   * `UnknownDependenciesException: Nest can't resolve dependencies of the ShareService`，
+   * 而 `typecheck` 完全看不出问题 —— 已由 `share.module.di.test.ts` 兜住。
+   */
+  exports: [ResumeService, ResumePdfService],
 })
 export class ResumeModule {}
