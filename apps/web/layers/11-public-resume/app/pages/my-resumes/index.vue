@@ -3,6 +3,13 @@ import { normalizeApiError } from '@rs/common'
 import { useQuery } from '@pinia/colada'
 import { queryKeys } from '~/lib/query-keys'
 import { createResumeDraftApi } from '#layers/public-resume/app/apis/resume-draft'
+import { createShareApi } from '#layers/public-resume/app/apis/share'
+import MySharePopover from '#layers/ui/app/components/MySharePopover.vue'
+import {
+  SHARE_DEFAULT_EXPIRY,
+  SHARE_EXPIRY_CHOICES,
+  type ShareExpiryOption,
+} from '#layers/public-resume/app/config/share'
 import { createDemoResumeDocument } from '#layers/public-resume/app/utils/resume-document'
 import { capabilitySample } from '#layers/public-resume/app/config/capability-sample'
 import ResumeAdminLoginModal from '#layers/public-resume/app/components/resume/ResumeAdminLoginModal.vue'
@@ -243,6 +250,43 @@ async function togglePublished(item: PublishableItem) {
   }
 }
 
+// ── 分享链接 ────────────────────────────────────────────────────────
+// 入口**只对已发布出现**：未发布的简历公开读是 404，给对方链接也打不开。
+const shareApi = createShareApi()
+/** 每条简历已生成的链接（按 resumeId 索引）；空 = 还没建过 */
+const shareUrls = reactive<Record<number, string>>({})
+/** 每条简历当前选中的有效期 */
+const shareExpiry = reactive<Record<number, ShareExpiryOption>>({})
+const shareBusyId = ref<number | null>(null)
+
+/**
+ * 建链。
+ *
+ * 用**绝对地址**拼分享 URL（`window.location.origin`）：复制出去要能在任何地方打开。
+ * 这里只在点击时执行，所以不必担心 SSR 没有 `window`。
+ */
+async function createShareLink(item: { id: number; name: string }): Promise<void> {
+  if (shareBusyId.value) {
+    return
+  }
+  shareBusyId.value = item.id
+  try {
+    const created = await shareApi.create(item.id, {
+      expiresIn: shareExpiry[item.id] ?? SHARE_DEFAULT_EXPIRY,
+    })
+    shareUrls[item.id] = `${window.location.origin}/share/${created.token}`
+    toast.add({
+      title: '分享链接已创建',
+      description: `有效期至 ${new Date(created.expiresAt).toLocaleString('zh-CN')}`,
+      color: 'success',
+    })
+  } catch (problem) {
+    toast.add({ title: '创建分享链接失败', description: normalizeApiError(problem).message, color: 'error' })
+  } finally {
+    shareBusyId.value = null
+  }
+}
+
 const renameOpen = ref(false)
 const renameTarget = ref<{ id: number; name: string } | null>(null)
 const renameDraft = ref('')
@@ -455,6 +499,44 @@ function formatUpdatedAt(value: string) {
                     color="neutral"
                     variant="ghost"
                     :aria-label="`PDF 预览「${item.name}」`"
+                  />
+                </UTooltip>
+
+                <!--
+                  分享入口（DAO-050）：**只对已发布出现**。
+                  未发布时给一个禁用图标 + 提示，而不是干脆不显示 ——
+                  否则作者会以为"这个功能不存在"，而不是"我还差一步"。
+                -->
+                <MySharePopover v-if="item.publishedAt" :url="shareUrls[item.id]" :generating="shareBusyId === item.id">
+                  <template #create>
+                    <p class="text-sm font-medium">分享「{{ item.name }}」</p>
+                    <USelect
+                      :model-value="shareExpiry[item.id] ?? SHARE_DEFAULT_EXPIRY"
+                      :items="SHARE_EXPIRY_CHOICES"
+                      value-key="value"
+                      label-key="label"
+                      size="sm"
+                      aria-label="链接有效期"
+                      @update:model-value="shareExpiry[item.id] = $event"
+                    />
+                    <UButton
+                      block
+                      size="sm"
+                      :loading="shareBusyId === item.id"
+                      label="生成分享链接"
+                      @click="createShareLink(item)"
+                    />
+                    <p class="text-xs text-muted">拿到链接的人无需登录即可查看；过期或撤销后立即失效。</p>
+                  </template>
+                </MySharePopover>
+                <UTooltip v-else text="先发布才能分享">
+                  <UButton
+                    icon="i-lucide-share-2"
+                    size="xs"
+                    color="neutral"
+                    variant="ghost"
+                    disabled
+                    aria-label="先发布才能分享"
                   />
                 </UTooltip>
 
