@@ -298,6 +298,8 @@ test('两个公开读的 where 都带发布态过滤（未发布读不到）', a
 
 test('发布写时间戳；取消发布置 null，且命中默认那份时连带取消默认', async () => {
   const updates: Array<Record<string, unknown>> = []
+  /** 取消发布时要**物化撤销**该简历的所有分享链接（Owner 2026-10-19 定） */
+  const revokes: Array<{ where: Record<string, unknown>; data: Record<string, unknown> }> = []
   const tx = {
     resume: {
       // 未发布但仍是默认 —— 正是"取消发布要连带清默认"的场景
@@ -305,6 +307,12 @@ test('发布写时间戳；取消发布置 null，且命中默认那份时连带
       update: async (args: { data: Record<string, unknown> }) => {
         updates.push(args.data)
         return { id: 7, publishedAt: args.data.publishedAt ?? null }
+      },
+    },
+    shareLink: {
+      updateMany: async (args: { where: Record<string, unknown>; data: Record<string, unknown> }) => {
+        revokes.push(args)
+        return { count: 2 }
       },
     },
   }
@@ -318,6 +326,8 @@ test('发布写时间戳；取消发布置 null，且命中默认那份时连带
   const published = await service.setPublished(7, true, admin)
   assert.ok(updates[0].publishedAt instanceof Date, '发布应写入当前时间')
   assert.equal(typeof published.publishedAt, 'string')
+  // 发布**不该**撤销任何链接
+  assert.equal(revokes.length, 0, '发布不应撤销分享链接')
 
   // 审计必须写：覆盖率测试只能证明"某处引用了常量"，证明"确实调用"要靠这里
   const publishAudit = auditRecords[auditRecords.length - 1] as unknown[]
@@ -335,6 +345,13 @@ test('发布写时间戳；取消发布置 null，且命中默认那份时连带
   // 第一次 update 置 null，第二次清 isDefault —— 维持 `默认 ⇒ 已发布` 不变量
   assert.equal(updates.length, 2)
   assert.equal(updates[1].isDefault, false)
+
+  // 取消发布必须**物化撤销**链接，而不是靠读的时候判断 ——
+  // 派生判断会让"重新发布"把旧链接复活，而那是一条已经发给外部的链接。
+  assert.equal(revokes.length, 1, '取消发布应撤销该简历的分享链接')
+  assert.deepEqual(revokes[0].where, { resumeId: 7, revokedAt: null }, '只撤销仍然有效的那些')
+  assert.equal((revokes[0].data as { revokedReason: string }).revokedReason, 'unpublished')
+  assert.ok((revokes[0].data as { revokedAt: Date }).revokedAt instanceof Date)
 })
 
 test('把未发布的简历设为默认 → 400 且带可引导的错误码（不自动帮它发布）', async () => {

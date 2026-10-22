@@ -298,6 +298,15 @@ model ShareLink {
   /// 物化撤销：主动撤销、或简历取消发布时写入。**一旦写入即永久失效**，重新发布也不会复活
   revokedAt DateTime? @map("revoked_at")
 
+  /// **为什么**失效。只靠 `revokedAt` 说不清 —— 它有两个写入来源（作者主动 / 取消发布批量），
+  /// admin 与访客展示都需要区分。取值见 `share.types.ts` 的 `ShareRevokeReason`。
+  revokedReason String? @map("revoked_reason") @db.VarChar(32)
+
+  /// 给这条链接起个名（"投给 A 公司"）。多条链接并存时，光看 token 无法区分
+  label String? @db.VarChar(64)
+  /// 可选备注（谁、什么场合、为什么给这条）
+  note  String? @db.VarChar(255)
+
   /// 预留的 AI 能力位：本轮**只存不用**，等 AI 上线再校验
   allowAi  Boolean @default(false) @map("allow_ai")
   /// 是否允许通过该链接下载 PDF（访客没有登录态，所以需要这条授权）
@@ -306,10 +315,62 @@ model ShareLink {
   createdAt    DateTime  @default(now()) @map("created_at")
   lastAccessAt DateTime? @map("last_access_at")
 
-  resume  Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-  creator User   @relation("ShareLinkCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  resume  Resume       @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  creator User         @relation("ShareLinkCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  events  ShareEvent[]
 
   @@index([resumeId])
   @@index([expiresAt])
   @@map("share_links")
+}
+
+/// 分享链接的**访问事件**（业务事实）。
+///
+/// ## 为什么与 `audit_logs` 分表
+///
+/// `audit_logs` 记的是**有 actor 的强一致操作**（谁改了什么），写入量小、可追溯；
+/// 本表记的是**匿名的高频访问**，写得多、可清理。两者的保留期、索引、隐私口径都不同。
+///
+/// ## 为什么可分析的维度是**列**而不是自由 `metadata JSON`
+///
+/// 自由 JSON 无法索引、无法约束，口径会随每个人写。所以凡是将来要按它筛选/聚合的
+/// 维度（版本号、主题、外链 host、页面路径）都提升为列；**没有残留的 JSON 字段** ——
+/// 这样"随手塞点什么进去"在结构上就不可能。
+model ShareEvent {
+  id      BigInt @id @default(autoincrement())
+  shareId String @map("share_id")
+
+  /// 事件名，点分命名：`share.link.viewed` / `share.pdf.downloaded` / …
+  /// 取值必须来自 `share.types.ts` 的登记表，新增事件先登记
+  name String @db.VarChar(64)
+  /// 归类：access | export | interact —— 便于"某类事件"聚合，也便于加新事件而不改查询
+  category String @db.VarChar(32)
+  /// 动作：viewed | downloaded | clicked | switched | chatted
+  action String @db.VarChar(32)
+
+  /// 这条简历的**第几版** —— 回答"改完之后还有没有人看"
+  revision Int? @db.SmallInt
+  /// 主题切换的目标主题
+  themeKey String? @map("theme_key") @db.VarChar(32)
+  /// 外链点击：**只存 host，不存完整 URL**（完整 URL 可能含私密参数）
+  targetHost String? @map("target_host") @db.VarChar(255)
+  /// 在哪个页面触发
+  pagePath String? @map("page_path") @db.VarChar(255)
+
+  /// 访客维度。按设计文档 §4 决策 4：完整 IP 是有意采集的可识别信息，仅学习/展示用途
+  visitorKey String? @map("visitor_key") @db.VarChar(64)
+  sessionId  String? @map("session_id") @db.VarChar(64)
+  ipAddress  String? @map("ip_address") @db.VarChar(64)
+  userAgent  String? @map("user_agent") @db.VarChar(512)
+  referrer   String? @db.VarChar(512)
+
+  /// 客户端时间与服务端接收时间**分开存**：两者差太多说明客户端时钟/时区有问题
+  occurredAt DateTime @default(now()) @map("occurred_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  share ShareLink @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
+  @@index([shareId, name, createdAt])
+  @@index([shareId, category, createdAt])
+  @@map("share_events")
 }

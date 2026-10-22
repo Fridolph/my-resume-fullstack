@@ -14,6 +14,10 @@ export const shareCreateSchema = z
     /** 预留的 AI 能力位：本轮只存不用 */
     allowAi: z.boolean().optional(),
     allowPdf: z.boolean().optional(),
+    /** 给这条链接起个名（"投给 A 公司"）—— 多条并存时光看 token 无法区分 */
+    label: z.string().trim().max(64).optional(),
+    /** 可选备注：谁、什么场合、为什么给这条 */
+    note: z.string().trim().max(255).optional(),
   })
   .refine(input => input.expiresIn !== 'custom' || typeof input.customDays === 'number', {
     message: '选择自定义有效期时必须给 customDays',

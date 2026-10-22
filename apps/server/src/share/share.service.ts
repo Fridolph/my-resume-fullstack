@@ -17,6 +17,9 @@ export interface ShareLinkSummary {
   token: string
   expiresAt: string
   revokedAt: string | null
+  revokedReason: string | null
+  label: string | null
+  note: string | null
   allowAi: boolean
   allowPdf: boolean
   createdAt: string
@@ -74,6 +77,8 @@ export class ShareService {
         // 预留位：本轮只存不用，等 AI 上线再在鉴权处校验
         allowAi: input.allowAi ?? false,
         allowPdf: input.allowPdf ?? true,
+        label: input.label ?? null,
+        note: input.note ?? null,
       },
     })
 
@@ -103,7 +108,8 @@ export class ShareService {
 
     const updated = await this.prisma.shareLink.update({
       where: { id: shareId },
-      data: { revokedAt: new Date() },
+      // 记录**为什么**撤销：admin 与访客提示都需要区分"作者主动撤销"与"取消发布导致"
+      data: { revokedAt: new Date(), revokedReason: 'manual' },
       select: { id: true, revokedAt: true },
     })
     return { id: updated.id, revokedAt: updated.revokedAt?.toISOString() ?? '' }
@@ -121,6 +127,7 @@ export class ShareService {
         resumeId: true,
         expiresAt: true,
         revokedAt: true,
+        revokedReason: true,
         allowPdf: true,
         resume: {
           select: { publishedAt: true, workspace: { select: { user: { select: { deletedAt: true } } } } },
@@ -132,7 +139,9 @@ export class ShareService {
       throw new NotFoundException('分享链接不存在', { errorCode: API_ERROR_CODES.SHARE_NOT_FOUND })
     }
     if (link.revokedAt) {
-      throw new NotFoundException('这条分享链接已被撤销', { errorCode: API_ERROR_CODES.SHARE_REVOKED })
+      throw link.revokedReason === 'unpublished'
+        ? new NotFoundException('这份简历已不再公开', { errorCode: API_ERROR_CODES.SHARE_UNPUBLISHED })
+        : new NotFoundException('这条分享链接已被撤销', { errorCode: API_ERROR_CODES.SHARE_REVOKED })
     }
     if (link.expiresAt.getTime() <= Date.now()) {
       throw new NotFoundException('这条分享链接已过期', { errorCode: API_ERROR_CODES.SHARE_EXPIRED })
@@ -164,6 +173,7 @@ export class ShareService {
         resumeId: true,
         expiresAt: true,
         revokedAt: true,
+        revokedReason: true,
         resume: {
           select: { id: true, publishedAt: true, workspace: { select: { user: { select: { deletedAt: true } } } } },
         },
@@ -173,12 +183,17 @@ export class ShareService {
     if (!link) {
       throw new NotFoundException('分享链接不存在', { errorCode: API_ERROR_CODES.SHARE_NOT_FOUND })
     }
+    // 撤销按**原因**给不同的码：因取消发布被批量撤销的，对访客该说"这份简历已不再公开"，
+    // 而不是"作者撤销了链接" —— 后者会让访客以为作者只想挡住他一个人
     if (link.revokedAt) {
-      throw new NotFoundException('这条分享链接已被撤销', { errorCode: API_ERROR_CODES.SHARE_REVOKED })
+      throw link.revokedReason === 'unpublished'
+        ? new NotFoundException('这份简历已不再公开', { errorCode: API_ERROR_CODES.SHARE_UNPUBLISHED })
+        : new NotFoundException('这条分享链接已被撤销', { errorCode: API_ERROR_CODES.SHARE_REVOKED })
     }
     if (link.expiresAt.getTime() <= Date.now()) {
       throw new NotFoundException('这条分享链接已过期', { errorCode: API_ERROR_CODES.SHARE_EXPIRED })
     }
+    // 兜底：物化撤销已在上游覆盖，这里仍保留派生判断（旧数据 / 未来改策略时不至于放过）
     if (!link.resume.publishedAt || link.resume.workspace.user.deletedAt) {
       throw new NotFoundException('这份简历已不再公开', { errorCode: API_ERROR_CODES.SHARE_UNPUBLISHED })
     }
@@ -197,6 +212,9 @@ function toSummary(link: {
   token: string
   expiresAt: Date
   revokedAt: Date | null
+  revokedReason: string | null
+  label: string | null
+  note: string | null
   allowAi: boolean
   allowPdf: boolean
   createdAt: Date
@@ -206,6 +224,9 @@ function toSummary(link: {
     token: link.token,
     expiresAt: link.expiresAt.toISOString(),
     revokedAt: link.revokedAt?.toISOString() ?? null,
+    revokedReason: link.revokedReason,
+    label: link.label,
+    note: link.note,
     allowAi: link.allowAi,
     allowPdf: link.allowPdf,
     createdAt: link.createdAt.toISOString(),

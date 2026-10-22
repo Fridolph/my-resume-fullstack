@@ -165,6 +165,22 @@ export class ResumeService {
         await transaction.resume.update({ where: { id }, data: { isDefault: false } })
       }
 
+      // **物化撤销该简历的所有分享链接**（Owner 2026-10-19 定的语义）。
+      //
+      // 为什么必须在"取消发布"这里真的写 `revokedAt`，而不是读的时候判断：
+      // 派生判断（`publishedAt IS NULL` ⇒ 不可读）会让**重新发布后旧链接复活** ——
+      // 一条已经发给外部、可能已经扩散的链接，不该因为作者"改一下再发"而悄悄恢复可用。
+      // 所以撤销是**永久**的，重新分享必须新建链接。
+      //
+      // 与这次可见性变更**同一个事务**：撤销与取消发布要么都成立、要么都不成立，
+      // 否则会出现"简历已下架、但链接还能打开"的窗口。
+      if (!published) {
+        await transaction.shareLink.updateMany({
+          where: { resumeId: id, revokedAt: null },
+          data: { revokedAt: new Date(), revokedReason: 'unpublished' },
+        })
+      }
+
       // 与写状态**同一个事务**：审计缺席时这次可见性变更也不该成立（与删除、设默认同一口径）
       await this.auditService.recordResumeSetPublished(transaction, currentUser, {
         resumeId: id,

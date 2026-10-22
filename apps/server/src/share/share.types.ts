@@ -59,3 +59,57 @@ export function resolveShareExpiry(
 
   return { expiresAt: new Date(now.getTime() + days * DAY_MS), days }
 }
+
+/**
+ * 链接失效的**原因**。
+ *
+ * 为什么不能只看 `revokedAt`：它有两个写入来源 —— 作者主动撤销、简历取消发布时批量撤销。
+ * 同一个时间戳字段表达不了"为什么死"，而 admin（R4）与访客提示都需要区分。
+ */
+export const SHARE_REVOKE_REASONS = ['manual', 'unpublished', 'resume_deleted'] as const
+export type ShareRevokeReason = (typeof SHARE_REVOKE_REASONS)[number]
+
+/**
+ * 事件登记表（taxonomy）。
+ *
+ * **新增事件必须先在这里登记** —— 没有登记表，半年后同一件事会有三种叫法，
+ * 而"某类事件"的聚合查询就再也写不对了。
+ *
+ * `metadata` 是刻意不存在的：凡是要按它筛选/聚合的维度都做成了列（`revision` /
+ * `themeKey` / `targetHost` / `pagePath`），所以"随手塞点什么进 JSON"在结构上就不可能。
+ */
+export const SHARE_EVENT_TYPES = {
+  linkViewed: { name: 'share.link.viewed', category: 'access', action: 'viewed' },
+  pdfDownloaded: { name: 'share.pdf.downloaded', category: 'export', action: 'downloaded' },
+  aiChatted: { name: 'share.ai.chatted', category: 'interact', action: 'chatted' },
+  externalClicked: { name: 'share.link.external_clicked', category: 'interact', action: 'clicked' },
+  themeSwitched: { name: 'share.theme.switched', category: 'interact', action: 'switched' },
+} as const
+
+export type ShareEventTypeKey = keyof typeof SHARE_EVENT_TYPES
+
+/** 一次事件上报的输入（服务端补齐访客维度，见 `ShareEventSink`） */
+export interface ShareEventInput {
+  shareId: string
+  type: ShareEventTypeKey
+  revision?: number
+  themeKey?: string
+  targetHost?: string
+  pagePath?: string
+  visitorKey?: string
+  sessionId?: string
+  ipAddress?: string
+  userAgent?: string
+  referrer?: string
+  occurredAt?: Date
+}
+
+/**
+ * 事件写入的抽象出口。
+ *
+ * 业务代码**只认这个接口**，不认识数据库。将来接第三方分析平台时，是**加一个实现**，
+ * 业务代码一行不改 —— 这也从结构上避免了"同一次点击既写库又发 SDK"的重复计数。
+ */
+export interface ShareEventSink {
+  record(event: ShareEventInput): Promise<void>
+}
