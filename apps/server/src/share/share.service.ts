@@ -1,12 +1,16 @@
 import { randomBytes } from 'node:crypto'
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import type { PagedResult } from '@rs/common'
 import { API_ERROR_CODES } from '../common/error-codes'
 import type { AuthUser } from '../common/http-context'
 import { PrismaService } from '../prisma/prisma.service'
+import type { Prisma } from '../generated/prisma/client'
 import { ResumeService } from '../resume/resume.service'
 import { PostgresShareEventSink } from './share-event.sink'
-import type { ShareVisitorContext } from './share.types'
+import type { ShareLinkDetail, ShareLinkListItem, ShareVisitorContext } from './share.types'
 import type { ShareCreateDto } from './dto/share-create.schema'
+import type { ShareListQueryDto } from './dto/share-list.schema'
+import type { ShareUpdateDto } from './dto/share-update.schema'
 import { SHARE_MAX_DAYS, resolveShareExpiry } from './share.types'
 
 /** 24 字节随机 → 32 字符 base64url。长度足够，且不含 URL 需要转义的字符 */
@@ -233,6 +237,148 @@ export class ShareService {
 
     return { draft }
   }
+
+  // ── 发布管理页（R4）──────────────────────────────────────────────────
+  //
+  // 这些方法都只返回**本人**的链接（`resume.workspaceUserId`）。管理页与简历列表
+  // 用同一套归属口径：别人的链接不是"被过滤掉"，而是**根本查不到** —— 越权语义一致。
+
+  /**
+   * 本人的分享链接列表。
+   *
+   * 状态筛选的 where **必须覆盖全集**（有效 / 过期 / 已撤销），否则管理页会出现
+   * "三档都查不到"的链接 —— 那种情况最容易被当成数据丢了。
+   */
+  async listOwned(query: ShareListQueryDto, user: AuthUser): Promise<PagedResult<ShareLinkListItem>> {
+    const now = new Date()
+    const statusWhere: Prisma.ShareLinkWhereInput =
+      query.status === 'active'
+        ? { revokedAt: null, expiresAt: { gt: now } }
+        : query.status === 'expired'
+          ? { revokedAt: null, expiresAt: { lte: now } }
+          : query.status === 'revoked'
+            ? { revokedAt: { not: null } }
+            : {}
+
+    const where: Prisma.ShareLinkWhereInput = {
+      ...statusWhere,
+      ...(query.resumeId === undefined ? {} : { resumeId: query.resumeId }),
+      resume: { workspaceUserId: user.userId, workspace: { user: { deletedAt: null } } },
+    }
+
+    const [total, rows] = await this.prisma.$transaction([
+      this.prisma.shareLink.count({ where }),
+      this.prisma.shareLink.findMany({
+        where,
+        // 新建的排前面：管理页的第一诉求是"我刚发的那条"
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+        include: { resume: { select: { name: true, publishedAt: true } } },
+      }),
+    ])
+
+    return {
+      items: rows.map(row => toListItem(row, now)),
+      total,
+      page: query.page,
+      pageSize: query.pageSize,
+    }
+  }
+
+  /**
+   * 单条链接的详情：元信息 + **事件统计**。
+   *
+   * 统计用 `groupBy` 而不是把事件全捞回来数：一条热门链接可能有上万条事件，
+   * 而管理页只需要"看了几次、下了几次"。
+   */
+  async getOwnedDetail(shareId: string, user: AuthUser): Promise<ShareLinkDetail> {
+    const row = await this.findOwned(shareId, user)
+
+    const grouped = await this.prisma.shareEvent.groupBy({
+      by: ['name'],
+      where: { shareId },
+      _count: { _all: true },
+    })
+
+    const recent = await this.prisma.shareEvent.findMany({
+      where: { shareId },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: 20,
+      select: { name: true, action: true, revision: true, createdAt: true },
+    })
+
+    return {
+      ...toListItem(row, new Date()),
+      stats: grouped.map(group => ({ name: group.name, count: group._count._all })).sort((a, b) => b.count - a.count),
+      totalEvents: grouped.reduce((sum, group) => sum + group._count._all, 0),
+      recentEvents: recent.map(event => ({
+        name: event.name,
+        action: event.action,
+        revision: event.revision,
+        createdAt: event.createdAt.toISOString(),
+      })),
+    }
+  }
+
+  /**
+   * 改元信息（`label` / `note`）。
+   *
+   * 只允许这两项 —— `token` / `expiresAt` / `allowPdf` 是授权语义的一部分，
+   * 改它们等于换了一条链接，那应当是"新建 + 撤销旧的"（见 DTO 注释）。
+   */
+  async updateOwnedMeta(shareId: string, input: ShareUpdateDto, user: AuthUser): Promise<ShareLinkSummary> {
+    await this.findOwned(shareId, user)
+
+    const updated = await this.prisma.shareLink.update({
+      where: { id: shareId },
+      data: {
+        ...(input.label === undefined ? {} : { label: input.label }),
+        ...(input.note === undefined ? {} : { note: input.note }),
+      },
+    })
+
+    return toSummary(updated)
+  }
+
+  /**
+   * 按链接 id 撤销（管理页用）。
+   *
+   * 与 `revoke(resumeId, shareId)` 的区别只是**入口形状**：管理页拿到的是链接 id，
+   * 不该为了撤销再知道它属于哪份简历。归属校验仍然照做。
+   */
+  async revokeOwnedById(shareId: string, user: AuthUser): Promise<{ id: string; revokedAt: string }> {
+    const row = await this.findOwned(shareId, user)
+    if (row.revokedAt) {
+      return { id: row.id, revokedAt: row.revokedAt.toISOString() }
+    }
+
+    const updated = await this.prisma.shareLink.update({
+      where: { id: shareId },
+      data: { revokedAt: new Date(), revokedReason: 'manual' },
+      select: { id: true, revokedAt: true },
+    })
+
+    return { id: updated.id, revokedAt: updated.revokedAt?.toISOString() ?? '' }
+  }
+
+  /**
+   * 取一条**属于本人**的链接，否则 404。
+   *
+   * 不区分"不存在"与"不是你的"：区分了就等于告诉对方"这个 id 存在"。
+   */
+  private async findOwned(shareId: string, user: AuthUser) {
+    const row = await this.prisma.shareLink.findFirst({
+      where: { id: shareId, resume: { workspaceUserId: user.userId, workspace: { user: { deletedAt: null } } } },
+      include: { resume: { select: { name: true, publishedAt: true } } },
+    })
+
+    if (!row) {
+      throw new NotFoundException('分享链接不存在', { errorCode: API_ERROR_CODES.SHARE_NOT_FOUND })
+    }
+
+    return row
+  }
 }
 
 function toSummary(link: {
@@ -258,5 +404,53 @@ function toSummary(link: {
     allowAi: link.allowAi,
     allowPdf: link.allowPdf,
     createdAt: link.createdAt.toISOString(),
+  }
+}
+
+/**
+ * 列表行：把库里的行转成管理页要的形状。
+ *
+ * `status` / `expiresInDays` **在服务端算**，不让前端各写一套判断 ——
+ * "已撤销优先于已过期"这条顺序只要有一处写反，管理页就会把撤销的链接显示成"已过期"。
+ */
+function toListItem(
+  link: {
+    id: string
+    token: string
+    resumeId: number
+    expiresAt: Date
+    revokedAt: Date | null
+    revokedReason: string | null
+    label: string | null
+    note: string | null
+    allowAi: boolean
+    allowPdf: boolean
+    createdAt: Date
+    lastAccessAt: Date | null
+    resume: { name: string; publishedAt: Date | null }
+  },
+  now: Date,
+): ShareLinkListItem {
+  const revoked = link.revokedAt !== null
+  const expired = link.expiresAt.getTime() <= now.getTime()
+
+  return {
+    id: link.id,
+    token: link.token,
+    resumeId: link.resumeId,
+    resumeName: link.resume.name,
+    resumePublished: link.resume.publishedAt !== null,
+    expiresAt: link.expiresAt.toISOString(),
+    revokedAt: link.revokedAt?.toISOString() ?? null,
+    revokedReason: link.revokedReason,
+    label: link.label,
+    note: link.note,
+    allowAi: link.allowAi,
+    allowPdf: link.allowPdf,
+    createdAt: link.createdAt.toISOString(),
+    lastAccessAt: link.lastAccessAt?.toISOString() ?? null,
+    // 撤销优先：一条既撤销又过期的链接，管理员该看到"已撤销"（那是有人主动做的事）
+    status: revoked ? 'revoked' : expired ? 'expired' : 'active',
+    expiresInDays: revoked ? null : Math.ceil((link.expiresAt.getTime() - now.getTime()) / 86_400_000),
   }
 }

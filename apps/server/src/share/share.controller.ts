@@ -8,7 +8,9 @@ import {
   HttpCode,
   Ip,
   Param,
+  Patch,
   Post,
+  Query,
   StreamableFile,
   UseGuards,
 } from '@nestjs/common'
@@ -21,6 +23,8 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import { Public } from '../auth/decorators/public.decorator'
 import type { AuthUser } from '../common/http-context'
 import { shareCreateSchema, type ShareCreateDto } from './dto/share-create.schema'
+import { shareListQuerySchema, type ShareListQueryDto } from './dto/share-list.schema'
+import { shareUpdateSchema, type ShareUpdateDto } from './dto/share-update.schema'
 import { shareTokenSchema } from './dto/share-token.schema'
 import { ShareService } from './share.service'
 
@@ -105,5 +109,43 @@ export class ShareController {
       disposition: `attachment; filename="resume.pdf"`,
       length: bytes.length,
     })
+  }
+
+  // ── 发布管理页（R4）──────────────────────────────────────────────────
+  //
+  // 路径用 `shares`（复数）而不是 `share/:token`：复数表示"我的一堆链接"，
+  // 单数 + token 表示"凭券读取"。两者语义不同，不该长得像。
+
+  /** 本人所有分享链接（可按状态 / 简历筛选） */
+  @Get('shares')
+  list(@Query({ schema: shareListQuerySchema }) query: ShareListQueryDto, @CurrentUser() currentUser: AuthUser) {
+    return this.shareService.listOwned(query, currentUser)
+  }
+
+  /** 单条详情：元信息 + 事件统计（被看几次、下载过几次） */
+  @Get('shares/:id')
+  detail(@Param('id') id: string, @CurrentUser() currentUser: AuthUser) {
+    return this.shareService.getOwnedDetail(id, currentUser)
+  }
+
+  /**
+   * 改元信息（`label` / `note`）。
+   *
+   * 只允许这两项：`token` / `expiresAt` / `allowPdf` 是授权语义的一部分，
+   * 改它们等于换了一条链接 —— 应当"新建 + 撤销旧的"，否则这条链接的历史事件会张冠李戴。
+   */
+  @Patch('shares/:id')
+  update(
+    @Param('id') id: string,
+    @Body({ schema: shareUpdateSchema }) updateDto: ShareUpdateDto,
+    @CurrentUser() currentUser: AuthUser,
+  ) {
+    return this.shareService.updateOwnedMeta(id, updateDto, currentUser)
+  }
+
+  /** 按链接 id 撤销（管理页用；与 `DELETE resume/:id/shares/:shareId` 等价） */
+  @Delete('shares/:id')
+  revokeById(@Param('id') id: string, @CurrentUser() currentUser: AuthUser) {
+    return this.shareService.revokeOwnedById(id, currentUser)
   }
 }

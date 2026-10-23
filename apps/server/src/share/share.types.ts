@@ -125,3 +125,33 @@ export interface ShareEventInput {
 export interface ShareEventSink {
   record(event: ShareEventInput): Promise<void>
 }
+
+/** 管理页的一行 */
+export interface ShareLinkListItem {
+  id: string
+  token: string
+  resumeId: number
+  resumeName: string
+  /** 该简历当前是否仍公开 —— 用于解释"为什么这条链接读不了" */
+  resumePublished: boolean
+  expiresAt: string
+  revokedAt: string | null
+  revokedReason: string | null
+  label: string | null
+  note: string | null
+  allowAi: boolean
+  allowPdf: boolean
+  createdAt: string
+  lastAccessAt: string | null
+  /** `active` / `expired` / `revoked` —— 服务端算好，避免前端各写一套判断 */
+  status: 'active' | 'expired' | 'revoked'
+  /** 距离过期的天数（负数=已过期）；`null` = 已撤销，不再谈过期 */
+  expiresInDays: number | null
+}
+
+/** 详情：在列表行上补事件统计 */
+export interface ShareLinkDetail extends ShareLinkListItem {
+  stats: Array<{ name: string; count: number }>
+  totalEvents: number
+  recentEvents: Array<{ name: string; action: string; revision: number | null; createdAt: string }>
+}
