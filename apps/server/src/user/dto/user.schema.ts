@@ -5,7 +5,10 @@ import { z } from 'zod'
  */
 
 export const listUserSchema = z.strictObject({
-  // TODO: page、pageSize、search 的默认值与上限。
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  /** 关键词：用户名 / 昵称 / 邮箱 / 手机任一项包含即可 */
+  q: z.string().trim().max(80).optional(),
 })
 
 export const userIdSchema = z.string().trim().min(1, '用户 ID 不能为空')
@@ -62,15 +65,59 @@ export const createUserSchema = z
  * 不从创建 schema 整体 partial：避免把创号专用字段开放给修改接口。
  * 至少提供一个字段，空字符串仍须通过昵称或头像格式校验。
  */
+/** 手机号：可为空；空串视为"清空"，与 `null` 同义 */
+const optionalPhoneSchema = z
+  .union([
+    /**
+     * ⚠️ 服务端的手机号规则**刻意比前端宽松**（前端用 `@rs/utils` 的 `zPhone`
+     * 做 libphonenumber 严格校验，负责给出好的提示）。
+     *
+     * 两者顺序不能反：服务端一旦比前端更严，就会出现"前端放行、提交被拒"——
+     * 用户没有任何办法自救。服务端的职责是**挡住明显非法**（长度/字符集），
+     * 不是比客户端更懂电话号码。
+     *
+     * 这里之所以不直接复用 `zPhone`：server 的 `moduleResolution` 是 `node`，
+     * **解析不了 `@rs/utils/zodFunc` 这种子路径导出**（只有根导出可用）。
+     */
+    z
+      .string()
+      .trim()
+      .regex(/^\+?[0-9\-\s]{6,20}$/, '手机号格式不正确'),
+    z.literal(''),
+    z.null(),
+  ])
+  .optional()
+  .transform(value => (value === '' || value === null ? null : value))
+
+/**
+ * 局部更新展示资料与联系方式。
+ *
+ * 用户名 / 邮箱 / 手机三列都带 `@unique`：冲突由全局 Filter 把 P2002 转成 409，
+ * 不在 service 里预查 —— 预查挡不住并发（两个人同时改成同一个邮箱）。
+ *
+ * **`/me` 与 `PATCH :id` 复用这一条 schema**：权限差别在 service（本人恒可改自己，
+ * 改别人要超管 + 编辑权限），而不是靠两份 schema 表达。
+ */
 export const updateUserSchema = z
   .strictObject({
+    username: usernameSchema.optional(),
     nickname: nicknameSchema.nullable().optional(),
+    email: optionalEmailSchema,
+    phone: optionalPhoneSchema,
     avatar: avatarSchema.nullable().optional(),
   })
-  .refine(updateUserDto => updateUserDto.nickname !== undefined || updateUserDto.avatar !== undefined, {
-    message: '至少提供一个需要修改的字段',
-    path: ['nickname'],
-  })
+  .refine(
+    updateUserDto =>
+      updateUserDto.username !== undefined ||
+      updateUserDto.nickname !== undefined ||
+      updateUserDto.email !== undefined ||
+      updateUserDto.phone !== undefined ||
+      updateUserDto.avatar !== undefined,
+    {
+      message: '至少提供一个需要修改的字段',
+      path: ['nickname'],
+    },
+  )
 
 /**
  * 本人修改密码的输入边界；旧密码用于证明当前账号控制权，新密码用于生成新的哈希。

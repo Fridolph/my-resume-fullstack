@@ -27,6 +27,23 @@ import type { ChangePasswordDto, ChangeUserRolesDto, CreateUserDto, UpdateUserDt
  * 代价只是同一个事务里多一条 INSERT；这三个动作本身低频，不值得为省这点开销
  * 把一致性丢掉（对照：`changePassword` / `forceLogout` 属会话域，本轮不做审计）。
  */
+/**
+ * 用户信息的**安全投影**：永远排除 `passwordHash`。
+ *
+ * 为什么用一个常量而不是各方法各写一遍 `select`：漏写一处就等于把密码哈希
+ * 带进了某个接口的响应 —— 这种错误不会报错，只会静默泄露。
+ */
+const SAFE_USER_SELECT = {
+  id: true,
+  username: true,
+  nickname: true,
+  email: true,
+  phone: true,
+  avatar: true,
+  createdAt: true,
+  updatedAt: true,
+} as const
+
 @Injectable()
 export class UserService {
   constructor(
@@ -40,8 +57,34 @@ export class UserService {
    * 当前保留模板；后续查询需排除软删除记录，并 select 安全字段。
    */
   async findAll(usersDto: UsersDto) {
-    void usersDto
-    throw new Error('TODO: implement UserService.findAll')
+    const keyword = usersDto.q?.trim()
+    const where: Prisma.UserWhereInput = {
+      // 软删用户既不出现也不可读 —— 与其它查询（遍历/审计）同一口径
+      deletedAt: null,
+      ...(keyword
+        ? {
+            OR: [
+              { username: { contains: keyword, mode: 'insensitive' } },
+              { nickname: { contains: keyword, mode: 'insensitive' } },
+              { email: { contains: keyword, mode: 'insensitive' } },
+              { phone: { contains: keyword } },
+            ],
+          }
+        : {}),
+    }
+
+    const [total, items] = await this.prismaService.$transaction([
+      this.prismaService.user.count({ where }),
+      this.prismaService.user.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip: (usersDto.page - 1) * usersDto.pageSize,
+        take: usersDto.pageSize,
+        select: SAFE_USER_SELECT,
+      }),
+    ])
+
+    return { items, total, page: usersDto.page, pageSize: usersDto.pageSize }
   }
 
   /**
@@ -50,8 +93,24 @@ export class UserService {
    * 当前保留模板；不存在与已删除的用户应采用相同的资源不存在语义。
    */
   async findOne(id: string) {
-    void id
-    throw new Error('TODO: implement UserService.findOne')
+    const user = await this.prismaService.user.findFirst({
+      where: { id, deletedAt: null },
+      select: SAFE_USER_SELECT,
+    })
+
+    // 不存在与已删除返回**同一个** 404：区分了就等于告诉对方"这个 id 存在过"
+    if (!user) {
+      throw new NotFoundException('用户不存在或已删除', {
+        errorCode: API_ERROR_CODES.USER_NOT_FOUND,
+      })
+    }
+
+    return user
+  }
+
+  /** 读**本人**资料。与 `findOne` 同一个安全 select，只是身份来自 Guard 而非路径参数 */
+  async findMe(currentUser: AuthUser) {
+    return this.findOne(currentUser.userId)
   }
 
   /**
@@ -170,21 +229,16 @@ export class UserService {
     }
 
     const data: Prisma.UserUpdateInput = {}
+    if (updateUserDto.username !== undefined) data.username = updateUserDto.username
     if (updateUserDto.nickname !== undefined) data.nickname = updateUserDto.nickname
+    if (updateUserDto.email !== undefined) data.email = updateUserDto.email
+    if (updateUserDto.phone !== undefined) data.phone = updateUserDto.phone
     if (updateUserDto.avatar !== undefined) data.avatar = updateUserDto.avatar
 
     return this.prismaService.user.update({
       where: { id, deletedAt: null },
       data,
-      select: {
-        id: true,
-        username: true,
-        nickname: true,
-        email: true,
-        avatar: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: SAFE_USER_SELECT,
     })
   }
 

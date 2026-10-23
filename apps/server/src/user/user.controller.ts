@@ -26,6 +26,34 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   /**
+   * 读**本人**资料。
+   *
+   * ⚠️ 必须声明在 `@Get(':id')` **之前**：Nest 按声明顺序匹配，
+   * 否则 `/api/user/me` 会命中 `:id` 分支，把 `me` 当成用户 id 去查。
+   *
+   * 为什么需要它而不复用 `GET :id`：那条是**管理**接口（要用户管理权限），
+   * 而"看自己的资料"是每个登录用户的权利 —— 两者的授权面不同，不该共用入口。
+   */
+  @Get('me')
+  findMe(@CurrentUser() currentUser: AuthUser) {
+    return this.userService.findMe(currentUser)
+  }
+
+  /**
+   * 改**本人**资料（用户名 / 昵称 / 邮箱 / 手机 / 头像）。
+   *
+   * 复用 `UserService.update`：它内部已有"本人恒可改自己、改别人要超管 + 编辑权限"
+   * 的分支 —— 一份权限逻辑，两个入口，不会分叉。
+   *
+   * 用户名 / 邮箱 / 手机都带 `@unique`：冲突由全局 Filter 把 P2002 转成 409，
+   * 不在 service 里预查（预查挡不住并发）。
+   */
+  @Patch('me')
+  updateMe(@Body({ schema: updateUserSchema }) updateUserDto: UpdateUserDto, @CurrentUser() currentUser: AuthUser) {
+    return this.userService.update(currentUser.userId, updateUserDto, currentUser)
+  }
+
+  /**
    * 查询用户列表。
    */
   @Get()
