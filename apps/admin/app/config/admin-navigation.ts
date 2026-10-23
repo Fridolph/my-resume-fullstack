@@ -34,9 +34,16 @@ export const adminNavigation: AdminNavigationItem[] = [
     to: '/audit',
   },
   {
+    // 设置里的子项：**我的资料**改的是账号本身，其余是项目配置 ——
+    // 混在一起会让"改个昵称"也要求配置权限，权限面就错了。
     label: 'Settings',
     icon: 'i-lucide-settings-2',
-    to: '/settings',
+    children: [
+      { label: '我的资料', to: '/settings/user' },
+      { label: 'Company profile', to: '/settings/company' },
+      { label: 'Team', to: '/settings/team' },
+      { label: 'Print config', to: '/settings/print-config' },
+    ],
   },
   {
     label: 'Comps',
