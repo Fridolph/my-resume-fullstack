@@ -6,7 +6,9 @@ export interface ShareLinkCreated {
   token: string
   expiresAt: string
   revokedAt: string | null
-  allowAi: boolean
+  /** `null` = 不开放 AI */
+  aiQuota: number | null
+  aiUsed: number
   allowPdf: boolean
   createdAt: string
 }
@@ -34,7 +36,7 @@ export function createShareApi() {
       $api<{ draft: ResumeDraftResponse }>(`/share/${encodeURIComponent(token)}`, { silent: true, retry: 0 }),
     create: (
       resumeId: number,
-      input: { expiresIn: ShareExpiryOption; customDays?: number; allowAi?: boolean; allowPdf?: boolean },
+      input: { expiresIn: ShareExpiryOption; customDays?: number; aiQuota?: number | null; allowPdf?: boolean },
     ) =>
       $api<ShareLinkCreated>(`/resume/${resumeId}/shares`, {
         method: 'POST',

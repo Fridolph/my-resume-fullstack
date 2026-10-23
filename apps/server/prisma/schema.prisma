@@ -307,8 +307,11 @@ model ShareLink {
   /// 可选备注（谁、什么场合、为什么给这条）
   note  String? @db.VarChar(255)
 
-  /// 预留的 AI 能力位：本轮**只存不用**，等 AI 上线再校验
-  allowAi  Boolean @default(false) @map("allow_ai")
+  /// AI 对话**轮数配额**。`null` = 不开放 AI（不再用单独的布尔 —— 布尔表达不了"多少次"）
+  aiQuota Int? @map("ai_quota") @db.SmallInt
+  /// 已消耗轮数。配额扣减走 `UPDATE ... WHERE ai_used < ai_quota` 才是**原子**的，
+  /// 靠"先 count 事件再判断"在并发下会超卖
+  aiUsed  Int  @default(0) @map("ai_used")
   /// 是否允许通过该链接下载 PDF（访客没有登录态，所以需要这条授权）
   allowPdf Boolean @default(true) @map("allow_pdf")
 

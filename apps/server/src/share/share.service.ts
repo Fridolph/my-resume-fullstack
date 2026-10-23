@@ -26,7 +26,9 @@ export interface ShareLinkSummary {
   revokedReason: string | null
   label: string | null
   note: string | null
-  allowAi: boolean
+  /** `null` = 不开放 AI */
+  aiQuota: number | null
+  aiUsed: number
   allowPdf: boolean
   createdAt: string
 }
@@ -82,8 +84,9 @@ export class ShareService {
         resumeId,
         createdBy: user.userId,
         expiresAt: expiry.expiresAt,
-        // 预留位：本轮只存不用，等 AI 上线再在鉴权处校验
-        allowAi: input.allowAi ?? false,
+        // AI 配额挂在**链接**上（Owner 2026-10-22）：`shareId` 是 AI 能力的唯一读取标识，
+        // 按简历或用户计数会把多条链接的用量混在一起
+        aiQuota: input.aiQuota ?? null,
         allowPdf: input.allowPdf ?? true,
         label: input.label ?? null,
         note: input.note ?? null,
@@ -389,7 +392,9 @@ function toSummary(link: {
   revokedReason: string | null
   label: string | null
   note: string | null
-  allowAi: boolean
+  /** `null` = 不开放 AI */
+  aiQuota: number | null
+  aiUsed: number
   allowPdf: boolean
   createdAt: Date
 }): ShareLinkSummary {
@@ -401,7 +406,8 @@ function toSummary(link: {
     revokedReason: link.revokedReason,
     label: link.label,
     note: link.note,
-    allowAi: link.allowAi,
+    aiQuota: link.aiQuota,
+    aiUsed: link.aiUsed,
     allowPdf: link.allowPdf,
     createdAt: link.createdAt.toISOString(),
   }
@@ -423,7 +429,9 @@ function toListItem(
     revokedReason: string | null
     label: string | null
     note: string | null
-    allowAi: boolean
+    /** `null` = 不开放 AI */
+    aiQuota: number | null
+    aiUsed: number
     allowPdf: boolean
     createdAt: Date
     lastAccessAt: Date | null
@@ -445,7 +453,8 @@ function toListItem(
     revokedReason: link.revokedReason,
     label: link.label,
     note: link.note,
-    allowAi: link.allowAi,
+    aiQuota: link.aiQuota,
+    aiUsed: link.aiUsed,
     allowPdf: link.allowPdf,
     createdAt: link.createdAt.toISOString(),
     lastAccessAt: link.lastAccessAt?.toISOString() ?? null,

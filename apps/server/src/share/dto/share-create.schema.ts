@@ -11,8 +11,13 @@ export const shareCreateSchema = z
     expiresIn: z.enum(SHARE_EXPIRY_OPTIONS),
     /** `expiresIn === 'custom'` 时必填，1..90 */
     customDays: z.number().int().min(1).max(SHARE_MAX_DAYS).optional(),
-    /** 预留的 AI 能力位：本轮只存不用 */
-    allowAi: z.boolean().optional(),
+    /**
+     * AI 对话轮数配额。**不传 / `null` = 不开放**（与"开放但 0 轮"是两件事）。
+     *
+     * 上限 200 是防呆：一条链接给一个人用，几百轮已经远超正常对话量；
+     * 更大的量应当走"多条链接"，那样额度与统计天然隔离。
+     */
+    aiQuota: z.number().int().min(1).max(200).nullable().optional(),
     allowPdf: z.boolean().optional(),
     /** 给这条链接起个名（"投给 A 公司"）—— 多条并存时光看 token 无法区分 */
     label: z.string().trim().max(64).optional(),

@@ -139,7 +139,9 @@ export interface ShareLinkListItem {
   revokedReason: string | null
   label: string | null
   note: string | null
-  allowAi: boolean
+  /** `null` = 不开放 AI */
+  aiQuota: number | null
+  aiUsed: number
   allowPdf: boolean
   createdAt: string
   lastAccessAt: string | null
