@@ -257,13 +257,25 @@ const shareApi = createShareApi()
 const shareUrls = reactive<Record<number, string>>({})
 /** 每条简历当前选中的有效期 */
 const shareExpiry = reactive<Record<number, ShareExpiryOption>>({})
+/** 本次分享的备注（写入 `label`）—— 管理页光看 id 分不清用途 */
+const shareLabel = reactive<Record<number, string>>({})
+/** 是否允许访客下载 PDF */
+const shareAllowPdf = reactive<Record<number, boolean>>({})
+/** AI 轮数配额：`null` = 不开放；数字 = 开放且限这么多轮 */
+const shareAiQuota = reactive<Record<number, number | null>>({})
 const shareBusyId = ref<number | null>(null)
+
+/** AI 配额上限，与后端 `shareCreateSchema` 的 200 保持一致 */
+const SHARE_AI_QUOTA_MAX = 200
 
 /**
  * 建链。
  *
  * 用**绝对地址**拼分享 URL（`window.location.origin`）：复制出去要能在任何地方打开。
  * 这里只在点击时执行，所以不必担心 SSR 没有 `window`。
+ *
+ * **每次点击都新建一条**（Owner 2026-10-22）：旧链接留在 admin 里管理，
+ * 不复用 —— 复用会让"这次发给谁、什么时候过期"变得说不清。
  */
 async function createShareLink(item: { id: number; name: string }): Promise<void> {
   if (shareBusyId.value) {
@@ -271,8 +283,12 @@ async function createShareLink(item: { id: number; name: string }): Promise<void
   }
   shareBusyId.value = item.id
   try {
+    const label = shareLabel[item.id]?.trim()
     const created = await shareApi.create(item.id, {
       expiresIn: shareExpiry[item.id] ?? SHARE_DEFAULT_EXPIRY,
+      allowPdf: shareAllowPdf[item.id] ?? true,
+      aiQuota: shareAiQuota[item.id] ?? null,
+      ...(label ? { label } : {}),
     })
     shareUrls[item.id] = `${window.location.origin}/share/${created.token}`
     toast.add({
@@ -285,6 +301,49 @@ async function createShareLink(item: { id: number; name: string }): Promise<void
   } finally {
     shareBusyId.value = null
   }
+}
+
+/**
+ * 关掉弹层时清空本次生成的链接与备注。
+ *
+ * 目的是让**每次分享都是一条新链接**：重开弹层若还显示上次那条，
+ * 用户会以为"又分享了一次"（其实只是把旧链接又看了一遍）。
+ */
+function resetShareDraft(id: number): void {
+  shareUrls[id] = ''
+  shareLabel[id] = ''
+}
+
+/**
+ * AI 轮数输入 → 配额值。
+ *
+ * 空输入 = **不开放**（`null`），不是"0 轮" —— 两者对访客的意义完全不同：
+ * 前者是"这条链接没有 AI 入口"，后者是"有入口但立刻用完"。
+ * 超上限时收敛到上限（真正的强制在服务端 schema）。
+ */
+function onAiQuotaChange(id: number, value: string | number): void {
+  const raw = String(value).trim()
+  if (raw === '') {
+    shareAiQuota[id] = null
+    return
+  }
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    shareAiQuota[id] = null
+    return
+  }
+  shareAiQuota[id] = Math.min(Math.floor(parsed), SHARE_AI_QUOTA_MAX)
+}
+
+/**
+ * 配额 → 输入框的值。
+ *
+ * `UInput` 的 model 只接受字符串，所以这里统一成 `''` 或数字串；
+ * 空串与 `null` 是同一个意思（不开放）。
+ */
+function aiQuotaInput(id: number): string {
+  const value = shareAiQuota[id]
+  return value === null || value === undefined ? '' : String(value)
 }
 
 const renameOpen = ref(false)
@@ -507,18 +566,62 @@ function formatUpdatedAt(value: string) {
                   未发布时给一个禁用图标 + 提示，而不是干脆不显示 ——
                   否则作者会以为"这个功能不存在"，而不是"我还差一步"。
                 -->
-                <MySharePopover v-if="item.publishedAt" :url="shareUrls[item.id]" :generating="shareBusyId === item.id">
+                <MySharePopover
+                  v-if="item.publishedAt"
+                  :url="shareUrls[item.id]"
+                  :generating="shareBusyId === item.id"
+                  @close="resetShareDraft(item.id)"
+                >
                   <template #create>
                     <p class="text-sm font-medium">分享「{{ item.name }}」</p>
-                    <USelect
-                      :model-value="shareExpiry[item.id] ?? SHARE_DEFAULT_EXPIRY"
-                      :items="SHARE_EXPIRY_CHOICES"
-                      value-key="value"
-                      label-key="label"
-                      size="sm"
-                      aria-label="链接有效期"
-                      @update:model-value="shareExpiry[item.id] = $event"
+
+                    <!--
+                      备注写进 `label`：管理页里会有一堆链接，光看 id 分不清
+                      "这条是投给谁的、做什么用的"。
+                    -->
+                    <UFormField label="备注（这次分享给谁 / 做什么）" size="sm">
+                      <UInput
+                        v-model="shareLabel[item.id]"
+                        size="sm"
+                        maxlength="64"
+                        placeholder="例如：投给 A 公司 / 内推给老王"
+                      />
+                    </UFormField>
+
+                    <UFormField label="有效期" size="sm">
+                      <USelect
+                        :model-value="shareExpiry[item.id] ?? SHARE_DEFAULT_EXPIRY"
+                        :items="SHARE_EXPIRY_CHOICES"
+                        value-key="value"
+                        label-key="label"
+                        size="sm"
+                        aria-label="链接有效期"
+                        @update:model-value="shareExpiry[item.id] = $event"
+                      />
+                    </UFormField>
+
+                    <USwitch
+                      :model-value="shareAllowPdf[item.id] ?? true"
+                      label="允许下载 PDF"
+                      @update:model-value="shareAllowPdf[item.id] = $event"
                     />
+
+                    <!--
+                      AI 轮数留空 = **不开放**（不是 0 轮）。两者对访客意义不同：
+                      前者没有入口，后者有入口但立刻用完。
+                    -->
+                    <UFormField label="AI 对话轮数（留空 = 不开放）" size="sm">
+                      <UInput
+                        :model-value="aiQuotaInput(item.id)"
+                        type="number"
+                        min="1"
+                        :max="SHARE_AI_QUOTA_MAX"
+                        size="sm"
+                        placeholder="例如：20"
+                        @update:model-value="onAiQuotaChange(item.id, $event)"
+                      />
+                    </UFormField>
+
                     <UButton
                       block
                       size="sm"
@@ -526,7 +629,21 @@ function formatUpdatedAt(value: string) {
                       label="生成分享链接"
                       @click="createShareLink(item)"
                     />
-                    <p class="text-xs text-muted">拿到链接的人无需登录即可查看；过期或撤销后立即失效。</p>
+                    <p class="text-xs text-muted">
+                      拿到链接的人无需登录即可查看；过期或撤销后立即失效。每次分享都会生成**新的**链接，旧的可在后台管理。
+                    </p>
+                  </template>
+
+                  <!-- 已经是"新链接"了：想再要一条就回创建表单，不复用这一条 -->
+                  <template #footer>
+                    <UButton
+                      size="xs"
+                      block
+                      color="neutral"
+                      variant="ghost"
+                      label="再生成一条"
+                      @click="resetShareDraft(item.id)"
+                    />
                   </template>
                 </MySharePopover>
                 <UTooltip v-else text="先发布才能分享">

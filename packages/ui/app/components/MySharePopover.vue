@@ -28,6 +28,14 @@ const props = defineProps<{
   copiedText?: string
 }>()
 
+/**
+ * 弹层关闭。
+ *
+ * 调用方靠它把"已生成的这条链接"清掉 —— **每次分享都该是一条新链接**。
+ * 重开弹层时若还显示上次那条，看起来像"复用了旧链接"（实际是两条，只是界面误导）。
+ */
+const emit = defineEmits<{ close: [] }>()
+
 const toast = useToast()
 const copied = ref(false)
 
@@ -65,7 +73,7 @@ async function copyLink(): Promise<void> {
 </script>
 
 <template>
-  <UPopover :content="{ align: 'end' }">
+  <UPopover :content="{ align: 'end' }" @update:open="value => !value && emit('close')">
     <slot name="trigger">
       <UButton
         color="neutral"
