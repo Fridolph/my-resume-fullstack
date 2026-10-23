@@ -134,6 +134,19 @@ function clearQuery() {
  * ⚠️ 首屏 SSR 的数据注入依赖 `@pinia/colada-nuxt` 的 payload 插件，
  * 首次加载的观感需要实看确认（缓存命中的二次进入才体现收益）。
  */
+const queryCache = useQueryCache()
+
+/**
+ * 变更后**失效整个列表前缀**，而不是只 `refresh()` 当前那条 key。
+ *
+ * 为什么：`refresh()` 只重取"当前筛选条件下的那一条"。发布/重命名/删除之后，
+ * 用户往往会改筛选或翻页 —— 那些变体如果没失效就会命中旧缓存，
+ * 表现是**"改了没反应"**（不报错，最难查的那类）。admin 的列表也是这么做的。
+ */
+async function reloadList(): Promise<void> {
+  await queryCache.invalidateQueries({ key: queryKeys.resume.list() })
+}
+
 const {
   data: listPage,
   refresh,
@@ -233,7 +246,8 @@ async function togglePublished(item: PublishableItem) {
   publishBusyId.value = item.id
   try {
     await api.setPublished(item.id, next)
-    await refresh()
+    // 发布/取消发布改的是 `publishedAt`，必须重新取数 —— 否则列表还显示旧状态
+    await reloadList()
     toast.add({
       title: next ? '已发布' : '已取消发布',
       description: next
@@ -572,6 +586,23 @@ function formatUpdatedAt(value: string) {
                   :generating="shareBusyId === item.id"
                   @close="resetShareDraft(item.id)"
                 >
+                  <!--
+                    触发器自带 tooltip：**不把整个 popover 包进 UTooltip** ——
+                    两个浮层嵌套会互抢 hover 与 click。
+                  -->
+                  <template #trigger>
+                    <UTooltip text="分享（生成可撤销的链接）">
+                      <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="i-lucide-share-2"
+                        size="xs"
+                        :loading="shareBusyId === item.id"
+                        :aria-label="`分享「${item.name}」`"
+                      />
+                    </UTooltip>
+                  </template>
+
                   <template #create>
                     <p class="text-sm font-medium">分享「{{ item.name }}」</p>
 
@@ -657,37 +688,40 @@ function formatUpdatedAt(value: string) {
                   />
                 </UTooltip>
 
-                <UTooltip text="重命名">
+                <!--
+                  重命名 / 继续编辑 / 删除收进「更多」下拉（Owner 2026-10-22）：
+                  三个图标并排占的横向空间，在窄屏上会挤掉名字与状态；
+                  而这三个动作的**使用频率远低于**发布、分享、★。
+                -->
+                <UDropdownMenu
+                  :items="[
+                    [{ label: '重命名', icon: 'i-lucide-text-cursor-input', onSelect: () => askRename(item) }],
+                    [
+                      {
+                        label: '继续编辑',
+                        icon: 'i-lucide-pencil',
+                        onSelect: () => navigateTo(`/my-resumes/draft/${item.id}`),
+                      },
+                    ],
+                    [
+                      {
+                        label: '删除（不可恢复）',
+                        icon: 'i-lucide-trash-2',
+                        color: 'error' as const,
+                        onSelect: () => removeResume(item.id, item.name),
+                      },
+                    ],
+                  ]"
+                >
                   <UButton
-                    icon="i-lucide-text-cursor-input"
+                    icon="i-lucide-ellipsis"
                     size="xs"
                     color="neutral"
-                    variant="ghost"
-                    :aria-label="`重命名「${item.name}」`"
-                    @click="askRename(item)"
-                  />
-                </UTooltip>
-                <UTooltip text="继续编辑">
-                  <UButton
-                    :to="`/my-resumes/draft/${item.id}`"
-                    icon="i-lucide-pencil"
-                    size="xs"
-                    color="neutral"
-                    variant="ghost"
-                    :aria-label="`继续编辑「${item.name}」`"
-                  />
-                </UTooltip>
-                <UTooltip text="删除（不可恢复）">
-                  <UButton
-                    icon="i-lucide-trash-2"
-                    size="xs"
-                    color="error"
                     variant="ghost"
                     :loading="busyId === item.id"
-                    :aria-label="`删除「${item.name}」`"
-                    @click="removeResume(item.id, item.name)"
+                    :aria-label="`「${item.name}」更多操作`"
                   />
-                </UTooltip>
+                </UDropdownMenu>
               </div>
             </div>
           </UCard>

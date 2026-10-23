@@ -17,7 +17,7 @@ import { SHARE_STATUS_META, createShareAdminApi } from '#layers/resume/app/apis/
  * 建链要选有效期 / 权限位，属于"发布动作"，入口在用户端（`/my-resumes`）。
  * 后台只做**管理**：看状态、看用量、撤销、改备注。职责分开后，两个界面都简单。
  */
-definePageMeta({ title: '发布管理', middleware: ['auth'] })
+definePageMeta({ title: '发布管理', layout: 'has-sidebar', middleware: ['auth'] })
 
 const api = createShareAdminApi()
 const toast = useToast()
@@ -80,7 +80,25 @@ async function openDetail(item: ShareLinkListItem): Promise<void> {
 }
 
 // ── 撤销 ────────────────────────────────────────────────────────────
+// **二次确认**（Owner 2026-10-22）：撤销是物化的 —— 一旦撤销，这条链接永久失效，
+// 重新分享必须新建链接。这种"不可撤销的撤销"必须让人确认一次。
+const confirmOpen = ref(false)
+const confirmTarget = ref<ShareLinkListItem | null>(null)
 const revokingId = ref<string | null>(null)
+
+function askRevoke(item: ShareLinkListItem): void {
+  confirmTarget.value = item
+  confirmOpen.value = true
+}
+
+async function confirmRevoke(): Promise<void> {
+  const target = confirmTarget.value
+  if (!target) {
+    return
+  }
+  confirmOpen.value = false
+  await revoke(target)
+}
 
 async function revoke(item: ShareLinkListItem): Promise<void> {
   revokingId.value = item.id
@@ -251,7 +269,7 @@ const columns = [
                 variant="ghost"
                 :disabled="row.original.status === 'revoked'"
                 :loading="revokingId === row.original.id"
-                @click="revoke(row.original)"
+                @click="askRevoke(row.original)"
               />
             </UTooltip>
           </div>
@@ -311,6 +329,29 @@ const columns = [
         <div class="flex w-full justify-end gap-2">
           <UButton color="neutral" variant="ghost" label="取消" @click="editOpen = false" />
           <UButton :loading="editBusy" label="保存" @click="saveEdit" />
+        </div>
+      </template>
+    </UModal>
+
+    <!--
+      撤销的二次确认。
+      这里必须确认：撤销是**物化**的 —— 一旦撤销，这条链接永久失效，
+      重新分享必须新建链接。对"不可撤销的撤销"再问一次，是唯一合理的处理。
+    -->
+    <UModal v-model:open="confirmOpen" title="撤销这条分享链接？">
+      <template #body>
+        <p class="text-sm">
+          撤销后<strong class="text-highlighted">立即失效且无法恢复</strong>，拿到链接的人会看到"已被撤销"。
+          重新分享需要新建一条链接。
+        </p>
+        <p v-if="confirmTarget" class="mt-3 rounded-md bg-elevated/60 p-2 text-xs text-muted">
+          {{ confirmTarget.label || '未备注' }} · {{ confirmTarget.resumeName }}
+        </p>
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton color="neutral" variant="ghost" label="取消" @click="confirmOpen = false" />
+          <UButton color="error" label="确认撤销" @click="confirmRevoke" />
         </div>
       </template>
     </UModal>
