@@ -410,16 +410,32 @@ async function createResume() {
   }
 }
 
-async function removeResume(id: number, name: string) {
-  if (!window.confirm(`删除「${name}」？简历本体与草稿都会一并删除，且不可恢复。`)) return
-  busyId.value = id
+// 删除确认用**仓里封装的 `ModalDeleteConfirm`**，不用 `window.confirm`：
+// 原生 confirm 是阻塞对话框，样式与全站不一致、无法显示倒计时防误删，
+// 而且在 SSR/移动端表现各异（有的环境直接返回 true，等于**没有确认**）。
+const deleteOpen = ref(false)
+const deleteTarget = ref<{ id: number; name: string } | null>(null)
+
+function removeResume(item: { id: number; name: string }) {
+  deleteTarget.value = item
+  deleteOpen.value = true
+}
+
+async function confirmDelete(): Promise<void> {
+  const target = deleteTarget.value
+  if (!target) {
+    return
+  }
+  busyId.value = target.id
   try {
-    await api.remove(String(id))
-    await refresh()
+    await api.remove(String(target.id))
+    await reloadList()
+    toast.add({ title: '已删除', description: `「${target.name}」及其内容已永久删除。`, color: 'success' })
   } catch (problem) {
     toast.add({ title: '删除失败', description: normalizeApiError(problem).message, color: 'error' })
   } finally {
     busyId.value = null
+    deleteTarget.value = null
   }
 }
 
@@ -708,7 +724,7 @@ function formatUpdatedAt(value: string) {
                         label: '删除（不可恢复）',
                         icon: 'i-lucide-trash-2',
                         color: 'error' as const,
-                        onSelect: () => removeResume(item.id, item.name),
+                        onSelect: () => removeResume(item),
                       },
                     ],
                   ]"
@@ -764,5 +780,16 @@ function formatUpdatedAt(value: string) {
     </template>
 
     <ResumeAdminLoginModal v-model:open="loginOpen" />
+
+    <!-- 删除确认：带 3 秒倒计时，防误点（与 admin 简历列表同一个组件） -->
+    <ModalDeleteConfirm
+      v-model:open="deleteOpen"
+      title="删除这份简历？"
+      :content="`「${deleteTarget?.name ?? ''}」及其全部内容会被永久删除，无法恢复。`"
+      confirm-text="删除"
+      cancel-text="取消"
+      :cooldown="3"
+      :confirm="confirmDelete"
+    />
   </main>
 </template>
