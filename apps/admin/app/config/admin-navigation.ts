@@ -19,6 +19,13 @@ export const adminNavigation: AdminNavigationItem[] = [
     to: '/resume',
   },
   {
+    // 发布管理（分享链接）。与「简历」并列：它回答的是
+    // "我已经发出去的链接现在什么状态"，属于同一层的作者事务。
+    label: '发布管理',
+    icon: 'i-lucide-share-2',
+    to: '/shares',
+  },
+  {
     // 审计：**入口对所有人可见**（Owner 2026-10-16）—— 非超管点进去拿 403，
     // 那本身就是答案："系统有审计，但你没这个权限"。
     // 真正的拦阻在 middleware/permission.ts 与后端 assertAuditViewer 两处。

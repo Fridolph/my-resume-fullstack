@@ -31,6 +31,14 @@ export default defineRsNuxtConfig(
       public: {
         /** 401 时请求层把人送到这里（web 端不用跳转，所以不配） */
         loginPath: '/login',
+        /**
+         * **用户端**的地址（分享链接要拼在它下面）。
+         *
+         * admin 与 web 是两个端口/域名，服务端也不知道前端 origin，
+         * 所以分享 URL 只能在 admin 侧拼。**公开地址、不是密钥**；
+         * 部署时用 `NUXT_PUBLIC_WEB_ORIGIN` 覆盖。
+         */
+        webOrigin: process.env.NUXT_PUBLIC_WEB_ORIGIN ?? 'http://localhost:4041',
       },
     },
   },
